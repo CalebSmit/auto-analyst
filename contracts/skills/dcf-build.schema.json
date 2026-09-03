@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/dcf-build@1.0.0",
+  "title": "DCF build output",
+  "description": "Discount rate, forecast structure and terminal value, and the range they imply. The range is two figures because a single point value would read as a conclusion, and this system concludes nothing.",
+  "x-skill": "dcf-build",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "dcf_inputs",
+    "indicated_range"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/dcf-build@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^dcf[-]build@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "dcf_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discount_rate",
+        "forecast",
+        "terminal_value"
+      ],
+      "properties": {
+        "discount_rate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rate",
+            "components"
+          ],
+          "properties": {
+            "rate": {
+              "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+            },
+            "components": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "value",
+                  "source"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "value": {
+                    "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "forecast": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "drivers",
+            "assumptions"
+          ],
+          "properties": {
+            "drivers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "basis",
+                  "values"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "basis": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "values": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+                    }
+                  }
+                }
+              }
+            },
+            "assumptions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "statement",
+                  "basis"
+                ],
+                "properties": {
+                  "statement": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "basis": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "description": "Every assumption stated explicitly. A driver with no historical basis is an escalation, not a default."
+            }
+          }
+        },
+        "terminal_value": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "method",
+            "value",
+            "inputs"
+          ],
+          "properties": {
+            "method": {
+              "enum": [
+                "gordon_growth",
+                "exit_multiple"
+              ]
+            },
+            "value": {
+              "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+            },
+            "inputs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "value": {
+                    "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "indicated_range": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+      },
+      "description": "Exactly two figures, low then high. The schema forbids a point value structurally rather than asking the skill to remember."
+    }
+  }
+}

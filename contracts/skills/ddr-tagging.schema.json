@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/ddr-tagging@1.0.0",
+  "title": "DDR tagging output",
+  "description": "Tagged fields against the request schedule, and every schedule item that went unanswered. The outstanding list is the honest half of this output: a schedule item with no matching response is reported, never inferred from an adjacent one.",
+  "x-skill": "ddr-tagging",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "tagged_fields",
+    "outstanding_items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/ddr-tagging@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^ddr[-]tagging@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "tagged_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schedule_item_id",
+          "field_name",
+          "value",
+          "source_id",
+          "locator",
+          "confidence",
+          "review_required"
+        ],
+        "properties": {
+          "schedule_item_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "field_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+              }
+            ],
+            "description": "Text as extracted, or a figure envelope when the answer is a number. A number never arrives as bare text - it would then carry no scale and no source."
+          },
+          "source_id": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          },
+          "locator": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "review_required": {
+            "type": "boolean"
+          },
+          "verified_second_pass": {
+            "type": "boolean",
+            "description": "Set by the self-verification invocation, which sees the excerpt and the proposal but never the first pass's reasoning."
+          }
+        }
+      }
+    },
+    "outstanding_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schedule_item_id",
+          "description",
+          "reason"
+        ],
+        "properties": {
+          "schedule_item_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "enum": [
+              "no_response_found",
+              "response_illegible",
+              "response_ambiguous",
+              "answers_item_not_on_schedule"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

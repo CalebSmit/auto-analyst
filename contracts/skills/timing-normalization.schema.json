@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/timing-normalization@1.0.0",
+  "title": "Timing normalization output",
+  "description": "One historical table across periods and files, plus the report of everything that did not line up. All arithmetic happened in the timing_normalizer tool; this is the mapping it executed and the result.",
+  "x-skill": "timing-normalization",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "normalized_historicals",
+    "alignment_report"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/timing-normalization@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^timing[-]normalization@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "normalized_historicals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "periods",
+        "line_items"
+      ],
+      "properties": {
+        "periods": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "type",
+              "end"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "enum": [
+                  "FY",
+                  "CY",
+                  "LTM",
+                  "YTD",
+                  "Q",
+                  "M",
+                  "POINT"
+                ]
+              },
+              "end": {
+                "type": "string",
+                "format": "date"
+              },
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "line_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "canonical_label",
+              "values"
+            ],
+            "properties": {
+              "canonical_label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "values": {
+                "type": "array",
+                "items": {
+                  "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+                },
+                "description": "One figure per period. A period with no value is absent, not zero."
+              }
+            }
+          }
+        }
+      }
+    },
+    "alignment_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "matched",
+        "unmatched",
+        "period_gaps"
+      ],
+      "properties": {
+        "matched": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "canonical_label",
+              "source_labels"
+            ],
+            "properties": {
+              "canonical_label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "kind": {
+                "enum": [
+                  "exact",
+                  "rename",
+                  "split",
+                  "merge"
+                ]
+              }
+            }
+          }
+        },
+        "unmatched": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_label",
+              "file_source_id",
+              "reason"
+            ],
+            "properties": {
+              "source_label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "file_source_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "period_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "period_label",
+              "why"
+            ],
+            "properties": {
+              "period_label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Reported. Never interpolated."
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "period_label",
+              "source_ids",
+              "detail"
+            ],
+            "properties": {
+              "period_label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "detail": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Two files claiming the same period with different figures. A disagreement is information; it reaches a person intact."
+        }
+      }
+    }
+  }
+}

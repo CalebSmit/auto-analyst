@@ -1,0 +1,224 @@
+# The Constraint Registry.
+#
+# The twin of the Contract Registry: contracts say what shapes are legal, constraints
+# say what actions are legal. Before this file existed the answer to "what is this
+# system allowed to do?" was spread across skill frontmatter, the checkpoint policy,
+# the budget defaults and four guards — which is not an answer a risk committee can
+# accept and not one a developer can maintain.
+#
+# The Policy Gate (P10) evaluates these predicates against a proposed action BEFORE it
+# executes. The Graph Compiler (P06) asserts against the same file at compile time, so
+# a skill declaring a tool the constraints forbid fails the build rather than the run.
+#
+# What is NOT here: guard logic. A constraint decides whether an act is permitted; a
+# guard checks a result. And no entry in this file can disable a guard — see
+# `immutability` at the foot.
+
+version: 1.0.0
+
+# ── The tool namespace ────────────────────────────────────────────────────────────
+#
+# Six names, and only three of them are compute tools. The other three resolve to
+# gated reads of a versioned data resource (finding F3): building the Guarded Tool
+# Runtime for compute tools alone would have left half the namespace unpoliced.
+tools:
+  recompute:
+    kind: computes
+    node: t_recompute
+    read_only: false
+    caps:
+      max_rows: 50000
+      max_calls_per_step: 200
+    note: The only arithmetic a skill can cause. Used by six skills.
+
+  timing_normalizer:
+    kind: computes
+    node: t_timing
+    read_only: false
+    caps:
+      max_rows: 50000
+      max_periods: 40
+      max_calls_per_step: 20
+
+  chart_of_accounts_lookup:
+    kind: reads
+    node: coa_taxonomy
+    read_only: true
+    caps:
+      max_rows: 5000
+      pinned_version_required: true
+
+  precedent_lookup:
+    kind: reads
+    node: precedent_store
+    read_only: true
+    caps:
+      max_rows: 200
+      scope_required: true
+    note: >-
+      Retrieved scope-built, never the whole store. A repeat client sees its own prior
+      decisions first, and never another engagement's.
+
+  index_lookup:
+    kind: reads
+    node: index_gate
+    read_only: true
+    caps:
+      max_rows: 500
+      freshness_days: 400
+    note: Index first. A miss is returned as an explicit miss, never as a remembered value.
+
+  template_schema_lookup:
+    kind: reads
+    node: t_registry
+    read_only: true
+    caps:
+      max_rows: 2000
+
+# ── Which skill may call which tool ───────────────────────────────────────────────
+#
+# Taken from each skill's declared frontmatter. A tool call from a skill that has not
+# declared it is POLICY.TOOL_NOT_DECLARED — a denial, recorded, before execution.
+tool_allowlists:
+  ddr-tagging: [chart_of_accounts_lookup]
+  timing-normalization: [timing_normalizer]
+  line-item-tagging: [chart_of_accounts_lookup, precedent_lookup]
+  ebitda-normalization: [recompute, chart_of_accounts_lookup, precedent_lookup]
+  dcf-build: [recompute]
+  gpc-scrub: [index_lookup]
+  cost-of-capital: [index_lookup]
+  model-load: [template_schema_lookup]
+  dol-adequate-consideration: [recompute]
+  repurchase-obligation: [recompute]
+  prior-year-rollforward: [precedent_lookup, recompute]
+  first-year-baseline: [chart_of_accounts_lookup]
+  qc-tieout: [recompute]
+
+# ── Argument predicates ───────────────────────────────────────────────────────────
+#
+# Evaluated against the proposed action's arguments. Every one fails closed: an
+# argument the predicate cannot evaluate is a denial, not a pass.
+predicates:
+  - id: engagement_scoped
+    applies_to: [all]
+    rule: args.engagement_id == run.engagement_id
+    diagnostic: POLICY.ARG_OUT_OF_SCOPE
+    why: >-
+      Reading another engagement's folder returns perfectly valid data, which is
+      exactly why only a pre-execution check catches it. Cross-client bleed is the
+      failure that would end this project.
+
+  - id: path_within_engagement
+    applies_to: [all]
+    rule: every path argument resolves under run.engagement_root
+    diagnostic: POLICY.ARG_OUT_OF_SCOPE
+
+  - id: read_only_tools_write_nothing
+    applies_to: [chart_of_accounts_lookup, precedent_lookup, index_lookup, template_schema_lookup]
+    rule: action.mode == "read"
+    diagnostic: POLICY.ARG_OUT_OF_SCOPE
+
+  - id: row_cap
+    applies_to: [all]
+    rule: args.limit <= tools[action.tool].caps.max_rows
+    diagnostic: POLICY.ARG_OUT_OF_SCOPE
+
+  - id: precedent_scope_declared
+    applies_to: [precedent_lookup]
+    rule: args.scope is present and args.scope is within run.resolved_scope
+    diagnostic: POLICY.ARG_OUT_OF_SCOPE
+
+  - id: pinned_versions_only
+    applies_to: [chart_of_accounts_lookup, template_schema_lookup]
+    rule: args.version == run.versions[tool]
+    diagnostic: POLICY.ARG_OUT_OF_SCOPE
+    why: A run that read two taxonomy versions cannot say which one it tagged against.
+
+  - id: budget_remaining
+    applies_to: [all]
+    rule: estimated_cost_usd <= run.budget_remaining_usd
+    diagnostic: POLICY.BUDGET_EXCEEDED
+
+# ── Ceilings ──────────────────────────────────────────────────────────────────────
+#
+# The failure these exist for is a repair loop and a conflict loop interacting on one
+# pathological document and spending four figures overnight. A ceiling turns that from
+# an invoice into a caught incident with a quarantine record attached.
+ceilings:
+  per_run:
+    usd_max: 40.00
+    model_calls_max: 120
+    wall_clock_s: 5400
+    loop_iterations_max: 8
+  per_step:
+    usd_max: 6.00
+    timeout_s: 300
+    transport_retries_max: 2
+  note: >-
+    transport_retries covers transport failures only. A guard failure is never a
+    retry — it is a loop iteration, and it must change the input to count.
+
+# ── Declared loops ────────────────────────────────────────────────────────────────
+#
+# Every loop is declared with an integer maximum the compiler checks. No agent decides
+# for itself whether to try again. Only in_run loops are cycles in a plan graph.
+loops:
+  guard_repair:       { scope: in_run, max_iterations: 2 }
+  tieout_repair:      { scope: in_run, max_iterations: 1 }
+  self_verification:  { scope: in_run, max_iterations: 1 }
+  conflict_resolution: { scope: in_run, max_iterations: 1 }
+  human_clarification: { scope: run_spanning, max_iterations: 1 }
+  drift_re_review:    { scope: cross_run, max_iterations: null }
+rules:
+  - An iteration whose input is byte-identical to the previous attempt is refused.
+  - Every iteration counts against the run ceiling as well as its own local maximum.
+  - Exhaustion always produces an artifact — a quarantine record or a review item.
+  - A repair loop may change the input to the step. Never the guard, the tolerance or
+    the schema.
+  - Self-verification and conflict resolution use a separate invocation, never another
+    turn in the same context.
+
+# ── Materiality ───────────────────────────────────────────────────────────────────
+#
+# The firm floor. An engagement profile may set a threshold at or below this; it may
+# never set one above it, because that would be an engagement quietly reviewing less
+# than the firm requires.
+materiality:
+  firm_floor:
+    amount: 25000
+    currency: USD
+  forces_review_regardless_of_confidence:
+    - addback above the engagement materiality threshold
+    - company-specific risk premium, always
+    - any treatment that differs from the prior year
+    - any decision that binds future years
+    - every ESOP-segment output
+
+# ── Immutability ──────────────────────────────────────────────────────────────────
+#
+# Guards are not configurable. This file can tighten what the system may do; nothing
+# in it can loosen what the system must check.
+immutability:
+  admin_may_raise:
+    - a review requirement (hitl floor)
+    - a privacy class
+    - a materiality threshold, downward only (a lower threshold reviews more)
+  admin_may_never:
+    - disable a guard, or any check that fails closed
+    - lower a review requirement set by a shallower scope layer
+    - widen a tool allowlist beyond a skill's declared frontmatter
+    - raise a materiality threshold above the firm floor
+    - alter a tie-out tolerance from inside a run
+  fail_closed_nodes:
+    - policy_gate
+    - schema_gate
+    - provenance_gate
+    - tieout_gate
+    - numeric_lock
+    - unmask_verify
+    - untrusted_boundary
+    - payload_scan
+  note: >-
+    No configuration edge reaches a node that can fail closed. Config writes the
+    engagement record; guards read the run. A guarantee with a dial on it is not a
+    guarantee.

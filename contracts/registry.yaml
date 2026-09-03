@@ -1,0 +1,152 @@
+# The Contract Registry index.
+#
+# This file is the pin. The loader reads only what is listed here, at exactly the
+# version listed here: a schema file on disk that is not in this index is an error,
+# and so is a request for an id or a version this index does not name. That is the
+# whole point of a registry — "whatever schema happens to be in the folder" is not a
+# version, and a run that cannot say which contract version it validated against
+# cannot be reproduced.
+#
+# Adding or changing a contract is a breaking change and goes through review exactly
+# like a skill change. Bump the version, add the entry, leave the old one listed for
+# as long as any recorded run cites it.
+
+version: 1.0.0
+base_uri: https://chartwell.invalid/contracts/
+
+# Every contract, keyed <path>@<version>. The key is what a compiled Step carries in
+# its output_schema field and what the run manifest records.
+contracts:
+  - id: figure
+    version: 1.0.0
+    file: figure.schema.json
+    kind: envelope
+    note: >-
+      The load-bearing one. Every guard on the map is an assertion about this shape,
+      which is why it is defined once here rather than restated in each skill output.
+
+  - id: event
+    version: 1.0.0
+    file: event.schema.json
+    kind: event
+
+  - id: run_manifest
+    version: 1.0.0
+    file: run_manifest.schema.json
+    kind: manifest
+
+  - id: engagement_profile
+    version: 1.0.0
+    file: engagement_profile.schema.json
+    kind: configuration
+    note: >-
+      Finding F1. Three skills declared this as a required input and nothing produced
+      it. Configuration writes the engagement record (invariant 23), so the gap was a
+      missing contract rather than a missing design. P24 checks it at activation.
+
+  - id: participant_census
+    version: 1.0.0
+    file: participant_census.schema.json
+    kind: intake_document
+    note: >-
+      The other half of F1. Repurchase Obligation declared it and nothing produced it,
+      because it is not produced — it is a client document, and the fix was to declare
+      the type rather than to invent a producer.
+
+  - id: skills/ddr-tagging
+    version: 1.0.0
+    file: skills/ddr-tagging.schema.json
+    kind: skill_output
+  - id: skills/timing-normalization
+    version: 1.0.0
+    file: skills/timing-normalization.schema.json
+    kind: skill_output
+  - id: skills/line-item-tagging
+    version: 1.0.0
+    file: skills/line-item-tagging.schema.json
+    kind: skill_output
+  - id: skills/ebitda-normalization
+    version: 1.0.0
+    file: skills/ebitda-normalization.schema.json
+    kind: skill_output
+  - id: skills/dcf-build
+    version: 1.0.0
+    file: skills/dcf-build.schema.json
+    kind: skill_output
+  - id: skills/gpc-scrub
+    version: 1.0.0
+    file: skills/gpc-scrub.schema.json
+    kind: skill_output
+  - id: skills/cost-of-capital
+    version: 1.0.0
+    file: skills/cost-of-capital.schema.json
+    kind: skill_output
+  - id: skills/model-load
+    version: 1.0.0
+    file: skills/model-load.schema.json
+    kind: skill_output
+  - id: skills/dol-adequate-consideration
+    version: 1.0.0
+    file: skills/dol-adequate-consideration.schema.json
+    kind: skill_output
+  - id: skills/repurchase-obligation
+    version: 1.0.0
+    file: skills/repurchase-obligation.schema.json
+    kind: skill_output
+  - id: skills/prior-year-rollforward
+    version: 1.0.0
+    file: skills/prior-year-rollforward.schema.json
+    kind: skill_output
+  - id: skills/first-year-baseline
+    version: 1.0.0
+    file: skills/first-year-baseline.schema.json
+    kind: skill_output
+  - id: skills/qc-tieout
+    version: 1.0.0
+    file: skills/qc-tieout.schema.json
+    kind: skill_output
+
+# The document types intake may bind an arriving file to. A file that does not bind to
+# a declared type is never processed "to figure out later what it is" — it fails
+# closed at the Document Type Binder (P16). Declaring the type here is what makes a
+# skill able to require it as an input.
+#
+# Only the types with a contract are validated on arrival; the rest are declared so
+# that binding, sweeping and coverage-gap reporting have a closed vocabulary to work
+# against. Their readers and schemas land with P17.
+intake_document_types:
+  - id: participant_census
+    contract: participant_census@1.0.0
+    supplied_by: plan administrator
+    privacy_class: masked_only
+    required_by: [repurchase-obligation]
+  - id: ddr_response
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: [ddr-tagging]
+  - id: request_schedule
+    contract: null
+    supplied_by: firm
+    privacy_class: masked_only
+    required_by: [ddr-tagging]
+  - id: financial_statements
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: [timing-normalization]
+  - id: trial_balance
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: [timing-normalization]
+  - id: tax_return
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+  - id: plan_document
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []

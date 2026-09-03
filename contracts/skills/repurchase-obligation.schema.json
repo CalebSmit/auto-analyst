@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/repurchase-obligation@1.0.0",
+  "title": "Repurchase obligation output",
+  "description": "The projected obligation and its effect on the range, stated as a sensitivity. Never folded silently into anything - the point is that a reviewer can see it as a separate number.",
+  "x-skill": "repurchase-obligation",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "repurchase_schedule"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/repurchase-obligation@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^repurchase[-]obligation@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "repurchase_schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "census_source_id",
+        "projections",
+        "range_sensitivity"
+      ],
+      "properties": {
+        "census_source_id": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "projections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "plan_year",
+              "participants_distributing",
+              "distribution_amount"
+            ],
+            "properties": {
+              "plan_year": {
+                "type": "integer",
+                "minimum": 1900,
+                "maximum": 2200
+              },
+              "participants_distributing": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "distribution_amount": {
+                "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+              },
+              "shares_repurchased": {
+                "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+              }
+            }
+          }
+        },
+        "range_sensitivity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "basis",
+            "effect"
+          ],
+          "properties": {
+            "basis": {
+              "type": "string",
+              "minLength": 1
+            },
+            "effect": {
+              "type": "array",
+              "items": {
+                "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+              }
+            }
+          }
+        },
+        "census_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "why"
+            ],
+            "properties": {
+              "what": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "A missing or stale census is reported here. It is never estimated."
+        }
+      }
+    }
+  }
+}

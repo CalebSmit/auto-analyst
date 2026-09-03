@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/figure@1.0.0",
+  "title": "Figure envelope",
+  "description": "The one contract every guard is really about. Defined once here and referenced by every skill output schema, because a shape restated per skill is a shape that drifts per skill. Every numeric value that leaves a skill wears this envelope.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "value",
+    "unit",
+    "scale",
+    "period",
+    "source_id",
+    "locator",
+    "source_version",
+    "derivation",
+    "masked",
+    "confidence",
+    "produced_by",
+    "model_pin"
+  ],
+  "properties": {
+    "value": {
+      "type": "number",
+      "description": "The figure as stated, in the units given by unit and scale."
+    },
+    "unit": {
+      "enum": ["currency", "count", "ratio", "percent", "multiple", "years", "shares"],
+      "description": "What kind of quantity this is. A ratio is not a currency amount with the symbol left off."
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217. Required when unit is currency, forbidden otherwise."
+    },
+    "scale": {
+      "enum": [1, 1000, 1000000],
+      "description": "The multiplier already applied to value. Required, never defaulted and never inferred downstream: a trial balance in thousands read as units is the failure this field exists to make impossible."
+    },
+    "period": { "$ref": "#/$defs/period" },
+    "source_id": {
+      "type": "string",
+      "description": "Content hash of the intake document this figure was read from. Must exist in this run's intake manifest - the Provenance Check verifies that; this schema only enforces the shape and refuses provenance that names the system's own reasoning.",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "not": {
+        "title": "FABRICATED_SOURCE",
+        "description": "An id naming the system's own reasoning rather than a document. Rejected as hard as a missing one - a figure whose source is 'derived' has no source.",
+        "type": "string",
+        "pattern": "(?i)^(sha256:)?(derived|model|analysis|analyses|estimate|estimated|assumed|assumption|calculated|computed|inferred|internal|unknown|none|n/?a)$"
+      }
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Where in that document: sheet!range for a workbook, page/table/row for a document. Resolves against the Source Parse Store (P17)."
+    },
+    "source_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Which version of that source. A client sending a corrected trial balance does not silently rewrite history."
+    },
+    "derivation": {
+      "description": "How the figure was arrived at, or null for a figure read directly off the page. Required either way - a figure that will not say whether it was read or computed cannot be tied out.",
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/derivation" }]
+    },
+    "masked": {
+      "type": "boolean",
+      "description": "True until the unmask step. A figure leaving a skill is always masked; only deterministic code sets this false."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "The producer's self-report. Routes review; it is never evidence, and it never resolves a disagreement."
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*@[0-9]+[.][0-9]+[.][0-9]+$",
+      "description": "skill-name@version, pinned. A figure that cannot name the skill version that produced it cannot be defended."
+    },
+    "model_pin": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The exact model and effort setting, e.g. 'claude-sonnet-5 @ effort=high'."
+    }
+  },
+  "allOf": [
+    {
+      "title": "CURRENCY_REQUIRES_A_CURRENCY_CODE",
+      "if": { "properties": { "unit": { "const": "currency" } }, "required": ["unit"] },
+      "then": { "required": ["currency"] },
+      "else": { "not": { "required": ["currency"] } }
+    }
+  ],
+  "$defs": {
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "end"],
+      "description": "Explicit period typing. 'the 2023 numbers' is not a period.",
+      "properties": {
+        "type": { "enum": ["FY", "CY", "LTM", "YTD", "Q", "M", "POINT"] },
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" },
+        "fiscal_year_end_month": { "type": "integer", "minimum": 1, "maximum": 12 }
+      }
+    },
+    "derivation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "of"],
+      "description": "The operation and the operands the Recompute Engine re-derives from. 'of' holds locators into the same run's parsed sources, so tie-out can reach the rows without asking the model what they were.",
+      "properties": {
+        "op": { "enum": ["sum", "difference", "product", "quotient", "average", "annualize", "restate_scale"] },
+        "of": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "tolerance": { "type": "number", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/first-year-baseline@1.0.0",
+  "title": "First-year baseline output",
+  "description": "The conventions a new client's file will be built on, recorded so next year's roll-forward has something to read. Every decision that binds future years goes to review - all of them.",
+  "x-skill": "first-year-baseline",
+  "x-emits-figures": false,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "baseline_record"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/first-year-baseline@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^first[-]year[-]baseline@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "baseline_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chart_of_accounts_mapping",
+        "conventions",
+        "binding_decisions"
+      ],
+      "properties": {
+        "chart_of_accounts_mapping": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "client_label",
+              "firm_category",
+              "why"
+            ],
+            "properties": {
+              "client_label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "firm_category": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "conventions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "period_basis",
+            "scale",
+            "addback_policy"
+          ],
+          "properties": {
+            "period_basis": {
+              "enum": [
+                "calendar",
+                "fiscal",
+                "52_53_week"
+              ]
+            },
+            "scale": {
+              "enum": [
+                1,
+                1000,
+                1000000
+              ]
+            },
+            "addback_policy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "taxonomy_version": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "binding_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "decision",
+              "rationale",
+              "alternative_considered",
+              "review_required"
+            ],
+            "properties": {
+              "decision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              },
+              "alternative_considered": {
+                "type": "string",
+                "minLength": 1
+              },
+              "review_required": {
+                "const": true,
+                "description": "A convention adopted now constrains every later year. None of those are set without a person."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

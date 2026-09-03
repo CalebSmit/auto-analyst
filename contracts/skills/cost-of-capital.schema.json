@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/cost-of-capital@1.0.0",
+  "title": "Cost of capital output",
+  "description": "A discount rate with the build-up shown, every component sourced and dated. The company-specific adjustment is always a proposal marked for review - that is a judgment, and judgments belong to people.",
+  "x-skill": "cost-of-capital",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "cost_of_capital"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/cost-of-capital@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^cost[-]of[-]capital@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "cost_of_capital": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "components",
+        "rate",
+        "company_specific_adjustment"
+      ],
+      "properties": {
+        "method": {
+          "enum": [
+            "buildup",
+            "capm",
+            "capm_with_size_premium"
+          ]
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "value",
+              "source",
+              "as_of"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {
+                "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              },
+              "as_of": {
+                "type": "string",
+                "format": "date"
+              },
+              "basis": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "rate": {
+          "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+        },
+        "company_specific_adjustment": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "rationale",
+            "review_required"
+          ],
+          "properties": {
+            "value": {
+              "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+            },
+            "rationale": {
+              "type": "string",
+              "minLength": 1
+            },
+            "review_required": {
+              "const": true,
+              "description": "Always. Not a threshold and not a confidence test - the field cannot hold false."
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/dol-adequate-consideration@1.0.0",
+  "title": "DOL adequate consideration record",
+  "description": "The record of what was done, assembled for a trustee to read: the process followed, the inputs relied on, and everything still unresolved. There is deliberately no field in which adequacy could be asserted. The appraiser signs, outside this system, and a schema with such a field would be an invitation to fill it in.",
+  "x-skill": "dol-adequate-consideration",
+  "x-emits-figures": false,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "adequate_consideration_record"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/dol-adequate-consideration@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^dol[-]adequate[-]consideration@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "adequate_consideration_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "inputs_relied_on",
+        "process_steps",
+        "unresolved_items",
+        "assumptions_requiring_confirmation",
+        "independence_checklist"
+      ],
+      "properties": {
+        "inputs_relied_on": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "source_id",
+              "as_of"
+            ],
+            "properties": {
+              "what": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "as_of": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          }
+        },
+        "process_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "step",
+              "performed",
+              "evidence"
+            ],
+            "properties": {
+              "step": {
+                "type": "string",
+                "minLength": 1
+              },
+              "performed": {
+                "type": "boolean"
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "unresolved_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "why_it_matters"
+            ],
+            "properties": {
+              "what": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why_it_matters": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "assumptions_requiring_confirmation": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "assumption",
+              "who_must_confirm"
+            ],
+            "properties": {
+              "assumption": {
+                "type": "string",
+                "minLength": 1
+              },
+              "who_must_confirm": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "independence_checklist": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "question",
+              "answer"
+            ],
+            "properties": {
+              "question": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "enum": [
+                  "yes",
+                  "no",
+                  "not_established"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "related_party_indications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "what",
+              "source_id"
+            ],
+            "properties": {
+              "what": {
+                "type": "string",
+                "minLength": 1
+              },
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

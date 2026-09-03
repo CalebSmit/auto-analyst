@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/run_manifest@1.0.0",
+  "title": "Run manifest",
+  "description": "The permanent record of one run, assembled from the run store at completion and written unconditionally - including when the run halted, which is the case a manifest is most needed for. It answers the question a review actually asks: what did the system check, on what sources, using which versions, and what did it find. Nothing in it concludes anything.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "engagement_id",
+    "started_at",
+    "ended_at",
+    "outcome",
+    "plan_hash",
+    "versions",
+    "sources",
+    "steps",
+    "guard_events",
+    "human_decisions",
+    "coverage_gaps",
+    "cost"
+  ],
+  "properties": {
+    "schema_version": { "const": "run_manifest@1.0.0" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "engagement_id": { "type": "string", "minLength": 1 },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "outcome": {
+      "enum": ["clean", "released_with_review", "halted", "blocked"],
+      "description": "Computed against versioned criteria by the Run Scorecard. Four values rather than pass/fail because 'halted before producing anything' and 'delivered but three figures needed a person' are not the same event, and conflating them hides the one thing a practice lead needs to see."
+    },
+    "plan_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_pin", "skills", "contracts", "constraints", "taxonomy"],
+      "description": "Everything a run has to be able to name to be reproducible. A workfile that cannot say which model produced a figure is a workfile that cannot be defended.",
+      "properties": {
+        "model_pin": { "type": "string", "minLength": 1 },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*@[0-9]+[.][0-9]+[.][0-9]+$" }
+        },
+        "contracts": { "type": "string", "minLength": 1 },
+        "constraints": { "type": "string", "minLength": 1 },
+        "taxonomy": { "type": "string", "minLength": 1 },
+        "template_version": {
+          "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }],
+          "description": "Null on a run that produced no workbook. 'Why does this model look different from that one' should not be archaeology."
+        },
+        "prompt_version": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
+      }
+    },
+    "tieout_tolerance": {
+      "type": "number",
+      "minimum": 0,
+      "description": "The tolerance tie-out compared against on this run, recorded so a later reader is not guessing which one applied."
+    },
+    "sources": {
+      "type": "array",
+      "description": "Every file that entered the run, with the hash every figure cites.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "filename", "document_type", "source_version", "received_at"],
+        "properties": {
+          "source_id": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "filename": { "type": "string", "minLength": 1 },
+          "document_type": { "type": "string", "minLength": 1 },
+          "source_version": { "type": "integer", "minimum": 1 },
+          "received_at": { "type": "string", "format": "date-time" },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step_id", "kind", "status", "step_key"],
+        "properties": {
+          "step_id": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["skill", "tool", "guard", "human", "io"] },
+          "skill": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] },
+          "status": { "enum": ["completed", "failed", "skipped", "quarantined", "not_reached"] },
+          "step_key": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "description": "The idempotency key. A retry, a resume and a manual re-run are the same operation because of this field."
+          },
+          "attempts": { "type": "integer", "minimum": 1 },
+          "loop": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
+        }
+      }
+    },
+    "guard_events": {
+      "type": "array",
+      "description": "Every guard result, passes included. Silence must never be ambiguous.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["guard", "result", "checked", "at"],
+        "properties": {
+          "guard": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "result": { "enum": ["pass", "fail"] },
+          "checked": { "type": "integer", "minimum": 0 },
+          "failed": { "type": "integer", "minimum": 0 },
+          "diagnostic_code": {
+            "oneOf": [
+              { "type": "null" },
+              { "type": "string", "pattern": "^(INTAKE|SCOPE|PRIVACY|POLICY|SKILL|GUARD|DELIVER|LOOP|PROCESS)[.][A-Z][A-Z0-9_]*$" }
+            ]
+          },
+          "at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "human_decisions": {
+      "type": "array",
+      "description": "Who decided what, and on which item. The only kind of event that may later write to the Precedent Store.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item_id", "decided_by", "decided_at", "decision"],
+        "properties": {
+          "item_id": { "type": "string", "minLength": 1 },
+          "decided_by": { "type": "string", "minLength": 1 },
+          "decided_at": { "type": "string", "format": "date-time" },
+          "decision": { "enum": ["accepted", "corrected", "rejected", "escalated"] },
+          "rationale": { "type": "string" },
+          "writes_precedent": { "type": "boolean" }
+        }
+      }
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "description": "What was expected and absent. A gap is recorded, never interpolated.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["what", "why"],
+        "properties": {
+          "what": { "type": "string", "minLength": 1 },
+          "why": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "content_hash", "written_at"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "content_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "written_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_usd", "model_calls"],
+      "properties": {
+        "total_usd": { "type": "number", "minimum": 0 },
+        "model_calls": { "type": "integer", "minimum": 0 },
+        "input_tokens": { "type": "integer", "minimum": 0 },
+        "output_tokens": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

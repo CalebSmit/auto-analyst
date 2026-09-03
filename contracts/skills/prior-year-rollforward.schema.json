@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/prior-year-rollforward@1.0.0",
+  "title": "Prior-year roll-forward output",
+  "description": "Last year's approved treatments carried forward, and every difference stated explicitly. A changed treatment is the finding, not an inconvenience, so it goes to review whatever the confidence says.",
+  "x-skill": "prior-year-rollforward",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "rollforward_report"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/prior-year-rollforward@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^prior[-]year[-]rollforward@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "rollforward_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prior_engagement_id",
+        "carried_forward",
+        "changed",
+        "new_items",
+        "retired_items"
+      ],
+      "properties": {
+        "prior_engagement_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "carried_forward": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "line_item_ref",
+              "treatment"
+            ],
+            "properties": {
+              "line_item_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Stable reference to a line item in the normalized historicals."
+              },
+              "treatment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "prior_decision_ref": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "changed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "line_item_ref",
+              "prior_treatment",
+              "current_treatment",
+              "why",
+              "review_required"
+            ],
+            "properties": {
+              "line_item_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Stable reference to a line item in the normalized historicals."
+              },
+              "prior_treatment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "current_treatment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1
+              },
+              "amount_delta": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+                  }
+                ]
+              },
+              "review_required": {
+                "const": true,
+                "description": "Always. Anything treated differently from last year is seen by a person."
+              }
+            }
+          }
+        },
+        "new_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "line_item_ref",
+              "description"
+            ],
+            "properties": {
+              "line_item_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Stable reference to a line item in the normalized historicals."
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "retired_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "line_item_ref",
+              "description"
+            ],
+            "properties": {
+              "line_item_ref": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Stable reference to a line item in the normalized historicals."
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "chart_of_accounts_changed": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

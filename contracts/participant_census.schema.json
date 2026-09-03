@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/participant_census@1.0.0",
+  "title": "Participant census",
+  "description": "An ESOP participant census as supplied by the plan administrator: counts, ages, balances and vesting. A declared intake document type, not a system output - the Repurchase Obligation skill reports the gap when it is absent rather than estimating one.",
+  "type": "object",
+  "additionalProperties": false,
+  "x-intake-document-type": "participant_census",
+  "x-privacy-class": "masked_only",
+  "required": ["document_type", "source_id", "as_of", "plan_year", "masked", "participants"],
+  "properties": {
+    "document_type": { "const": "participant_census" },
+    "source_id": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "The intake fingerprint of the file this was parsed from."
+    },
+    "as_of": { "type": "string", "format": "date" },
+    "plan_year": { "type": "integer", "minimum": 1900, "maximum": 2200 },
+    "masked": {
+      "const": true,
+      "description": "A census is names, ages and balances. It reaches no model unmasked, so there is no true/false to configure here."
+    },
+    "headcount": { "type": "integer", "minimum": 0 },
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["participant_token", "status", "age_band", "vested_percent", "account_balance"],
+        "properties": {
+          "participant_token": {
+            "type": "string",
+            "pattern": "^[A-Z]+_[0-9A-Za-z]+$",
+            "description": "A mask token. No name reaches this schema; re-identification is deterministic code and happens nowhere near here."
+          },
+          "status": { "enum": ["active", "terminated", "retired", "deceased", "disabled"] },
+          "age_band": { "type": "string", "minLength": 1 },
+          "service_years": { "type": "number", "minimum": 0 },
+          "vested_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+          "shares": { "type": "number", "minimum": 0 },
+          "account_balance": { "$ref": "https://chartwell.invalid/contracts/figure@1.0.0" },
+          "distribution_eligible_year": { "type": "integer", "minimum": 1900, "maximum": 2200 }
+        }
+      }
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "What the administrator did not supply. Recorded, never filled in."
+    }
+  }
+}

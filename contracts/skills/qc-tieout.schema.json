@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/qc-tieout@1.0.0",
+  "title": "QC / tie-out review output",
+  "description": "The pre-handoff checklist, with evidence per check. This skill cannot approve anything: the readiness enum has two values and neither says approved, which is a structural fact rather than an instruction a future skill version could forget.",
+  "x-skill": "qc-tieout",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "qc_findings",
+    "readiness"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/qc-tieout@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^qc[-]tieout@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "qc_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "check",
+          "result",
+          "evidence"
+        ],
+        "properties": {
+          "check": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "pass",
+              "fail",
+              "not_applicable",
+              "could_not_evaluate"
+            ]
+          },
+          "evidence": {
+            "type": "string",
+            "minLength": 1
+          },
+          "magnitude": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+              }
+            ]
+          },
+          "threshold": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "locator": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "readiness": {
+      "enum": [
+        "items_outstanding",
+        "no_automated_issues_found"
+      ],
+      "description": "The permitted values in full. 'approved' is not among them and must never be added - approval is a person's act, and a field that could record one here would make the system look as though it had performed it."
+    }
+  }
+}

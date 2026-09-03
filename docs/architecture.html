@@ -868,7 +868,7 @@ const NODES = [
  full:'Step five of the source deck\'s Model Builder, as code. Its position on the map was corrected during review: an earlier draft had the writer running in the tools band — before the guards — which would have meant a workbook built from unverified, still-masked figures. Writing is exactly where a figure can silently change, so it happens last and the Numeric Integrity Lock brackets it.'},
 
 {id:'contract_registry',runtime:'resource',label:'Contract Registry',plain:'The schemas everything is validated against, versioned.',group:'tool',exec:'code',now:true,
- desc:'Versioned JSON schemas for every typed object that crosses an edge: the figure envelope, each skill output, review items, events, and the run manifest. Schema versions are pinned per run and recorded in the plan hash.',
+ desc:'Versioned JSON schemas for every typed object that crosses an edge: the figure envelope, each skill output, review items, events, the run manifest, and the two configuration-sourced inputs — <code>engagement_profile</code> and the <code>participant_census</code> document type. Schema versions are pinned per run and recorded in the plan hash. An index file is the pin: the loader reads only what it lists, at the version it lists, and a schema file the index does not name is an error rather than a contract.',
  impl:'JSON Schema plus generated Pydantic models, versioned in the repo. A schema change is a breaking change and goes through review exactly like a skill change. The Graph Compiler reads this to type the edges.',
  full:'The figure envelope is the load-bearing one — value, unit, scale, currency, period, source, locator, derivation, confidence. Every guard on this map is really an assertion about that envelope, which is why it is defined once centrally rather than restated per skill. Full definition on the Runtime tab.'},
 
@@ -2298,7 +2298,7 @@ const STACK_ROWS = [
    VIEW 4 — RUNTIME (graph engineering + loop engineering + contracts)
    ═══════════════════════════════════════════════════════════════════ */
 const TOOLNS = [
- ['recompute','t_recompute','computes','Re-derives a stated total from the source rows behind it. The only arithmetic a skill can cause.','5 skills'],
+ ['recompute','t_recompute','computes','Re-derives a stated total from the source rows behind it. The only arithmetic a skill can cause.','6 skills'],
  ['timing_normalizer','t_timing','computes','Executes a proposed line-item alignment. All of the arithmetic, none of the judgment.','1 skill'],
  ['chart_of_accounts_lookup','coa_taxonomy','reads','The firm taxonomy at its pinned version.','4 skills'],
  ['precedent_lookup','precedent_store','reads','Prior approved decisions, retrieved scope-built — never the whole store.','3 skills'],
@@ -4230,9 +4230,10 @@ class <span class="hl">ProposedAction</span>:
   const R_ = (l, r) => `<div class="trow"><span class="tl">${l}</span>${r?`<span class="tr">${r}</span>`:''}</div>`;
   const REPO = [
    R_('<span class="t1">automated-analyst/</span>'),
-   R_('  <span class="t2">contracts/</span>      figure.schema.json, skill outputs, events, manifest'),
+   R_('  <span class="t2">contracts/</span>      figure.schema.json, skill outputs, events, manifest, engagement_profile', 'registry.yaml pins them'),
    R_('  <span class="t2">constraints/</span>    constraints.yaml', 'what may happen'),
    R_('  <span class="t2">scope/</span>          scopes.yaml', 'practice groups, segments'),
+   R_('  <span class="t2">registries/</span>     contracts.py, constraints.py, diagnostics.py', 'load, pin, refuse'),
    R_('  <span class="t2">skills/</span>'),
    R_('    _firm/               ddr-tagging, timing-normalization, line-item-tagging, qc-tieout'),
    R_('    valuation/'),

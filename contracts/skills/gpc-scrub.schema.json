@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/gpc-scrub@1.0.0",
+  "title": "GPC scrub output",
+  "description": "Accepted comparables, rejected comparables and the scrubbed multiples, as three separate outputs. The rejected set is not a by-product: a screen whose rejects nobody can see cannot be reviewed.",
+  "x-skill": "gpc-scrub",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "comparable_set",
+    "rejected_set",
+    "scrubbed_multiples"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/gpc-scrub@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^gpc[-]scrub@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "comparable_set": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "name",
+          "accepted_because"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "accepted_because": {
+            "type": "string",
+            "minLength": 1
+          },
+          "industry_code": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "rejected_set": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "name",
+          "rejected_because"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rejected_because": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "scrubbed_multiples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "identifier",
+          "metric",
+          "value",
+          "source",
+          "as_of"
+        ],
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metric": {
+            "enum": [
+              "ev_ebitda",
+              "ev_ebit",
+              "ev_revenue",
+              "p_e",
+              "p_b"
+            ]
+          },
+          "value": {
+            "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date"
+          },
+          "adjustments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "what",
+                "why"
+              ],
+              "properties": {
+                "what": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "why": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

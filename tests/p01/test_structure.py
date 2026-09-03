@@ -188,21 +188,50 @@ def test_gate_status_runs_with_no_arguments() -> None:
     assert "CURRENT" in r.stdout
 
 
+def plan() -> dict:
+    return json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
+
+
+def open_phases() -> list[str]:
+    return [p["id"] for p in plan()["phases"] if p["status"] != "done"]
+
+
 def test_gate_refuses_to_close_a_phase_out_of_order() -> None:
-    """A check-off mechanism that cannot refuse is decoration."""
-    r = gate("close", "P02")
-    assert r.returncode == 1, "closing P02 before P01 should have been refused"
+    """A check-off mechanism that cannot refuse is decoration.
+
+    The target is derived from the plan rather than named. An earlier version of this
+    test hardcoded P02, which meant it asserted the gate was broken the moment P02
+    legitimately closed - a test that has to be edited every phase is a test that will
+    eventually be edited into agreeing with whatever happened.
+    """
+    still_open = open_phases()
+    if len(still_open) < 2:
+        pytest.skip("only one phase left open - nothing is out of order any more")
+    ahead = still_open[1]
+    r = gate("close", ahead)
+    assert r.returncode == 1, (
+        f"closing {ahead} while {still_open[0]} is open should have been refused"
+    )
     assert "REFUSED" in r.stdout
 
 
 def test_gate_refuses_a_checkpoint_whose_phases_are_open() -> None:
-    r = gate("checkpoint", "C1")
-    assert r.returncode == 1
-    assert "REFUSED" in r.stdout
+    """Likewise derived. A checkpoint whose phases are all done would actually run here,
+    which is a slow and surprising thing for a unit test to do."""
+    ids = [p["id"] for p in plan()["phases"]]
+    done = {p["id"] for p in plan()["phases"] if p["status"] == "done"}
+    for c in plan()["checkpoints"]:
+        covered = ids[: ids.index(c["after"]) + 1]
+        if any(p not in done for p in covered):
+            r = gate("checkpoint", c["id"])
+            assert r.returncode == 1
+            assert "REFUSED" in r.stdout
+            return
+    pytest.skip("every checkpoint's phases are closed")
 
 
 def test_gate_check_does_not_mutate_the_plan() -> None:
     before = (ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8")
-    gate("check", "P02")
+    gate("check", open_phases()[0])
     after = (ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8")
     assert before == after, "check must never write state - only close may"

@@ -76,3 +76,16 @@ so the HTML and this plan agree.
 
 A fifth, smaller finding — five stale node and edge counts in the blueprint's own prose
 and its `NODECLASS` table — was corrected in the HTML and is now checked by a harness.
+
+## 2026-09-02 - P02 Contracts and registries
+
+**Why:** Two things the phase turned up that the plan did not say. First, the blueprint's repo listing places the contract and constraint DATA but names no home for the code that loads it: contracts/ cannot hold Python by its own charter, and harness/graph/guards/ops are each wrong for a thing all four of them read. The three registries got their own package. Second, a cross-check against the blueprint's own skill frontmatter found its tool table's usage count for recompute is stale.
+
+- task added: registries/ package: the loaders for contracts, constraints and (from P07) diagnostics
+- check added: python -m uv run ruff check .
+
+## 2026-09-02 - P01 Project structure and build-state system
+
+**Why:** Three gate tests in tests/p01 hardcoded P02 and C1 as their out-of-order targets. That made them assert the gate was broken the moment P02 legitimately closed, and the checkpoint one would have silently started RUNNING checkpoint C1 once P03 closed rather than testing a refusal. They now derive their targets from plan.json. A test that has to be edited every phase is a test that eventually gets edited into agreeing with whatever happened.
+
+- exit criterion added: The gate tests derive their targets from plan.json rather than naming a phase, so they stay true as phases close

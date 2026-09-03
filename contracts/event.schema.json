@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/event@1.0.0",
+  "title": "Event",
+  "description": "What one node reports having just done. Guard passes are events too - a guard that only speaks when it fires is, on a quiet day, indistinguishable from a guard that never ran. The run trace is computed from this stream and never stored, which is why node_id is required and cannot be added to runs already recorded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "ts",
+    "run_id",
+    "engagement_id",
+    "node_id",
+    "type",
+    "level",
+    "message"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "engagement_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Nothing runs unscoped, so nothing is emitted unscoped either."
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "The architecture-graph node that emitted this. Required: the run trace is derived from it and cannot be reconstructed later."
+    },
+    "step_id": {
+      "description": "The compiled plan step, when the emitter was executing one. Null for resource and static nodes.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ]
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*([.][a-z][a-z0-9_]*)+$",
+      "description": "Dotted and typed: skill.dispatched, guard.tieout.pass, hitl.item.queued, loop.repair.result."
+    },
+    "level": {
+      "enum": [
+        "info",
+        "warn",
+        "error",
+        "guard",
+        "loop"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "payload": {
+      "type": "object",
+      "description": "Event-specific detail. Deliberately untyped here: an event schema that has to change whenever a node learns to say something new is an event schema people route around.",
+      "additionalProperties": true,
+      "x-open-by-design": "The only open object in the registry. An event schema that has to change whenever a node learns to say something new is an event schema people route around, and emission is fire-and-forget precisely so observability never becomes a new way for work to break. Nothing validates against payload and no figure may travel in it."
+    },
+    "diagnostic_code": {
+      "description": "Set on any event a person has to act on. Stable code from the diagnostics registry, e.g. GUARD.TIEOUT_MISMATCH.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^(INTAKE|SCOPE|PRIVACY|POLICY|SKILL|GUARD|DELIVER|LOOP|PROCESS)[.][A-Z][A-Z0-9_]*$"
+        }
+      ]
+    },
+    "cost_usd": {
+      "type": "number",
+      "minimum": 0
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "event@1.0.0"
+    }
+  }
+}

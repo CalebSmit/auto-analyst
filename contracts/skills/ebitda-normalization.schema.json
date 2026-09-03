@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/ebitda-normalization@1.0.0",
+  "title": "EBITDA normalization output",
+  "description": "Proposed add-backs with evidence. Every item is a proposal: nothing here is applied, and every item above the materiality threshold is marked for review whatever its confidence says.",
+  "x-skill": "ebitda-normalization",
+  "x-emits-figures": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "addback_schedule"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "skills/ebitda-normalization@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^ebitda[-]normalization@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "addback_schedule": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "candidate_id",
+          "line_item_ref",
+          "category",
+          "amount",
+          "rationale",
+          "evidence",
+          "recomputed",
+          "above_materiality",
+          "review_required"
+        ],
+        "properties": {
+          "candidate_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "line_item_ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable reference to a line item in the normalized historicals."
+          },
+          "category": {
+            "enum": [
+              "non_recurring",
+              "discretionary",
+              "owner_related",
+              "related_party",
+              "accounting_normalization"
+            ]
+          },
+          "amount": {
+            "$ref": "https://chartwell.invalid/contracts/figure@1.0.0"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_id",
+                "locator",
+                "excerpt"
+              ],
+              "properties": {
+                "source_id": {
+                  "type": "string",
+                  "pattern": "^sha256:[0-9a-f]{64}$"
+                },
+                "locator": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "excerpt": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          },
+          "recomputed": {
+            "type": "boolean",
+            "description": "Set by the recompute tool. A skill cannot set this from its own arithmetic."
+          },
+          "above_materiality": {
+            "type": "boolean"
+          },
+          "review_required": {
+            "type": "boolean"
+          },
+          "officer_comp_benchmark": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "basis",
+                  "source",
+                  "as_of"
+                ],
+                "properties": {
+                  "basis": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "as_of": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            ],
+            "description": "The benchmark cited, taken from the engagement profile. Null only on an item that is not owner compensation."
+          },
+          "recurs_in_all_periods": {
+            "type": "boolean",
+            "description": "A candidate present in every period is probably not non-recurring. Stated, so a reviewer sees it."
+          }
+        }
+      }
+    }
+  }
+}
