@@ -91,6 +91,9 @@ LATE_RESULT = "PROCESS.LATE_RESULT"
 PRECEDENT_OUT_OF_SCOPE = "SCOPE.PRECEDENT_OUT_OF_SCOPE"
 UNMASKED_PRECEDENT = "PRIVACY.UNMASKED_PRECEDENT"
 UNMASKED_IDENTIFIER = "PRIVACY.UNMASKED_IDENTIFIER"
+TOKEN_CROSS_ENGAGEMENT = "PRIVACY.TOKEN_CROSS_ENGAGEMENT"
+VAULT_UNAVAILABLE = "PRIVACY.VAULT_UNAVAILABLE"
+UNMASK_RESIDUAL = "GUARD.UNMASK_RESIDUAL"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 TOOL_NOT_DECLARED = "POLICY.TOOL_NOT_DECLARED"
@@ -299,6 +302,26 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "unmasked, or a token the masker was expected to substitute is missing. Nothing "
         "leaves for a model until it is fixed: the masker is the control and the scan is "
         "the proof it worked, and a scan that let this through would be neither.",
+    ),
+    TOKEN_CROSS_ENGAGEMENT: (
+        "system",
+        "A mask token in this run's output was not issued under this run's engagement. "
+        "Resolving it would hand one client another client's value, which is the "
+        "cross-client failure this whole band exists to prevent. The run stops; find "
+        "where the token came from before anything else.",
+    ),
+    VAULT_UNAVAILABLE: (
+        "system",
+        "The mask vault cannot be opened - the encryption key is missing from the "
+        "secrets port, or the store is unreachable. Nothing can be masked or unmasked "
+        "without it, and nothing is: a run does not proceed on unmasked payloads "
+        "because the vault was down.",
+    ),
+    UNMASK_RESIDUAL: (
+        "system",
+        "A mask token survived into output that was meant to be re-identified, or a "
+        "token present in the input never resolved. A released artifact carries zero "
+        "mask tokens; this one does not release until the unmasking is complete.",
     ),
     UNMASKED_PRECEDENT: (
         "system",

@@ -5,27 +5,27 @@
 
 ## Where the build is
 
-- **11 of 28 phases closed**
-- Last green checkpoint: **C3**
-- Current phase: **P12 - Privacy: mask, vault, unmask, verify** (gate: auto)
+- **12 of 28 phases closed**
+- Last green checkpoint: **C4**
+- Current phase: **P13 - Guards and their adversarial fixtures** (gate: auto)
 
 ## The next action
 
-Work P12. Its full definition is in [BUILD/phases/P12.md](phases/P12.md).
+Work P13. Its full definition is in [BUILD/phases/P13.md](phases/P13.md).
 
-> Tokens stable per engagement, re-identification deterministic, and no model node anywhere near the vault. The value here is cross-client isolation and precedent portability, not provider trust.
+> Five assertions about the figure envelope, each with a fixture built specifically to defeat it. A guard with no adversarial fixture is an assumption.
 
 Tasks:
 
-- [ ] Masker over account names and identifying strings
-- [ ] Per-engagement vault with a retention field, the only store that can re-identify anything
-- [ ] Deterministic unmask in Python - no model has an unmask tool
-- [ ] Unmask integrity check as a separate node from the masker, so the check can be tested independently of the thing it checks
+- [ ] Output schema validator, provenance check, tie-out check, reconciliation, numeric integrity lock
+- [ ] The recompute engine, reading the Source Parse Store rather than trusting a stated total
+- [ ] The ten adversarial fixtures from the blueprint's fixture table
+- [ ] Every guard emits on pass as well as on failure
 
 Then:
 
-    python tools/gate.py check P12
-    python tools/gate.py close P12
+    python tools/gate.py check P13
+    python tools/gate.py close P13
 
 ## Before you start
 
@@ -48,4 +48,5 @@ Then:
 - **P09** Context builder (2026-09-03)
 - **P10** Policy gate, constraints, guarded runtime (2026-09-03)
 - **P11** LLM port, model pin, budget governor (2026-09-03)
+- **P12** Privacy: mask, vault, unmask, verify (2026-09-03)
 

@@ -337,6 +337,38 @@ class Ledger(Base):
         return f"<Ledger {self.step_id} {self.step_key[:15]}... -> {self.result_ref[:15]}...>"
 
 
+class VaultEntry(Base):
+    """One mask token and the value it stands for, encrypted, scoped to an engagement.
+
+    The only table in the system that can re-identify anything. Two edges only: the
+    Masking Engine writes it, the Unmasking Engine reads it, and neither runs a model.
+    `value_hash` is a keyed HMAC of the plaintext so the masker can find an existing
+    token for a value without decrypting anything - which is what makes the same account
+    mask to the same token across runs weeks apart.
+
+    `retention_until` is the retention field. Setting the policy is Risk / IT's decision
+    in the blueprint; the column exists so that decision has somewhere to land.
+    """
+
+    __tablename__ = "vault"
+    __table_args__ = (
+        UniqueConstraint("engagement_id", "value_hash", name="uq_vault_value"),
+        Index("ix_vault_engagement", "engagement_id"),
+    )
+
+    engagement_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    token: Mapped[str] = mapped_column(String(64), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    value_hash: Mapped[str] = mapped_column(String(71), nullable=False)
+    ciphertext: Mapped[str] = mapped_column(Text, nullable=False)
+    issued_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+    retention_until: Mapped[str] = mapped_column(String(32), nullable=False)
+    first_run_id: Mapped[str | None] = mapped_column(String(64), default=None)
+
+    def __repr__(self) -> str:
+        return f"<VaultEntry {self.engagement_id} {self.token}>"
+
+
 class Event(Base):
     """One thing one node reported having just done.
 

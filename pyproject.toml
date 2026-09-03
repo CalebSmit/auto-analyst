@@ -19,6 +19,7 @@ dependencies = [
     "sse-starlette>=2.1",
     "python-dotenv>=1.0",
     "structlog>=24.4",
+    "cryptography>=43",
 ]
 
 [dependency-groups]
