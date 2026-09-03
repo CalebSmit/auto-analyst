@@ -1,0 +1,96 @@
+# Full DDR intake - structure a due-diligence response and get the historicals straight.
+#
+# Deliberately a different shape from monthly-refresh: two independent branches off the
+# same masked payload, which is what makes parallel-branch identification something the
+# compiler has to actually compute rather than something it can assume.
+
+name: full-ddr-intake
+version: 1
+title: Full DDR intake
+description: >-
+  Tag a DDR response against the request schedule while the statements are normalized in
+  parallel, then run the pre-handoff checklist over both.
+
+inputs:
+  - name: source_documents
+    schema: null
+  - name: request_schedule
+    schema: null
+
+steps:
+  - id: intake
+    kind: io
+    label: Intake & fingerprint
+    run_inputs: [source_documents, request_schedule]
+    on_failure: halt
+    timeout_s: 120
+
+  - id: mask
+    kind: io
+    label: Mask & scan payload
+    needs: [intake]
+    on_failure: halt
+    timeout_s: 120
+
+  # Two branches from here. Neither needs the other.
+  - id: ddr
+    kind: skill
+    skill: ddr-tagging
+    label: DDR tagging & structuring
+    needs: [mask]
+    output_schema: skills/ddr-tagging@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: timing
+    kind: skill
+    skill: timing-normalization
+    label: Timing normalization
+    needs: [mask]
+    output_schema: skills/timing-normalization@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: tagging
+    kind: skill
+    skill: line-item-tagging
+    label: Line-item tagging
+    needs: [timing]
+    output_schema: skills/line-item-tagging@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: qc
+    kind: skill
+    skill: qc-tieout
+    label: QC / tie-out review
+    needs: [ddr, tagging]
+    output_schema: skills/qc-tieout@1.0.0
+    on_failure: review
+    timeout_s: 300
+    retries: 1
+
+  - id: release
+    kind: io
+    label: Unmask, verify, release
+    needs: [qc]
+    on_failure: halt
+    timeout_s: 300
+
+loops:
+  - loop: self_verification
+    head: ddr
+    members: [ddr]
+    max_iterations: 1
+    why: >-
+      Every DDR tagging output, always. The verifier sees the source excerpt and the
+      proposal, never the first pass's reasoning.
+
+  - loop: tieout_repair
+    head: qc
+    members: [qc]
+    max_iterations: 1
+    why: The recomputed value and the cited source rows are handed back once.

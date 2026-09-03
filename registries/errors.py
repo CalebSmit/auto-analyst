@@ -85,7 +85,11 @@ UNKNOWN_DISPOSITION = "SCOPE.UNKNOWN_DISPOSITION"
 UNKNOWN_REVIEW_LEVEL = "SCOPE.UNKNOWN_REVIEW_LEVEL"
 AMBIGUOUS_SKILL = "SCOPE.AMBIGUOUS_SKILL"
 SKILL_INVALID = "SCOPE.SKILL_INVALID"
+RECIPE_INVALID = "SCOPE.RECIPE_INVALID"
+UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
+LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 OVERLAY_LOOSENS = "POLICY.OVERLAY_LOOSENS"
+MULTI_TURN_STEP = "POLICY.MULTI_TURN_STEP"
 UNKNOWN_RUN = "PROCESS.UNKNOWN_RUN"
 ILLEGAL_TRANSITION = "PROCESS.ILLEGAL_TRANSITION"
 APPEND_ONLY_VIOLATION = "PROCESS.APPEND_ONLY_VIOLATION"
@@ -194,6 +198,35 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A SKILL.md is missing frontmatter, or missing a field the tree requires. A "
         "skill that cannot declare its own tools, privacy class and review floor cannot "
         "be dispatched, because there would be nothing for the Policy Gate to enforce.",
+    ),
+    RECIPE_INVALID: (
+        "config",
+        "The recipe does not compile: a step naming something that does not exist, an "
+        "output schema the contract registry does not pin, or a loop region whose "
+        "members do not hang together. Nothing executes that has not been through the "
+        "compiler, so this is where a broken plan stops.",
+    ),
+    UNDECLARED_CYCLE: (
+        "config",
+        "The plan graph contains a cycle that is not a declared, bounded loop region. "
+        "Every loop is declared with an integer ceiling the compiler checks - a cycle "
+        "nobody declared has no ceiling, and a loop with no ceiling is how a run spends "
+        "a budget on one step. Declare it in the recipe's `loops:` block or remove the "
+        "dependency that closes it.",
+    ),
+    LOOP_CEILING_EXCEEDED: (
+        "config",
+        "A declared loop asks for more iterations than the constraint registry allows, "
+        "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
+        "deliberately, never in the recipe that wants the extra go.",
+    ),
+    MULTI_TURN_STEP: (
+        "policy",
+        "A skill invocation is one model turn. If a skill needs a tool result, that is "
+        "another step in the plan - compiled, keyed and visible - not a hidden turn "
+        "inside one. Multi-turn skills need the Policy Gate bound to the permission "
+        "callback, a seventh declared loop, and context_ref redefined as a transcript "
+        "hash; all three together, or the guarantees rot silently.",
     ),
     OVERLAY_LOOSENS: (
         "policy",

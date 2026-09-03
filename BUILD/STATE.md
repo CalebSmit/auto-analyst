@@ -5,28 +5,15 @@
 
 ## Where the build is
 
-- **5 of 28 phases closed**
+- **6 of 28 phases closed**
 - Last green checkpoint: **C1**
-- Current phase: **P06 - Graph compiler** (gate: auto)
+- Current phase: **P07 - The assertion suites** (gate: auto)
 
 ## The next action
 
-Work P06. Its full definition is in [BUILD/phases/P06.md](phases/P06.md).
+**C2 is due and has not passed.** Nothing else starts until it does.
 
-> Turn a named job recipe into a typed DAG with a plan hash. Nothing executes that has not been through here.
-
-Tasks:
-
-- [ ] The frozen Step dataclass: id, kind, skill, inputs, output_schema, timeout_s, retries, loop, on_failure, max_turns
-- [ ] Named job recipes in YAML, compiled to a DAG
-- [ ] Topological ordering and parallel-branch identification
-- [ ] Declared loop regions with an integer ceiling; undeclared cycles rejected
-- [ ] plan_hash over structure, skill versions, model pins, template version, taxonomy version, schema versions and the precedent-store snapshot id
-
-Then:
-
-    python tools/gate.py check P06
-    python tools/gate.py close P06
+    python tools/gate.py checkpoint C2
 
 ## Before you start
 
@@ -43,4 +30,5 @@ Then:
 - **P03** Ports and adapters, with one conformance suite (2026-09-02)
 - **P04** Event bus, run store, manifest (2026-09-02)
 - **P05** Scope resolver (2026-09-03)
+- **P06** Graph compiler (2026-09-03)
 

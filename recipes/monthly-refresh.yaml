@@ -1,0 +1,137 @@
+# Monthly refresh - the routine shape of a valuation update.
+#
+# Most deal work is not novel. When the shape of a job is already known, having the
+# orchestrator rediscover it every time is wasted tokens and a wasted chance at variance.
+# A recipe makes the routine case deterministic and leaves the orchestrator for the cases
+# that actually need judgement.
+#
+# A recipe composes skills; it contains no domain logic. Nothing here says what EBITDA is.
+
+name: monthly-refresh
+version: 3
+title: Monthly refresh
+description: >-
+  Normalize the period, tag the line items, normalize earnings, load the model and run
+  the pre-handoff checklist. The routine path for a returning engagement.
+
+# What arrives from outside the plan. A step naming one of these in `run_inputs` takes an
+# edge from the run boundary rather than from another step.
+inputs:
+  - name: engagement_profile
+    schema: engagement_profile@1.0.0
+  - name: source_documents
+    schema: null
+    note: >-
+      Bytes, not a typed object. The intake manifest that will type this arrives with
+      P16, and inventing a schema for it now would mean pinning something nobody has
+      reviewed.
+
+steps:
+  - id: intake
+    kind: io
+    label: Intake & fingerprint
+    run_inputs: [source_documents]
+    on_failure: halt
+    timeout_s: 120
+
+  - id: mask
+    kind: io
+    label: Mask & scan payload
+    needs: [intake]
+    on_failure: halt
+    timeout_s: 120
+
+  - id: timing
+    kind: skill
+    skill: timing-normalization
+    label: Timing normalization
+    needs: [mask]
+    output_schema: skills/timing-normalization@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: tagging
+    kind: skill
+    skill: line-item-tagging
+    label: Line-item tagging
+    needs: [timing]
+    output_schema: skills/line-item-tagging@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: ebitda
+    kind: skill
+    skill: ebitda-normalization
+    label: EBITDA normalization
+    needs: [timing, tagging]
+    run_inputs: [engagement_profile]
+    output_schema: skills/ebitda-normalization@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: model
+    kind: skill
+    skill: model-load
+    label: Model load & assembly
+    needs: [timing, tagging, ebitda]
+    output_schema: skills/model-load@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: qc
+    kind: skill
+    skill: qc-tieout
+    label: QC / tie-out review
+    needs: [timing, tagging, model]
+    output_schema: skills/qc-tieout@1.0.0
+    on_failure: review
+    timeout_s: 300
+    retries: 1
+
+  - id: release
+    kind: io
+    label: Unmask, verify, release
+    needs: [qc]
+    on_failure: halt
+    timeout_s: 300
+
+# Four declared regions, one per in-run loop the constraint registry knows about. Each
+# names a ceiling the compiler checks against constraints.yaml; the compiler then refuses
+# any cycle in the graph that is not exactly one of these.
+loops:
+  - loop: self_verification
+    head: tagging
+    members: [tagging]
+    max_iterations: 1
+    why: >-
+      Pass two is a separate invocation that sees the source excerpt and the proposal,
+      never the first pass's reasoning.
+
+  - loop: guard_repair
+    head: ebitda
+    members: [ebitda]
+    max_iterations: 2
+    why: >-
+      The guard's structured failure is appended to the step input and the skill runs
+      again. Two attempts, then a quarantine record and a review item.
+
+  - loop: conflict_resolution
+    head: tagging
+    members: [tagging, ebitda]
+    max_iterations: 1
+    why: >-
+      Reconciliation surfaces a cross-skill disagreement, and each skill is re-invoked
+      with the other's position stated explicitly. Spans two steps, so its back edge runs
+      from ebitda to tagging.
+
+  - loop: tieout_repair
+    head: qc
+    members: [qc]
+    max_iterations: 1
+    why: >-
+      The recomputed value and the cited source rows are handed back once. If the two
+      still disagree, a review item carries both numbers and the delta.

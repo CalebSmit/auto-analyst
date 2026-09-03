@@ -2075,13 +2075,13 @@ const SCORECARD = [
 /* The diagnostic namespace. Every code carries an owner and a what_now. */
 const ERRCODES = [
  ['INTAKE.*','UNREADABLE_FILE \u00b7 UNKNOWN_TYPE \u00b7 NO_ENGAGEMENT','client-data'],
- ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID','config'],
+ ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID','config'],
  ['PRIVACY.*','UNMASKED_IDENTIFIER \u00b7 TOKEN_CROSS_ENGAGEMENT \u00b7 VAULT_UNAVAILABLE','system'],
- ['POLICY.*','TOOL_NOT_DECLARED \u00b7 ARG_OUT_OF_SCOPE \u00b7 BUDGET_EXCEEDED \u00b7 OVERLAY_LOOSENS','policy'],
+ ['POLICY.*','TOOL_NOT_DECLARED \u00b7 ARG_OUT_OF_SCOPE \u00b7 BUDGET_EXCEEDED \u00b7 OVERLAY_LOOSENS \u00b7 MULTI_TURN_STEP','policy'],
  ['SKILL.*','SCHEMA_INVALID \u00b7 NO_PROVENANCE \u00b7 FABRICATED_SOURCE','model'],
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
- ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED','model'],
+ ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED','model / config'],
  ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE','process / system']
 ];
 
@@ -4115,7 +4115,7 @@ class <span class="v">Step</span>:
     output_schema:  <span class="k">str</span>            <span class="c"># contract_registry id@version</span>
     timeout_s:      <span class="k">int</span>
     retries:        <span class="k">int</span>            <span class="c"># transport failures ONLY</span>
-    loop:           <span class="k">str</span> | None     <span class="c"># declared loop region, if any</span>
+    loops:          <span class="k">tuple</span>[str, ...] <span class="c"># declared regions this step is inside</span>
     on_failure:     <span class="k">Literal</span>["halt","quarantine","review"]
 
     max_turns:      <span class="k">int</span> = 1        <span class="c"># skills are single-turn; see below</span>
@@ -4235,6 +4235,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">scope/</span>          scopes.yaml', 'practice groups, segments'),
    R_('  <span class="t2">registries/</span>     contracts.py, constraints.py, scopes.py, skills.py, diagnostics.py', 'load, pin, refuse'),
    R_('  <span class="t2">templates/</span>      bindings.yaml', 'which model a scope builds into'),
+   R_('  <span class="t2">recipes/</span>        monthly-refresh.yaml, full-ddr-intake.yaml', 'named, versioned, approved'),
    R_('  <span class="t2">skills/</span>'),
    R_('    _firm/               ddr-tagging, timing-normalization, line-item-tagging, qc-tieout'),
    R_('    valuation/'),
@@ -4253,6 +4254,7 @@ class <span class="hl">ProposedAction</span>:
    R_('    loops.py           the Bounded Loop Controller'),
    R_('  <span class="t2">graph/</span>'),
    R_('    resolve.py         scope path \u2192 the resolved skill set', 'Tier 0'),
+   R_('    recipes.py         job recipes, loaded and shaped'),
    R_('    compile.py         plan \u2192 typed DAG + plan_hash'),
    R_('    execute.py         the Step Executor'),
    R_('    assertions.py      the invariants, as tests', 'the Map tab\u2019s left rail'),
@@ -4383,6 +4385,7 @@ class <span class="hl">ProposedAction</span>:
      <tr><td>The SDK assembles turns 2..n itself</td><td><span class="mono">context_ref</span> describes the <b>opening</b> context, not what the model saw. Reproducibility degrades from a hash lookup back to archaeology.</td></tr>
      <tr><td>Reason \u2192 tool \u2192 reason repeats inside one step</td><td>That is <b>an undeclared cycle the plan graph cannot see</b>. \u201cEvery loop is declared with a maximum\u201d is false, and the Budget Governor is catching spend after the fact rather than bounding iterations in advance.</td></tr>
    </table></div>
+   <div class="note"><b>Why <span class="mono">loops</span> is plural.</b> A step can sit in two declared regions at once, and the compiler found the case: self-verification applies to <i>every</i> EBITDA output, and guard repair applies when that same output fails its schema check. Both are true of one step, and a single <span class="mono">loop</span> field could only say one of them &mdash; which would leave the other region bounding a step that did not know it was inside one. Regions still nest cleanly: the dependency graph must be acyclic on its own, and each declared region must close a cycle over exactly the steps its back edge returns over.</div>
    <div class="note ok"><b>Decision: a skill invocation is one model turn.</b> <span class="mono">assert_all_loops_bounded</span> enforces <span class="mono">max_turns == 1</span> on every skill step. A skill proposes; if it needs a tool result, that is <i>another step in the plan</i>, compiled, keyed and visible \u2014 not a hidden turn. This is the only option consistent with everything else here: plans are compiled before they run, steps are typed and idempotent, and loops are declared. It also makes each step cacheable and independently replayable.</div>
    <div class="note"><b>The upgrade path, if single-turn proves too rigid.</b> Multi-turn skills become possible by binding the Policy Gate to the SDK\u2019s permission callback, declaring a seventh loop of scope <span class="mono">in_run</span> with a <span class="mono">max_turns</span> ceiling, and redefining <span class="mono">context_ref</span> as a transcript hash captured at step exit rather than at entry. All three are required together \u2014 doing the first without the other two is how the guarantees rot silently. Not needed for phases 0\u20132.</div>
    <div class="note acc"><b>Which also settles what the LLM Port is, and takes a framework off the critical path.</b> The stack originally reached for the Claude Agent SDK, justified by subagents with per-invocation tool allowlists and native progressive disclosure. Single-turn removes exactly those: there are no subagent loops, and the SDK dispatches no tools \u2014 the Guarded Tool Runtime does, because the Policy Gate has to see every call. What stays valuable is <code>SKILL.md</code> as a <i>file format</i>: frontmatter, body, and references loaded only once a skill is selected. That is a convention we can parse in an afternoon, and it owes nothing to any SDK. So the port speaks the Messages API, the Agent SDK becomes one adapter behind it rather than a dependency for the first three months, and MCP for Box is untouched \u2014 it arrives with delivery.</div>
