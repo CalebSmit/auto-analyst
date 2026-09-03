@@ -531,9 +531,7 @@ class SqlRunStore:
                 )
             )
 
-    def finish_step(
-        self, run_id: str, step_id: str, status: StepStatus, reason: str = ""
-    ) -> None:
+    def finish_step(self, run_id: str, step_id: str, status: StepStatus, reason: str = "") -> None:
         """End a step that produced nothing: failed, quarantined, skipped, not reached.
 
         COMPLETED is refused here and belongs to `commit_step`, which writes the result
@@ -847,9 +845,7 @@ class SqlRunStore:
             )
             return tuple(_as_review_item(row) for row in rows)
 
-    def open_review_items(
-        self, engagement_id: str | None = None
-    ) -> tuple[ReviewItemRecord, ...]:
+    def open_review_items(self, engagement_id: str | None = None) -> tuple[ReviewItemRecord, ...]:
         """The queue: everything open, oldest first, across runs - the inbox is of items,
         not of runs."""
         with self._session() as session:
@@ -888,9 +884,7 @@ class SqlRunStore:
         """
         with self._session() as session:
             item = session.scalars(
-                select(ReviewItem).where(
-                    ReviewItem.run_id == run_id, ReviewItem.item_id == item_id
-                )
+                select(ReviewItem).where(ReviewItem.run_id == run_id, ReviewItem.item_id == item_id)
             ).one()
             if item.state != "open" or (
                 expected_version is not None and item.version != expected_version

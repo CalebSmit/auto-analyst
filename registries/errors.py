@@ -153,6 +153,7 @@ STALE_DECISION = "PROCESS.STALE_DECISION"
 RATIONALE_REQUIRED = "PROCESS.RATIONALE_REQUIRED"
 WATCH_OVERLAP = "INTAKE.WATCH_OVERLAP"
 ENGAGEMENT_LOCKED = "PROCESS.ENGAGEMENT_LOCKED"
+INJECTION_DETECTED = "INTAKE.INJECTION_DETECTED"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -356,6 +357,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "than started alongside it - two runs on one engagement would write the same mask "
         "vault and the same output folder. Nothing to do unless the holder is past its "
         "timeout, which is raised as an incident and never cleared automatically.",
+    ),
+    INJECTION_DETECTED: (
+        "client-data",
+        "A document carries text that reads as instructions to a model - hidden or not - "
+        "and the Untrusted Content Boundary stopped the run before any model saw it. The "
+        "pattern and where it sat are on the record; the document is quarantined. Ask the "
+        "sender for a clean copy, or have a person confirm the text is benign and re-run.",
     ),
     MULTI_TURN_STEP: (
         "policy",

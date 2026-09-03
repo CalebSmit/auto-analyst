@@ -262,3 +262,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - check added: python -m uv run ruff check intake tests/p16
 - check added: python -m uv run mypy intake ops registries graph
+
+## 2026-09-03 - P17 Readers and the Source Parse Store
+
+**Why:** The readers live in intake/readers/ (documents, workbook, classify, periods) and the Untrusted Content Boundary in guards/untrusted.py, both now in the listing. The Source Parse Store gained its locator resolver: readers write blocks (one table of a document, one numeric column of a sheet) and any locator inside a block resolves through one interface - a figure may cite TB_FY25!B44:B47 without the reader having written that key. Hidden text is decided by effective font size under 4pt (pypdf exposes size, not colour); the fixture's 1pt white text fires on size, and the zero-width half of the criterion is shown through a Word run, because a Type1 PDF font cannot carry U+200B. The classifier and the period detector are the deterministic halves; the small model call the blueprint allows for their residue lands with the dispatcher (P18), which owns the door and the identifier list. Scanned pages are reported, not OCR'd - the OCR path is an adapter for later, recorded here rather than stubbed. One code is new: INTAKE.INJECTION_DETECTED.
+
+- check added: python -m uv run ruff check intake guards ops tests/p17
+- check added: python -m uv run mypy intake guards ops

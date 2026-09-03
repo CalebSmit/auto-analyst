@@ -5,28 +5,28 @@
 
 ## Where the build is
 
-- **16 of 28 phases closed**
+- **17 of 28 phases closed**
 - Last green checkpoint: **C5**
-- Current phase: **P17 - Readers and the Source Parse Store** (gate: auto)
+- Current phase: **P18 - First real skill: timing normalization** (gate: human)
 
 ## The next action
 
-Work P17. Its full definition is in [BUILD/phases/P17.md](phases/P17.md).
+Work P18. Its full definition is in [BUILD/phases/P18.md](phases/P18.md).
 
-> Turn files into an addressable parse that provenance and tie-out can read from - the store finding F2 showed nothing owned.
+> The first real skill, chosen first because its arithmetic is entirely deterministic: the model proposes an alignment and the tool does every calculation.
 
 Tasks:
 
-- [ ] pypdf and python-docx extraction, attaching source_id and a page/table/row locator to every emitted item
-- [ ] Workbook reader: structural read of names and headers, one model call selects sheets with reasons, deterministic code normalizes only those
-- [ ] Document classifier and the period/scale detector, with an explicit ambiguous flag rather than an assumption
-- [ ] The untrusted content boundary
-- [ ] The Source Parse Store keyed (run_id, source_id, locator), written once by the readers and never updated, plus its locator resolver
+- [ ] SKILL.md with frontmatter, procedure, when-to-use, when-not-to-use, escalation
+- [ ] Reference files: period-conventions.md, line-item-matching.md
+- [ ] The alignment proposal schema - a mapping, never a number
+- [ ] t_timing executing the mapping; all arithmetic in the tool
+- [ ] Golden fixtures plus the alignment-report fixture set
 
 Then:
 
-    python tools/gate.py check P17
-    python tools/gate.py close P17
+    python tools/gate.py check P18
+    python tools/gate.py close P18  --signoff "name: what you checked"
 
 ## Before you start
 
@@ -54,4 +54,5 @@ Then:
 - **P14** Loop controller, quarantine, diagnostics (2026-09-03)
 - **P15** Confidence router, review queue, decision log (2026-09-03)
 - **P16** Intake: roster, sweep, binding, lock, window (2026-09-03)
+- **P17** Readers and the Source Parse Store (2026-09-03)
 

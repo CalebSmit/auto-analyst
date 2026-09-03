@@ -99,9 +99,7 @@ class LocalContentStore:
     def __repr__(self) -> str:
         return f"LocalContentStore(root={self.root})"
 
-    def put(
-        self, data: bytes, media_type: str = "application/json", name: str = ""
-    ) -> ContentRef:
+    def put(self, data: bytes, media_type: str = "application/json", name: str = "") -> ContentRef:
         digest = content_hash(data)
         target = self._path(digest)
         if not target.exists():

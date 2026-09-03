@@ -44,3 +44,21 @@ overwritten.
 **Invariant 24** is proven twice in `tests/p16`: by a walk of the blueprint graph, and by
 sweeping a folder tree where the off-roster engagements' files are never listed, never
 stat'd, never read and start no run.
+
+## readers/ - from files to an addressable parse
+
+`documents.py` (pypdf, python-docx) and `workbook.py` (openpyxl) write blocks to the
+Source Parse Store: one table of a document under `p{page}/t{table}`, one numeric column
+of a sheet under `Sheet!C{first}:C{last}` with the sheet row as each row's ordinal. The
+store's resolver answers any locator inside a block - `TB_FY25!B44:B47`, `p14/t2/r7` -
+through one interface, so provenance, tie-out and the numeric lock never know which kind
+of file a figure came from. Hidden text (under 4pt) is surfaced apart, not dropped.
+
+The workbook reader surveys structure, lets a selector choose sheets *with reasons*, and
+normalises only those; `Selection.accounting_for` makes every sheet either selected or
+skipped with a reason, whatever the selector forgot. `ModelSheetSelector` is the one model
+call, over the survey wrapped as data - the cells never enter it.
+
+`classify.py` is a closed set with "other" first-class: "other" opens a review item.
+`periods.py` decides scale, currency, period type and year end from cues it can read,
+or names each one it cannot in `ambiguous`. Thousands versus units is never assumed.

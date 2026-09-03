@@ -32,6 +32,7 @@ BUILT = {
     "payload_scan", "unmask_verify", "tieout", "numeric_lock", "provenance", "budget_governor",
     "loop_controller",  # P14
     "engagement_lock",  # P16
+    "untrusted_boundary",  # P17
 }
 
 
@@ -52,7 +53,7 @@ def test_the_table_has_ten_and_they_are_the_blueprints(fixture_table: dict[str, 
         }
 
 
-def test_eight_guards_are_built_and_two_are_owed(fixture_table: dict[str, Any]) -> None:
+def test_nine_guards_are_built_and_one_is_owed(fixture_table: dict[str, Any]) -> None:
     """Said in a test so the number is checked, not remembered."""
     guards = {row["guard"] for row in fixture_table["fixtures"]}
     assert guards & BUILT == BUILT
@@ -61,10 +62,7 @@ def test_eight_guards_are_built_and_two_are_owed(fixture_table: dict[str, Any]) 
         for row in fixture_table["fixtures"]
         if row["guard"] not in BUILT
     }
-    assert owed == {
-        "untrusted_boundary": "P17",
-        "deliverable_qc": "P21",
-    }
+    assert owed == {"deliverable_qc": "P21"}
 
 
 # --------------------------------------------------------- running them all
@@ -199,6 +197,19 @@ def _fire(
         assert results[0].acquired, "the first launch takes the lock"
         fired["engagement_lock"] = results[1].code
         fired["budget_governor"] = None
+
+    elif guard == "untrusted_boundary":
+        from guards.untrusted import UntrustedBoundary
+
+        text = body["visible_text"] + body["zero_width"] + body["hidden"]["text"]
+        fired["untrusted_boundary"] = (
+            UntrustedBoundary().check(text, source_id="sha256:" + "ab" * 32, label="pdf").code
+        )
+        fired["payload_scan"] = (
+            None
+            if PayloadScan().check(text, IdentifierList.of(ENGAGEMENT, [])).passed
+            else "PRIVACY.UNMASKED_IDENTIFIER"
+        )
     return fired
 
 

@@ -74,10 +74,22 @@ class NumericLock:
             failed=sum(missing.values()) + sum(extra.values()),
             code=NUMERIC_DRIFT if drift else None,
             reasons=tuple(
-                ([f"{sum(missing.values())} token(s) changed or vanished: "
-                  + ", ".join(sorted(missing.elements())[:8])] if missing else [])
-                + ([f"{sum(extra.values())} token(s) appeared: "
-                    + ", ".join(sorted(extra.elements())[:8])] if extra else [])
+                (
+                    [
+                        f"{sum(missing.values())} token(s) changed or vanished: "
+                        + ", ".join(sorted(missing.elements())[:8])
+                    ]
+                    if missing
+                    else []
+                )
+                + (
+                    [
+                        f"{sum(extra.values())} token(s) appeared: "
+                        + ", ".join(sorted(extra.elements())[:8])
+                    ]
+                    if extra
+                    else []
+                )
             ),
             detail={
                 "missing": sorted(missing.elements())[:32],
@@ -93,8 +105,9 @@ class NumericLock:
         engagement_id: str,
         step_id: str | None = None,
     ) -> GuardResult:
-        return report(self.bus, self.check(before, after), "numeric_lock", run_id,
-                      engagement_id, step_id)
+        return report(
+            self.bus, self.check(before, after), "numeric_lock", run_id, engagement_id, step_id
+        )
 
 
 def as_text(value: Any) -> str:

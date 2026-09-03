@@ -587,9 +587,7 @@ def _refuse_to_change_an_event(session: Session, flush_context: Any, instances: 
     about the event table, not about who opened the connection.
     """
     frozen = (Event, Decision, ConfigChange)
-    changed = [
-        obj for obj in session.dirty if isinstance(obj, frozen) and session.is_modified(obj)
-    ]
+    changed = [obj for obj in session.dirty if isinstance(obj, frozen) and session.is_modified(obj)]
     removed = [obj for obj in session.deleted if isinstance(obj, frozen)]
     if not changed and not removed:
         return

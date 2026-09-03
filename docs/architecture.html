@@ -2074,7 +2074,7 @@ const SCORECARD = [
 
 /* The diagnostic namespace. Every code carries an owner and a what_now. */
 const ERRCODES = [
- ['INTAKE.*','UNREADABLE_FILE \u00b7 UNKNOWN_TYPE \u00b7 NO_ENGAGEMENT \u00b7 WATCH_OVERLAP','client-data / config'],
+ ['INTAKE.*','UNREADABLE_FILE \u00b7 UNKNOWN_TYPE \u00b7 NO_ENGAGEMENT \u00b7 WATCH_OVERLAP \u00b7 INJECTION_DETECTED','client-data / config'],
  ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID \u00b7 UNKNOWN_TOOL \u00b7 PRECEDENT_OUT_OF_SCOPE \u00b7 UNKNOWN_CONTRACT \u00b7 CONTRACT_INDEX_INVALID \u00b7 UNKNOWN_CONSTRAINTS \u00b7 UNKNOWN_ADAPTER \u00b7 MODEL_PIN_UNAVAILABLE \u00b7 MISSING_CREDENTIAL','config'],
  ['PRIVACY.*','UNMASKED_IDENTIFIER \u00b7 UNMASKED_PRECEDENT \u00b7 TOKEN_CROSS_ENGAGEMENT \u00b7 VAULT_UNAVAILABLE','system'],
  ['POLICY.*','TOOL_NOT_DECLARED \u00b7 ARG_OUT_OF_SCOPE \u00b7 BUDGET_EXCEEDED \u00b7 CAP_EXCEEDED \u00b7 OVERLAY_LOOSENS \u00b7 MULTI_TURN_STEP','policy'],
@@ -4269,8 +4269,9 @@ class <span class="hl">ProposedAction</span>:
    R_('    plan_assertions.py           the 7, over a compiled plan', 'runs on every compile'),
    R_('  <span class="t2">privacy/</span>       mask.py, vault.py, unmask.py, verify.py, payload_scan.py', 'deterministic, no model'),
    R_('  <span class="t2">tools/</span>         normalize.py, recompute.py, write_template.py'),
-   R_('  <span class="t2">guards/</span>        schema, provenance, tieout, reconcile, numeric_lock', 'unmask verify sits in privacy/'),
+   R_('  <span class="t2">guards/</span>        schema, provenance, tieout, reconcile, numeric_lock, untrusted', 'unmask verify sits in privacy/'),
    R_('  <span class="t2">intake/</span>        roster.py, config.py, sweep.py, bind.py, fingerprint.py, window.py, lock.py, local.py', 'what gets looked at, and when a run starts'),
+   R_('    readers/           documents.py, workbook.py, classify.py, periods.py', 'pypdf, python-docx, openpyxl; one model call per workbook'),
    R_('  <span class="t2">review/</span>        policy.py, router.py, queue.py, surface.py, log.py', 'what a person sees'),
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, console/'),
