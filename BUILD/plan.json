@@ -116,7 +116,7 @@
       "title": "Event bus, run store, manifest",
       "block": "Block A - Foundations (the walking skeleton)",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "The record. Every guard writes to it, passes included, so silence is never ambiguous - and the manifest is written unconditionally, including when a run halts.",
       "builds": [
         "event_bus",
@@ -138,9 +138,11 @@
         "The store conformance suite is parameterised over SQLite and Postgres, passes on SQLite, and reports the Postgres run as not-run rather than skipping it silently when no server is reachable"
       ],
       "checks": [
-        "python -m uv run pytest tests/p04 -q"
+        "python -m uv run pytest tests/p04 -q",
+        "python -m uv run ruff check ."
       ],
-      "notes": "SQLite for phases 1-24 behind the repository port; the Postgres run is what stops SQLite-only SQL creeping in unnoticed."
+      "notes": "SQLite for phases 1-24 behind the repository port; the Postgres run is what stops SQLite-only SQL creeping in unnoticed.",
+      "closed": "2026-09-02"
     },
     {
       "id": "P05",

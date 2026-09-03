@@ -27,6 +27,11 @@ dev = [
     "pytest-cov>=6.0",
     "ruff>=0.8",
     "mypy>=1.13",
+    # The Postgres driver is a dev dependency because the only thing that reaches it
+    # before P25 is `pytest --postgres`. Without it, asking for the Postgres run would
+    # fail as a missing module and read like an unreachable server, which is the one
+    # confusion the whole --postgres arrangement exists to avoid.
+    "psycopg[binary]>=3.2",
 ]
 
 [tool.ruff]

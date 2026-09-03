@@ -39,12 +39,21 @@ class Diagnostic:
         return " ".join(parts)
 
 
-class RegistryError(Exception):
-    """A registry refused something. Always carries a diagnostic."""
+class DiagnosticError(Exception):
+    """The base for every failure this system raises deliberately.
+
+    The rule is not "registries carry diagnostics", it is "failures do". `except
+    DiagnosticError` is the one handler that can always report a code, an owner and a
+    next action, which is what makes an operator-facing error surface possible at all.
+    """
 
     def __init__(self, diagnostic: Diagnostic) -> None:
         super().__init__(str(diagnostic))
         self.diagnostic = diagnostic
+
+
+class RegistryError(DiagnosticError):
+    """A registry refused something."""
 
 
 class ContractViolation(RegistryError):
@@ -69,6 +78,10 @@ WRITE_FAILED = "DELIVER.WRITE_FAILED"
 SCHEMA_INVALID = "SKILL.SCHEMA_INVALID"
 NO_PROVENANCE = "SKILL.NO_PROVENANCE"
 FABRICATED_SOURCE = "SKILL.FABRICATED_SOURCE"
+UNKNOWN_RUN = "PROCESS.UNKNOWN_RUN"
+ILLEGAL_TRANSITION = "PROCESS.ILLEGAL_TRANSITION"
+APPEND_ONLY_VIOLATION = "PROCESS.APPEND_ONLY_VIOLATION"
+MANIFEST_INCOMPLETE = "PROCESS.MANIFEST_INCOMPLETE"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -131,6 +144,32 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A figure cites the system's own reasoning as its source. This is rejected as "
         "hard as a missing source. Requote the underlying document, or report the item "
         "as unavailable.",
+    ),
+    UNKNOWN_RUN: (
+        "process",
+        "No run is recorded under that id. The run store is the source of truth for "
+        "what happened; an id it does not know was never started, or was started "
+        "against a different store.",
+    ),
+    ILLEGAL_TRANSITION: (
+        "process",
+        "A run cannot move between those two states. The state machine is small and "
+        "closed on purpose - if the move is legitimate, the transition table is what "
+        "needs changing, deliberately, not the call site.",
+    ),
+    APPEND_ONLY_VIOLATION: (
+        "system",
+        "Something tried to change or remove a recorded event. The event table is "
+        "append-only in the API, in the ORM and in the database. Correct the record by "
+        "emitting a further event, never by editing one - a trace that can be edited "
+        "is not evidence of anything.",
+    ),
+    MANIFEST_INCOMPLETE: (
+        "system",
+        "The manifest assembled from the run store does not satisfy "
+        "run_manifest@1.0.0. This is a defect in the writer or a gap in what the run "
+        "recorded; the run is not closed out until a valid manifest exists, because a "
+        "run with no defensible record is worse than a run that visibly failed.",
     ),
 }
 

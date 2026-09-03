@@ -1110,12 +1110,12 @@ const NODES = [
 /* ═══ BAND 12 · CONTROL PLANE (right column) ═════════════════════ */
 {id:'event_bus',runtime:'resource',label:'Event Bus',plain:'Every node reports what it just did.',group:'ops',exec:'code',now:true,
  desc:'Typed events from every step: <code>skill.dispatched</code>, <code>mask.applied</code>, <code>guard.tieout.pass</code>, <code>hitl.item.queued</code>, <code>release.written</code>. Guard passes are emitted, not only failures.',
- impl:'Append-only event table plus an in-process publisher. Emission is fire-and-forget: a failure to record never fails a run, because observability must not become a new way for work to break.',
+ impl:'Append-only event table plus an in-process publisher. Append-only is enforced three ways &mdash; no mutating method on the API, an ORM flush guard, and <code>BEFORE UPDATE</code>/<code>BEFORE DELETE</code> triggers on both backends, so the guarantee survives a psql prompt. Emission is fire-and-forget: a failure to <i>record</i> never fails a run, because observability must not become a new way for work to break. A malformed event still raises &mdash; that is a defect in the emitting node, not an infrastructure hiccup.',
  full:'Emitting passes as well as failures is the point. A guard that only speaks up when it fires is indistinguishable, on a quiet day, from a guard that never ran at all.'},
 
 {id:'run_store',runtime:'resource',label:'Run Store',plain:'The database behind everything the dashboard shows.',group:'ops',exec:'code',now:true,
  desc:'Runs, steps, events, artifacts, costs, review items and decisions. The single source of truth for what happened.',
- impl:'Postgres. Also what the Analyst Chat reads, and what the Run Manifest is assembled from at the end of a run.',
+ impl:'A repository behind a Protocol, chosen by one URL: SQLite locally through P24, Postgres after. Reads hand back frozen records rather than live ORM rows, so &ldquo;the store is the source of truth&rdquo; is a property of the store and not a request to callers. Also what the Analyst Chat reads, and what the Run Manifest is assembled from at the end of a run.',
  full:'One store rather than logs scattered across services, because the question people actually ask — “what happened on the Henderson job on Tuesday?” — should be one query.'},
 
 {id:'checkpoint_store',runtime:'resource',label:'Checkpoint & Resume',plain:'A crashed run resumes where it stopped, not from the beginning.',group:'ops',exec:'code',now:true,
@@ -2082,7 +2082,7 @@ const ERRCODES = [
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
  ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED','model'],
- ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED','process']
+ ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE','process / system']
 ];
 
 const OWNERS = [
@@ -4259,7 +4259,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">tools/</span>         normalize.py, recompute.py, write_template.py'),
    R_('  <span class="t2">guards/</span>        schema, provenance, tieout, reconcile, unmask, numeric_lock'),
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
-   R_('  <span class="t2">ops/</span>           events.py, run_store.py, manifest.py, console/'),
+   R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, manifest.py, console/'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');
 
