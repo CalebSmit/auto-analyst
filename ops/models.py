@@ -62,7 +62,14 @@ __all__ = [
     "Ledger",
     "Outcome",
     "OUTCOMES_FOR",
+    "ConfigChange",
+    "ConfigDocument",
+    "EngagementLockRow",
+    "IntakeFile",
+    "LockQueueRow",
     "Quarantine",
+    "RosterRow",
+    "UnclaimedFolder",
     "ReviewItem",
     "Run",
     "RunState",
@@ -517,6 +524,7 @@ class Decision(Base):
 
 _APPEND_ONLY_MESSAGE = "PROCESS.APPEND_ONLY_VIOLATION - the event table is append-only"
 _DECISION_APPEND_ONLY = "PROCESS.APPEND_ONLY_VIOLATION - the decision log is append-only"
+_CONFIG_APPEND_ONLY = "PROCESS.APPEND_ONLY_VIOLATION - the config change log is append-only"
 
 _SQLITE_NO_UPDATE = DDL(  # type: ignore[no-untyped-call]
     'CREATE TRIGGER IF NOT EXISTS event_no_update BEFORE UPDATE ON "event" '
@@ -578,7 +586,7 @@ def _refuse_to_change_an_event(session: Session, flush_context: Any, instances: 
     Registered on Session rather than on one sessionmaker deliberately: the guarantee is
     about the event table, not about who opened the connection.
     """
-    frozen = (Event, Decision)
+    frozen = (Event, Decision, ConfigChange)
     changed = [
         obj for obj in session.dirty if isinstance(obj, frozen) and session.is_modified(obj)
     ]
@@ -651,3 +659,166 @@ class Quarantine(Base):
 
     def __repr__(self) -> str:
         return f"<Quarantine {self.run_id}/{self.step_id} {self.code}>"
+
+
+# ------------------------------------------------------------------ intake
+
+
+class RosterRow(Base):
+    """The Active Project Roster: which engagements are live, and therefore which folders
+    get looked at. Three states, because paused and archived look identical on an on/off
+    switch and mean completely different things to whoever is chasing the client.
+
+    Nothing deletes a row. Archiving keeps the binding for the record.
+    """
+
+    __tablename__ = "roster"
+    __table_args__ = (
+        CheckConstraint("state IN ('active', 'paused', 'archived')", name="roster_state_is_known"),
+    )
+
+    engagement_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    client: Mapped[str] = mapped_column(String(128), nullable=False)
+    scope_path: Mapped[str] = mapped_column(String(128), nullable=False)
+    state: Mapped[str] = mapped_column(String(8), nullable=False, default="active")
+    watch_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    folder: Mapped[str] = mapped_column(String(256), nullable=False, default="")
+    """Relative to the watch root, for a pattern watch. Empty for a bound watch."""
+    destination_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    template_pin: Mapped[str] = mapped_column(String(128), nullable=False, default="")
+    budget_usd: Mapped[float | None] = mapped_column(Float, default=None)
+    review_level: Mapped[str] = mapped_column(String(32), nullable=False, default="standard")
+    note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    updated_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+
+
+class ConfigDocument(Base):
+    """The versioned configuration document, one per environment. Validated on write
+    against config_document@1.0.0; every write bumps the version and appends a change."""
+
+    __tablename__ = "config_document"
+
+    environment: Mapped[str] = mapped_column(String(32), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    body: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    updated_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+    updated_by: Mapped[str] = mapped_column(String(128), nullable=False)
+
+
+class ConfigChange(Base):
+    """The Config Change Log: the field, the old and new values, the person, the time and
+    a reason. Append-only, three ways, like the event stream."""
+
+    __tablename__ = "config_change"
+    __table_args__ = (
+        CheckConstraint("length(who) > 0", name="config_change_has_a_person"),
+        CheckConstraint("length(reason) > 0", name="config_change_has_a_reason"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+    who: Mapped[str] = mapped_column(String(128), nullable=False)
+    field: Mapped[str] = mapped_column(String(128), nullable=False)
+    old: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    new: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class IntakeFile(Base):
+    """One file that arrived, fingerprinted at the moment of arrival so provenance is
+    never reconstructed downstream from memory. `source_id` is the sha256 every figure
+    will cite; `source_version` climbs when a file of the same name arrives with
+    different bytes."""
+
+    __tablename__ = "intake_file"
+    __table_args__ = (
+        UniqueConstraint("engagement_id", "source_id", name="uq_intake_engagement_source"),
+        CheckConstraint("state IN ('held', 'pending', 'consumed')", name="intake_state_is_known"),
+        CheckConstraint("source_version >= 1", name="intake_version_at_least_one"),
+        Index("ix_intake_engagement", "engagement_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    engagement_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    source_id: Mapped[str] = mapped_column(String(71), nullable=False)
+    filename: Mapped[str] = mapped_column(String(256), nullable=False)
+    path: Mapped[str] = mapped_column(String(1024), nullable=False)
+    watch_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    document_type: Mapped[str | None] = mapped_column(String(64), default=None)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    mime: Mapped[str] = mapped_column(String(128), nullable=False)
+    bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    received_at: Mapped[str] = mapped_column(String(32), nullable=False)
+    state: Mapped[str] = mapped_column(String(8), nullable=False, default="pending")
+    consumed_by: Mapped[str | None] = mapped_column(String(64), default=None)
+
+
+class UnclaimedFolder(Base):
+    """A swept subfolder that matched no engagement. Reported, routed to a person, never
+    guessed at."""
+
+    __tablename__ = "intake_unclaimed"
+    __table_args__ = (UniqueConstraint("watch_id", "location", name="uq_unclaimed_location"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    watch_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    location: Mapped[str] = mapped_column(String(1024), nullable=False)
+    first_seen: Mapped[str] = mapped_column(String(32), nullable=False)
+    last_seen: Mapped[str] = mapped_column(String(32), nullable=False)
+    files: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class EngagementLockRow(Base):
+    """The advisory lock: one run at a time per engagement. The primary key is the whole
+    mechanism - a second insert fails, and that failure is the queue's front door."""
+
+    __tablename__ = "engagement_lock"
+
+    engagement_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("run.run_id"), nullable=False)
+    acquired_at: Mapped[str] = mapped_column(String(32), nullable=False)
+    expires_at: Mapped[str] = mapped_column(String(32), nullable=False)
+
+
+class LockQueueRow(Base):
+    """Runs waiting on an engagement's lock, in arrival order. Visible on the console."""
+
+    __tablename__ = "engagement_lock_queue"
+    __table_args__ = (UniqueConstraint("engagement_id", "run_id", name="uq_lock_queue_run"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    engagement_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    run_id: Mapped[str] = mapped_column(ForeignKey("run.run_id"), nullable=False)
+    queued_at: Mapped[str] = mapped_column(String(32), nullable=False)
+
+
+_SQLITE_NO_UPDATE_CONFIG = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS config_change_no_update BEFORE UPDATE ON "config_change" '
+    f"BEGIN SELECT RAISE(ABORT, '{_CONFIG_APPEND_ONLY}'); END"
+)
+_SQLITE_NO_DELETE_CONFIG = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS config_change_no_delete BEFORE DELETE ON "config_change" '
+    f"BEGIN SELECT RAISE(ABORT, '{_CONFIG_APPEND_ONLY}'); END"
+)
+_PG_FUNCTION_CONFIG = DDL(  # type: ignore[no-untyped-call]
+    "CREATE OR REPLACE FUNCTION config_change_append_only() RETURNS trigger AS $cc$ "
+    f"BEGIN RAISE EXCEPTION '{_CONFIG_APPEND_ONLY}'; END; $cc$ LANGUAGE plpgsql"
+)
+_PG_TRIGGER_CONFIG = DDL(  # type: ignore[no-untyped-call]
+    "DROP TRIGGER IF EXISTS config_change_append_only ON config_change; "
+    "CREATE TRIGGER config_change_append_only BEFORE UPDATE OR DELETE ON config_change "
+    "FOR EACH ROW EXECUTE FUNCTION config_change_append_only()"
+)
+sa_event.listen(
+    ConfigChange.__table__, "after_create", _SQLITE_NO_UPDATE_CONFIG.execute_if(dialect="sqlite")
+)
+sa_event.listen(
+    ConfigChange.__table__, "after_create", _SQLITE_NO_DELETE_CONFIG.execute_if(dialect="sqlite")
+)
+sa_event.listen(
+    ConfigChange.__table__, "after_create", _PG_FUNCTION_CONFIG.execute_if(dialect="postgresql")
+)
+sa_event.listen(
+    ConfigChange.__table__, "after_create", _PG_TRIGGER_CONFIG.execute_if(dialect="postgresql")
+)

@@ -5,29 +5,28 @@
 
 ## Where the build is
 
-- **15 of 28 phases closed**
+- **16 of 28 phases closed**
 - Last green checkpoint: **C5**
-- Current phase: **P16 - Intake: roster, sweep, binding, lock, window** (gate: auto)
+- Current phase: **P17 - Readers and the Source Parse Store** (gate: auto)
 
 ## The next action
 
-Work P16. Its full definition is in [BUILD/phases/P16.md](phases/P16.md).
+Work P17. Its full definition is in [BUILD/phases/P17.md](phases/P17.md).
 
-> What gets looked at, when a run actually starts, and the guarantee that an inactive engagement is unreachable rather than merely unchecked.
+> Turn files into an addressable parse that provenance and tie-out can read from - the store finding F2 showed nothing owned.
 
 Tasks:
 
-- [ ] The roster and its three states: active, paused, archived
-- [ ] Sweep planner reading the roster - the only thing that decides what is swept
-- [ ] Pattern watches (one row, forty clients) and bound watches, with unmatched folders routed to a person and never guessed
-- [ ] Fingerprinting, sha256 source_id, and source_version on re-upload
-- [ ] Engagement binding that fails closed before anything is read, and the per-engagement lock
-- [ ] Intake window: quiet_period 30 min, required_types from the recipe, max_wait 24 h
+- [ ] pypdf and python-docx extraction, attaching source_id and a page/table/row locator to every emitted item
+- [ ] Workbook reader: structural read of names and headers, one model call selects sheets with reasons, deterministic code normalizes only those
+- [ ] Document classifier and the period/scale detector, with an explicit ambiguous flag rather than an assumption
+- [ ] The untrusted content boundary
+- [ ] The Source Parse Store keyed (run_id, source_id, locator), written once by the readers and never updated, plus its locator resolver
 
 Then:
 
-    python tools/gate.py check P16
-    python tools/gate.py close P16
+    python tools/gate.py check P17
+    python tools/gate.py close P17
 
 ## Before you start
 
@@ -54,4 +53,5 @@ Then:
 - **P13** Guards and their adversarial fixtures (2026-09-03)
 - **P14** Loop controller, quarantine, diagnostics (2026-09-03)
 - **P15** Confidence router, review queue, decision log (2026-09-03)
+- **P16** Intake: roster, sweep, binding, lock, window (2026-09-03)
 

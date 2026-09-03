@@ -343,6 +343,9 @@ class RunStore(Protocol):
     ) -> None: ...
     def decisions(self, run_id: str) -> tuple[DecisionRecord, ...]: ...
 
+    # -- supersession: a newer run covers this one; its record stays
+    def mark_superseded_by(self, run_id: str, by: str) -> RunRecord: ...
+
     # -- quarantine: full context, nothing deleted
     def hold(self, run_id: str, record: QuarantineRecord) -> None: ...
     def quarantines(self, run_id: str) -> tuple[QuarantineRecord, ...]: ...
@@ -938,6 +941,26 @@ class SqlRunStore:
                 )
                 for row in rows
             )
+
+    # -- supersession
+
+    def mark_superseded_by(self, run_id: str, by: str) -> RunRecord:
+        """A newer run over a newer source version covers this one.
+
+        A run that has ended moves to `superseded`; its outcome, its end time and its
+        manifest stay exactly as they were - the manifest is retained, never overwritten.
+        A run still in flight is only marked: it finishes on its own, and nothing here
+        cancels it.
+        """
+        with self._session() as session:
+            row = self._row(session, run_id)
+            self._row(session, by)
+            row.superseded_by = by
+            if row.ended_at is not None and row.state != RunState.SUPERSEDED:
+                check_transition(RunState(row.state), RunState.SUPERSEDED)
+                row.state = RunState.SUPERSEDED
+                row.state_reason = f"superseded by {by}"
+            return _as_run(row)
 
     # -- quarantine
 

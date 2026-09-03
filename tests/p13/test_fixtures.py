@@ -31,6 +31,7 @@ from tools.recompute import recompute
 BUILT = {
     "payload_scan", "unmask_verify", "tieout", "numeric_lock", "provenance", "budget_governor",
     "loop_controller",  # P14
+    "engagement_lock",  # P16
 }
 
 
@@ -51,7 +52,7 @@ def test_the_table_has_ten_and_they_are_the_blueprints(fixture_table: dict[str, 
         }
 
 
-def test_seven_guards_are_built_and_three_are_owed(fixture_table: dict[str, Any]) -> None:
+def test_eight_guards_are_built_and_two_are_owed(fixture_table: dict[str, Any]) -> None:
     """Said in a test so the number is checked, not remembered."""
     guards = {row["guard"] for row in fixture_table["fixtures"]}
     assert guards & BUILT == BUILT
@@ -63,7 +64,6 @@ def test_seven_guards_are_built_and_three_are_owed(fixture_table: dict[str, Any]
     assert owed == {
         "untrusted_boundary": "P17",
         "deliverable_qc": "P21",
-        "engagement_lock": "P16",
     }
 
 
@@ -180,6 +180,24 @@ def _fire(
         fired["loop_controller"] = controller.admit(
             started, plan, step, body["loop"], first, second, {}, trigger
         ).code
+        fired["budget_governor"] = None
+
+    elif guard == "engagement_lock":
+        from intake.lock import EngagementLock
+
+        lock = EngagementLock(store, bus)
+        results = []
+        for launch in body["launches"]:
+            store.start_run(
+                run_id=launch["run_id"],
+                engagement_id=body["engagement_id"],
+                plan_hash="sha256:" + "7c" * 32,
+                versions={"model_pin": "x", "skills": [], "contracts": "1.0.0",
+                          "constraints": "1.0.0", "taxonomy": "coa@1.0.0"},
+            )
+            results.append(lock.acquire(body["engagement_id"], launch["run_id"]))
+        assert results[0].acquired, "the first launch takes the lock"
+        fired["engagement_lock"] = results[1].code
         fired["budget_governor"] = None
     return fired
 

@@ -96,6 +96,9 @@ class Recipe:
     inputs: tuple[RecipeInput, ...] = ()
     loops: tuple[LoopDeclaration, ...] = ()
     path: str = ""
+    required_types: tuple[str, ...] = ()
+    """The intake document types a run of this recipe needs. The Intake Window waits for
+    them, or proceeds at the SLA with an explicit coverage gap."""
     _by_id: dict[str, RecipeStep] = field(default_factory=dict, repr=False, compare=False)
 
     @property
@@ -158,6 +161,7 @@ def load_recipe(name: str, recipes_dir: Path = RECIPES_DIR) -> Recipe:
         ),
         loops=tuple(_loop(entry, locator) for entry in raw.get("loops") or ()),
         path=locator,
+        required_types=tuple(str(t) for t in (raw.get("intake") or {}).get("required_types") or ()),
         _by_id={s.id: s for s in steps},
     )
     if recipe.name != path.stem:

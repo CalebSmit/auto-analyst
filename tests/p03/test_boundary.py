@@ -22,7 +22,10 @@ ROOT = Path(__file__).resolve().parents[2]
 
 # Where the rule applies. tests/ is exempt: the conformance suite has to construct the
 # adapters it tests, and the P03 tests are the one place that is legitimate.
-SCANNED = ["harness", "graph", "privacy", "guards", "ops", "tools", "registries", "skills"]
+SCANNED = [
+    "harness", "graph", "privacy", "guards", "ops", "tools", "registries", "skills",
+    "review", "intake",
+]
 
 ADAPTER_MODULES = {
     module for spec in ports.PORTS.values() for module in spec.adapters.values()

@@ -17,6 +17,9 @@ inputs:
   - name: request_schedule
     schema: null
 
+intake:
+  required_types: [ddr_response, request_schedule, trial_balance]
+
 steps:
   - id: intake
     kind: io

@@ -36,6 +36,7 @@ EXPECTED_DIRS = [
     "tools",
     "guards",
     "review",
+    "intake",
     "ports/storage",
     "ports/delivery",
     "ports/secrets",
@@ -100,6 +101,7 @@ FIRST_BUILT_BY = {
     "privacy": "P11",   # payload scan first (P11 builds it); mask, vault, unmask in P12
     "guards": "P13",    # schema, provenance, tieout, reconcile, numeric lock
     "review": "P15",    # checkpoint policy, confidence router, queue, surface, decision log
+    "intake": "P16",    # roster, config store, sweep, bind, fingerprint, window, lock
 }
 
 

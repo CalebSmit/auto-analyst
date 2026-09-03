@@ -151,6 +151,8 @@ UNKNOWN_TYPE = "INTAKE.UNKNOWN_TYPE"
 NO_ENGAGEMENT = "INTAKE.NO_ENGAGEMENT"
 STALE_DECISION = "PROCESS.STALE_DECISION"
 RATIONALE_REQUIRED = "PROCESS.RATIONALE_REQUIRED"
+WATCH_OVERLAP = "INTAKE.WATCH_OVERLAP"
+ENGAGEMENT_LOCKED = "PROCESS.ENGAGEMENT_LOCKED"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -340,6 +342,20 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "corrected value. The reason is what the decision log is for: six months later "
         "it is the only record of why a line was treated that way. Add it and decide "
         "again; nothing was written.",
+    ),
+    WATCH_OVERLAP: (
+        "config",
+        "Two watches claim the same path, or two roster entries claim the same folder "
+        "under one watch. Nothing was swept: an overlap would start two runs on one file. "
+        "Fix the watch roots or the roster folders so every path has exactly one claimant, "
+        "then sweep again.",
+    ),
+    ENGAGEMENT_LOCKED: (
+        "process",
+        "Another run holds this engagement's lock, so this run is queued behind it rather "
+        "than started alongside it - two runs on one engagement would write the same mask "
+        "vault and the same output folder. Nothing to do unless the holder is past its "
+        "timeout, which is raised as an incident and never cleared automatically.",
     ),
     MULTI_TURN_STEP: (
         "policy",

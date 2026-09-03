@@ -44,6 +44,15 @@ contracts:
       it. Configuration writes the engagement record (invariant 23), so the gap was a
       missing contract rather than a missing design. P24 checks it at activation.
 
+  - id: config_document
+    version: 1.0.0
+    file: config_document.schema.json
+    kind: configuration
+    note: >-
+      The versioned record behind the Admin tab: watches and their patterns, intake
+      timing, destinations, per-engagement overrides. Validated on every write (P16).
+      Configuration writes the engagement record and never reaches into a run.
+
   - id: participant_census
     version: 1.0.0
     file: participant_census.schema.json

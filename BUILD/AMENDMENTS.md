@@ -255,3 +255,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** Seven of the ten fixture guards exist after P15 (loop_controller joined the six from P13); the untrusted boundary, engagement lock and deliverable QC are built by P17, P16 and P21. The checkpoint test runs every fixture whose guard is built through every built guard and reports the rest by phase, so its claim is true now and stays true as the last three land.
 
 - proves: 'All ten adversarial fixtures fire the right guard, every loop is bounded, and every failure carries code, owner and what_now' -> 'Every adversarial fixture whose guard is built fires that guard and only that guard (seven of ten after P15, the rest reported by phase), every loop is bounded by an integer the registry allows, and every failure carries code, owner and what_now'
+
+## 2026-09-03 - P16 Intake: roster, sweep, binding, lock, window
+
+**Why:** The eight intake nodes live in a package of their own, intake/ (roster, config, sweep, local, bind, fingerprint, window, lock, plus launch.py for the release), which the blueprint's listing did not name; listed now. The Configuration Store needed a contract to validate against: config_document@1.0.0 is new (watches, intake timing, filename-to-document-type conventions, destinations, per-engagement overrides). Recipes gain an intake.required_types block, which is what the window waits for; it is not key material, so no plan hash moves. Two codes are new: INTAKE.WATCH_OVERLAP (config) and PROCESS.ENGAGEMENT_LOCKED (the fixture's). Arrival is defined as the sweep that first sees a file, on the system's clock, and the window counts from that. The recipe's source_documents input stays untyped: its shape is the run manifest's sources rows, written by launch.py, and typing the recipe input belongs with P17's readers, which own what a source becomes once read - the P06 note that said P16 was one phase early.
+
+- check added: python -m uv run ruff check intake tests/p16
+- check added: python -m uv run mypy intake ops registries graph

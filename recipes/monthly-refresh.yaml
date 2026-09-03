@@ -26,6 +26,12 @@ inputs:
       P16, and inventing a schema for it now would mean pinning something nobody has
       reviewed.
 
+# What has to have arrived before a run is worth starting. The Intake Window holds the
+# set until it is quiet and these are present, or proceeds at max_wait with a recorded
+# coverage gap. A run consumes the whole current set, never a delta.
+intake:
+  required_types: [trial_balance, financial_statements]
+
 steps:
   - id: intake
     kind: io

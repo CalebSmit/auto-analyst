@@ -19,7 +19,7 @@ VERSIONED_ID = re.compile(r"^https://chartwell[.]invalid/contracts/[a-z_/-]+@[0-
 
 
 def test_every_registered_schema_is_itself_a_valid_schema(contracts: ContractRegistry) -> None:
-    assert len(contracts.self_check()) == 18
+    assert len(contracts.self_check()) == 19  # config_document joined in P16
 
 
 def test_every_id_carries_a_version(contracts: ContractRegistry) -> None:
