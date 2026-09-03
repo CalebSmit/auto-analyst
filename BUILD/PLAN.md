@@ -1,0 +1,83 @@
+# Chartwell Automated Analyst - master build plan
+
+*Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
+use `gate amend`, so the reason for every change is captured with the change.*
+
+**0 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+
+Checkpoints re-run every prior phase together plus an integration test of their own.
+A red checkpoint blocks the next phase - it means the phases disagree with each other.
+
+## Block A - Foundations (the walking skeleton)
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P01** Project structure and build-state system | auto | Every directory in the blueprint repo tree exists and carries a README |  |
+| [ ] | **P02** Contracts and registries | auto | Every schema loads, self-validates, and carries a version in its id |  |
+| [ ] | **P03** Ports and adapters, with one conformance suite | auto | All six ports have a Protocol and at least one adapter |  |
+| [ ] | **C1 - The skeleton holds bytes** | integration | A fake run moves bytes storage to delivery, emits events and writes a manifest |  |
+| [ ] | **P04** Event bus, run store, manifest | auto | A halted run still writes a complete manifest |  |
+
+## Block B - The engine
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P05** Scope resolver | auto | All seven scope combinations resolve to exactly one skill set |  |
+| [ ] | **P06** Graph compiler | auto | An undeclared cycle is rejected at compile time with a locatable error |  |
+| [ ] | **C2 - A plan compiles and hashes** | integration | A recipe compiles; identical inputs give an identical plan_hash and a changed precedent snapshot changes it |  |
+| [ ] | **P07** The assertion suites | auto | All 25 invariants are executable and pass against the current architecture |  |
+| [ ] | **P08** Step executor, idempotency, resume | auto | Killing a run mid-flight and resuming re-executes zero completed steps |  |
+| [ ] | **P09** Context builder | auto | context_ref reproduces the exact bytes a model was shown |  |
+| [ ] | **C3 - A run survives being killed** | integration | Kill mid-flight, resume, zero completed steps re-execute, and plan assertions gate the resume |  |
+
+## Block C - The harness around one step
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P10** Policy gate, constraints, guarded runtime | auto | A tool not in the caller's allowlist is denied and the denial is in the event stream |  |
+| [ ] | **P11** LLM port, model pin, budget governor | auto | A call attempting more than one model turn raises before it is sent |  |
+| [ ] | **P12** Privacy: mask, vault, unmask, verify | auto | The same account masks to the same token across runs weeks apart - period alignment depends on this |  |
+| [ ] | **C4 - One step through all six harness stages** | integration | A no-op skill passes context, reason, policy, act, verify and accept, with every stage emitting |  |
+| [ ] | **P13** Guards and their adversarial fixtures | auto | Each of the ten fixtures fires the right guard, and only that guard |  |
+| [ ] | **P14** Loop controller, quarantine, diagnostics | auto | A skill returning byte-identical output is stopped rather than retried |  |
+| [ ] | **P15** Confidence router, review queue, decision log | auto | A policy attempting to lower a skill's review floor is rejected |  |
+| [ ] | **C5 - Every guard fires on its own fixture** | integration | All ten adversarial fixtures fire the right guard, every loop is bounded, and every failure carries code, owner and what_now |  |
+
+## Block D - First real vertical, local end to end
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P16** Intake: roster, sweep, binding, lock, window | auto | Invariant 24 proven by graph walk: no path from any intake source into the pipeline for an off-roster engagement |  |
+| [ ] | **P17** Readers and the Source Parse Store | auto | Every extracted figure resolves by (source_id, locator) through one interface, whatever kind of file it came from |  |
+| [ ] | **P18** First real skill: timing normalization | human | 100% arithmetic agreement with the deterministic tool |  |
+| [ ] | **C6 - The walking vertical** | integration | Watched folder to masked payload to one real skill to guards to review to local output, on one real engagement |  |
+
+## Block E - Real skills and their surfaces
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P19** Line-item tagging and the precedent store | human | At least 95% top-1 agreement with the analyst gold set over a 400-item fixture |  |
+| [ ] | **P20** EBITDA normalization | human | 100% of proposed add-backs tie via recompute |  |
+| [ ] | **P21** Model builder, template registry, release | auto | A binding to a cell address is rejected at registration |  |
+| [ ] | **C7 - A deliverable an analyst would accept** | integration | Three real skills on real files produce an .xlsx that opens clean, with every figure sourced and recomputed |  |
+
+## Block F - Assurance and operations
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P22** Eval and replay harnesses | auto | Every shipped skill has fixtures and a named numeric gate |  |
+| [ ] | **P23** Ops console, scorecard, drift, stalls | auto | Every run gets a scorecard with a computed verdict |  |
+| [ ] | **P24** Admin console, preflight, config audit | auto | A failing preflight check blocks activation of that engagement rather than failing later in a run |  |
+| [ ] | **C8 - Observable and self-service** | integration | A run is fully observable from its event stream alone, and a new engagement is set up without touching code |  |
+
+## Block G - Scale, judgment and handoff
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P25** Worker pool and the queue port | auto | Several engagements process concurrently while one engagement still serialises |  |
+| [ ] | **P26** Orchestrator agent and triage | human | A proposed plan that violates any plan assertion is rejected and the recipe is used instead |  |
+| [ ] | **P27** The governance chain | auto | No path from the drop folder to the tree skips fixtures, review or a shadow run - remove any one gate and the path breaks |  |
+| [ ] | **C9 - Many engagements, governed change** | integration | A nightly sweep over several engagements completes, and a skill ships through the full governance chain |  |
+| [ ] | **P28** Docker, portability, handoff packet | human | docker compose up then pytest is green with no host Python involved |  |
+| [ ] | **C10 - v1 - portable and handed off** | integration | Everything above, green, inside a container, from a clean clone plus .env |  |
+

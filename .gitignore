@@ -1,0 +1,25 @@
+# environment
+.venv/
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# run artifacts - never committed, they hold client data
+runs/
+artifacts/
+vault/
+*.db
+*.sqlite3
+
+# client material
+inbox/
+outbox/
+templates/*.xlsx
+!templates/.gitkeep
+
+# os
+Thumbs.db
+.DS_Store

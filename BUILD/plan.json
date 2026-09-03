@@ -1,0 +1,985 @@
+{
+  "project": "Chartwell Automated Analyst",
+  "blueprint": "c:/Users/smitc/OneDrive/Documents/Chartwell/Automated Analyst/Chartwell_Automated_Analyst_Architecture.html",
+  "phases": [
+    {
+      "id": "P01",
+      "title": "Project structure and build-state system",
+      "block": "Block A - Foundations (the walking skeleton)",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Create the shape the whole project lives in, and the state system that lets any session - here, or Cursor on the work machine - know where the build is without reading a conversation. No domain logic at all.",
+      "builds": [],
+      "tasks": [
+        "Repo tree matching the blueprint's own repo listing, every directory with an __init__.py and a README saying what belongs there and what does not",
+        "uv toolchain: pyproject.toml, Python 3.12 pinned, uv.lock committed",
+        "ruff + pytest + mypy configured in pyproject, no separate config files",
+        "BUILD/: plan.json as truth, PLAN.md and STATE.md generated, LEDGER.md and AMENDMENTS.md append-only",
+        "tools/gate.py: status, check, close, checkpoint, amend, ledger, render",
+        "CLAUDE.md at the repo root carrying the session rules",
+        "tests/p01 asserting the structure is what the blueprint says it is"
+      ],
+      "exit": [
+        "Every directory in the blueprint repo tree exists and carries a README",
+        "uv sync reproduces the environment from a clean checkout",
+        "gate status prints the cursor with no arguments",
+        "gate close P02 refuses, because P02 has not been built"
+      ],
+      "checks": [
+        "python -m uv sync --frozen",
+        "python -m uv run ruff check .",
+        "python -m uv run pytest tests/p01 -q",
+        "python tools/gate.py render"
+      ],
+      "notes": "The refusal test matters more than it looks. A check-off mechanism that cannot refuse is decoration."
+    },
+    {
+      "id": "P02",
+      "title": "Contracts and registries",
+      "block": "Block A - Foundations (the walking skeleton)",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Every shape the system passes around, defined once, versioned, and enforced at the boundary rather than restated per skill. Includes the two configuration-sourced inputs a pre-build review found had no producer.",
+      "builds": [
+        "contract_registry",
+        "constraint_registry",
+        "skill_contract"
+      ],
+      "tasks": [
+        "figure.schema.json - the envelope: value, unit, currency, scale, period, source_id, locator, source_version, derivation, masked, confidence, produced_by, model_pin",
+        "One output schema per skill, referencing the envelope rather than restating it",
+        "event.schema.json and run_manifest.schema.json",
+        "engagement_profile.schema.json (finding F1): industry classification, size band, fiscal calendar, scale convention, owner-compensation baseline, disposition",
+        "participant_census as a declared intake document type",
+        "constraints.yaml - the predicates the Policy Gate evaluates",
+        "A registry loader that pins version and refuses an unknown one"
+      ],
+      "exit": [
+        "Every schema loads, self-validates, and carries a version in its id",
+        "A figure missing scale is rejected; scale is never inferred downstream",
+        "A figure citing source_id 'derived', 'model' or 'analysis' is rejected as fabricated provenance",
+        "engagement_profile round-trips and a profile missing owner-compensation baseline fails validation"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p02 -q"
+      ],
+      "notes": "F1 lands here. Three skills declare engagement_profile and nothing produced it - the fix is a contract, because invariant 23 already decided configuration writes the engagement record."
+    },
+    {
+      "id": "P03",
+      "title": "Ports and adapters, with one conformance suite",
+      "block": "Block A - Foundations (the walking skeleton)",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Six interfaces and their local adapters, plus a single suite every adapter must pass. This is what makes adding ShareFile later a class rather than a refactor.",
+      "builds": [
+        "storage_port",
+        "delivery_port",
+        "secrets_port",
+        "queue_port",
+        "llm_port",
+        "compute_target"
+      ],
+      "tasks": [
+        "Six Protocols under ports/, each with the narrowest surface that works",
+        "storage: local_folder adapter. delivery: local_folder adapter",
+        "secrets: dotenv adapter, reading presence never printing value",
+        "queue: in_process adapter",
+        "llm: a fake adapter that replays recorded fixtures, so phases 4-10 need no API key",
+        "One conformance suite, parameterised over every registered adapter",
+        "An import-boundary test: nothing outside ports/ imports an adapter directly"
+      ],
+      "exit": [
+        "All six ports have a Protocol and at least one adapter",
+        "The conformance suite passes for every registered adapter",
+        "No module outside ports/ imports a concrete adapter",
+        "Switching AA_STORAGE_ADAPTER changes behaviour with no pipeline code touched"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p03 -q"
+      ],
+      "notes": "The ShareFile and Box connectors that exist at work become adapters here at handoff. Nothing before P25 depends on them."
+    },
+    {
+      "id": "P04",
+      "title": "Event bus, run store, manifest",
+      "block": "Block A - Foundations (the walking skeleton)",
+      "gate": "auto",
+      "status": "open",
+      "intent": "The record. Every guard writes to it, passes included, so silence is never ambiguous - and the manifest is written unconditionally, including when a run halts.",
+      "builds": [
+        "event_bus",
+        "run_store",
+        "run_manifest",
+        "checkpoint_store"
+      ],
+      "tasks": [
+        "SQLAlchemy models: run, step, event, artifact, review_item, decision",
+        "A repository port over the store, so SQLite and Postgres are one URL apart",
+        "Append-only event bus - no update path exists in the API at all",
+        "Manifest writer wired to run end regardless of outcome",
+        "The seven run states: queued, running, waiting, quarantined, halted, delivered, superseded"
+      ],
+      "exit": [
+        "A halted run still writes a complete manifest",
+        "The event table has no update path reachable from application code",
+        "All seven run states are reachable and asserted in tests",
+        "The same suite passes against Postgres in Docker, not only SQLite"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p04 -q"
+      ],
+      "notes": "SQLite for phases 1-24 behind the repository port; the Postgres run is what stops SQLite-only SQL creeping in unnoticed."
+    },
+    {
+      "id": "P05",
+      "title": "Scope resolver",
+      "block": "Block B - The engine",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Five-layer resolution, deeper shadows shallower, overlays may only tighten. This is what makes 'an engagement can only see the skills its scope resolves to' true by construction rather than by policy.",
+      "builds": [
+        "scope_resolver",
+        "skill_tree",
+        "skill_index",
+        "scope_registry"
+      ],
+      "tasks": [
+        "scopes.yaml - practice groups, segments, dispositions",
+        "LAYER_ORDER: _firm, <practice>/_group, <practice>/_<disposition>, <practice>/<segment>/_segment, <practice>/<segment>/<disposition>",
+        "The resolver, returning exactly one skill set per scope path",
+        "The skill index: name and description only, never a skill body",
+        "Overlay merge with a tighten-only assertion that raises on a loosening"
+      ],
+      "exit": [
+        "All seven scope combinations resolve to exactly one skill set",
+        "An overlay that lowers a HITL requirement or widens a privacy class raises",
+        "Consulting resolves to the firm layer only, and the resolver says so explicitly",
+        "The skill index never contains a skill body or a reference file"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p05 -q"
+      ],
+      "notes": "The same resolver binds Excel model templates per practice group - one mechanism, two kinds of artifact."
+    },
+    {
+      "id": "P06",
+      "title": "Graph compiler",
+      "block": "Block B - The engine",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Turn a named job recipe into a typed DAG with a plan hash. Nothing executes that has not been through here.",
+      "builds": [
+        "graph_compiler",
+        "run_plan",
+        "job_recipes"
+      ],
+      "tasks": [
+        "The frozen Step dataclass: id, kind, skill, inputs, output_schema, timeout_s, retries, loop, on_failure, max_turns",
+        "Named job recipes in YAML, compiled to a DAG",
+        "Topological ordering and parallel-branch identification",
+        "Declared loop regions with an integer ceiling; undeclared cycles rejected",
+        "plan_hash over structure, skill versions, model pins, template version, taxonomy version, schema versions and the precedent-store snapshot id"
+      ],
+      "exit": [
+        "An undeclared cycle is rejected at compile time with a locatable error",
+        "Identical inputs and configuration give an identical plan_hash",
+        "Changing the precedent-store snapshot changes the plan_hash",
+        "max_turns defaults to 1, and a step declaring more is rejected"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p06 -q"
+      ],
+      "notes": "Recipes, not a model, produce the plan until P26. Debugging plan compilation and a model's plan proposal at the same time means trusting neither."
+    },
+    {
+      "id": "P07",
+      "title": "The assertion suites",
+      "block": "Block B - The engine",
+      "gate": "auto",
+      "status": "open",
+      "intent": "The 25 invariants become tests that run in CI and before every execution, rather than properties of a picture that can be quietly wrong for months.",
+      "builds": [
+        "assertions"
+      ],
+      "tasks": [
+        "Export the blueprint's node and edge model to graph/architecture.json, checked into the repo",
+        "architecture_assertions.py over that graph - the CI suite",
+        "plan_assertions.py over a compiled plan - runs before every execute",
+        "All 25 invariants expressed, including invariant 23 as a real graph walk and invariant 24 as reachability",
+        "Wire both suites into gate check"
+      ],
+      "exit": [
+        "All 25 invariants are executable and pass against the current architecture",
+        "Deleting an edge in a fixture graph makes exactly the right assertion fail",
+        "Plan assertions run before execute and refuse a plan that violates one",
+        "assert_all_loops_bounded enforces max_turns == 1 on every skill step"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p07 -q"
+      ],
+      "notes": "Two graphs, two suites. Conflating the 118-node architecture graph with the ~8-step plan graph is what made three assertions unsatisfiable in the blueprint's first draft."
+    },
+    {
+      "id": "P08",
+      "title": "Step executor, idempotency, resume",
+      "block": "Block B - The engine",
+      "gate": "auto",
+      "status": "open",
+      "intent": "A retry, a crash resume and a manual re-run after a fix are the same operation - and only the steps whose inputs actually changed are paid for twice.",
+      "builds": [
+        "step_executor",
+        "idempotency_ledger",
+        "checkpoint_store"
+      ],
+      "tasks": [
+        "step_key = sha256(step_id, input content hashes, skill@version, model_pin, context_ref, output_schema_version)",
+        "The idempotency ledger, written inside the same transaction as the step result",
+        "Execute at the frontier: completed steps satisfied from the ledger",
+        "Per-step timeout, one transport retry, then quarantine",
+        "A blocked run checkpoints and exits - no process, no lock, no context window held"
+      ],
+      "exit": [
+        "Killing a run mid-flight and resuming re-executes zero completed steps",
+        "A late result from a timed-out step cannot overwrite the retry that replaced it",
+        "A run blocked on a review item releases its lock and stops the wall-clock budget",
+        "Steps pass content-addressed refs, never values"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p08 -q"
+      ],
+      "notes": "The checkpoint-and-exit decision is what makes the '4h excluding time waiting on a human' budget honest."
+    },
+    {
+      "id": "P09",
+      "title": "Context builder",
+      "block": "Block B - The engine",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Everything a model is shown is assembled in one place and recorded, so any call can be reconstructed exactly.",
+      "builds": [
+        "context_builder"
+      ],
+      "tasks": [
+        "Assemble skill body, declared references, firm standards, retrieved precedents, engagement_profile and the masked payload",
+        "Content-hash the assembled whole into context_ref",
+        "Persist the assembled context against the run",
+        "Progressive disclosure: reference files loaded only once a skill is selected"
+      ],
+      "exit": [
+        "context_ref reproduces the exact bytes a model was shown",
+        "Changing a retrieved precedent changes context_ref and therefore step_key",
+        "A skill body is never loaded for a skill the plan did not select",
+        "Precedent retrieval is scope-built and cannot cross an engagement boundary"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p09 -q"
+      ],
+      "notes": "context_ref in the idempotency key was a correction: without it a resumed run could return a cached result the current context would no longer produce."
+    },
+    {
+      "id": "P10",
+      "title": "Policy gate, constraints, guarded runtime",
+      "block": "Block C - The harness around one step",
+      "gate": "auto",
+      "status": "open",
+      "intent": "A wrong action can produce a right-looking result. Verification catches a wrong result; only a decision taken before execution catches a wrong act.",
+      "builds": [
+        "policy_gate",
+        "constraint_registry",
+        "guarded_runtime",
+        "diagnostics"
+      ],
+      "tasks": [
+        "ProposedAction and the four allow conditions: declared tool, args satisfy every predicate, engagement matches, estimated cost within remaining budget",
+        "constraints.yaml predicates evaluated, not interpreted",
+        "The six-name tool namespace (finding F3): recompute and timing_normalizer compute; chart_of_accounts_lookup, precedent_lookup, index_lookup and template_schema_lookup read",
+        "Every denial recorded as an event with a code and an owner",
+        "Call-time caps applied by the runtime, not trusted from the caller"
+      ],
+      "exit": [
+        "A tool not in the caller's allowlist is denied and the denial is in the event stream",
+        "An argument naming another engagement is denied",
+        "A gated read is authorised exactly as a write is",
+        "A test proves no module under skills/ can import anything under tools/"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p10 -q"
+      ],
+      "notes": "t_template is deliberately in no skill's allowlist: model-load emits a mapping, the Template Writer executes it. A skill that could write cells could write one the mapping never declared."
+    },
+    {
+      "id": "P11",
+      "title": "LLM port, model pin, budget governor",
+      "block": "Block C - The harness around one step",
+      "gate": "auto",
+      "status": "open",
+      "intent": "One door to a model and one request per step. Per finding F4 this is the Messages API - SKILL.md is a file format we parse, not a framework dependency.",
+      "builds": [
+        "llm_port",
+        "model_pin",
+        "budget_governor",
+        "payload_scan",
+        "cost_meter"
+      ],
+      "tasks": [
+        "Anthropic Messages adapter behind the LLM port",
+        "A SKILL.md parser: frontmatter, body, reference list - our own, owing nothing to any SDK",
+        "Model pin including effort; the three tiers (claude-haiku-4-5, claude-sonnet-5, claude-opus-5)",
+        "max_turns == 1 enforced at the call site, not merely asserted in the plan",
+        "Outbound payload scan on the one door",
+        "Token and cost meter, and the four budget ceilings"
+      ],
+      "exit": [
+        "A call attempting more than one model turn raises before it is sent",
+        "Every outbound payload passes the scan, and the scan's fixture (a stubbed no-op masker) is caught",
+        "Each of the four ceilings halts and escalates in a test",
+        "The cost meter agrees with the usage the API reports"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p11 -q"
+      ],
+      "notes": "F4 lands here. The Agent SDK's cited benefits - subagent loops, SDK-dispatched tools - are exactly what single-turn removes. It stays available as an adapter behind this port."
+    },
+    {
+      "id": "P12",
+      "title": "Privacy: mask, vault, unmask, verify",
+      "block": "Block C - The harness around one step",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Tokens stable per engagement, re-identification deterministic, and no model node anywhere near the vault. The value here is cross-client isolation and precedent portability, not provider trust.",
+      "builds": [
+        "mask_engine",
+        "mask_vault",
+        "unmask_engine",
+        "unmask_verify"
+      ],
+      "tasks": [
+        "Masker over account names and identifying strings",
+        "Per-engagement vault with a retention field, the only store that can re-identify anything",
+        "Deterministic unmask in Python - no model has an unmask tool",
+        "Unmask integrity check as a separate node from the masker, so the check can be tested independently of the thing it checks"
+      ],
+      "exit": [
+        "The same account masks to the same token across runs weeks apart - period alignment depends on this",
+        "A token issued under a different engagement_id fails the integrity check",
+        "Zero residual mask tokens in any released artifact",
+        "A graph assertion proves no llm-exec node reaches the vault"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p12 -q"
+      ],
+      "notes": "Masking is step 2 of management's own Model Builder. Analyst Chat is the one model surface deliberately outside this path."
+    },
+    {
+      "id": "P13",
+      "title": "Guards and their adversarial fixtures",
+      "block": "Block C - The harness around one step",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Five assertions about the figure envelope, each with a fixture built specifically to defeat it. A guard with no adversarial fixture is an assumption.",
+      "builds": [
+        "schema_gate",
+        "provenance_gate",
+        "tieout_gate",
+        "reconcile",
+        "numeric_lock",
+        "t_recompute",
+        "source_parse"
+      ],
+      "tasks": [
+        "Output schema validator, provenance check, tie-out check, reconciliation, numeric integrity lock",
+        "The recompute engine, reading the Source Parse Store rather than trusting a stated total",
+        "The ten adversarial fixtures from the blueprint's fixture table",
+        "Every guard emits on pass as well as on failure"
+      ],
+      "exit": [
+        "Each of the ten fixtures fires the right guard, and only that guard",
+        "A total altered by 0.4% fails tie-out - plausible on sight, outside tolerance",
+        "A figure citing source_id 'derived' fails provenance",
+        "A template writer that rounds to the nearest thousand fails the numeric lock"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p13 -q"
+      ],
+      "notes": "Tie-out proves arithmetic, not selection. Eight wrong rows added correctly still pass here; selection is caught by materiality review, the self-verification pass and the sampling audit."
+    },
+    {
+      "id": "P14",
+      "title": "Loop controller, quarantine, diagnostics",
+      "block": "Block C - The harness around one step",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Failure converges on a person or a record, never on silence - and every loop has a maximum you can read off the plan before the run starts.",
+      "builds": [
+        "loop_controller",
+        "quarantine",
+        "diagnostics",
+        "fixed_notice"
+      ],
+      "tasks": [
+        "Bounded loop regions with the four in-run loops: guard repair (2), tie-out repair (1), self-verification (1), conflict resolution (1)",
+        "The input-must-change rule - a retry with unchanged input is the same call at the same price",
+        "Quarantine holding full context, with independent branches allowed to finish",
+        "The diagnostic namespace: code, owner, expected, found, what_now"
+      ],
+      "exit": [
+        "A skill returning byte-identical output is stopped rather than retried",
+        "Loop exhaustion quarantines and opens a review item carrying both positions",
+        "Every error code in the namespace has an owner and a what_now",
+        "Nothing partial is ever released from a quarantined run"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p14 -q"
+      ],
+      "notes": "Only in-run loops live in a plan. Human clarification is a suspend-and-resume; drift re-review is human-paced across runs. Implementing all three in one mechanism is the mistake the scope column prevents."
+    },
+    {
+      "id": "P15",
+      "title": "Confidence router, review queue, decision log",
+      "block": "Block C - The harness around one step",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Decides what a person sees, item by item, and makes their answer the only thing in the system that can write a precedent.",
+      "builds": [
+        "confidence_router",
+        "checkpoint_policy",
+        "review_queue",
+        "review_surface",
+        "decision_log"
+      ],
+      "tasks": [
+        "Materiality thresholds and the auto-accept confidence bar, both per engagement",
+        "Checkpoint policy that may only tighten, never loosen a skill's floor",
+        "Review queue with an SLA and a named owner per engagement",
+        "Review surface API and the decision log",
+        "Optimistic locking so two reviewers cannot silently overwrite each other"
+      ],
+      "exit": [
+        "A policy attempting to lower a skill's review floor is rejected",
+        "A material item is queued regardless of confidence",
+        "The second reviewer on an item sees the first's decision rather than overwriting it",
+        "A recorded decision re-enqueues the waiting run at its frontier"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p15 -q"
+      ],
+      "notes": "'Nobody works the queue' is the second-highest risk in the blueprint and it is not technical. The SLA and the stall alert are the only defences the system itself can offer."
+    },
+    {
+      "id": "P16",
+      "title": "Intake: roster, sweep, binding, lock, window",
+      "block": "Block D - First real vertical, local end to end",
+      "gate": "auto",
+      "status": "open",
+      "intent": "What gets looked at, when a run actually starts, and the guarantee that an inactive engagement is unreachable rather than merely unchecked.",
+      "builds": [
+        "project_roster",
+        "sweep_planner",
+        "local_intake",
+        "engagement_bind",
+        "engagement_lock",
+        "intake_window",
+        "file_fingerprint",
+        "config_store"
+      ],
+      "tasks": [
+        "The roster and its three states: active, paused, archived",
+        "Sweep planner reading the roster - the only thing that decides what is swept",
+        "Pattern watches (one row, forty clients) and bound watches, with unmatched folders routed to a person and never guessed",
+        "Fingerprinting, sha256 source_id, and source_version on re-upload",
+        "Engagement binding that fails closed before anything is read, and the per-engagement lock",
+        "Intake window: quiet_period 30 min, required_types from the recipe, max_wait 24 h"
+      ],
+      "exit": [
+        "Invariant 24 proven by graph walk: no path from any intake source into the pipeline for an off-roster engagement",
+        "Six files arriving over ten minutes produce one run, not six",
+        "A re-uploaded file becomes source_version 2 and supersedes the earlier run without overwriting its manifest",
+        "Two runs launched on one engagement in the same second serialise on the lock"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p16 -q"
+      ],
+      "notes": "A run consumes the whole current intake set, never a delta - a delta is not a valid input to timing normalization or tagging."
+    },
+    {
+      "id": "P17",
+      "title": "Readers and the Source Parse Store",
+      "block": "Block D - First real vertical, local end to end",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Turn files into an addressable parse that provenance and tie-out can read from - the store finding F2 showed nothing owned.",
+      "builds": [
+        "doc_reader",
+        "workbook_reader",
+        "doc_classifier",
+        "period_detector",
+        "untrusted_boundary",
+        "source_parse"
+      ],
+      "tasks": [
+        "pypdf and python-docx extraction, attaching source_id and a page/table/row locator to every emitted item",
+        "Workbook reader: structural read of names and headers, one model call selects sheets with reasons, deterministic code normalizes only those",
+        "Document classifier and the period/scale detector, with an explicit ambiguous flag rather than an assumption",
+        "The untrusted content boundary",
+        "The Source Parse Store keyed (run_id, source_id, locator), written once by the readers and never updated, plus its locator resolver"
+      ],
+      "exit": [
+        "Every extracted figure resolves by (source_id, locator) through one interface, whatever kind of file it came from",
+        "Every skipped sheet is reported with a reason",
+        "A PDF carrying instructions in 1pt white text and zero-width characters reaches a model as data, not as instructions",
+        "Scale ambiguity is reported and never assumed - thousands versus units is the most expensive silent error available here"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p17 -q"
+      ],
+      "notes": "F2 lands here. Provenance, tie-out and the numeric lock are all assertions about source rows, and none can be written until something owns the rows."
+    },
+    {
+      "id": "P18",
+      "title": "First real skill: timing normalization",
+      "block": "Block D - First real vertical, local end to end",
+      "gate": "human",
+      "status": "open",
+      "human_check": "You confirm the alignment the system proposes on a real engagement is one you would have made yourself - and that every unmatched line it reported is genuinely unmatched.",
+      "intent": "The first real skill, chosen first because its arithmetic is entirely deterministic: the model proposes an alignment and the tool does every calculation.",
+      "builds": [
+        "sk_timing",
+        "t_timing"
+      ],
+      "tasks": [
+        "SKILL.md with frontmatter, procedure, when-to-use, when-not-to-use, escalation",
+        "Reference files: period-conventions.md, line-item-matching.md",
+        "The alignment proposal schema - a mapping, never a number",
+        "t_timing executing the mapping; all arithmetic in the tool",
+        "Golden fixtures plus the alignment-report fixture set"
+      ],
+      "exit": [
+        "100% arithmetic agreement with the deterministic tool",
+        "At least 98% line-item match rate on the fixture set",
+        "Every unmatched line reported, and no period gap interpolated",
+        "A file flagged ambiguous by the period detector escalates before the skill proceeds"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p18 -q"
+      ],
+      "notes": "First skill on purpose: if the model is wrong here the tool disagrees immediately, so the feedback loop is short and mechanical."
+    },
+    {
+      "id": "P19",
+      "title": "Line-item tagging and the precedent store",
+      "block": "Block E - Real skills and their surfaces",
+      "gate": "human",
+      "status": "open",
+      "human_check": "You review the 400-item fixture disagreements yourself and confirm the gold set is right where the system and the gold set differ.",
+      "intent": "The highest-volume skill in the system, and the first one that learns - which is exactly why only a human decision can write to what it learns from.",
+      "builds": [
+        "sk_lineitem",
+        "precedent_store",
+        "precedent_writeback",
+        "coa_taxonomy"
+      ],
+      "tasks": [
+        "Firm chart-of-accounts taxonomy, versioned",
+        "The skill: Category, Excluded from A/L, Include in NWC, with confidence and a one-line rationale per item",
+        "Scope-built precedent retrieval - a repeat client sees its own prior decisions first",
+        "Write-back gated on a decision id, with no other code path into the store"
+      ],
+      "exit": [
+        "At least 95% top-1 agreement with the analyst gold set over a 400-item fixture",
+        "Zero provenance failures",
+        "No code path writes a precedent without a human decision id",
+        "Retrieval cannot cross an engagement scope boundary, proven by test not by convention"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p19 -q"
+      ],
+      "notes": "A system that learns from its own unreviewed output drifts, and does it invisibly. The single-writer rule is the whole defence."
+    },
+    {
+      "id": "P20",
+      "title": "EBITDA normalization",
+      "block": "Block E - Real skills and their surfaces",
+      "gate": "human",
+      "status": "open",
+      "human_check": "You confirm the add-backs proposed on a real engagement are defensible, and that nothing material was auto-accepted.",
+      "intent": "The first skill where a mistake is expensive rather than merely visible - which is why it is high tier, always self-verified, and never auto-accepts anything material.",
+      "builds": [
+        "sk_ebitda"
+      ],
+      "tasks": [
+        "Add-back taxonomy and officer-compensation tests with a cited benchmark",
+        "recompute called on every proposed amount",
+        "The self-verification pass as a separate invocation that never sees the first pass's reasoning",
+        "Materiality routing: above the threshold goes to review regardless of confidence",
+        "engagement_profile consumed for the owner-compensation baseline (the F1 contract)"
+      ],
+      "exit": [
+        "100% of proposed add-backs tie via recompute",
+        "At least 90% recall against analyst-identified add-backs on the fixture",
+        "No add-back above the materiality threshold is ever auto-accepted",
+        "A candidate recurring across all periods is escalated, not proposed"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p20 -q"
+      ],
+      "notes": "Never applies an add-back - proposes it with evidence. There is no field in the schema for a concluded value."
+    },
+    {
+      "id": "P21",
+      "title": "Model builder, template registry, release",
+      "block": "Block E - Real skills and their surfaces",
+      "gate": "auto",
+      "status": "open",
+      "intent": "openpyxl into a copy of a pinned template, bound by named range and never by cell address. One node releases client work, with one inbound edge.",
+      "builds": [
+        "sk_model",
+        "t_registry",
+        "t_template",
+        "model_builder",
+        "deliverable_qc",
+        "release_gate",
+        "idempotency_ledger",
+        "delivery_port",
+        "local_out",
+        "workpaper"
+      ],
+      "tasks": [
+        "Template registration: introspect the workbook, list its declared named ranges, assert every required mapping input is present",
+        "The CONFIG.TEMPLATE_INPUTS_MISSING diagnostic with code, owner and what_now",
+        "Model-load emitting a mapping; the Template Writer performing every write",
+        "Deliverable QC: opens, resolves, stamped, no residual tokens, no broken external link, no #REF!",
+        "The single release gate and the idempotency ledger record inside the release transaction",
+        "Workpaper narrative, written after the numbers are locked, with no schema field a figure can enter through"
+      ],
+      "exit": [
+        "A binding to a cell address is rejected at registration",
+        "A template declaring 41 of 43 required inputs fails registration naming the two missing ranges",
+        "A produced .xlsx opens with no #REF!, no broken link and no residual mask token",
+        "A replayed release does not deliver a second time"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p21 -q"
+      ],
+      "notes": "Read the model builder repo from work before writing the Template Writer - it may already solve the named-range binding, and it is the one existing repo that overlaps this phase."
+    },
+    {
+      "id": "P22",
+      "title": "Eval and replay harnesses",
+      "block": "Block F - Assurance and operations",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Fixtures only cover cases somebody thought of. Replay answers the question fixtures cannot: would this candidate have changed anything real?",
+      "builds": [
+        "eval_harness",
+        "replay_harness"
+      ],
+      "tasks": [
+        "Golden fixtures per skill plus the adversarial fixtures per guard",
+        "The per-skill acceptance gates from the blueprint's gate table",
+        "Replay: re-run a candidate over the masked inputs of past engagements and diff against what was delivered",
+        "gate eval <skill> as a first-class command"
+      ],
+      "exit": [
+        "Every shipped skill has fixtures and a named numeric gate",
+        "Replay produces a diff against past deliverables, not just a pass/fail",
+        "A skill below its gate cannot be registered",
+        "Fixture coverage is reported, including what is not covered"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p22 -q"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P23",
+      "title": "Ops console, scorecard, drift, stalls",
+      "block": "Block F - Assurance and operations",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Every run ends with a computed verdict against versioned criteria, so no run's outcome is a matter of opinion.",
+      "builds": [
+        "ops_console",
+        "run_scorecard",
+        "analytics",
+        "drift_monitor",
+        "stall_alert",
+        "cost_meter"
+      ],
+      "tasks": [
+        "FastAPI plus SSE over the event bus",
+        "The run scorecard: coverage, provenance, tie-out, conflicts, masking, numeric integrity, budget, review outstanding, deliverable QC",
+        "Versioned acceptance criteria, so 'what counted as working' is answerable for a run six months old",
+        "Drift monitor over override rate, confidence distribution and guard failure rate",
+        "Stall detection against the review SLA"
+      ],
+      "exit": [
+        "Every run gets a scorecard with a computed verdict",
+        "The console replays a completed run from the event stream alone",
+        "A stalled review item raises an alert against its SLA",
+        "Node state comes from explicit events, never inferred from a log line's severity"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p23 -q"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P24",
+      "title": "Admin console, preflight, config audit",
+      "block": "Block F - Assurance and operations",
+      "gate": "auto",
+      "status": "open",
+      "intent": "A new engagement can be set up without touching code, and a setup error is found in a minute rather than in a halted run.",
+      "builds": [
+        "admin_console",
+        "preflight",
+        "config_audit"
+      ],
+      "tasks": [
+        "The roster, watches, destinations and model bindings as an editable surface over config_store",
+        "Model binding resolved through LAYER_ORDER - the same resolver as skills",
+        "The ten preflight checks, including engagement profile completeness (F1)",
+        "The config change log: who, what, when and why",
+        "Enforcement of what an admin can and cannot change, backed by invariant 23"
+      ],
+      "exit": [
+        "A failing preflight check blocks activation of that engagement rather than failing later in a run",
+        "Every preflight failure carries a code, an owner and a what_now",
+        "No configuration edge reaches a node that can fail closed, proven by graph walk",
+        "Every active engagement resolves to exactly one destination and one template pin"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p24 -q"
+      ],
+      "notes": "config is the most likely failure owner on a new engagement. This is the surface where those failures are prevented rather than diagnosed."
+    },
+    {
+      "id": "P25",
+      "title": "Worker pool and the queue port",
+      "block": "Block G - Scale, judgment and handoff",
+      "gate": "auto",
+      "status": "open",
+      "intent": "A nightly sweep over seven active engagements cannot run one at a time inside a four-hour per-run ceiling.",
+      "builds": [
+        "queue_port",
+        "compute_target"
+      ],
+      "tasks": [
+        "A bounded worker pool behind the job queue port",
+        "Cross-engagement concurrency, with the engagement lock still serialising within one",
+        "Redis + RQ adapter for when runs outlive a single process",
+        "Backpressure and a visible queue position"
+      ],
+      "exit": [
+        "Several engagements process concurrently while one engagement still serialises",
+        "Queue position is visible on the console for a queued run",
+        "Swapping in_process for Redis changes no pipeline code",
+        "A worker dying mid-step leaves a resumable run, not a corrupt one"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p25 -q"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P26",
+      "title": "Orchestrator agent and triage",
+      "block": "Block G - Scale, judgment and handoff",
+      "gate": "human",
+      "status": "open",
+      "human_check": "You confirm the plans the orchestrator proposes on real engagements are the plans you would have chosen, across at least ten runs.",
+      "intent": "The model proposes a plan; it is still compiled, asserted and hashed before anything runs. This arrives last on purpose.",
+      "builds": [
+        "orchestrator",
+        "triage",
+        "run_plan"
+      ],
+      "tasks": [
+        "Orchestrator working from the skill index (name and description only) and the job manifest",
+        "Structured output: a plan proposal, never a value",
+        "The proposal goes through the same compiler and the same plan assertions as a recipe",
+        "Triage for no confident match, with a schema containing no field for a figure",
+        "Fall back to the named recipe when the proposal fails assertions"
+      ],
+      "exit": [
+        "A proposed plan that violates any plan assertion is rejected and the recipe is used instead",
+        "The orchestrator's context never contains a skill body, only the index",
+        "A proposal is reproducible: same inputs, same plan_hash",
+        "Triage can escalate but has no schema field in which a number could be recorded"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p26 -q"
+      ],
+      "notes": "Everything before this uses named recipes. Building the model-driven planner last means the verification spine is proven against a fixed plan first."
+    },
+    {
+      "id": "P27",
+      "title": "The governance chain",
+      "block": "Block G - Scale, judgment and handoff",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Skills are how this system changes, and ungoverned change is the main long-term risk. A dropped draft is a candidate, not a skill.",
+      "builds": [
+        "skill_drop",
+        "skill_conformance",
+        "skill_adapt",
+        "skill_sandbox",
+        "sandbox_test",
+        "skill_submit",
+        "skill_board",
+        "shadow_run",
+        "skill_registry",
+        "governance_log"
+      ],
+      "tasks": [
+        "Drop folder, conformance check against the skill contract, adaptation bench",
+        "Authoring sandbox and its test harness, reading masked payloads only",
+        "Submit, review board, shadow deployment with a sustained agreement threshold",
+        "The registry as the single writer to the live skills/ tree",
+        "The governance record"
+      ],
+      "exit": [
+        "No path from the drop folder to the tree skips fixtures, review or a shadow run - remove any one gate and the path breaks",
+        "Governance reads only masked payloads and registries, never client-identifying data",
+        "Nothing reaches the skill index without passing fixtures and a shadow run",
+        "Promotion requires a sustained agreement threshold, not one good day"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p27 -q"
+      ],
+      "notes": "The adaptation bench can produce a conforming skill. It cannot produce fixtures - those are evidence the skill works, and evidence cannot be authored by the thing it vouches for."
+    },
+    {
+      "id": "P28",
+      "title": "Docker, portability, handoff packet",
+      "block": "Block G - Scale, judgment and handoff",
+      "gate": "human",
+      "status": "open",
+      "human_check": "You clone the repo onto the work machine, run the suite in the container, and confirm nothing but .env had to change.",
+      "intent": "One image, any host. The portability requirement in its most concrete form - and the packet that makes the move to the work machine boring.",
+      "builds": [
+        "compute_target"
+      ],
+      "tasks": [
+        "Dockerfile and compose: app plus Postgres, one command up",
+        "The whole suite green inside the container",
+        "HANDOFF.md: what changes on the work machine and what does not",
+        "Adapter stubs named for the existing ShareFile and Box connectors, with their port contracts written",
+        "The work Anthropic key as a .env change and nothing else"
+      ],
+      "exit": [
+        "docker compose up then pytest is green with no host Python involved",
+        "No managed-service primitive is depended on anywhere in the codebase",
+        "HANDOFF.md names every environment difference between this machine and the work one",
+        "A clean clone plus .env reaches a passing suite with no undocumented step"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p28 -q"
+      ],
+      "notes": "The three work repos - model builder, ShareFile connector, Box connector - are named here as adapters to write, not as dependencies to satisfy."
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "C1",
+      "title": "The skeleton holds bytes",
+      "after": "P03",
+      "status": "open",
+      "proves": "A fake run moves bytes storage to delivery, emits events and writes a manifest",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c01 -q"
+      ]
+    },
+    {
+      "id": "C2",
+      "title": "A plan compiles and hashes",
+      "after": "P06",
+      "status": "open",
+      "proves": "A recipe compiles; identical inputs give an identical plan_hash and a changed precedent snapshot changes it",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c02 -q"
+      ]
+    },
+    {
+      "id": "C3",
+      "title": "A run survives being killed",
+      "after": "P09",
+      "status": "open",
+      "proves": "Kill mid-flight, resume, zero completed steps re-execute, and plan assertions gate the resume",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c03 -q"
+      ]
+    },
+    {
+      "id": "C4",
+      "title": "One step through all six harness stages",
+      "after": "P12",
+      "status": "open",
+      "proves": "A no-op skill passes context, reason, policy, act, verify and accept, with every stage emitting",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c04 -q"
+      ]
+    },
+    {
+      "id": "C5",
+      "title": "Every guard fires on its own fixture",
+      "after": "P15",
+      "status": "open",
+      "proves": "All ten adversarial fixtures fire the right guard, every loop is bounded, and every failure carries code, owner and what_now",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c05 -q"
+      ]
+    },
+    {
+      "id": "C6",
+      "title": "The walking vertical",
+      "after": "P18",
+      "status": "open",
+      "proves": "Watched folder to masked payload to one real skill to guards to review to local output, on one real engagement",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c06 -q"
+      ]
+    },
+    {
+      "id": "C7",
+      "title": "A deliverable an analyst would accept",
+      "after": "P21",
+      "status": "open",
+      "proves": "Three real skills on real files produce an .xlsx that opens clean, with every figure sourced and recomputed",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c07 -q"
+      ]
+    },
+    {
+      "id": "C8",
+      "title": "Observable and self-service",
+      "after": "P24",
+      "status": "open",
+      "proves": "A run is fully observable from its event stream alone, and a new engagement is set up without touching code",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c08 -q"
+      ]
+    },
+    {
+      "id": "C9",
+      "title": "Many engagements, governed change",
+      "after": "P27",
+      "status": "open",
+      "proves": "A nightly sweep over several engagements completes, and a skill ships through the full governance chain",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c09 -q"
+      ]
+    },
+    {
+      "id": "C10",
+      "title": "v1 - portable and handed off",
+      "after": "P28",
+      "status": "open",
+      "proves": "Everything above, green, inside a container, from a clean clone plus .env",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c10 -q"
+      ]
+    }
+  ]
+}

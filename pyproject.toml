@@ -1,0 +1,46 @@
+[project]
+name = "automated-analyst"
+version = "0.1.0"
+description = "Chartwell Automated Analyst - AI DDR & Model Loader pipeline"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "anthropic>=0.40",
+    "pydantic>=2.9",
+    "jsonschema>=4.23",
+    "pyyaml>=6.0",
+    "pandas>=2.2",
+    "openpyxl>=3.1",
+    "pypdf>=5.0",
+    "python-docx>=1.1",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "sse-starlette>=2.1",
+    "python-dotenv>=1.0",
+    "structlog>=24.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+    "mypy>=1.13",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
