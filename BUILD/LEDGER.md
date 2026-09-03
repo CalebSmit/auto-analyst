@@ -59,3 +59,12 @@ averaging it away destroys the most useful signal the system produces.
 ---
 
 *Nothing from the build itself yet — P01 has not closed.*
+
+## 2026-09-03 - winget install PostgreSQL.PostgreSQL.17
+
+**Phase:** not phase-specific
+
+**Why it failed:** EnterpriseDB's CDN answers winget's downloader with HTTP 403. The same URL fetched fine with a browser user-agent, so it is agent filtering rather than a network block or a bad package.
+
+**Rule:** Install Postgres on Windows from the portable binaries zip (get.enterprisedb.com/postgresql/postgresql-<v>-windows-x64-binaries.zip) rather than through winget. Extract, initdb, pg_ctl start - no installer, no admin rights, no Windows service, and it deletes with one rmdir. Invoke-WebRequest needs -UseBasicParsing on PowerShell 5.1 or it blocks on the IE first-run prompt.
+

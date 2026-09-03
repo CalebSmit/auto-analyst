@@ -6,14 +6,27 @@
 ## Where the build is
 
 - **6 of 28 phases closed**
-- Last green checkpoint: **C1**
+- Last green checkpoint: **C2**
 - Current phase: **P07 - The assertion suites** (gate: auto)
 
 ## The next action
 
-**C2 is due and has not passed.** Nothing else starts until it does.
+Work P07. Its full definition is in [BUILD/phases/P07.md](phases/P07.md).
 
-    python tools/gate.py checkpoint C2
+> The 25 invariants become tests that run in CI and before every execution, rather than properties of a picture that can be quietly wrong for months.
+
+Tasks:
+
+- [ ] Export the blueprint's node and edge model to graph/architecture.json, checked into the repo
+- [ ] architecture_assertions.py over that graph - the CI suite
+- [ ] plan_assertions.py over a compiled plan - runs before every execute
+- [ ] All 25 invariants expressed, including invariant 23 as a real graph walk and invariant 24 as reachability
+- [ ] Wire both suites into gate check
+
+Then:
+
+    python tools/gate.py check P07
+    python tools/gate.py close P07
 
 ## Before you start
 

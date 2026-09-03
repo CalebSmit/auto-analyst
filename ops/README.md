@@ -41,6 +41,28 @@ Two things exist only to stop the backends quietly disagreeing: foreign keys are
 on for SQLite (they ship off), and timestamps are stored as RFC 3339 UTC text rather than
 as datetimes, so a manifest is byte-identical whichever database produced it.
 
+### Running the Postgres half
+
+    python tools/postgres.py start
+    python -m uv run pytest tests/p04 -q --postgres
+
+    python tools/postgres.py check     # both of the above, in one
+
+No container and no Windows service. The server is the portable PostgreSQL binaries
+extracted into `%LOCALAPPDATA%\pgsql17`, with its data directory beside them - it starts
+when asked, needs no admin rights, does not survive a reboot, and deletes with one
+`rmdir`. `python tools/postgres.py stop` when you are done with it.
+
+It holds nothing but fixtures: every table is dropped and recreated around each test, and
+client data never enters this repo in any form.
+
+Setting one up from scratch, or on the work machine, is four commands - download
+`postgresql-<version>-windows-x64-binaries.zip` from EnterpriseDB, extract it to
+`%LOCALAPPDATA%\pgsql17`, `initdb -D <that>\data -U postgres --pwfile=... -A
+scram-sha-256`, then `createdb -U postgres analyst_test`. Not through winget: see
+BUILD/LEDGER.md. `AA_PG_HOME` points the helper somewhere else, and `AA_TEST_PG_URL`
+points the suite at an entirely different server.
+
 ## Guard passes are events
 
 `emit_guard` takes a result, not just a failure, and requires a `checked` count. The
