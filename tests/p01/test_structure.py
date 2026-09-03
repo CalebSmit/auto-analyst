@@ -35,6 +35,7 @@ EXPECTED_DIRS = [
     "privacy",
     "tools",
     "guards",
+    "review",
     "ports/storage",
     "ports/delivery",
     "ports/secrets",
@@ -98,6 +99,7 @@ FIRST_BUILT_BY = {
     "harness": "P08",   # the step executor and what wraps one step
     "privacy": "P11",   # payload scan first (P11 builds it); mask, vault, unmask in P12
     "guards": "P13",    # schema, provenance, tieout, reconcile, numeric lock
+    "review": "P15",    # checkpoint policy, confidence router, queue, surface, decision log
 }
 
 

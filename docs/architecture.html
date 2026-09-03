@@ -2082,7 +2082,7 @@ const ERRCODES = [
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
  ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED','model / config'],
- ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID','process / system']
+ ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED','process / system']
 ];
 
 const OWNERS = [
@@ -4270,6 +4270,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">privacy/</span>       mask.py, vault.py, unmask.py, verify.py, payload_scan.py', 'deterministic, no model'),
    R_('  <span class="t2">tools/</span>         normalize.py, recompute.py, write_template.py'),
    R_('  <span class="t2">guards/</span>        schema, provenance, tieout, reconcile, numeric_lock', 'unmask verify sits in privacy/'),
+   R_('  <span class="t2">review/</span>        policy.py, router.py, queue.py, surface.py, log.py', 'what a person sees'),
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, console/'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')

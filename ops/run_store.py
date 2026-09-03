@@ -55,7 +55,13 @@ from ops.models import (
     now_iso,
     utc,
 )
-from registries.errors import ILLEGAL_TRANSITION, LATE_RESULT, UNKNOWN_RUN, diagnose
+from registries.errors import (
+    ILLEGAL_TRANSITION,
+    LATE_RESULT,
+    STALE_DECISION,
+    UNKNOWN_RUN,
+    diagnose,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_URL = f"sqlite:///{(REPO_ROOT / 'runs' / 'run_store.db').as_posix()}"
@@ -186,6 +192,10 @@ class ReviewItemRecord:
     state: str
     created_at: str
     detail: dict[str, Any] = field(default_factory=dict)
+    run_id: str = ""
+    version: int = 1
+    owner: str | None = None
+    due_at: str | None = None
 
 
 @dataclass(frozen=True)
@@ -212,6 +222,9 @@ class DecisionRecord:
     decision: DecisionKind
     rationale: str = ""
     writes_precedent: bool = False
+    skill: str = ""
+    proposal: dict[str, Any] = field(default_factory=dict)
+    answer: dict[str, Any] = field(default_factory=dict)
 
 
 # ------------------------------------------------------------- the Protocol
@@ -308,8 +321,13 @@ class RunStore(Protocol):
         kind: str,
         subject: str,
         detail: dict[str, Any] | None = None,
+        owner: str | None = None,
+        due_at: str | None = None,
     ) -> None: ...
     def review_items(self, run_id: str) -> tuple[ReviewItemRecord, ...]: ...
+    def open_review_items(
+        self, engagement_id: str | None = None
+    ) -> tuple[ReviewItemRecord, ...]: ...
     def record_decision(
         self,
         run_id: str,
@@ -318,6 +336,10 @@ class RunStore(Protocol):
         decision: DecisionKind,
         rationale: str = "",
         writes_precedent: bool = False,
+        expected_version: int | None = None,
+        proposal: dict[str, Any] | None = None,
+        answer: dict[str, Any] | None = None,
+        skill: str = "",
     ) -> None: ...
     def decisions(self, run_id: str) -> tuple[DecisionRecord, ...]: ...
 
@@ -795,6 +817,8 @@ class SqlRunStore:
         kind: str,
         subject: str,
         detail: dict[str, Any] | None = None,
+        owner: str | None = None,
+        due_at: str | None = None,
     ) -> None:
         with self._session() as session:
             self._row(session, run_id)
@@ -807,6 +831,9 @@ class SqlRunStore:
                     detail=dict(detail or {}),
                     state="open",
                     created_at=now_iso(),
+                    version=1,
+                    owner=owner,
+                    due_at=due_at,
                 )
             )
 
@@ -815,17 +842,23 @@ class SqlRunStore:
             rows = session.scalars(
                 select(ReviewItem).where(ReviewItem.run_id == run_id).order_by(ReviewItem.id)
             )
-            return tuple(
-                ReviewItemRecord(
-                    item_id=row.item_id,
-                    kind=row.kind,
-                    subject=row.subject,
-                    state=row.state,
-                    created_at=row.created_at,
-                    detail=dict(row.detail),
-                )
-                for row in rows
+            return tuple(_as_review_item(row) for row in rows)
+
+    def open_review_items(
+        self, engagement_id: str | None = None
+    ) -> tuple[ReviewItemRecord, ...]:
+        """The queue: everything open, oldest first, across runs - the inbox is of items,
+        not of runs."""
+        with self._session() as session:
+            query = (
+                select(ReviewItem)
+                .join(Run, Run.run_id == ReviewItem.run_id)
+                .where(ReviewItem.state == "open")
+                .order_by(ReviewItem.created_at, ReviewItem.id)
             )
+            if engagement_id is not None:
+                query = query.where(Run.engagement_id == engagement_id)
+            return tuple(_as_review_item(row) for row in session.scalars(query))
 
     def record_decision(
         self,
@@ -835,12 +868,20 @@ class SqlRunStore:
         decision: DecisionKind,
         rationale: str = "",
         writes_precedent: bool = False,
+        expected_version: int | None = None,
+        proposal: dict[str, Any] | None = None,
+        answer: dict[str, Any] | None = None,
+        skill: str = "",
     ) -> None:
         """The only thing that closes a review item.
 
         `decided_by` is required by the column and by the caller. There is no overload
         of this that a machine can reach without naming a person, which is the whole of
         the guarantee that only a human decision may write precedent.
+
+        `expected_version` is the optimistic lock: the version of the item the reviewer
+        looked at. A mismatch, or an item already decided, is refused - the second
+        reviewer sees the first's decision rather than overwriting it.
         """
         with self._session() as session:
             item = session.scalars(
@@ -848,7 +889,21 @@ class SqlRunStore:
                     ReviewItem.run_id == run_id, ReviewItem.item_id == item_id
                 )
             ).one()
+            if item.state != "open" or (
+                expected_version is not None and item.version != expected_version
+            ):
+                raise RunStoreError(
+                    diagnose(
+                        STALE_DECISION,
+                        f"{item_id} is {item.state} at version {item.version}; the decision "
+                        f"was made against version {expected_version}",
+                        locator=f"{run_id}/{item_id}",
+                        expected=f"open at version {expected_version}",
+                        found=f"{item.state} at version {item.version}",
+                    )
+                )
             item.state = "decided"
+            item.version = item.version + 1
             session.add(
                 Decision(
                     run_id=run_id,
@@ -858,6 +913,9 @@ class SqlRunStore:
                     decision=DecisionKind(decision),
                     rationale=rationale,
                     writes_precedent=writes_precedent,
+                    skill=skill,
+                    proposal=dict(proposal or {}),
+                    answer=dict(answer or {}),
                 )
             )
 
@@ -874,6 +932,9 @@ class SqlRunStore:
                     decision=DecisionKind(row.decision),
                     rationale=row.rationale,
                     writes_precedent=row.writes_precedent,
+                    skill=row.skill,
+                    proposal=dict(row.proposal),
+                    answer=dict(row.answer),
                 )
                 for row in rows
             )
@@ -1047,4 +1108,19 @@ def _as_event(row: Event) -> EventRecord:
         payload=dict(row.payload),
         diagnostic_code=row.diagnostic_code,
         cost_usd=row.cost_usd,
+    )
+
+
+def _as_review_item(row: ReviewItem) -> ReviewItemRecord:
+    return ReviewItemRecord(
+        item_id=row.item_id,
+        kind=row.kind,
+        subject=row.subject,
+        state=row.state,
+        created_at=row.created_at,
+        detail=dict(row.detail),
+        run_id=row.run_id,
+        version=row.version,
+        owner=row.owner,
+        due_at=row.due_at,
     )

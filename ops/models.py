@@ -469,6 +469,11 @@ class ReviewItem(Base):
     state: Mapped[str] = mapped_column(String(8), nullable=False, default="open")
     created_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
     detail: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    """Optimistic lock. Every write bumps it; a decision names the version it was made
+    against, and a mismatch is refused with the decision that caused it."""
+    owner: Mapped[str | None] = mapped_column(String(128), default=None)
+    due_at: Mapped[str | None] = mapped_column(String(32), default=None)
 
 
 class Decision(Base):
@@ -494,6 +499,11 @@ class Decision(Base):
     decision: Mapped[str] = mapped_column(String(16), nullable=False)
     rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
     writes_precedent: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    skill: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    proposal: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    """The model's proposal as the reviewer saw it - what was accepted or overridden."""
+    answer: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    """The corrected value, on a correction. Empty otherwise."""
 
 
 # -------------------------------------------------- append-only, three ways
@@ -506,6 +516,7 @@ class Decision(Base):
 #    still true when somebody bypasses this code entirely.
 
 _APPEND_ONLY_MESSAGE = "PROCESS.APPEND_ONLY_VIOLATION - the event table is append-only"
+_DECISION_APPEND_ONLY = "PROCESS.APPEND_ONLY_VIOLATION - the decision log is append-only"
 
 _SQLITE_NO_UPDATE = DDL(  # type: ignore[no-untyped-call]
     'CREATE TRIGGER IF NOT EXISTS event_no_update BEFORE UPDATE ON "event" '
@@ -529,6 +540,36 @@ sa_event.listen(Event.__table__, "after_create", _SQLITE_NO_DELETE.execute_if(di
 sa_event.listen(Event.__table__, "after_create", _PG_FUNCTION.execute_if(dialect="postgresql"))
 sa_event.listen(Event.__table__, "after_create", _PG_TRIGGER.execute_if(dialect="postgresql"))
 
+_SQLITE_NO_UPDATE_DECISION = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS decision_no_update BEFORE UPDATE ON "decision" '
+    f"BEGIN SELECT RAISE(ABORT, '{_DECISION_APPEND_ONLY}'); END"
+)
+_SQLITE_NO_DELETE_DECISION = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS decision_no_delete BEFORE DELETE ON "decision" '
+    f"BEGIN SELECT RAISE(ABORT, '{_DECISION_APPEND_ONLY}'); END"
+)
+_PG_FUNCTION_DECISION = DDL(  # type: ignore[no-untyped-call]
+    "CREATE OR REPLACE FUNCTION decision_append_only() RETURNS trigger AS $dc$ "
+    f"BEGIN RAISE EXCEPTION '{_DECISION_APPEND_ONLY}'; END; $dc$ LANGUAGE plpgsql"
+)
+_PG_TRIGGER_DECISION = DDL(  # type: ignore[no-untyped-call]
+    "DROP TRIGGER IF EXISTS decision_append_only ON decision; "
+    "CREATE TRIGGER decision_append_only BEFORE UPDATE OR DELETE ON decision "
+    "FOR EACH ROW EXECUTE FUNCTION decision_append_only()"
+)
+sa_event.listen(
+    Decision.__table__, "after_create", _SQLITE_NO_UPDATE_DECISION.execute_if(dialect="sqlite")
+)
+sa_event.listen(
+    Decision.__table__, "after_create", _SQLITE_NO_DELETE_DECISION.execute_if(dialect="sqlite")
+)
+sa_event.listen(
+    Decision.__table__, "after_create", _PG_FUNCTION_DECISION.execute_if(dialect="postgresql")
+)
+sa_event.listen(
+    Decision.__table__, "after_create", _PG_TRIGGER_DECISION.execute_if(dialect="postgresql")
+)
+
 
 @sa_event.listens_for(Session, "before_flush")
 def _refuse_to_change_an_event(session: Session, flush_context: Any, instances: Any) -> None:
@@ -537,8 +578,11 @@ def _refuse_to_change_an_event(session: Session, flush_context: Any, instances: 
     Registered on Session rather than on one sessionmaker deliberately: the guarantee is
     about the event table, not about who opened the connection.
     """
-    changed = [obj for obj in session.dirty if isinstance(obj, Event) and session.is_modified(obj)]
-    removed = [obj for obj in session.deleted if isinstance(obj, Event)]
+    frozen = (Event, Decision)
+    changed = [
+        obj for obj in session.dirty if isinstance(obj, frozen) and session.is_modified(obj)
+    ]
+    removed = [obj for obj in session.deleted if isinstance(obj, frozen)]
     if not changed and not removed:
         return
     what = []
@@ -549,7 +593,7 @@ def _refuse_to_change_an_event(session: Session, flush_context: Any, instances: 
     raise AppendOnlyViolation(
         diagnose(
             APPEND_ONLY_VIOLATION,
-            f"a flush carried {' and '.join(what)} event row(s)",
+            f"a flush carried {' and '.join(what)} event or decision row(s)",
             locator="ops.models.Event",
         )
     )

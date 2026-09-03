@@ -5,28 +5,29 @@
 
 ## Where the build is
 
-- **14 of 28 phases closed**
-- Last green checkpoint: **C4**
-- Current phase: **P15 - Confidence router, review queue, decision log** (gate: auto)
+- **15 of 28 phases closed**
+- Last green checkpoint: **C5**
+- Current phase: **P16 - Intake: roster, sweep, binding, lock, window** (gate: auto)
 
 ## The next action
 
-Work P15. Its full definition is in [BUILD/phases/P15.md](phases/P15.md).
+Work P16. Its full definition is in [BUILD/phases/P16.md](phases/P16.md).
 
-> Decides what a person sees, item by item, and makes their answer the only thing in the system that can write a precedent.
+> What gets looked at, when a run actually starts, and the guarantee that an inactive engagement is unreachable rather than merely unchecked.
 
 Tasks:
 
-- [ ] Materiality thresholds and the auto-accept confidence bar, both per engagement
-- [ ] Checkpoint policy that may only tighten, never loosen a skill's floor
-- [ ] Review queue with an SLA and a named owner per engagement
-- [ ] Review surface API and the decision log
-- [ ] Optimistic locking so two reviewers cannot silently overwrite each other
+- [ ] The roster and its three states: active, paused, archived
+- [ ] Sweep planner reading the roster - the only thing that decides what is swept
+- [ ] Pattern watches (one row, forty clients) and bound watches, with unmatched folders routed to a person and never guessed
+- [ ] Fingerprinting, sha256 source_id, and source_version on re-upload
+- [ ] Engagement binding that fails closed before anything is read, and the per-engagement lock
+- [ ] Intake window: quiet_period 30 min, required_types from the recipe, max_wait 24 h
 
 Then:
 
-    python tools/gate.py check P15
-    python tools/gate.py close P15
+    python tools/gate.py check P16
+    python tools/gate.py close P16
 
 ## Before you start
 
@@ -52,4 +53,5 @@ Then:
 - **P12** Privacy: mask, vault, unmask, verify (2026-09-03)
 - **P13** Guards and their adversarial fixtures (2026-09-03)
 - **P14** Loop controller, quarantine, diagnostics (2026-09-03)
+- **P15** Confidence router, review queue, decision log (2026-09-03)
 

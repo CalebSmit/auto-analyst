@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**14 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**15 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -40,8 +40,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C4 - One step through all six harness stages** | integration | A no-op skill passes context, reason, policy, act, verify and accept, with every stage emitting | 2026-09-03 |
 | [x] | **P13** Guards and their adversarial fixtures | auto | A total altered by 0.4% fails tie-out - plausible on sight, outside tolerance | 2026-09-03 |
 | [x] | **P14** Loop controller, quarantine, diagnostics | auto | A skill returning byte-identical output is stopped rather than retried | 2026-09-03 |
-| [ ] | **P15** Confidence router, review queue, decision log | auto | A policy attempting to lower a skill's review floor is rejected |  |
-| [ ] | **C5 - Every guard fires on its own fixture** | integration | All ten adversarial fixtures fire the right guard, every loop is bounded, and every failure carries code, owner and what_now |  |
+| [x] | **P15** Confidence router, review queue, decision log | auto | A policy attempting to lower a skill's review floor is rejected | 2026-09-03 |
+| [x] | **C5 - Every guard fires on its own fixture** | integration | Every adversarial fixture whose guard is built fires that guard and only that guard (seven of ten after P15, the rest reported by phase), every loop is bounded by an integer the registry allows, and every failure carries code, owner and what_now | 2026-09-03 |
 
 ## Block D - First real vertical, local end to end
 

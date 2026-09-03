@@ -242,3 +242,16 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** P14 finding: a quarantine now halts only dependent steps, and a step that never started has no inputs, so no honest step_key - and run_manifest@1.0.0 requires every listed step to carry a sha256 key. Halted steps are therefore absent from the manifest's steps list rather than listed as not_reached, which the blueprint's StepStatus note asks for. The executor's report and the quarantine record say what was halted; the manifest does not. Resolving it means the manifest reading the plan (order and step ids) rather than only the step table, which belongs with the release-side manifest work here.
 
 - task added: Manifest lists every plan step, with never-started ones as not_reached and no invented key (P14 finding)
+
+## 2026-09-03 - P15 Confidence router, review queue, decision log
+
+**Why:** The five review nodes live in a package of their own, review/ (policy, router, queue, surface, log), which the blueprint's repo listing did not name; listed now. The Checkpoint Policy is carried on the engagement profile: engagement_profile@1.0.0 gains an optional checkpoint_policy block (owner, sla_hours, auto_accept_confidence, always_review_categories, review_floors) - additive, so every existing profile stays valid, and recorded here because a contract change goes through review. Two PROCESS codes are new: STALE_DECISION (the optimistic lock) and RATIONALE_REQUIRED (no silent override). The decision table is append-only three ways like the event table. There is deliberately no auto-accept default: a policy that sets no bar auto-accepts nothing.
+
+- check added: python -m uv run ruff check review tests/p15 tests/checkpoints/c05
+- check added: python -m uv run mypy review ops registries
+
+## 2026-09-03 - C5 Every guard fires on its own fixture
+
+**Why:** Seven of the ten fixture guards exist after P15 (loop_controller joined the six from P13); the untrusted boundary, engagement lock and deliverable QC are built by P17, P16 and P21. The checkpoint test runs every fixture whose guard is built through every built guard and reports the rest by phase, so its claim is true now and stays true as the last three land.
+
+- proves: 'All ten adversarial fixtures fire the right guard, every loop is bounded, and every failure carries code, owner and what_now' -> 'Every adversarial fixture whose guard is built fires that guard and only that guard (seven of ten after P15, the rest reported by phase), every loop is bounded by an integer the registry allows, and every failure carries code, owner and what_now'

@@ -20,8 +20,13 @@
     "recorded_at"
   ],
   "properties": {
-    "schema_version": { "const": "engagement_profile@1.0.0" },
-    "engagement_id": { "type": "string", "pattern": "^[A-Z0-9]+(-[A-Z0-9]+)*$" },
+    "schema_version": {
+      "const": "engagement_profile@1.0.0"
+    },
+    "engagement_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9]+(-[A-Z0-9]+)*$"
+    },
     "practice": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
@@ -32,69 +37,213 @@
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "disposition": {
-      "enum": ["repeat", "non-repeat"],
+      "enum": [
+        "repeat",
+        "non-repeat"
+      ],
       "description": "Repeat or new client. This is what routes prior-year roll-forward against first-year baseline, and what scopes precedent retrieval to the client's own decisions."
     },
     "industry_classification": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["system", "code", "description"],
+      "required": [
+        "system",
+        "code",
+        "description"
+      ],
       "properties": {
-        "system": { "enum": ["NAICS", "SIC", "GICS"] },
-        "code": { "type": "string", "pattern": "^[0-9]{2,8}$" },
-        "description": { "type": "string", "minLength": 1 }
+        "system": {
+          "enum": [
+            "NAICS",
+            "SIC",
+            "GICS"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "pattern": "^[0-9]{2,8}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
       },
       "description": "GPC Scrub screens against this and Cost of Capital picks its industry premium from it. A contested classification is an escalation in both skills, which is only possible because it is recorded here rather than guessed per skill."
     },
     "size_band": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["metric", "band", "as_of"],
+      "required": [
+        "metric",
+        "band",
+        "as_of"
+      ],
       "properties": {
-        "metric": { "enum": ["revenue", "total_assets", "invested_capital", "employees"] },
-        "band": { "type": "string", "minLength": 1 },
-        "as_of": { "type": "string", "format": "date" }
+        "metric": {
+          "enum": [
+            "revenue",
+            "total_assets",
+            "invested_capital",
+            "employees"
+          ]
+        },
+        "band": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date"
+        }
       }
     },
     "fiscal_calendar": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["basis", "year_end_month", "year_end_day"],
+      "required": [
+        "basis",
+        "year_end_month",
+        "year_end_day"
+      ],
       "properties": {
-        "basis": { "enum": ["calendar", "fiscal", "52_53_week"] },
-        "year_end_month": { "type": "integer", "minimum": 1, "maximum": 12 },
-        "year_end_day": { "type": "integer", "minimum": 1, "maximum": 31 }
+        "basis": {
+          "enum": [
+            "calendar",
+            "fiscal",
+            "52_53_week"
+          ]
+        },
+        "year_end_month": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "year_end_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 31
+        }
       }
     },
     "scale_convention": {
-      "enum": [1, 1000, 1000000],
+      "enum": [
+        1,
+        1000,
+        1000000
+      ],
       "description": "The scale this engagement's working papers are kept in. It is a presentation convention only - it never becomes the default for a figure whose own scale was not read."
     },
     "owner_compensation_baseline": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["amount", "currency", "basis", "source", "as_of"],
+      "required": [
+        "amount",
+        "currency",
+        "basis",
+        "source",
+        "as_of"
+      ],
       "description": "The benchmark officer-compensation tests are run against. Required: EBITDA Normalization escalates rather than proceeding when there is no benchmark, and a profile that omits this silently is exactly how that escalation gets skipped.",
       "properties": {
-        "amount": { "type": "number", "minimum": 0 },
-        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-        "basis": { "enum": ["survey_median", "survey_75th", "survey_25th", "prior_year_approved", "stated_agreement"] },
-        "source": { "type": "string", "minLength": 1 },
-        "as_of": { "type": "string", "format": "date" }
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "basis": {
+          "enum": [
+            "survey_median",
+            "survey_75th",
+            "survey_25th",
+            "prior_year_approved",
+            "stated_agreement"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "as_of": {
+          "type": "string",
+          "format": "date"
+        }
       }
     },
     "materiality_threshold": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["amount", "currency"],
+      "required": [
+        "amount",
+        "currency"
+      ],
       "properties": {
-        "amount": { "type": "number", "minimum": 0 },
-        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        }
       },
       "description": "Optional here; the Constraint Registry carries the firm floor and a profile may only sit at or below it."
     },
-    "recorded_by": { "type": "string", "minLength": 1 },
-    "recorded_at": { "type": "string", "format": "date-time" },
-    "notes": { "type": "string" }
+    "checkpoint_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "sla_hours"
+      ],
+      "description": "How much a human reviews on this engagement. Read by exactly one node, the Confidence Router. It can raise the bar - a higher confidence floor, more always-review categories, a tighter review level per skill - and never lower one: the Checkpoint Policy refuses a review floor below what the skill declares, and a materiality threshold above the firm floor is refused where materiality_threshold is read. There is no auto-accept default; a policy that sets none auto-accepts nothing.",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The named person the review queue escalates to. Required: an item with no owner is an item nobody works."
+        },
+        "sla_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "auto_accept_confidence": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "Items at or above this confidence, material to nobody and flagged by nothing, go straight through. Absent means nothing is auto-accepted."
+        },
+        "always_review_categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "review_floors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "skill name -> a value on the review ladder in scopes.yaml, at or above what the skill declares.",
+          "x-open-by-design": "A map keyed by skill name; the skill names are the Skill Registry's, versioned separately from this contract, and each value is checked against the review ladder at policy load. Closing the key set here would pin the skill tree into the profile contract."
+        }
+      }
+    },
+    "recorded_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
   }
 }

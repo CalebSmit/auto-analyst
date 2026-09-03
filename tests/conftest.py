@@ -50,15 +50,16 @@ def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pyte
     which adversarial fixtures are waiting on a guard that is not built yet."""
     if PENDING_FIXTURES:
         write = terminalreporter.write_line
-        phases = sorted({built_by for _, _, built_by in PENDING_FIXTURES})
+        pending = sorted(set(PENDING_FIXTURES), key=lambda p: (p[2], p[0]))
+        phases = sorted({built_by for _, _, built_by in pending})
         write("")
         write(
-            f"GUARD FIXTURES PENDING - {len(PENDING_FIXTURES)} of the blueprint's ten target "
+            f"GUARD FIXTURES PENDING - {len(pending)} of the blueprint's ten target "
             f"a guard not built yet ({', '.join(phases)}).",
             yellow=True,
             bold=True,
         )
-        for fixture_id, guard, built_by in PENDING_FIXTURES:
+        for fixture_id, guard, built_by in pending:
             write(f"  {fixture_id}: waits for {guard} ({built_by})", yellow=True)
     if not POSTGRES["not_run"] and not POSTGRES["ran"] and not POSTGRES["error"]:
         return  # this invocation did not include the store conformance suite

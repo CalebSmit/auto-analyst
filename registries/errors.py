@@ -149,6 +149,8 @@ QC_FAILED = "DELIVER.QC_FAILED"
 TEMPLATE_MISSING = "DELIVER.TEMPLATE_MISSING"
 UNKNOWN_TYPE = "INTAKE.UNKNOWN_TYPE"
 NO_ENGAGEMENT = "INTAKE.NO_ENGAGEMENT"
+STALE_DECISION = "PROCESS.STALE_DECISION"
+RATIONALE_REQUIRED = "PROCESS.RATIONALE_REQUIRED"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -324,6 +326,20 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A file arrived that no engagement claims - no matching folder, header or "
         "profile. Assign it to an engagement explicitly, or leave it unprocessed. A file "
         "with no engagement has no scope, and a run with no scope has no skills.",
+    ),
+    STALE_DECISION: (
+        "process",
+        "Another reviewer decided this item after you opened it, or it was already "
+        "decided. Nothing you entered was written. Read their decision - it is in the "
+        "refusal - and if you disagree, escalate on the item rather than deciding over "
+        "them. Two reviewers never silently overwrite each other.",
+    ),
+    RATIONALE_REQUIRED: (
+        "process",
+        "An edit, a rejection or an escalation needs a reason, and a correction needs the "
+        "corrected value. The reason is what the decision log is for: six months later "
+        "it is the only record of why a line was treated that way. Add it and decide "
+        "again; nothing was written.",
     ),
     MULTI_TURN_STEP: (
         "policy",
