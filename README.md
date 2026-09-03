@@ -65,8 +65,9 @@ fixtures, so the early phases cost nothing to run.
 The design is settled and lives in one self-contained HTML file:
 
 [`docs/architecture.html`](docs/architecture.html) - it travels with the repo, so it is
-there on the work machine too. On this machine the working copy is in OneDrive;
-`python tools/sync_blueprint.py` copies it across and reports any drift.
+there on the work machine too, and it is the copy the tests read. Edit it here and commit
+the change with whatever prompted it. `python tools/sync_blueprint.py` publishes a copy to
+OneDrive for opening on another device; that copy is a mirror, never the source.
 
 118 nodes, 240 edges, 25 invariants that are executable rather than decorative, and 67
 failure modes with their controls. Open it in a browser; it needs nothing else.

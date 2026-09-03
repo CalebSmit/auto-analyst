@@ -30,6 +30,7 @@ PLAN_MD = BUILD / "PLAN.md"
 STATE_MD = BUILD / "STATE.md"
 LEDGER_MD = BUILD / "LEDGER.md"
 AMEND_MD = BUILD / "AMENDMENTS.md"
+PHASES_DIR = BUILD / "phases"
 
 OK = "PASS"
 NO = "FAIL"
@@ -254,6 +255,12 @@ def cmd_amend(plan: dict, args) -> int:
     if args.set_gate:
         changes.append(f"gate: {p['gate']} -> {args.set_gate}")
         p["gate"] = args.set_gate
+    if args.set_blueprint:
+        # Project-level rather than phase-level, but it goes through amend for the same
+        # reason everything else does: the path to the design of record is not a thing
+        # that should be able to change without the reason travelling with it.
+        changes.append(f"blueprint: {plan['blueprint']!r} -> {args.set_blueprint!r}")
+        plan["blueprint"] = args.set_blueprint
     if args.reopen:
         changes.append(f"status: {p['status']} -> open")
         p["status"] = "open"
@@ -397,9 +404,73 @@ def render(plan: dict) -> None:
     STATE_MD.write_text("\n".join(S) + "\n", encoding="utf-8")
 
 
+def render_phase_files(plan: dict) -> None:
+    """BUILD/phases/PNN.md, regenerated from plan.json.
+
+    These were written once by the scaffold and then left alone, which made them stale
+    copies of the plan the moment anything was amended - and CLAUDE.md sends every
+    session to read the current one. Generated now, like PLAN.md and STATE.md, so the
+    file a session opens says what the plan actually says.
+    """
+    cps = {c["after"]: c for c in plan["checkpoints"]}
+    for p in plan["phases"]:
+        L = [
+            f"# {p['id']} - {p['title']}",
+            "",
+            "*Generated from BUILD/plan.json by `gate render`. Change it with `gate amend`.*",
+            "",
+            f"**Block.** {p['block']}  ",
+            f"**Gate.** `{p['gate']}`"
+            + (" - tests passing is necessary but not sufficient; a human signs off."
+               if p["gate"] == "human" else " - closes on green tests alone."),
+        ]
+        if p["status"] == "done":
+            L.append(f"  \n**Closed.** {p['closed']}"
+                     + (f" - signed off: {p['signoff']}" if p.get("signoff") else ""))
+        L += ["", "## Intent", "", p["intent"], ""]
+        if p["builds"]:
+            L += ["## Blueprint nodes this phase implements", "",
+                  "".join(f"`{b}` " for b in p["builds"]), ""]
+        L += ["## Tasks", ""]
+        mark = "x" if p["status"] == "done" else " "
+        L += [f"- [{mark}] {t}" for t in p["tasks"]]
+        L += ["", "## Exit criteria", "",
+              "*The phase closes when all of these are true and `gate close` says so.*", ""]
+        L += [f"- {e}" for e in p["exit"]]
+        if p["gate"] == "human":
+            L += ["", "## What needs a person", "", p.get("human_check", ""), "",
+                  f'    python tools/gate.py close {p["id"]} --signoff "name: what you checked"']
+        L += ["", "## Verify", "", "```"]
+        L += list(p["checks"])
+        L += [f"python tools/gate.py check {p['id']}", "```", ""]
+        if p.get("notes"):
+            L += ["## Note", "", p["notes"], ""]
+        if p["id"] in cps:
+            c = cps[p["id"]]
+            L += [
+                f"## Then: checkpoint {c['id']} - {c['title']}",
+                "",
+                f"Before {p['id']} can be followed by the next phase, every phase up to here "
+                f"is re-run together and this must hold:",
+                "",
+                f"> {c['proves']}",
+                "",
+                "```",
+                f"python tools/gate.py checkpoint {c['id']}",
+                "```",
+                "",
+                "Write the integration test at the end of this phase, not at the checkpoint - "
+                "a test written after the fact tends to test what was built rather than what "
+                "was meant.",
+                "",
+            ]
+        (PHASES_DIR / f"{p['id']}.md").write_text("\n".join(L) + "\n", encoding="utf-8")
+
+
 def cmd_render(plan: dict, _args) -> int:
     render(plan)
-    print("  rendered PLAN.md and STATE.md")
+    render_phase_files(plan)
+    print(f"  rendered PLAN.md, STATE.md and {len(plan['phases'])} phase files")
     return 0
 
 
@@ -434,6 +505,7 @@ def main() -> int:
     c.add_argument("--add-task", action="append")
     c.add_argument("--add-exit", action="append")
     c.add_argument("--add-check", action="append")
+    c.add_argument("--set-blueprint", help="where the design of record lives")
     c.add_argument("--reopen", action="store_true")
 
     c = sub.add_parser("ledger", help="record a dead end so it is not re-walked")

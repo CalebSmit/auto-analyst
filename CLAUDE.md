@@ -21,16 +21,18 @@ Then, situationally:
 
 ## The rules
 
-1. **Never hand-edit `BUILD/PLAN.md` or `BUILD/STATE.md`.** Both are generated from
-   `BUILD/plan.json`. A hand edit is how a plan and its real state start to disagree.
+1. **Never hand-edit `BUILD/PLAN.md`, `BUILD/STATE.md` or `BUILD/phases/PNN.md`.** All
+   three are generated from `BUILD/plan.json` by `gate render`. A hand edit is how a plan
+   and its real state start to disagree.
 2. **Never mark a phase done without `gate close`.** The gate runs the checks first and
    writes nothing if they fail. "It works on my machine" is not a state transition.
 3. **Change the plan with `gate amend`, never by editing JSON.** The reason gets recorded
    with the change; a silent edit loses the only part that was worth keeping.
 4. **Record dead ends with `gate ledger`** the moment you abandon an approach — not later,
    when the reason has faded into "it didn't work".
-5. **End every session by updating STATE.md** — `gate render` at minimum. Especially
-   mid-phase, because that is exactly when the next session has least to go on.
+5. **End every session by running `gate render`** — it rewrites STATE.md and every phase
+   file from the plan. Especially mid-phase, because that is exactly when the next session
+   has least to go on.
 6. **A red checkpoint blocks the next phase.** It means phases that each passed alone
    disagree with each other, which is the whole reason checkpoints exist. Do not work
    around one.
@@ -62,8 +64,8 @@ guarantees strong enough that an analyst can trust the output without redoing it
 
 The architecture is settled and lives in a single file:
 
-    docs/architecture.html      <- travels with the repo; this is the one that matters
-    tools/sync_blueprint.py     <- refreshes it from the OneDrive working copy
+    docs/architecture.html      <- the source of truth. Edit it here, commit the change
+    tools/sync_blueprint.py     <- publishes a read-only mirror to OneDrive for viewing
 
 118 nodes, 240 edges, 25 executable invariants, 67 failure modes. **When the code and the
 blueprint disagree, that is a finding, not a preference** — resolve it explicitly and

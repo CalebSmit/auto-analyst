@@ -20,6 +20,9 @@ outbox/
 templates/*.xlsx
 !templates/.gitkeep
 
+# local state about the OneDrive mirror; the repo copy is the source
+docs/.blueprint-mirror
+
 # os
 Thumbs.db
 .DS_Store
