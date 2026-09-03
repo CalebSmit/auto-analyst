@@ -102,3 +102,11 @@ rather than how long the work takes.
 manifest's `guard_events` is assembled from exactly this stream, so a pass that was never
 emitted cannot appear in the record — and a guard that stopped running shows up as
 silence somebody can see, rather than as a clean report.
+
+## cost.py - the meter
+
+Derived, never estimated. The API returns token counts with each response; the meter
+prices them against `RATES_USD_PER_MTOK` in `ports/llm` and writes the charge to the run.
+It agrees with the usage the API reports because it has no other input to disagree with.
+`spend()` is what the governor reads, and it reads loop iterations off the event stream so
+the governor and the manifest cannot disagree.

@@ -66,3 +66,23 @@ authorised exactly as a write is** - one path, every tool.
 The six names are `constraints.yaml`'s: recompute and timing_normalizer compute; the four
 lookups read. `t_template` is in no skill's allowlist on purpose - a skill that could write
 cells could write one the mapping never declared.
+
+## door.py - the one door to a model
+
+Structurally the only way to reach a model, and a test walks the import graph to prove
+nothing else calls `.complete()` on a port. Everything that happens on the way out happens
+here, in order: one turn (a request carrying a prior assistant message is turn two of
+something and does not leave); the outbound payload scan; the budget governor; the port;
+the pin (the model that answered is the model that was pinned); the meter.
+
+`max_turns == 1` is enforced here, not merely asserted in the plan. The compiler refuses a
+step that *declares* more than one turn; the door refuses a request that *is* one.
+
+## budget.py - four ceilings, halt not throttle
+
+Token spend, currency spend, active wall clock, total loop iterations - from
+`constraints.yaml`, checked before every model call with the call's expected cost added in
+and again after. Crossing any one raises, records an event with the code and the owner,
+and opens a review item naming the ceiling and the number. A run that quietly degrades to
+a cheaper model is much harder to reason about afterwards than one that stops and says
+why, so there is no method here that throttles, degrades or extends.

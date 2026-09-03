@@ -90,6 +90,7 @@ PLAN_REFUSED = "PROCESS.PLAN_REFUSED"
 LATE_RESULT = "PROCESS.LATE_RESULT"
 PRECEDENT_OUT_OF_SCOPE = "SCOPE.PRECEDENT_OUT_OF_SCOPE"
 UNMASKED_PRECEDENT = "PRIVACY.UNMASKED_PRECEDENT"
+UNMASKED_IDENTIFIER = "PRIVACY.UNMASKED_IDENTIFIER"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 TOOL_NOT_DECLARED = "POLICY.TOOL_NOT_DECLARED"
@@ -291,6 +292,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "scope. The query is built from that scope so a Corporate Finance decision is "
         "never available to an ESOP valuation; a source answering with one is broken, "
         "and the builder refuses the whole batch rather than filtering quietly.",
+    ),
+    UNMASKED_IDENTIFIER: (
+        "system",
+        "An identifier from the engagement's vault reached the outbound payload scan "
+        "unmasked, or a token the masker was expected to substitute is missing. Nothing "
+        "leaves for a model until it is fixed: the masker is the control and the scan is "
+        "the proof it worked, and a scan that let this through would be neither.",
     ),
     UNMASKED_PRECEDENT: (
         "system",

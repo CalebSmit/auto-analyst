@@ -33,6 +33,18 @@ TIER_MODELS: dict[str, str] = {
     "high": "claude-opus-5",
 }
 
+# USD per million tokens, (input, output), by concrete model. The cost meter prices
+# usage from this table and nothing else, so "what did that step cost" is arithmetic over
+# the usage the API reported rather than an estimate somebody made. Cache reads are
+# priced at a tenth of input and cache writes at 1.25x, per the published rates.
+RATES_USD_PER_MTOK: dict[str, tuple[float, float]] = {
+    "claude-haiku-4-5": (1.0, 5.0),
+    "claude-sonnet-5": (2.0, 10.0),
+    "claude-opus-5": (5.0, 25.0),
+}
+CACHE_READ_MULTIPLIER = 0.1
+CACHE_WRITE_MULTIPLIER = 1.25
+
 
 @dataclass(frozen=True)
 class ModelPin:

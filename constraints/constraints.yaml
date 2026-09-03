@@ -147,7 +147,7 @@ predicates:
 ceilings:
   per_run:
     usd_max: 40.00
-    model_calls_max: 120
+    tokens_max: 3000000
     wall_clock_s: 5400
     loop_iterations_max: 8
   per_step:

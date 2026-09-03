@@ -63,7 +63,9 @@ REQUIRED_FRONTMATTER = (
 __all__ = [
     "IndexEntry",
     "Overlay",
+    "ParsedSkill",
     "Skill",
+    "parse_skill_file",
     "SkillIndex",
     "SkillTree",
 ]
@@ -348,6 +350,29 @@ def _read_skills(skills_dir: Path) -> Iterator[Skill]:
             scripts=tuple(frontmatter.get("scripts") or ()),
             path=_locate(path),
         )
+
+
+@dataclass(frozen=True)
+class ParsedSkill:
+    """A SKILL.md, in three parts. Our own format, owing nothing to any SDK."""
+
+    frontmatter: dict[str, Any]
+    body: str
+    references: tuple[str, ...]
+
+
+def parse_skill_file(path: Path) -> ParsedSkill:
+    """Frontmatter, body, reference list. Finding F4: SKILL.md is a file format we parse,
+    not a framework dependency. This function is the whole of the parser, and it
+    imports nothing from any provider SDK - a test asserts it."""
+    frontmatter = _frontmatter(path)
+    text = path.read_text(encoding="utf-8")
+    body = text.split("---", 2)[2].lstrip("\n") if text.count("---") >= 2 else ""
+    return ParsedSkill(
+        frontmatter=frontmatter,
+        body=body,
+        references=tuple(frontmatter.get("references") or ()),
+    )
 
 
 def _frontmatter(path: Path) -> dict[str, Any]:

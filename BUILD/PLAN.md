@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**10 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**11 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -35,7 +35,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | | Phase | Gate | Closes when | Status |
 |---|---|---|---|---|
 | [x] | **P10** Policy gate, constraints, guarded runtime | auto | A tool not in the caller's allowlist is denied and the denial is in the event stream | 2026-09-03 |
-| [ ] | **P11** LLM port, model pin, budget governor | auto | A call attempting more than one model turn raises before it is sent |  |
+| [x] | **P11** LLM port, model pin, budget governor | auto | A call attempting more than one model turn raises before it is sent | 2026-09-03 |
 | [ ] | **P12** Privacy: mask, vault, unmask, verify | auto | The same account masks to the same token across runs weeks apart - period alignment depends on this |  |
 | [ ] | **C4 - One step through all six harness stages** | integration | A no-op skill passes context, reason, policy, act, verify and accept, with every stage emitting |  |
 | [ ] | **P13** Guards and their adversarial fixtures | auto | Each of the ten fixtures fires the right guard, and only that guard |  |

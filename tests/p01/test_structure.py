@@ -96,7 +96,7 @@ FIRST_BUILT_BY = {
     "ops": "P04",       # event bus, run store, manifest
     "graph": "P05",     # resolve, compile, execute, assertions
     "harness": "P08",   # the step executor and what wraps one step
-    "privacy": "P12",   # mask, vault, unmask, payload scan
+    "privacy": "P11",   # payload scan first (P11 builds it); mask, vault, unmask in P12
     "guards": "P13",    # schema, provenance, tieout, reconcile, numeric lock
 }
 
