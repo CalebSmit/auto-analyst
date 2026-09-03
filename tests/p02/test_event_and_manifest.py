@@ -56,8 +56,12 @@ def test_a_guard_pass_is_an_ordinary_event(
     """A guard that only speaks when it fires is, on a quiet day, indistinguishable from
     a guard that never ran. Nothing in the schema privileges failures."""
     assert contracts.check(EVENT, event) == ()
-    failed = {**event, "type": "guard.tieout.fail", "level": "error",
-              "diagnostic_code": "GUARD.TIEOUT_MISMATCH"}
+    failed = {
+        **event,
+        "type": "guard.tieout.fail",
+        "level": "error",
+        "diagnostic_code": "GUARD.TIEOUT_MISMATCH",
+    }
     assert contracts.check(EVENT, failed) == ()
 
 
@@ -142,8 +146,12 @@ def manifest() -> dict[str, Any]:
             {"what": "FY2021 income statement", "why": "Not supplied by the client."}
         ],
         "artifacts": [],
-        "cost": {"total_usd": 3.42, "model_calls": 11, "input_tokens": 84000,
-                 "output_tokens": 9100},
+        "cost": {
+            "total_usd": 3.42,
+            "model_calls": 11,
+            "input_tokens": 84000,
+            "output_tokens": 9100,
+        },
     }
 
 
@@ -168,9 +176,7 @@ def test_the_outcome_is_not_a_boolean(contracts: ContractRegistry) -> None:
     assert set(outcomes) == {"clean", "released_with_review", "halted", "blocked"}
 
 
-@pytest.mark.parametrize(
-    "field", ["model_pin", "skills", "contracts", "constraints", "taxonomy"]
-)
+@pytest.mark.parametrize("field", ["model_pin", "skills", "contracts", "constraints", "taxonomy"])
 def test_every_version_a_run_used_is_recorded(
     contracts: ContractRegistry, manifest: dict[str, Any], field: str
 ) -> None:

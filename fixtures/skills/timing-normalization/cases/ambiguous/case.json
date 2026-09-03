@@ -1,0 +1,36 @@
+{
+ "files": [
+  {
+   "source_id": "sha256:b696fe7e0ca03d680341d127d41e7aaccc4b44dcf5694344cab5aaf70defeab5",
+   "filename": "TB_FY25_units_unknown.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "TB!B2:B3": [
+     {
+      "label": "Revenue",
+      "value": 4812.0,
+      "raw": "4,812",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 2905.0,
+      "raw": "2,905",
+      "ordinal": 3
+     }
+    ]
+   },
+   "scale": null,
+   "currency": "USD",
+   "period_type": "annual",
+   "period_ends": [
+    "2025-12-31"
+   ],
+   "ambiguous": [
+    "scale: no cue in the headers - units or thousands is not stated"
+   ],
+   "source_version": 1,
+   "block_periods": {}
+  }
+ ]
+}

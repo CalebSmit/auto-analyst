@@ -1,0 +1,454 @@
+{
+ "schema_version": "skills/timing-normalization-proposal@1.0.0",
+ "produced_by": "timing-normalization@0.1.0",
+ "periods": [
+  {
+   "label": "FY2023",
+   "type": "FY",
+   "end": "2023-12-31",
+   "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+   "block": "IS!B2:B21"
+  },
+  {
+   "label": "FY2024",
+   "type": "FY",
+   "end": "2024-12-31",
+   "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+   "block": "IS!B2:B21"
+  },
+  {
+   "label": "FY2025",
+   "type": "FY",
+   "end": "2025-12-31",
+   "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+   "block": "IS!B2:B22"
+  }
+ ],
+ "line_items": [
+  {
+   "canonical_label": "Revenue",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Cost of sales",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Gross profit",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B4",
+     "label": "Gross profit"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Officer salary",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B5",
+     "label": "Officer salary"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B5",
+     "label": "Officer salary"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B5",
+     "label": "Officer salary"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Officer bonus",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B6",
+     "label": "Officer bonus"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B6",
+     "label": "Officer bonus"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B6",
+     "label": "Officer bonus"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Wages",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B7",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B7",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B7",
+     "label": "Wages"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Payroll taxes",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B8",
+     "label": "Payroll taxes"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B8",
+     "label": "Payroll taxes"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B8",
+     "label": "Payroll taxes"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Rent",
+   "kind": "split",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B9",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B9",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B9",
+     "label": "Rent - facilities"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B10",
+     "label": "Rent - equipment"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Repairs and Maintenance",
+   "kind": "rename",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B10",
+     "label": "Repairs & Maint."
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B10",
+     "label": "Repairs and Maintenance"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B11",
+     "label": "Repairs and Maintenance"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Utilities",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B11",
+     "label": "Utilities"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B11",
+     "label": "Utilities"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B12",
+     "label": "Utilities"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Insurance",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B12",
+     "label": "Insurance"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B12",
+     "label": "Insurance"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B13",
+     "label": "Insurance"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Professional fees",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B13",
+     "label": "Professional fees"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B13",
+     "label": "Professional fees"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B14",
+     "label": "Professional fees"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Bank and card fees",
+   "kind": "merge",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B14",
+     "label": "Bank charges"
+    },
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B15",
+     "label": "Merchant fees"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B14",
+     "label": "Bank charges"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B15",
+     "label": "Merchant fees"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B15",
+     "label": "Bank and card fees"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Depreciation",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B16",
+     "label": "Depreciation"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B16",
+     "label": "Depreciation"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B16",
+     "label": "Depreciation"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Travel",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B17",
+     "label": "Travel"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B17",
+     "label": "Travel"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B17",
+     "label": "Travel"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Advertising",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B18",
+     "label": "Advertising"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B18",
+     "label": "Advertising"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B18",
+     "label": "Advertising"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Office supplies",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B19",
+     "label": "Office supplies"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B19",
+     "label": "Office supplies"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B19",
+     "label": "Office supplies"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Total operating expenses",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B20",
+     "label": "Total operating expenses"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B20",
+     "label": "Total operating expenses"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B21",
+     "label": "Total operating expenses"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Net income",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+     "locator": "IS!B21",
+     "label": "Net income"
+    },
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B21",
+     "label": "Net income"
+    },
+    {
+     "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+     "locator": "IS!B22",
+     "label": "Net income"
+    }
+   ]
+  }
+ ],
+ "unmatched": [
+  {
+   "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+   "locator": "IS!B20",
+   "label": "Q3 special project",
+   "reason": "no counterpart in FY2023 or FY2024; a one-off project line"
+  }
+ ],
+ "notes": [
+  "FY2025 splits rent and merges the bank lines; nothing else moved."
+ ]
+}

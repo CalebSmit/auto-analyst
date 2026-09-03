@@ -218,7 +218,9 @@ class ContextBuilder:
         # 2. Its references, as resolved - the overlay-added ones included.
         for ref_name in resolved.references:
             text = self.tree.reference(
-                resolved.skill, ref_name, declared=resolved.references,
+                resolved.skill,
+                ref_name,
+                declared=resolved.references,
                 layers=request.scope.layers,
             )
             parts.append(("reference", ref_name, text.encode("utf-8")))
@@ -236,14 +238,24 @@ class ContextBuilder:
             parts.append(("precedent", precedent.precedent_id, _canonical(precedent.example)))
 
         # 5. The engagement profile and 6. the masked payload, by ref.
-        parts.append(("engagement_profile", request.engagement_profile.content_hash,
-                      self.blobs.get(request.engagement_profile)))
+        parts.append(
+            (
+                "engagement_profile",
+                request.engagement_profile.content_hash,
+                self.blobs.get(request.engagement_profile),
+            )
+        )
         parts.append(("payload", request.payload.content_hash, self.blobs.get(request.payload)))
 
         # 7. On a repair pass, what the guard said. The changed input.
         if request.repair_feedback is not None:
-            parts.append(("repair_feedback", request.repair_feedback.content_hash,
-                          self.blobs.get(request.repair_feedback)))
+            parts.append(
+                (
+                    "repair_feedback",
+                    request.repair_feedback.content_hash,
+                    self.blobs.get(request.repair_feedback),
+                )
+            )
         for result in request.tool_results:
             parts.append(("tool_result", result.content_hash, self.blobs.get(result)))
 
@@ -258,13 +270,18 @@ class ContextBuilder:
             "skill": resolved.skill.key,
             "context_ref": ref.content_hash,
             "sections": [
-                {"kind": s.kind, "name": s.name, "content_hash": s.content_hash,
-                 "size_bytes": s.size_bytes}
+                {
+                    "kind": s.kind,
+                    "name": s.name,
+                    "content_hash": s.content_hash,
+                    "size_bytes": s.size_bytes,
+                }
                 for s in sections
             ],
             "precedents": [p.precedent_id for p in precedents],
             "precedent_query": {
-                "scope": query.scope_path, "precedent_scope": query.precedent_scope,
+                "scope": query.scope_path,
+                "precedent_scope": query.precedent_scope,
                 "client_first": query.precedent_scope == "client_first",
             },
         }

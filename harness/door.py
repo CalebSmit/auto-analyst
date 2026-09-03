@@ -81,16 +81,23 @@ class ModelDoor:
 
         # 3. Room for it.
         self.governor.check(
-            run_id, engagement_id, about_to_spend_usd=estimated_cost_usd, about_to_call=True,
+            run_id,
+            engagement_id,
+            about_to_spend_usd=estimated_cost_usd,
+            about_to_call=True,
             step_id=step_id,
         )
 
         # 4. The call.
         request_hash = request.content_hash()
         self.bus.emit(
-            run_id=run_id, engagement_id=engagement_id, node_id="llm_port",
-            type="model.called", message=f"{request.pin} · {request_hash[:19]}",
-            step_id=step_id, payload={"request_hash": request_hash, "pin": str(request.pin)},
+            run_id=run_id,
+            engagement_id=engagement_id,
+            node_id="llm_port",
+            type="model.called",
+            message=f"{request.pin} · {request_hash[:19]}",
+            step_id=step_id,
+            payload={"request_hash": request_hash, "pin": str(request.pin)},
         )
         response = self.port.complete(request)
 
@@ -100,12 +107,18 @@ class ModelDoor:
         # 6. The meter, from the usage the API reported.
         charge = self.meter.record(run_id, request.pin, response.usage)
         self.bus.emit(
-            run_id=run_id, engagement_id=engagement_id, node_id="cost_meter",
-            type="model.answered", message=f"{response.model}: ${charge.usd:.4f}",
-            step_id=step_id, cost_usd=charge.usd,
+            run_id=run_id,
+            engagement_id=engagement_id,
+            node_id="cost_meter",
+            type="model.answered",
+            message=f"{response.model}: ${charge.usd:.4f}",
+            step_id=step_id,
+            cost_usd=charge.usd,
             payload={
-                "request_hash": request_hash, "model": response.model,
-                "input_tokens": charge.input_tokens, "output_tokens": charge.output_tokens,
+                "request_hash": request_hash,
+                "model": response.model,
+                "input_tokens": charge.input_tokens,
+                "output_tokens": charge.output_tokens,
                 "stop_reason": response.stop_reason,
             },
         )
@@ -113,7 +126,9 @@ class ModelDoor:
         self.governor.check(run_id, engagement_id, step_id=step_id)
 
         return ModelCall(
-            response=response, charge=charge, request_hash=request_hash,
+            response=response,
+            charge=charge,
+            request_hash=request_hash,
             scan_checked=scanned.checked,
         )
 

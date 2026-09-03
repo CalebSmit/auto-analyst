@@ -57,7 +57,7 @@ def figure() -> dict[str, Any]:
 
 def _skills_block() -> str:
     text = BLUEPRINT.read_text(encoding="utf-8")
-    return text[text.index("const SKILLS = ["):text.index("const PLAN_STEPS")]
+    return text[text.index("const SKILLS = [") : text.index("const PLAN_STEPS")]
 
 
 @pytest.fixture(scope="session")
@@ -97,7 +97,7 @@ def blueprint_tool_namespace() -> dict[str, dict[str, str]]:
     """The blueprint's own tool table: name, node, kind, and how many skills use it."""
     text = BLUEPRINT.read_text(encoding="utf-8")
     start = text.index("const TOOLNS = [")
-    block = text[start:text.index("];", start)]
+    block = text[start : text.index("];", start)]
     rows = re.findall(r"\['([a-z_]+)','([a-z_]+)','(\w+)','([^']*)','(\d+) skills?'\]", block)
     return {
         name: {"node": node, "kind": kind, "description": desc, "used_by": int(count)}
@@ -111,4 +111,4 @@ def blueprint_repo_listing() -> str:
     directory that exists and is not on it is a divergence like any other."""
     text = BLUEPRINT.read_text(encoding="utf-8")
     start = text.index("const REPO = [")
-    return text[start:text.index("].join('')", start)]
+    return text[start : text.index("].join('')", start)]

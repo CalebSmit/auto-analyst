@@ -1,0 +1,21 @@
+{
+ "values": {
+  "Cost of sales": {
+   "FY2024": 2688400.0
+  },
+  "Rent": {
+   "FY2024": 96000.0
+  }
+ },
+ "absent": [
+  "Revenue",
+  "Gross profit"
+ ],
+ "matched": 4,
+ "unmatched": 0,
+ "period_gaps": [],
+ "conflicts": 2,
+ "rows": 8,
+ "matched_rows": 8,
+ "match_rate": 1.0
+}

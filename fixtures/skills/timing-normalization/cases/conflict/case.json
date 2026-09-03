@@ -1,0 +1,92 @@
+{
+ "files": [
+  {
+   "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+   "filename": "IS_FY24.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "IS!B2:B5": [
+     {
+      "label": "Revenue",
+      "value": 4401900.0,
+      "raw": "4,401,900",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 2688400.0,
+      "raw": "2,688,400",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 1713500.0,
+      "raw": "1,713,500",
+      "ordinal": 4
+     },
+     {
+      "label": "Rent",
+      "value": 96000.0,
+      "raw": "96,000",
+      "ordinal": 5
+     }
+    ]
+   },
+   "scale": 1000,
+   "currency": "USD",
+   "period_type": "annual",
+   "period_ends": [
+    "2024-12-31"
+   ],
+   "ambiguous": [],
+   "source_version": 1,
+   "block_periods": {
+    "IS!B2:B5": "FY2024"
+   }
+  },
+  {
+   "source_id": "sha256:cc434ad356aea8c4fd367f87463afa5ebb098d27c5fe53499b48a441f267cb5a",
+   "filename": "IS_FY24_restated.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "Restated!C5:C8": [
+     {
+      "label": "Revenue",
+      "value": 4405000.0,
+      "raw": "4,405,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Cost of sales",
+      "value": 2688400.0,
+      "raw": "2,688,400",
+      "ordinal": 6
+     },
+     {
+      "label": "Gross profit",
+      "value": 1716600.0,
+      "raw": "1,716,600",
+      "ordinal": 7
+     },
+     {
+      "label": "Rent",
+      "value": 96000.0,
+      "raw": "96,000",
+      "ordinal": 8
+     }
+    ]
+   },
+   "scale": 1000,
+   "currency": "USD",
+   "period_type": "annual",
+   "period_ends": [
+    "2024-12-31"
+   ],
+   "ambiguous": [],
+   "source_version": 1,
+   "block_periods": {
+    "Restated!C5:C8": "FY2024"
+   }
+  }
+ ]
+}

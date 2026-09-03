@@ -116,9 +116,7 @@ class PayloadScan:
     def check(self, text: str, identifiers: IdentifierList) -> ScanResult:
         """The pure half. No bus, no raise - what a test of the matching wants."""
         lowered = text.lower()
-        hits = tuple(
-            ident for ident in identifiers.identifiers if ident.lower() in lowered
-        )
+        hits = tuple(ident for ident in identifiers.identifiers if ident.lower() in lowered)
         missing = tuple(t for t in identifiers.expected_tokens if t not in text)
         seen = len(TOKEN_PATTERN.findall(text))
         reasons: list[str] = []

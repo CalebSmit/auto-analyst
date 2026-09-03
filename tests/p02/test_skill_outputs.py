@@ -21,9 +21,21 @@ ENVELOPE_REF = "https://chartwell.invalid/contracts/figure@1.0.0"
 # Words that would make this system look as though it had reached a conclusion, signed
 # something, or certified something. The appraiser signs, outside this system.
 FORBIDDEN_FIELD_WORDS = (
-    "conclusion", "concluded", "opinion", "certif", "signature", "signed_by",
-    "attest", "approval", "approved", "fair_market_value", "final_value",
-    "determination", "we_conclude", "is_adequate", "adequacy_",
+    "conclusion",
+    "concluded",
+    "opinion",
+    "certif",
+    "signature",
+    "signed_by",
+    "attest",
+    "approval",
+    "approved",
+    "fair_market_value",
+    "final_value",
+    "determination",
+    "we_conclude",
+    "is_adequate",
+    "adequacy_",
 )
 # Never, in any enum: the system does not conclude, certify or sign.
 FORBIDDEN_ENUM_VALUES = ("certified", "signed", "concluded", "adequate", "opinion")
@@ -34,7 +46,10 @@ STATE_FIELDS = frozenset({"status", "result", "readiness", "outcome", "decision"
 
 
 def skill_keys(contracts: ContractRegistry) -> list[str]:
-    return [k for k in contracts.ids() if k.startswith("skills/")]
+    """The skill *output* contracts. A proposal contract (P18 onwards) sits under the same
+    prefix but is what the model returns, not what the skill emits - it declares no
+    outputs and carries no figure, by design."""
+    return [k for k in contracts.ids() if k.startswith("skills/") and "-proposal@" not in k]
 
 
 def test_there_is_one_schema_per_blueprint_skill(
@@ -174,8 +189,11 @@ def test_the_adequate_consideration_record_cannot_state_adequacy(
     record = contracts.get("skills/dol-adequate-consideration@1.0.0")
     fields = set(record["properties"]["adequate_consideration_record"]["properties"])
     assert fields == {
-        "inputs_relied_on", "process_steps", "unresolved_items",
-        "assumptions_requiring_confirmation", "independence_checklist",
+        "inputs_relied_on",
+        "process_steps",
+        "unresolved_items",
+        "assumptions_requiring_confirmation",
+        "independence_checklist",
         "related_party_indications",
     }
     assert record["x-emits-figures"] is False

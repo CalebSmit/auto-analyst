@@ -70,6 +70,13 @@ contracts:
     version: 1.0.0
     file: skills/timing-normalization.schema.json
     kind: skill_output
+  - id: skills/timing-normalization-proposal
+    version: 1.0.0
+    file: skills/timing-normalization-proposal.schema.json
+    kind: skill_proposal
+    note: >-
+      What the model returns for timing-normalization: a mapping and never a number. No
+      property in it is numeric; the timing_normalizer tool does every piece of arithmetic.
   - id: skills/line-item-tagging
     version: 1.0.0
     file: skills/line-item-tagging.schema.json

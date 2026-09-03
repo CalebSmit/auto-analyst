@@ -269,3 +269,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - check added: python -m uv run ruff check intake guards ops tests/p17
 - check added: python -m uv run mypy intake guards ops
+
+## 2026-09-03 - P18 First real skill: timing normalization
+
+**Why:** The mechanical half of a skill has a home: harness/dispatch.py is the Skill Dispatcher (a blueprint node no phase had claimed) and harness/procedures/ holds one module per skill. The blueprint's SKILL.md frontmatter declared scripts/align_periods.py under the skill folder, but P10 made 'no Python under skills/' a test, so the script became harness/procedures/timing_normalization.py and the scripts key left the frontmatter. The proposal is its own contract, skills/timing-normalization-proposal@1.0.0, kind skill_proposal, with no numeric property anywhere - a test walks the schema. The tool is tools/normalize.py, the name the blueprint's listing already used for t_timing. Two findings outside the phase: the masker's account-number-by-shape rule matched ISO dates and digit runs inside sha256 hashes (a P12 rule), so a period end in the payload was masked and then found unmasked in the engagement profile by the outbound scan; dates and hex-embedded runs are now excluded, and the P12 tests still hold. And the engagement_scoped predicate needs every tool call to carry engagement_id, which the tool accepts and ignores. The skill's status is draft: registered is the governance chain's word (P27).
+
+- check added: python -m uv run ruff check harness tools/normalize.py tests/p18 tests/checkpoints/c06
+- check added: python -m uv run mypy harness tools/normalize.py

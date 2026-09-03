@@ -1,0 +1,90 @@
+{
+ "schema_version": "skills/timing-normalization-proposal@1.0.0",
+ "produced_by": "timing-normalization@0.1.0",
+ "periods": [
+  {
+   "label": "FY2024",
+   "type": "FY",
+   "end": "2024-12-31",
+   "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+   "block": "IS!B2:B5"
+  },
+  {
+   "label": "FY2024",
+   "type": "FY",
+   "end": "2024-12-31",
+   "source_id": "sha256:cc434ad356aea8c4fd367f87463afa5ebb098d27c5fe53499b48a441f267cb5a",
+   "block": "Restated!C5:C8"
+  }
+ ],
+ "line_items": [
+  {
+   "canonical_label": "Revenue",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:cc434ad356aea8c4fd367f87463afa5ebb098d27c5fe53499b48a441f267cb5a",
+     "locator": "Restated!C5",
+     "label": "Revenue"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Cost of sales",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:cc434ad356aea8c4fd367f87463afa5ebb098d27c5fe53499b48a441f267cb5a",
+     "locator": "Restated!C6",
+     "label": "Cost of sales"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Gross profit",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:cc434ad356aea8c4fd367f87463afa5ebb098d27c5fe53499b48a441f267cb5a",
+     "locator": "Restated!C7",
+     "label": "Gross profit"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Rent",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+     "locator": "IS!B5",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:cc434ad356aea8c4fd367f87463afa5ebb098d27c5fe53499b48a441f267cb5a",
+     "locator": "Restated!C8",
+     "label": "Rent"
+    }
+   ]
+  }
+ ],
+ "unmatched": [],
+ "notes": [
+  "Two files claim FY2024. Both listed; the tool will say where they disagree."
+ ]
+}

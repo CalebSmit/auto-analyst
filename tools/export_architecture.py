@@ -68,7 +68,7 @@ class Reader:
 
     def where(self) -> str:
         line = self.text.count("\n", 0, self.i) + 1
-        return f"line {line} (offset {self.i}): {self.text[self.i:self.i + 40]!r}"
+        return f"line {line} (offset {self.i}): {self.text[self.i : self.i + 40]!r}"
 
     def skip(self) -> None:
         """Whitespace and both comment styles, repeatedly."""
@@ -151,7 +151,7 @@ class Reader:
             self.i += 1
         if start == self.i:
             raise JsSyntaxError(f"expected a key at {self.where()}")
-        return self.text[start:self.i]
+        return self.text[start : self.i]
 
     def string(self) -> str:
         quote = self.text[self.i]
@@ -170,7 +170,7 @@ class Reader:
                 continue
             escape = self.text[self.i + 1]
             if escape == "u":
-                out.append(chr(int(self.text[self.i + 2:self.i + 6], 16)))
+                out.append(chr(int(self.text[self.i + 2 : self.i + 6], 16)))
                 self.i += 6
             else:
                 out.append({"n": "\n", "t": "\t", "r": "\r"}.get(escape, escape))
@@ -180,7 +180,7 @@ class Reader:
         start = self.i
         while self.i < len(self.text) and self.text[self.i] in "+-0123456789.eE":
             self.i += 1
-        raw = self.text[start:self.i]
+        raw = self.text[start : self.i]
         if not raw:
             raise JsSyntaxError(f"expected a value at {self.where()}")
         return float(raw) if any(c in raw for c in ".eE") else int(raw)
@@ -215,7 +215,7 @@ def source_block(html: str, name: str) -> str:
         elif ch == "]":
             depth -= 1
             if depth == 0:
-                return html[start:i + 1]
+                return html[start : i + 1]
         i += 1
     raise JsSyntaxError(f"const {name} = [ ... ] is not closed")
 
@@ -271,8 +271,10 @@ def main() -> int:
                 f"  Run: python tools/export_architecture.py"
             )
             return 1
-        print(f"  up to date - {counts['nodes']} nodes, {counts['edges']} edges, "
-              f"{counts['invariants']} invariants")
+        print(
+            f"  up to date - {counts['nodes']} nodes, {counts['edges']} edges, "
+            f"{counts['invariants']} invariants"
+        )
         return 0
 
     TARGET.write_text(body, encoding="utf-8")

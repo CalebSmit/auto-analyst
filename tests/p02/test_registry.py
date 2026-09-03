@@ -15,11 +15,13 @@ from registries.contracts import ContractRegistry
 from registries.errors import UNKNOWN_CONTRACT, RegistryError
 from tests.p02.conftest import ROOT, walk_schemas
 
-VERSIONED_ID = re.compile(r"^https://chartwell[.]invalid/contracts/[a-z_/-]+@[0-9]+[.][0-9]+[.][0-9]+$")
+VERSIONED_ID = re.compile(
+    r"^https://chartwell[.]invalid/contracts/[a-z_/-]+@[0-9]+[.][0-9]+[.][0-9]+$"
+)
 
 
 def test_every_registered_schema_is_itself_a_valid_schema(contracts: ContractRegistry) -> None:
-    assert len(contracts.self_check()) == 19  # config_document joined in P16
+    assert len(contracts.self_check()) == 20  # config_document (P16), timing proposal (P18)
 
 
 def test_every_id_carries_a_version(contracts: ContractRegistry) -> None:
@@ -48,8 +50,10 @@ def test_an_unknown_version_is_refused_rather_than_approximated(
 
 def test_the_index_and_the_disk_agree(contracts: ContractRegistry) -> None:
     """A schema file the index does not list is not a contract - it is a second copy."""
-    on_disk = {p.relative_to(ROOT / "contracts").as_posix()
-               for p in (ROOT / "contracts").rglob("*.schema.json")}
+    on_disk = {
+        p.relative_to(ROOT / "contracts").as_posix()
+        for p in (ROOT / "contracts").rglob("*.schema.json")
+    }
     listed = {entry.file for entry in contracts.entries()}
     assert on_disk == listed
 

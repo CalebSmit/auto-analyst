@@ -120,3 +120,20 @@ reference-data miss, quarantined step with partial progress, configuration error
 model is on the path; nothing is generated, so there is nothing to scan. Templates are
 checked at import for display-name placeholders only and for anything that looks like a
 node id, a path or a key. A missing value is refused rather than defaulted.
+
+## dispatch.py - one skill, one call, tools by allowlist
+
+The Skill Dispatcher runs one compiled skill step. In order: the procedure's `escalate`
+(an ambiguous file never reaches a model); the payload masked by the vault before it is
+a blob; the context assembled and hashed by the Context Builder; one request through the
+door, with the skill's own SKILL.md and references as the system prompt and the assembled
+context between the boundary's sentinels as data; the proposal checked against its
+contract before any tool runs; the output produced through the runtime's bound tools and
+checked against the output contract. Events from `dispatcher` bracket the call.
+
+## procedures/ - the mechanical half of each skill
+
+The skill tree holds SKILL.md files and no Python (a P10 test), so what the code around a
+skill does lives here, one module per skill: what to send (labels and locators, never a
+value), how to read the answer, and how to turn it into the output through the tools.
+`timing_normalization.py` is the first; `PROCEDURES` maps skill names to them.

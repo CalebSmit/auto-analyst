@@ -109,7 +109,9 @@ class GuardedRuntime:
         per_step = spec.caps.get("max_calls_per_step")
         if per_step is not None and self._calls[key] > int(per_step):
             self._refuse(
-                action, run, spec,
+                action,
+                run,
+                spec,
                 f"call {self._calls[key]} of {action.tool} in step {action.step_id!r}; "
                 f"the cap is {per_step} per step",
             )
@@ -125,14 +127,19 @@ class GuardedRuntime:
         rows = _count_rows(value)
         if "max_rows" in caps and rows > int(caps["max_rows"]):
             self._refuse(
-                action, run, spec,
+                action,
+                run,
+                spec,
                 f"{action.tool} returned {rows} rows against a cap of {caps['max_rows']}; "
                 f"a tool that ignores its cap is broken rather than generous",
             )
 
         result = ToolResult(
-            tool=action.tool, value=value, rows=rows,
-            cost_usd=action.estimated_cost_usd, decision=decision,
+            tool=action.tool,
+            value=value,
+            rows=rows,
+            cost_usd=action.estimated_cost_usd,
+            decision=decision,
         )
         self.bus.emit(
             run_id=run.run_id,
@@ -143,8 +150,11 @@ class GuardedRuntime:
             step_id=action.step_id or None,
             cost_usd=action.estimated_cost_usd,
             payload={
-                "tool": action.tool, "kind": spec.kind, "read_only": spec.read_only,
-                "rows": rows, "call_in_step": self._calls[key],
+                "tool": action.tool,
+                "kind": spec.kind,
+                "read_only": spec.read_only,
+                "rows": rows,
+                "call_in_step": self._calls[key],
             },
         )
         return result
@@ -183,7 +193,11 @@ class BoundTools:
     """The tool surface one skill invocation sees. Names from its allowlist, nothing else."""
 
     def __init__(
-        self, runtime: GuardedRuntime, run: RunScope, caller: str, step_id: str,
+        self,
+        runtime: GuardedRuntime,
+        run: RunScope,
+        caller: str,
+        step_id: str,
         names: tuple[str, ...],
     ) -> None:
         self._runtime = runtime
@@ -198,17 +212,25 @@ class BoundTools:
     def __contains__(self, name: object) -> bool:
         return name in self._names
 
+    @property
+    def engagement_id(self) -> str:
+        """The run's engagement, for the `engagement_scoped` predicate every call must
+        satisfy. A procedure passes it back; it cannot pass another."""
+        return self._run.engagement_id
+
     def __getitem__(self, name: str) -> Callable[..., ToolResult]:
         # A name outside the allowlist is not hidden - it is looked up, proposed, and
         # denied on the record. The skill learns it was refused; nobody learns it later.
         def invoke(**args: Any) -> ToolResult:
             spec = self._runtime.constraints.tools.get(name)
-            mode: Literal["read", "write"] = (
-                "read" if spec is None or spec.read_only else "write"
-            )
+            mode: Literal["read", "write"] = "read" if spec is None or spec.read_only else "write"
             action = ProposedAction(
-                tool=name, args=args, caller=self._caller, engagement=self._run.engagement_id,
-                mode=mode, estimated_cost_usd=float(args.pop("estimated_cost_usd", 0.0)),
+                tool=name,
+                args=args,
+                caller=self._caller,
+                engagement=self._run.engagement_id,
+                mode=mode,
+                estimated_cost_usd=float(args.pop("estimated_cost_usd", 0.0)),
                 step_id=self._step_id,
             )
             return self._runtime.call(action, self._run)

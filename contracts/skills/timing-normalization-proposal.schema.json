@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/timing-normalization-proposal@1.0.0",
+  "title": "Timing normalization proposal",
+  "description": "What the model returns: a mapping and never a number. Periods named and typed, every row placed under a canonical label or listed as unmatched with a reason. No property anywhere in this schema is numeric; a proposal carrying a value, a total or a confidence is refused before any tool runs. The timing_normalizer tool executes the mapping and does all the arithmetic.",
+  "x-skill": "timing-normalization",
+  "x-proposal": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "produced_by", "periods", "line_items", "unmatched"],
+  "properties": {
+    "schema_version": { "const": "skills/timing-normalization-proposal@1.0.0" },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^timing[-]normalization@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "periods": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "type", "end", "source_id", "block"],
+        "properties": {
+          "label": { "type": "string", "minLength": 1 },
+          "type": { "enum": ["FY", "CY", "LTM", "YTD", "Q", "M", "POINT"] },
+          "end": { "type": "string", "format": "date" },
+          "source_id": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "block": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The parse-store block this period's rows live in: a sheet column range or a document table."
+          }
+        }
+      }
+    },
+    "line_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["canonical_label", "kind", "sources"],
+        "properties": {
+          "canonical_label": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["exact", "rename", "split", "merge"] },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["source_id", "locator", "label"],
+              "properties": {
+                "source_id": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+                "locator": { "type": "string", "minLength": 1 },
+                "label": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "unmatched": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "locator", "label", "reason"],
+        "properties": {
+          "source_id": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "locator": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

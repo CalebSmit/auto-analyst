@@ -89,11 +89,14 @@ class MaskVault:
             ).one_or_none()
             if existing is not None:
                 return existing.token
-            count = session.scalar(
-                select(func.count()).select_from(VaultEntry).where(
-                    VaultEntry.engagement_id == engagement_id, VaultEntry.kind == kind
+            count = (
+                session.scalar(
+                    select(func.count())
+                    .select_from(VaultEntry)
+                    .where(VaultEntry.engagement_id == engagement_id, VaultEntry.kind == kind)
                 )
-            ) or 0
+                or 0
+            )
             token = token_for(kind, count + 1)
             session.add(
                 VaultEntry(
@@ -214,8 +217,8 @@ def open_vault(
             diagnose(
                 VAULT_UNAVAILABLE,
                 f"{KEY_NAME} is not set. Generate one with "
-                f"`python -c \"from cryptography.fernet import Fernet; "
-                f"print(Fernet.generate_key().decode())\"` and put it in .env. "
+                f'`python -c "from cryptography.fernet import Fernet; '
+                f'print(Fernet.generate_key().decode())"` and put it in .env. '
                 f"It never leaves this machine, and losing it loses every token it "
                 f"protects.",
                 locator=KEY_NAME,

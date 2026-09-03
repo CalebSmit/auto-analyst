@@ -14,8 +14,12 @@ from registries.constraints import ConstraintRegistry
 from registries.errors import UNKNOWN_CONSTRAINTS, RegistryError
 
 TOOL_NAMESPACE = {
-    "recompute", "timing_normalizer", "chart_of_accounts_lookup",
-    "precedent_lookup", "index_lookup", "template_schema_lookup",
+    "recompute",
+    "timing_normalizer",
+    "chart_of_accounts_lookup",
+    "precedent_lookup",
+    "index_lookup",
+    "template_schema_lookup",
 }
 COMPUTE_TOOLS = {"recompute", "timing_normalizer"}
 
@@ -153,7 +157,11 @@ def test_guards_are_not_configurable(constraints: ConstraintRegistry) -> None:
     assert "disable a guard" in never
     assert "lower a review requirement" in never
     assert set(rules["fail_closed_nodes"]) >= {
-        "policy_gate", "schema_gate", "provenance_gate", "tieout_gate", "numeric_lock",
+        "policy_gate",
+        "schema_gate",
+        "provenance_gate",
+        "tieout_gate",
+        "numeric_lock",
     }
 
 
@@ -162,11 +170,23 @@ def test_an_inconsistent_constraints_file_fails_to_load(tmp_path: object) -> Non
     contain must fail at load, not at the moment a run tries to call it."""
     raw = {
         "version": "1.0.0",
-        "tools": {"recompute": {"kind": "computes", "node": "t_recompute",
-                                "read_only": False, "caps": {"max_rows": 10}}},
+        "tools": {
+            "recompute": {
+                "kind": "computes",
+                "node": "t_recompute",
+                "read_only": False,
+                "caps": {"max_rows": 10},
+            }
+        },
         "tool_allowlists": {"ebitda-normalization": ["recompute", "invented_tool"]},
-        "predicates": [{"id": "x", "applies_to": ["all"], "rule": "true",
-                        "diagnostic": "POLICY.ARG_OUT_OF_SCOPE"}],
+        "predicates": [
+            {
+                "id": "x",
+                "applies_to": ["all"],
+                "rule": "true",
+                "diagnostic": "POLICY.ARG_OUT_OF_SCOPE",
+            }
+        ],
         "loops": {"guard_repair": {"scope": "in_run", "max_iterations": 2}},
         "ceilings": {"per_run": {"loop_iterations_max": 8}},
         "materiality": {"firm_floor": {"amount": 1, "currency": "USD"}},
@@ -212,7 +232,19 @@ def test_every_directory_the_build_created_is_on_the_blueprints_repo_listing(
     """A package that exists and is not in the listing is a divergence. registries/ is
     here because the listing placed the contract and constraint data but named no home
     for the code that loads it."""
-    for directory in ("contracts/", "constraints/", "scope/", "registries/", "skills/",
-                      "harness/", "graph/", "privacy/", "tools/", "guards/", "ports/",
-                      "ops/", "fixtures/"):
+    for directory in (
+        "contracts/",
+        "constraints/",
+        "scope/",
+        "registries/",
+        "skills/",
+        "harness/",
+        "graph/",
+        "privacy/",
+        "tools/",
+        "guards/",
+        "ports/",
+        "ops/",
+        "fixtures/",
+    ):
         assert directory in blueprint_repo_listing, f"{directory} is not on the repo listing"

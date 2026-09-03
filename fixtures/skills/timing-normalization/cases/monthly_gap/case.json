@@ -1,0 +1,220 @@
+{
+ "files": [
+  {
+   "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+   "filename": "Monthly_FY25.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "Monthly!B2:B7": [
+     {
+      "label": "Revenue",
+      "value": 400000.0,
+      "raw": "400,000",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 245000.0,
+      "raw": "245,000",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 155000.0,
+      "raw": "155,000",
+      "ordinal": 4
+     },
+     {
+      "label": "Wages",
+      "value": 92000.0,
+      "raw": "92,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Rent",
+      "value": 8000.0,
+      "raw": "8,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Net income",
+      "value": 55000.0,
+      "raw": "55,000",
+      "ordinal": 7
+     }
+    ],
+    "Monthly!C2:C7": [
+     {
+      "label": "Revenue",
+      "value": 405000.0,
+      "raw": "405,000",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 247000.0,
+      "raw": "247,000",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 158000.0,
+      "raw": "158,000",
+      "ordinal": 4
+     },
+     {
+      "label": "Wages",
+      "value": 92000.0,
+      "raw": "92,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Rent",
+      "value": 8000.0,
+      "raw": "8,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Net income",
+      "value": 58000.0,
+      "raw": "58,000",
+      "ordinal": 7
+     }
+    ],
+    "Monthly!D2:D7": [
+     {
+      "label": "Revenue",
+      "value": 410000.0,
+      "raw": "410,000",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 249000.0,
+      "raw": "249,000",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 161000.0,
+      "raw": "161,000",
+      "ordinal": 4
+     },
+     {
+      "label": "Wages",
+      "value": 92000.0,
+      "raw": "92,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Rent",
+      "value": 8000.0,
+      "raw": "8,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Net income",
+      "value": 61000.0,
+      "raw": "61,000",
+      "ordinal": 7
+     }
+    ],
+    "Monthly!E2:E7": [
+     {
+      "label": "Revenue",
+      "value": 415000.0,
+      "raw": "415,000",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 251000.0,
+      "raw": "251,000",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 164000.0,
+      "raw": "164,000",
+      "ordinal": 4
+     },
+     {
+      "label": "Wages",
+      "value": 92000.0,
+      "raw": "92,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Rent",
+      "value": 8000.0,
+      "raw": "8,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Net income",
+      "value": 64000.0,
+      "raw": "64,000",
+      "ordinal": 7
+     }
+    ],
+    "Monthly!F2:F7": [
+     {
+      "label": "Revenue",
+      "value": 420000.0,
+      "raw": "420,000",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 253000.0,
+      "raw": "253,000",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 167000.0,
+      "raw": "167,000",
+      "ordinal": 4
+     },
+     {
+      "label": "Wages",
+      "value": 92000.0,
+      "raw": "92,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Rent",
+      "value": 8000.0,
+      "raw": "8,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Net income",
+      "value": 67000.0,
+      "raw": "67,000",
+      "ordinal": 7
+     }
+    ]
+   },
+   "scale": 1000,
+   "currency": "USD",
+   "period_type": "monthly",
+   "period_ends": [
+    "2025-01-31",
+    "2025-02-28",
+    "2025-03-31",
+    "2025-05-31",
+    "2025-06-30"
+   ],
+   "ambiguous": [],
+   "source_version": 1,
+   "block_periods": {
+    "Monthly!B2:B7": "M2025-01",
+    "Monthly!C2:C7": "M2025-02",
+    "Monthly!D2:D7": "M2025-03",
+    "Monthly!E2:E7": "M2025-05",
+    "Monthly!F2:F7": "M2025-06"
+   }
+  }
+ ]
+}

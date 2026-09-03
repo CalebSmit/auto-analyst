@@ -1,0 +1,4 @@
+{
+ "escalates": true,
+ "reason_contains": "ambiguous"
+}

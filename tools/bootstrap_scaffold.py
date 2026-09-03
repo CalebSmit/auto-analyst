@@ -92,8 +92,18 @@ DIRS = {
 }
 
 PKG = [
-    "harness", "graph", "privacy", "tools", "guards", "ports", "ops",
-    "ports/storage", "ports/delivery", "ports/secrets", "ports/queue", "ports/llm",
+    "harness",
+    "graph",
+    "privacy",
+    "tools",
+    "guards",
+    "ports",
+    "ops",
+    "ports/storage",
+    "ports/delivery",
+    "ports/secrets",
+    "ports/queue",
+    "ports/llm",
     "ops/console",
 ]
 
@@ -132,20 +142,20 @@ def main() -> None:
         made += write_if_absent(d / "__init__.py", "")
         made += write_if_absent(
             d / f"test_{c['id'].lower()}_integration.py",
-            f'''"""{c['id']} - {c['title']}
+            f'''"""{c["id"]} - {c["title"]}
 
 Proves:
 {proves}
 
-This checkpoint is not written yet. It is written at the end of {c['after']},
+This checkpoint is not written yet. It is written at the end of {c["after"]},
 before that phase closes, so the integration test exists before it is needed.
 """
 
 import pytest
 
 
-@pytest.mark.skip(reason="written at the end of {c['after']}")
-def test_{c['id'].lower()}_integration():
+@pytest.mark.skip(reason="written at the end of {c["after"]}")
+def test_{c["id"].lower()}_integration():
     raise NotImplementedError
 ''',
         )

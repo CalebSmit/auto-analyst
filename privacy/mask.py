@@ -29,7 +29,11 @@ __all__ = ["Identifier", "Masked", "Masker", "ACCOUNT_NUMBER"]
 
 # Eight or more digits, dashes allowed inside. Bank, loan and policy numbers, not years
 # and not amounts - an amount has a decimal point or a comma the pattern does not admit.
-ACCOUNT_NUMBER = re.compile(r"(?<![\d.,])\d(?:[\d-]{6,})\d(?![\d.,])")
+# A run of digits (hyphens allowed inside) standing on its own: not inside a longer word
+# or a hex hash, and not an ISO date - a date is a period, not an identifier, and
+# masking it would hide the one thing timing normalization needs to read.
+ACCOUNT_NUMBER = re.compile(r"(?<![\w.,-])\d(?:[\d-]{6,})\d(?![\w.,-])")
+ISO_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 @dataclass(frozen=True)
@@ -92,7 +96,7 @@ class Masker:
         # Account numbers nobody declared. Found by shape, masked as NUMBER.
         for match in list(ACCOUNT_NUMBER.finditer(out)):
             number = match.group(0)
-            if number in substitutions:
+            if number in substitutions or ISO_DATE.match(number):
                 continue
             token = self.vault.issue(engagement_id, "NUMBER", number, run_id)
             substitutions[number] = token

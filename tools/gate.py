@@ -81,8 +81,13 @@ def phases_before(plan: dict, cid: str) -> list[dict]:
 
 def run(cmd: str) -> tuple[bool, str]:
     proc = subprocess.run(
-        cmd, shell=True, cwd=ROOT, capture_output=True,
-        text=True, encoding="utf-8", errors="replace",
+        cmd,
+        shell=True,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     out = (proc.stdout or "") + (proc.stderr or "")
     return proc.returncode == 0, out.strip()
@@ -109,8 +114,10 @@ def cmd_status(plan: dict, _args) -> int:
     last_cp = [c for c in plan["checkpoints"] if c["status"] == "done"]
 
     print(f"\n  {plan['project']}")
-    print(f"  {len(done)}/{len(plan['phases'])} phases closed"
-          f" | last green checkpoint: {last_cp[-1]['id'] if last_cp else 'none'}")
+    print(
+        f"  {len(done)}/{len(plan['phases'])} phases closed"
+        f" | last green checkpoint: {last_cp[-1]['id'] if last_cp else 'none'}"
+    )
 
     if cur is None:
         print("\n  Every phase is closed. Run the final checkpoint.\n")
@@ -185,7 +192,7 @@ def cmd_close(plan: dict, args) -> int:
 
     if p["gate"] == "human" and not args.signoff:
         print(f"\n  REFUSED - {p['id']} is a judgment phase. Tests passing is necessary,")
-        print("            not sufficient. Re-run with --signoff \"who: what you checked\".")
+        print('            not sufficient. Re-run with --signoff "who: what you checked".')
         print(f"            What needs a human: {p.get('human_check', 'see the phase file')}\n")
         return 1
 
@@ -194,8 +201,10 @@ def cmd_close(plan: dict, args) -> int:
     if args.signoff:
         p["signoff"] = args.signoff
     save(plan)
-    print(f"\n  CLOSED  {p['id']} on {p['closed']}"
-          f"{' - signed off: ' + args.signoff if args.signoff else ''}\n")
+    print(
+        f"\n  CLOSED  {p['id']} on {p['closed']}"
+        f"{' - signed off: ' + args.signoff if args.signoff else ''}\n"
+    )
     return 0
 
 
@@ -253,8 +262,9 @@ def amend_checkpoint(plan: dict, args) -> int:
         c["status"] = "open"
         c.pop("passed", None)
 
-    rejected = [f for f in ("add_task", "add_exit", "set_gate", "set_blueprint")
-                if getattr(args, f, None)]
+    rejected = [
+        f for f in ("add_task", "add_exit", "set_gate", "set_blueprint") if getattr(args, f, None)
+    ]
     if rejected:
         sys.exit(f"a checkpoint has no {', '.join(rejected)} - it has proves and checks.")
     if not changes:
@@ -355,8 +365,10 @@ def render(plan: dict) -> None:
     A("use `gate amend`, so the reason for every change is captured with the change.*")
     A("")
     done = sum(1 for p in plan["phases"] if p["status"] == "done")
-    A(f"**{done} of {len(plan['phases'])} phases closed.** "
-      f"A phase closes only when `gate close` runs its checks and they pass.")
+    A(
+        f"**{done} of {len(plan['phases'])} phases closed.** "
+        f"A phase closes only when `gate close` runs its checks and they pass."
+    )
     A("")
     A("Checkpoints re-run every prior phase together plus an integration test of their own.")
     A("A red checkpoint blocks the next phase - it means the phases disagree with each other.")
@@ -381,8 +393,10 @@ def render(plan: dict) -> None:
             if p["id"] in cps:
                 c = cps[p["id"]]
                 cmark = "x" if c["status"] == "done" else " "
-                A(f"| [{cmark}] | **{c['id']} - {c['title']}** | integration | {c['proves']} "
-                  f"| {c.get('closed', '')} |")
+                A(
+                    f"| [{cmark}] | **{c['id']} - {c['title']}** | integration | {c['proves']} "
+                    f"| {c.get('closed', '')} |"
+                )
         A("")
 
     PLAN_MD.write_text("\n".join(L) + "\n", encoding="utf-8")
@@ -416,8 +430,10 @@ def render(plan: dict) -> None:
             B("")
             B(f"    python tools/gate.py checkpoint {blocking['id']}")
         else:
-            B(f"Work {cur['id']}. Its full definition is in "
-              f"[BUILD/phases/{cur['id']}.md](phases/{cur['id']}.md).")
+            B(
+                f"Work {cur['id']}. Its full definition is in "
+                f"[BUILD/phases/{cur['id']}.md](phases/{cur['id']}.md)."
+            )
             B("")
             B(f"> {cur['intent']}")
             B("")
@@ -429,8 +445,10 @@ def render(plan: dict) -> None:
             B("Then:")
             B("")
             B(f"    python tools/gate.py check {cur['id']}")
-            B(f"    python tools/gate.py close {cur['id']}"
-              + ('  --signoff "name: what you checked"' if cur["gate"] == "human" else ""))
+            B(
+                f"    python tools/gate.py close {cur['id']}"
+                + ('  --signoff "name: what you checked"' if cur["gate"] == "human" else "")
+            )
         B("")
 
     B("## Before you start")
@@ -471,25 +489,45 @@ def render_phase_files(plan: dict) -> None:
             "",
             f"**Block.** {p['block']}  ",
             f"**Gate.** `{p['gate']}`"
-            + (" - tests passing is necessary but not sufficient; a human signs off."
-               if p["gate"] == "human" else " - closes on green tests alone."),
+            + (
+                " - tests passing is necessary but not sufficient; a human signs off."
+                if p["gate"] == "human"
+                else " - closes on green tests alone."
+            ),
         ]
         if p["status"] == "done":
-            L.append(f"  \n**Closed.** {p['closed']}"
-                     + (f" - signed off: {p['signoff']}" if p.get("signoff") else ""))
+            L.append(
+                f"  \n**Closed.** {p['closed']}"
+                + (f" - signed off: {p['signoff']}" if p.get("signoff") else "")
+            )
         L += ["", "## Intent", "", p["intent"], ""]
         if p["builds"]:
-            L += ["## Blueprint nodes this phase implements", "",
-                  "".join(f"`{b}` " for b in p["builds"]), ""]
+            L += [
+                "## Blueprint nodes this phase implements",
+                "",
+                "".join(f"`{b}` " for b in p["builds"]),
+                "",
+            ]
         L += ["## Tasks", ""]
         mark = "x" if p["status"] == "done" else " "
         L += [f"- [{mark}] {t}" for t in p["tasks"]]
-        L += ["", "## Exit criteria", "",
-              "*The phase closes when all of these are true and `gate close` says so.*", ""]
+        L += [
+            "",
+            "## Exit criteria",
+            "",
+            "*The phase closes when all of these are true and `gate close` says so.*",
+            "",
+        ]
         L += [f"- {e}" for e in p["exit"]]
         if p["gate"] == "human":
-            L += ["", "## What needs a person", "", p.get("human_check", ""), "",
-                  f'    python tools/gate.py close {p["id"]} --signoff "name: what you checked"']
+            L += [
+                "",
+                "## What needs a person",
+                "",
+                p.get("human_check", ""),
+                "",
+                f'    python tools/gate.py close {p["id"]} --signoff "name: what you checked"',
+            ]
         L += ["", "## Verify", "", "```"]
         L += list(p["checks"])
         L += [f"python tools/gate.py check {p['id']}", "```", ""]
@@ -554,9 +592,12 @@ def main() -> int:
     c.add_argument("--set-gate", choices=["auto", "human"])
     c.add_argument("--add-task", action="append")
     c.add_argument("--add-exit", action="append")
-    c.add_argument("--drop-exit", action="append",
-                   help="drop a criterion by unique text fragment - "
-                        "a criterion that cannot be met must go, not be ignored")
+    c.add_argument(
+        "--drop-exit",
+        action="append",
+        help="drop a criterion by unique text fragment - "
+        "a criterion that cannot be met must go, not be ignored",
+    )
     c.add_argument("--add-check", action="append")
     c.add_argument("--set-blueprint", help="where the design of record lives")
     c.add_argument("--set-proves", help="what a checkpoint proves")

@@ -64,7 +64,8 @@ def test_the_three_skills_that_declared_it_really_do(
     """If this ever fails, F1 has changed shape and the fix needs revisiting rather
     than assuming."""
     declaring = {
-        skill for skill, fields in blueprint_skills.items()
+        skill
+        for skill, fields in blueprint_skills.items()
         if "engagement_profile" in fields.get("inputs", ())
     }
     assert declaring == set(DECLARERS)

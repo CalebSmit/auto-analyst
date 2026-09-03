@@ -607,7 +607,9 @@
         "A file flagged ambiguous by the period detector escalates before the skill proceeds"
       ],
       "checks": [
-        "python -m uv run pytest tests/p18 -q"
+        "python -m uv run pytest tests/p18 -q",
+        "python -m uv run ruff check harness tools/normalize.py tests/p18 tests/checkpoints/c06",
+        "python -m uv run mypy harness tools/normalize.py"
       ],
       "notes": "First skill on purpose: if the model is wrong here the tool disagrees immediately, so the feedback loop is short and mechanical."
     },

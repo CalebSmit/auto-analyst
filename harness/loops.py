@@ -130,9 +130,7 @@ class LoopController:
     def region(self, plan: CompiledGraph, step_id: str, loop: str) -> LoopRegion | None:
         """The declared region this loop would run under, or None if the plan declares
         no such loop on this step. An undeclared loop has a ceiling of zero."""
-        return next(
-            (r for r in plan.loops if r.loop == loop and r.head == step_id), None
-        )
+        return next((r for r in plan.loops if r.loop == loop and r.head == step_id), None)
 
     def history(self, run_id: str, region_id: str) -> tuple[Iteration, ...]:
         return tuple(self._history.get((run_id, region_id), ()))
@@ -165,7 +163,12 @@ class LoopController:
 
         if next_key in seen:
             return self._refuse(
-                run_id, plan, step, loop, number, ceiling,
+                run_id,
+                plan,
+                step,
+                loop,
+                number,
+                ceiling,
                 diagnose(
                     INPUT_UNCHANGED,
                     f"iteration {number} of {loop} would carry byte-identical input to a "
@@ -187,7 +190,12 @@ class LoopController:
                 else f"{loop} on {step.id} reached its ceiling of {ceiling}"
             )
             return self._refuse(
-                run_id, plan, step, loop, number, ceiling,
+                run_id,
+                plan,
+                step,
+                loop,
+                number,
+                ceiling,
                 diagnose(
                     LOOP_EXHAUSTED,
                     f"{why}; the exit condition was not met ({trigger.code}).",
@@ -202,7 +210,12 @@ class LoopController:
         used = self.iterations_so_far(run_id)
         if used + 1 > self._global_ceiling:
             return self._refuse(
-                run_id, plan, step, loop, number, ceiling,
+                run_id,
+                plan,
+                step,
+                loop,
+                number,
+                ceiling,
                 diagnose(
                     BUDGET_EXCEEDED,
                     f"the run has used {used} of {self._global_ceiling} loop iterations "

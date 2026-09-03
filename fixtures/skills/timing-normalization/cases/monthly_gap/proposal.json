@@ -1,0 +1,233 @@
+{
+ "schema_version": "skills/timing-normalization-proposal@1.0.0",
+ "produced_by": "timing-normalization@0.1.0",
+ "periods": [
+  {
+   "label": "M2025-01",
+   "type": "M",
+   "end": "2025-01-31",
+   "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+   "block": "Monthly!B2:B7"
+  },
+  {
+   "label": "M2025-02",
+   "type": "M",
+   "end": "2025-02-28",
+   "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+   "block": "Monthly!C2:C7"
+  },
+  {
+   "label": "M2025-03",
+   "type": "M",
+   "end": "2025-03-31",
+   "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+   "block": "Monthly!D2:D7"
+  },
+  {
+   "label": "M2025-05",
+   "type": "M",
+   "end": "2025-05-31",
+   "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+   "block": "Monthly!E2:E7"
+  },
+  {
+   "label": "M2025-06",
+   "type": "M",
+   "end": "2025-06-30",
+   "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+   "block": "Monthly!F2:F7"
+  }
+ ],
+ "line_items": [
+  {
+   "canonical_label": "Revenue",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!B2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!C2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!D2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!E2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!F2",
+     "label": "Revenue"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Cost of sales",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!B3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!C3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!D3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!E3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!F3",
+     "label": "Cost of sales"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Gross profit",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!B4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!C4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!D4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!E4",
+     "label": "Gross profit"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!F4",
+     "label": "Gross profit"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Wages",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!B5",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!C5",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!D5",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!E5",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!F5",
+     "label": "Wages"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Rent",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!B6",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!C6",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!D6",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!E6",
+     "label": "Rent"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!F6",
+     "label": "Rent"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Net income",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!B7",
+     "label": "Net income"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!C7",
+     "label": "Net income"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!D7",
+     "label": "Net income"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!E7",
+     "label": "Net income"
+    },
+    {
+     "source_id": "sha256:aded18b97c0aeaca546aec6fc11c218dc4a3e72aad26d1b0940c26770abd6c82",
+     "locator": "Monthly!F7",
+     "label": "Net income"
+    }
+   ]
+  }
+ ],
+ "unmatched": [],
+ "notes": [
+  "April is absent from the file; reported as a gap, not filled."
+ ]
+}

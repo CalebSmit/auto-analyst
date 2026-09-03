@@ -98,13 +98,21 @@ def test_every_declared_reference_exists_on_disk(tree: SkillTree) -> None:
             assert (folder / "references" / ref).is_file(), f"{skill.name} -> {ref}"
 
 
-def test_every_skill_is_a_skeleton_and_says_so(tree: SkillTree) -> None:
-    """P05 lays down the tree; P18 onwards writes the procedures. A skeleton that
-    claimed to be live would be dispatchable, and it has no procedure to run."""
-    assert {s.status for s in tree.all()} == {"skeleton"}
+# The skills a phase has written a procedure for. Everything else is a skeleton until
+# its phase lands, and a skeleton that claimed otherwise would be dispatchable with no
+# procedure to run.
+WRITTEN = {"timing-normalization": "P18"}
+
+
+def test_every_skill_is_a_skeleton_and_says_so_until_its_phase_writes_it(tree: SkillTree) -> None:
     for skill in tree.all():
         body = (ROOT / skill.path).read_text(encoding="utf-8").split("---", 2)[2]
-        assert "Skeleton" in body
+        if skill.name in WRITTEN:
+            assert skill.status == "draft", f"{skill.name} was written in {WRITTEN[skill.name]}"
+            assert "Skeleton" not in body and "## Procedure" in body
+        else:
+            assert skill.status == "skeleton", skill.name
+            assert "Skeleton" in body
 
 
 # ---------------------------------------------------------------- overlays

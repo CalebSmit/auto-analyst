@@ -257,7 +257,8 @@ class PolicyGate:
         if not self.constraints.may_call(action.skill, action.tool):
             declared = ", ".join(self.constraints.tools_for(action.skill)) or "nothing"
             return self._deny(
-                action, TOOL_NOT_DECLARED,
+                action,
+                TOOL_NOT_DECLARED,
                 f"{action.skill} does not declare {action.tool} (it declares: {declared})",
             )
 
@@ -266,7 +267,8 @@ class PolicyGate:
         # project, and it is worth being caught twice.
         if action.engagement != run.engagement_id:
             return self._deny(
-                action, ARG_OUT_OF_SCOPE,
+                action,
+                ARG_OUT_OF_SCOPE,
                 f"proposed for {action.engagement!r}; this run is {run.engagement_id!r}",
             )
 
@@ -280,8 +282,7 @@ class PolicyGate:
 
     def _applicable(self, tool: str) -> tuple[Predicate, ...]:
         return tuple(
-            p for p in self.constraints.predicates
-            if "all" in p.applies_to or tool in p.applies_to
+            p for p in self.constraints.predicates if "all" in p.applies_to or tool in p.applies_to
         )
 
     def _deny(
@@ -289,7 +290,11 @@ class PolicyGate:
     ) -> Decision:
         owner, _ = WHAT_NOW[code]
         return Decision(
-            allowed=False, action=action, reason=reason, code=code, owner=owner,
+            allowed=False,
+            action=action,
+            reason=reason,
+            code=code,
+            owner=owner,
             predicate=predicate,
         )
 

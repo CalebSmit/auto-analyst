@@ -1,0 +1,430 @@
+{
+ "files": [
+  {
+   "source_id": "sha256:79998162f81a7cb9f16d05001e9e6ae977acfa3bb2ed5644dddc8cfa85a8c512",
+   "filename": "IS_FY23.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "IS!B2:B21": [
+     {
+      "label": "Revenue",
+      "value": 4020000.0,
+      "raw": "4,020,000",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 2455000.0,
+      "raw": "2,455,000",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 1565000.0,
+      "raw": "1,565,000",
+      "ordinal": 4
+     },
+     {
+      "label": "Officer salary",
+      "value": 235000.0,
+      "raw": "235,000",
+      "ordinal": 5
+     },
+     {
+      "label": "Officer bonus",
+      "value": 50000.0,
+      "raw": "50,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Wages",
+      "value": 1120000.0,
+      "raw": "1,120,000",
+      "ordinal": 7
+     },
+     {
+      "label": "Payroll taxes",
+      "value": 98000.0,
+      "raw": "98,000",
+      "ordinal": 8
+     },
+     {
+      "label": "Rent",
+      "value": 96000.0,
+      "raw": "96,000",
+      "ordinal": 9
+     },
+     {
+      "label": "Repairs & Maint.",
+      "value": 41000.0,
+      "raw": "41,000",
+      "ordinal": 10
+     },
+     {
+      "label": "Utilities",
+      "value": 27500.0,
+      "raw": "27,500",
+      "ordinal": 11
+     },
+     {
+      "label": "Insurance",
+      "value": 33000.0,
+      "raw": "33,000",
+      "ordinal": 12
+     },
+     {
+      "label": "Professional fees",
+      "value": 22000.0,
+      "raw": "22,000",
+      "ordinal": 13
+     },
+     {
+      "label": "Bank charges",
+      "value": 4100.0,
+      "raw": "4,100",
+      "ordinal": 14
+     },
+     {
+      "label": "Merchant fees",
+      "value": 9800.0,
+      "raw": "9,800",
+      "ordinal": 15
+     },
+     {
+      "label": "Depreciation",
+      "value": 61000.0,
+      "raw": "61,000",
+      "ordinal": 16
+     },
+     {
+      "label": "Travel",
+      "value": 18400.0,
+      "raw": "18,400",
+      "ordinal": 17
+     },
+     {
+      "label": "Advertising",
+      "value": 12000.0,
+      "raw": "12,000",
+      "ordinal": 18
+     },
+     {
+      "label": "Office supplies",
+      "value": 6200.0,
+      "raw": "6,200",
+      "ordinal": 19
+     },
+     {
+      "label": "Total operating expenses",
+      "value": 1834000.0,
+      "raw": "1,834,000",
+      "ordinal": 20
+     },
+     {
+      "label": "Net income",
+      "value": -269000.0,
+      "raw": "-269,000",
+      "ordinal": 21
+     }
+    ]
+   },
+   "scale": 1000,
+   "currency": "USD",
+   "period_type": "annual",
+   "period_ends": [
+    "2023-12-31"
+   ],
+   "ambiguous": [],
+   "source_version": 1,
+   "block_periods": {
+    "IS!B2:B21": "FY2023"
+   }
+  },
+  {
+   "source_id": "sha256:966874afcd04fa98a70bf3bb7823f4c4fd2de8dc1594b9d97e8ced76210d48c3",
+   "filename": "IS_FY24.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "IS!B2:B21": [
+     {
+      "label": "Revenue",
+      "value": 4401900.0,
+      "raw": "4,401,900",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 2688400.0,
+      "raw": "2,688,400",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 1713500.0,
+      "raw": "1,713,500",
+      "ordinal": 4
+     },
+     {
+      "label": "Officer salary",
+      "value": 244400.0,
+      "raw": "244,400",
+      "ordinal": 5
+     },
+     {
+      "label": "Officer bonus",
+      "value": 52000.0,
+      "raw": "52,000",
+      "ordinal": 6
+     },
+     {
+      "label": "Wages",
+      "value": 1164800.0,
+      "raw": "1,164,800",
+      "ordinal": 7
+     },
+     {
+      "label": "Payroll taxes",
+      "value": 101920.0,
+      "raw": "101,920",
+      "ordinal": 8
+     },
+     {
+      "label": "Rent",
+      "value": 96000.0,
+      "raw": "96,000",
+      "ordinal": 9
+     },
+     {
+      "label": "Repairs and Maintenance",
+      "value": 42640.0,
+      "raw": "42,640",
+      "ordinal": 10
+     },
+     {
+      "label": "Utilities",
+      "value": 28600.0,
+      "raw": "28,600",
+      "ordinal": 11
+     },
+     {
+      "label": "Insurance",
+      "value": 34320.0,
+      "raw": "34,320",
+      "ordinal": 12
+     },
+     {
+      "label": "Professional fees",
+      "value": 22880.0,
+      "raw": "22,880",
+      "ordinal": 13
+     },
+     {
+      "label": "Bank charges",
+      "value": 4264.0,
+      "raw": "4,264",
+      "ordinal": 14
+     },
+     {
+      "label": "Merchant fees",
+      "value": 10192.0,
+      "raw": "10,192",
+      "ordinal": 15
+     },
+     {
+      "label": "Depreciation",
+      "value": 63440.0,
+      "raw": "63,440",
+      "ordinal": 16
+     },
+     {
+      "label": "Travel",
+      "value": 19136.0,
+      "raw": "19,136",
+      "ordinal": 17
+     },
+     {
+      "label": "Advertising",
+      "value": 12480.0,
+      "raw": "12,480",
+      "ordinal": 18
+     },
+     {
+      "label": "Office supplies",
+      "value": 6448.0,
+      "raw": "6,448",
+      "ordinal": 19
+     },
+     {
+      "label": "Total operating expenses",
+      "value": 1903520.0,
+      "raw": "1,903,520",
+      "ordinal": 20
+     },
+     {
+      "label": "Net income",
+      "value": -190020.0,
+      "raw": "-190,020",
+      "ordinal": 21
+     }
+    ]
+   },
+   "scale": 1000,
+   "currency": "USD",
+   "period_type": "annual",
+   "period_ends": [
+    "2024-12-31"
+   ],
+   "ambiguous": [],
+   "source_version": 1,
+   "block_periods": {
+    "IS!B2:B21": "FY2024"
+   }
+  },
+  {
+   "source_id": "sha256:3e99247297774286dca0ea965638c94c8d8b9272cd3419016f5defad60a66d13",
+   "filename": "IS_FY25.xlsx",
+   "document_type": "financial_statements",
+   "blocks": {
+    "IS!B2:B22": [
+     {
+      "label": "Revenue",
+      "value": 4812300.0,
+      "raw": "4,812,300",
+      "ordinal": 2
+     },
+     {
+      "label": "Cost of sales",
+      "value": 2905100.0,
+      "raw": "2,905,100",
+      "ordinal": 3
+     },
+     {
+      "label": "Gross profit",
+      "value": 1907200.0,
+      "raw": "1,907,200",
+      "ordinal": 4
+     },
+     {
+      "label": "Officer salary",
+      "value": 256620.0,
+      "raw": "256,620",
+      "ordinal": 5
+     },
+     {
+      "label": "Officer bonus",
+      "value": 54600.0,
+      "raw": "54,600",
+      "ordinal": 6
+     },
+     {
+      "label": "Wages",
+      "value": 1223040.0,
+      "raw": "1,223,040",
+      "ordinal": 7
+     },
+     {
+      "label": "Payroll taxes",
+      "value": 107016.0,
+      "raw": "107,016",
+      "ordinal": 8
+     },
+     {
+      "label": "Rent - facilities",
+      "value": 78000.0,
+      "raw": "78,000",
+      "ordinal": 9
+     },
+     {
+      "label": "Rent - equipment",
+      "value": 24000.0,
+      "raw": "24,000",
+      "ordinal": 10
+     },
+     {
+      "label": "Repairs and Maintenance",
+      "value": 44772.0,
+      "raw": "44,772",
+      "ordinal": 11
+     },
+     {
+      "label": "Utilities",
+      "value": 30030.0,
+      "raw": "30,030",
+      "ordinal": 12
+     },
+     {
+      "label": "Insurance",
+      "value": 36036.0,
+      "raw": "36,036",
+      "ordinal": 13
+     },
+     {
+      "label": "Professional fees",
+      "value": 24024.0,
+      "raw": "24,024",
+      "ordinal": 14
+     },
+     {
+      "label": "Bank and card fees",
+      "value": 15500.0,
+      "raw": "15,500",
+      "ordinal": 15
+     },
+     {
+      "label": "Depreciation",
+      "value": 66612.0,
+      "raw": "66,612",
+      "ordinal": 16
+     },
+     {
+      "label": "Travel",
+      "value": 20093.0,
+      "raw": "20,093",
+      "ordinal": 17
+     },
+     {
+      "label": "Advertising",
+      "value": 13104.0,
+      "raw": "13,104",
+      "ordinal": 18
+     },
+     {
+      "label": "Office supplies",
+      "value": 6770.0,
+      "raw": "6,770",
+      "ordinal": 19
+     },
+     {
+      "label": "Q3 special project",
+      "value": 14200.0,
+      "raw": "14,200",
+      "ordinal": 20
+     },
+     {
+      "label": "Total operating expenses",
+      "value": 2014417.0,
+      "raw": "2,014,417",
+      "ordinal": 21
+     },
+     {
+      "label": "Net income",
+      "value": -107217.0,
+      "raw": "-107,217",
+      "ordinal": 22
+     }
+    ]
+   },
+   "scale": 1000,
+   "currency": "USD",
+   "period_type": "annual",
+   "period_ends": [
+    "2025-12-31"
+   ],
+   "ambiguous": [],
+   "source_version": 1,
+   "block_periods": {
+    "IS!B2:B22": "FY2025"
+   }
+  }
+ ]
+}
