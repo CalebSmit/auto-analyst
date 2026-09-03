@@ -24,7 +24,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 |---|---|---|---|---|
 | [ ] | **P05** Scope resolver | auto | All seven scope combinations resolve to exactly one skill set |  |
 | [ ] | **P06** Graph compiler | auto | An undeclared cycle is rejected at compile time with a locatable error |  |
-| [ ] | **C2 - A plan compiles and hashes** | integration | A recipe compiles; identical inputs give an identical plan_hash and a changed precedent snapshot changes it |  |
+| [ ] | **C2 - A plan compiles and hashes** | integration | A recipe compiles; identical inputs give an identical plan_hash and a changed precedent snapshot changes it; and the store conformance suite passes against Postgres in Docker as well as SQLite |  |
 | [ ] | **P07** The assertion suites | auto | All 25 invariants are executable and pass against the current architecture |  |
 | [ ] | **P08** Step executor, idempotency, resume | auto | Killing a run mid-flight and resuming re-executes zero completed steps |  |
 | [ ] | **P09** Context builder | auto | context_ref reproduces the exact bytes a model was shown |  |

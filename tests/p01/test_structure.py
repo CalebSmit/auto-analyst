@@ -58,6 +58,16 @@ PACKAGES = ["harness", "graph", "privacy", "tools", "guards", "ports", "ops"]
 # ------------------------------------------------------------------ tree
 
 
+def plan() -> dict:
+    return json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
+
+
+def open_phases() -> list[str]:
+    return [p["id"] for p in plan()["phases"] if p["status"] != "done"]
+
+
+
+
 @pytest.mark.parametrize("d", EXPECTED_DIRS)
 def test_directory_exists(d: str) -> None:
     assert (ROOT / d).is_dir(), f"{d} is in the blueprint repo tree and missing here"
@@ -78,20 +88,53 @@ def test_is_importable_package(p: str) -> None:
     assert (ROOT / p / "__init__.py").is_file(), f"{p} is not a package"
 
 
-def test_no_domain_logic_yet() -> None:
-    """P01 delivers shape, toolchain, gate and plan. Nothing else.
+# The phase that first puts a module in each package. Until that phase closes, the
+# package holds nothing but __init__.py - which is how "work has not run ahead of the
+# plan" stays checkable as the plan advances, instead of being a list that has to be
+# edited every phase until it agrees with whatever happened.
+FIRST_BUILT_BY = {
+    "ops": "P04",       # event bus, run store, manifest
+    "graph": "P05",     # resolve, compile, execute, assertions
+    "harness": "P08",   # the step executor and what wraps one step
+    "privacy": "P12",   # mask, vault, unmask, payload scan
+    "guards": "P13",    # schema, provenance, tieout, reconcile, numeric lock
+}
 
-    If this fails, work has run ahead of the plan - which is the thing the phase
-    structure exists to prevent.
+
+def test_the_package_map_covers_what_it_claims_to() -> None:
+    """A guard over an empty set passes forever."""
+    plan_ids = {p["id"] for p in plan()["phases"]}
+    assert set(FIRST_BUILT_BY.values()) <= plan_ids
+    for package in FIRST_BUILT_BY:
+        assert (ROOT / package).is_dir()
+
+
+@pytest.mark.parametrize("package", sorted(FIRST_BUILT_BY))
+def test_no_package_is_built_before_its_phase(package: str) -> None:
+    """Work has not run ahead of the plan.
+
+    "Ahead" means a package whose phase has not been reached yet - writing the mask
+    engine during P05. The current phase building its own package is the work, not a
+    violation, so the check starts one phase out.
+
+    This is worth a test because running ahead never feels like running ahead at the
+    time.
     """
-    offenders = []
-    for pkg in ("harness", "graph", "privacy", "guards", "ops"):
-        for f in (ROOT / pkg).rglob("*.py"):
-            if f.name == "__init__.py":
-                continue
-            offenders.append(str(f.relative_to(ROOT)))
+    phase = FIRST_BUILT_BY[package]
+    still_open = open_phases()
+    if not still_open or phase <= still_open[0]:
+        # Its phase has closed, or is the one being worked now. A package the current
+        # phase exists to build is not "running ahead" - it is the work.
+        return
+
+    offenders = [
+        str(f.relative_to(ROOT))
+        for f in (ROOT / package).rglob("*.py")
+        if f.name != "__init__.py"
+    ]
     assert not offenders, (
-        "P01 is structure only, but these modules already exist: " + ", ".join(offenders)
+        f"{package}/ is built by {phase}, which is still open, but these modules "
+        f"already exist: {', '.join(offenders)}"
     )
 
 
@@ -186,14 +229,6 @@ def test_gate_status_runs_with_no_arguments() -> None:
     r = gate("status")
     assert r.returncode == 0, r.stdout + r.stderr
     assert "CURRENT" in r.stdout
-
-
-def plan() -> dict:
-    return json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
-
-
-def open_phases() -> list[str]:
-    return [p["id"] for p in plan()["phases"] if p["status"] != "done"]
 
 
 def test_gate_refuses_to_close_a_phase_out_of_order() -> None:

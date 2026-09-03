@@ -233,7 +233,46 @@ def cmd_checkpoint(plan: dict, args) -> int:
     return 1
 
 
+def amend_checkpoint(plan: dict, args) -> int:
+    """Amend a checkpoint. Same rule as a phase: the reason travels with the change."""
+    c = find_checkpoint(plan, args.id)
+    changes = []
+
+    if args.set_title:
+        changes.append(f"title: {c['title']!r} -> {args.set_title!r}")
+        c["title"] = args.set_title
+    if args.set_proves:
+        changes.append(f"proves: {c['proves']!r} -> {args.set_proves!r}")
+        c["proves"] = args.set_proves
+    if args.add_check:
+        for check in args.add_check:
+            c["checks"].append(check)
+            changes.append(f"check added: {check}")
+    if args.reopen:
+        changes.append(f"status: {c['status']} -> open")
+        c["status"] = "open"
+        c.pop("passed", None)
+
+    rejected = [f for f in ("add_task", "add_exit", "set_gate", "set_blueprint")
+                if getattr(args, f, None)]
+    if rejected:
+        sys.exit(f"a checkpoint has no {', '.join(rejected)} - it has proves and checks.")
+    if not changes:
+        sys.exit("amend needs at least one change flag. See --help.")
+
+    entry = [f"\n## {today()} - {c['id']} {c['title']}", f"\n**Why:** {args.reason}\n"]
+    entry += [f"- {ch}" for ch in changes]
+    with AMEND_MD.open("a", encoding="utf-8") as f:
+        f.write("\n".join(entry) + "\n")
+
+    save(plan)
+    print(f"\n  amended {c['id']} - {len(changes)} change(s), reason recorded.\n")
+    return 0
+
+
 def cmd_amend(plan: dict, args) -> int:
+    if args.id.startswith("C"):
+        return amend_checkpoint(plan, args)
     p = find_phase(plan, args.id)
     changes = []
 
@@ -248,6 +287,17 @@ def cmd_amend(plan: dict, args) -> int:
         for e in args.add_exit:
             p["exit"].append(e)
             changes.append(f"exit criterion added: {e}")
+    if args.drop_exit:
+        for fragment in args.drop_exit:
+            matched = [e for e in p["exit"] if fragment.lower() in e.lower()]
+            if len(matched) != 1:
+                listed = "\n  ".join(p["exit"])
+                sys.exit(
+                    f"--drop-exit {fragment!r} matched {len(matched)} criteria; "
+                    f"it must match exactly one. Criteria are:\n  {listed}"
+                )
+            p["exit"].remove(matched[0])
+            changes.append(f"exit criterion dropped: {matched[0]}")
     if args.add_check:
         for c in args.add_check:
             p["checks"].append(c)
@@ -504,8 +554,12 @@ def main() -> int:
     c.add_argument("--set-gate", choices=["auto", "human"])
     c.add_argument("--add-task", action="append")
     c.add_argument("--add-exit", action="append")
+    c.add_argument("--drop-exit", action="append",
+                   help="drop a criterion by unique text fragment - "
+                        "a criterion that cannot be met must go, not be ignored")
     c.add_argument("--add-check", action="append")
     c.add_argument("--set-blueprint", help="where the design of record lives")
+    c.add_argument("--set-proves", help="what a checkpoint proves")
     c.add_argument("--reopen", action="store_true")
 
     c = sub.add_parser("ledger", help="record a dead end so it is not re-walked")
