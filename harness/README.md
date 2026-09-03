@@ -32,3 +32,37 @@ prior decisions come first.
 
 The Precedent Store itself is P19's. Until then `NoPrecedents` answers every query with
 nothing, honestly, and the tests use a source they control.
+
+## policy.py - decided before it runs
+
+A wrong action can produce a right-looking result. Verification catches a wrong result;
+only a decision taken before execution catches a wrong act. Reading another engagement's
+folder returns perfectly valid data, which is exactly why no guard on the output would
+notice.
+
+A proposed action is allowed iff all of: the tool is on the caller's declared allowlist;
+the arguments satisfy every predicate in `constraints.yaml` that applies; the engagement
+is this run's; the estimated cost is within what remains of the budget. Anything else is a
+denial, recorded with a code and an owner. There is no "allow with a warning" - a warning
+nobody reads is an allow.
+
+**Predicates are evaluated, not interpreted.** The file states each rule in words and each
+rule's `id` binds to a Python function. The words are for a reviewer; the function is what
+runs. The gate refuses to construct if a predicate has no evaluator, so a rule cannot be
+added to the file and silently never enforced.
+
+## runtime.py - one path, caps from the registry
+
+A skill is constructed with wrapped functions only. `bound()` hands back closures for
+exactly the caller's allowlist, each routed through the gate; there is no method that
+returns an unwrapped tool, so bypassing the gate is not a configuration mistake anyone can
+make.
+
+**Caps are applied here, never trusted from the caller.** The gate refuses a caller who
+asks for too many rows; the runtime refuses a tool that returns too many. The per-step call
+count is something the caller cannot even see, and it is enforced. **A gated read is
+authorised exactly as a write is** - one path, every tool.
+
+The six names are `constraints.yaml`'s: recompute and timing_normalizer compute; the four
+lookups read. `t_template` is in no skill's allowlist on purpose - a skill that could write
+cells could write one the mapping never declared.

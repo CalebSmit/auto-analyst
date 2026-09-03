@@ -92,12 +92,18 @@ PRECEDENT_OUT_OF_SCOPE = "SCOPE.PRECEDENT_OUT_OF_SCOPE"
 UNMASKED_PRECEDENT = "PRIVACY.UNMASKED_PRECEDENT"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
+TOOL_NOT_DECLARED = "POLICY.TOOL_NOT_DECLARED"
+ARG_OUT_OF_SCOPE = "POLICY.ARG_OUT_OF_SCOPE"
+BUDGET_EXCEEDED = "POLICY.BUDGET_EXCEEDED"
+CAP_EXCEEDED = "POLICY.CAP_EXCEEDED"
+UNKNOWN_TOOL = "SCOPE.UNKNOWN_TOOL"
 OVERLAY_LOOSENS = "POLICY.OVERLAY_LOOSENS"
 MULTI_TURN_STEP = "POLICY.MULTI_TURN_STEP"
 UNKNOWN_RUN = "PROCESS.UNKNOWN_RUN"
 ILLEGAL_TRANSITION = "PROCESS.ILLEGAL_TRANSITION"
 APPEND_ONLY_VIOLATION = "PROCESS.APPEND_ONLY_VIOLATION"
 MANIFEST_INCOMPLETE = "PROCESS.MANIFEST_INCOMPLETE"
+DIAGNOSTICS_INVALID = "PROCESS.DIAGNOSTICS_INVALID"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -232,6 +238,39 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "callback, a seventh declared loop, and context_ref redefined as a transcript "
         "hash; all three together, or the guarantees rot silently.",
     ),
+    TOOL_NOT_DECLARED: (
+        "policy",
+        "The skill proposed a tool that is not on its declared allowlist in "
+        "constraints.yaml. A skill reaches the tools it declares and no others; if it "
+        "genuinely needs this one, the allowlist changes under review, not the call.",
+    ),
+    ARG_OUT_OF_SCOPE: (
+        "policy",
+        "An argument failed a constraint predicate: it names another engagement, a path "
+        "outside the engagement root, a row limit above the cap, an unpinned version, "
+        "or a write on a read-only tool. Reading another engagement's folder returns "
+        "perfectly valid data, which is exactly why only a check before execution "
+        "catches it.",
+    ),
+    BUDGET_EXCEEDED: (
+        "policy",
+        "The estimated cost of this call exceeds what remains of the run's budget. The "
+        "ceiling is in constraints.yaml and is raised there, deliberately; a run does "
+        "not get to decide it deserves more.",
+    ),
+    CAP_EXCEEDED: (
+        "policy",
+        "The runtime's call-time cap was hit - too many calls to one tool in a step, or "
+        "a tool returned more rows than its cap allows. Caps are applied by the runtime "
+        "from the registry, never trusted from the caller, and a tool that ignores its "
+        "cap is broken rather than generous.",
+    ),
+    UNKNOWN_TOOL: (
+        "config",
+        "No tool is registered under that name. The namespace is six names, declared in "
+        "constraints.yaml; a name outside it is not a tool that has not been written "
+        "yet, it is a name nothing will ever answer to.",
+    ),
     OVERLAY_LOOSENS: (
         "policy",
         "An overlay tried to lower a review requirement, widen a privacy class or add a "
@@ -285,6 +324,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "append-only in the API, in the ORM and in the database. Correct the record by "
         "emitting a further event, never by editing one - a trace that can be edited "
         "is not evidence of anything.",
+    ),
+    DIAGNOSTICS_INVALID: (
+        "system",
+        "The diagnostics registry does not hold together: a code with no what_now, an "
+        "owner nobody is, or a family the blueprint does not name. Fix registries/errors.py; "
+        "a message nobody can act on is a defect, and this is the check that finds one "
+        "before a run does.",
     ),
     MANIFEST_INCOMPLETE: (
         "system",
