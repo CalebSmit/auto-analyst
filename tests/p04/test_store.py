@@ -21,6 +21,7 @@ from ops.models import DecisionKind, Outcome, RunState, StepStatus
 from ops.run_store import (
     DEFAULT_URL,
     RunStore,
+    RunStoreError,
     SqlRunStore,
     UnknownRun,
     backend_of,
@@ -107,11 +108,15 @@ def test_cost_accumulates_per_call(store: SqlRunStore) -> None:
 # -------------------------------------------------- steps and the frontier
 
 
-def test_a_step_is_recorded_before_it_runs_and_finished_after(store: SqlRunStore) -> None:
+def test_a_step_is_recorded_before_it_runs_and_committed_after(store: SqlRunStore) -> None:
     run_id = started(store)
-    store.record_step(run_id, "s1", "sha256:" + "1" * 64, "skill", skill="ddr-tagging")
+    key = "sha256:" + "1" * 64
+    store.record_step(run_id, "s1", key, "skill", skill="ddr-tagging")
     assert store.steps(run_id)[0].status is StepStatus.NOT_REACHED
-    store.finish_step(run_id, "s1", StepStatus.COMPLETED, result_ref="sha256:" + "2" * 64)
+
+    attempt = store.begin_attempt(run_id, "s1")
+    store.commit_step(run_id, "s1", key, "sha256:" + "2" * 64, attempt)
+
     step = store.steps(run_id)[0]
     assert step.status is StepStatus.COMPLETED
     assert step.result_ref == "sha256:" + "2" * 64
@@ -121,10 +126,21 @@ def test_a_step_is_recorded_before_it_runs_and_finished_after(store: SqlRunStore
 
 def test_a_retried_step_counts_its_attempts(store: SqlRunStore) -> None:
     run_id = started(store)
-    store.record_step(run_id, "s1", "sha256:" + "1" * 64, "skill", skill="ddr-tagging")
-    store.finish_step(run_id, "s1", StepStatus.FAILED)
-    store.finish_step(run_id, "s1", StepStatus.COMPLETED)
+    key = "sha256:" + "1" * 64
+    store.record_step(run_id, "s1", key, "skill", skill="ddr-tagging")
+    assert store.begin_attempt(run_id, "s1") == 1
+    assert store.begin_attempt(run_id, "s1") == 2
+    store.commit_step(run_id, "s1", key, "sha256:" + "2" * 64, 2)
     assert store.steps(run_id)[0].attempts == 2
+
+
+def test_a_step_cannot_claim_it_completed_without_a_result(store: SqlRunStore) -> None:
+    """One door. A step marked completed with nothing in the ledger is one the resume
+    frontier re-executes anyway, while the run looks finished."""
+    run_id = started(store)
+    store.record_step(run_id, "s1", "sha256:" + "1" * 64, "skill")
+    with pytest.raises(RunStoreError, match="commit_step"):
+        store.finish_step(run_id, "s1", StepStatus.COMPLETED)
 
 
 def test_the_frontier_is_the_set_of_completed_keys(store: SqlRunStore) -> None:
@@ -134,7 +150,9 @@ def test_the_frontier_is_the_set_of_completed_keys(store: SqlRunStore) -> None:
     keys = {name: f"sha256:{index:064x}" for index, name in enumerate(("s1", "s2", "s3"))}
     for name, key in keys.items():
         store.record_step(run_id, name, key, "skill", skill="ddr-tagging")
-    store.finish_step(run_id, "s1", StepStatus.COMPLETED)
+    store.commit_step(
+        run_id, "s1", keys["s1"], "sha256:" + "a" * 64, store.begin_attempt(run_id, "s1")
+    )
     store.finish_step(run_id, "s2", StepStatus.QUARANTINED)
 
     assert store.completed_step_keys(run_id) == frozenset({keys["s1"]})

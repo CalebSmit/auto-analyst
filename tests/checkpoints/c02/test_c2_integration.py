@@ -143,7 +143,13 @@ def halted_run(store: SqlRunStore, bus: EventBus, plan: CompiledGraph) -> str:
     # Everything up to the tie-out completes. The tie-out fails, its repair loop is
     # exhausted, and the steps after it are never reached.
     for step_id in ("intake", "mask", "timing", "tagging", "ebitda", "model"):
-        store.finish_step(RUN_ID, step_id, StepStatus.COMPLETED)
+        store.commit_step(
+            RUN_ID,
+            step_id,
+            provisional_step_key(plan, step_id),
+            "sha256:" + hashlib.sha256(step_id.encode()).hexdigest(),
+            store.begin_attempt(RUN_ID, step_id),
+        )
         bus.emit_guard(
             run_id=RUN_ID,
             engagement_id=ENGAGEMENT,

@@ -61,10 +61,17 @@ def halted_run(store: SqlRunStore, bus: EventBus, run_id: str = "run_halt") -> s
         ("s5", "skill", "dcf-build", StepStatus.NOT_REACHED),
         ("s6", "io", None, StepStatus.NOT_REACHED),
     ]
-    for index, (step_id, kind, skill, _) in enumerate(plan):
-        store.record_step(run_id, step_id, f"sha256:{index:064x}", kind, skill=skill)
-    for step_id, _, _, status in plan:
-        if status is not StepStatus.NOT_REACHED:
+    for index, (step_id, kind, skill, status) in enumerate(plan):
+        key = f"sha256:{index:064x}"
+        store.record_step(run_id, step_id, key, kind, skill=skill)
+        if status is StepStatus.COMPLETED:
+            # A step is completed by committing its result, which is the only way to
+            # say so - see the one-door note on finish_step.
+            store.commit_step(
+                run_id, step_id, key, "sha256:" + "e" * 64,
+                store.begin_attempt(run_id, step_id),
+            )
+        elif status is not StepStatus.NOT_REACHED:
             store.finish_step(run_id, step_id, status)
 
     bus.emit_guard(

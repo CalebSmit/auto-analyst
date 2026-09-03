@@ -59,6 +59,7 @@ __all__ = [
     "Decision",
     "Event",
     "IllegalTransition",
+    "Ledger",
     "Outcome",
     "OUTCOMES_FOR",
     "ReviewItem",
@@ -258,6 +259,14 @@ class Run(Base):
 
     superseded_by: Mapped[str | None] = mapped_column(String(64), default=None)
 
+    # Wall clock the run is accountable for. A run waiting on a reviewer holds no
+    # process, no lock and no context window, so it should burn no budget either -
+    # otherwise the ceiling measures how fast people answer rather than how long the
+    # work takes.
+    active_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    resumed_at: Mapped[str | None] = mapped_column(String(32), default=None)
+    """When the current active stretch began. None while the run is not running."""
+
     def __repr__(self) -> str:
         return f"<Run {self.run_id} {self.state} {self.outcome or '-'}>"
 
@@ -295,6 +304,37 @@ class Step(Base):
 
     def __repr__(self) -> str:
         return f"<Step {self.run_id}/{self.step_id} {self.status}>"
+
+
+class Ledger(Base):
+    """One row per completed step, keyed by its idempotency key.
+
+    Written in the same transaction as the step result, which is the whole point: a
+    ledger that could be one commit behind would let a resumed run re-execute a step
+    whose result already exists, or - worse - believe a step finished that did not.
+
+    The key is the primary key, so a repeat write is refused by the database rather than
+    by a check somebody has to remember. That is what makes a retry, a crash resume and
+    a manual re-run the same operation.
+    """
+
+    __tablename__ = "ledger"
+    __table_args__ = (
+        CheckConstraint("attempt >= 1", name="ledger_attempt_at_least_one"),
+        Index("ix_ledger_run", "run_id"),
+    )
+
+    step_key: Mapped[str] = mapped_column(String(71), primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("run.run_id"), nullable=False)
+    step_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    result_ref: Mapped[str] = mapped_column(String(71), nullable=False)
+    media_type: Mapped[str] = mapped_column(String(64), nullable=False, default="application/json")
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    attempt: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    recorded_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+
+    def __repr__(self) -> str:
+        return f"<Ledger {self.step_id} {self.step_key[:15]}... -> {self.result_ref[:15]}...>"
 
 
 class Event(Base):

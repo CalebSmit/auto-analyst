@@ -87,6 +87,7 @@ AMBIGUOUS_SKILL = "SCOPE.AMBIGUOUS_SKILL"
 SKILL_INVALID = "SCOPE.SKILL_INVALID"
 RECIPE_INVALID = "SCOPE.RECIPE_INVALID"
 PLAN_REFUSED = "PROCESS.PLAN_REFUSED"
+LATE_RESULT = "PROCESS.LATE_RESULT"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 OVERLAY_LOOSENS = "POLICY.OVERLAY_LOOSENS"
@@ -242,6 +243,14 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "before every execution rather than in CI alone, because a plan is built per run "
         "and CI has never seen this one. Fix the recipe or the scope it was compiled "
         "against; there is no flag that skips the check.",
+    ),
+    LATE_RESULT: (
+        "process",
+        "A result arrived for an attempt something newer has replaced, or for a step "
+        "key the ledger already holds. Neither is a defect in the result - it is "
+        "simply not the one anything downstream was built on. Nothing is overwritten: "
+        "a step key is written once, which is what makes a retry, a resume and a "
+        "manual re-run the same operation.",
     ),
     UNKNOWN_RUN: (
         "process",

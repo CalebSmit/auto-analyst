@@ -63,6 +63,39 @@ scram-sha-256`, then `createdb -U postgres analyst_test`. Not through winget: se
 BUILD/LEDGER.md. `AA_PG_HOME` points the helper somewhere else, and `AA_TEST_PG_URL`
 points the suite at an entirely different server.
 
+## The ledger, and why one transaction
+
+`commit_step` writes the ledger row and the step result together. The alternative has a
+window in it: ledger first, and a resumed run believes a step finished that has no result;
+step first, and it re-executes work already paid for. Both are silent.
+
+A step key is the primary key, so a second write for one is refused by the database rather
+than by a check somebody has to remember. That is what makes a retry, a crash resume and a
+manual re-run the same operation.
+
+**One door.** `finish_step` handles the endings that produce nothing - failed,
+quarantined, skipped, not reached. It refuses `COMPLETED`, because a step that could claim
+completion without a result would be one the resume frontier re-executes anyway while the
+run looked finished.
+
+## blobs.py - refs, never values
+
+Content-addressed storage for step results. The address *is* the hash of the content, so
+the store is write-once by construction and there is no update operation, because there is
+nothing an update could mean. The hash is checked on read: content addressing is only a
+guarantee if it is verified on the way out.
+
+Not the Storage Port. That one is the read side of client intake - `list`, `read`, `stat`
+over documents somebody sent us. This is the system's own intermediate results, addressed
+by content rather than by path.
+
+## The clock that stops
+
+`active_seconds` is what a run is accountable for, and it stops while a person is
+thinking. A run waiting on a reviewer holds no process, no lock and no context window, so
+it burns no budget either - otherwise the ceiling measures how quickly people answer email
+rather than how long the work takes.
+
 ## Guard passes are events
 
 `emit_guard` takes a result, not just a failure, and requires a `checked` count. The

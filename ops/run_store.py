@@ -26,6 +26,7 @@ import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
@@ -40,6 +41,7 @@ from ops.models import (
     Decision,
     DecisionKind,
     Event,
+    Ledger,
     Outcome,
     ReviewItem,
     Run,
@@ -50,8 +52,9 @@ from ops.models import (
     StepStatus,
     check_transition,
     now_iso,
+    utc,
 )
-from registries.errors import ILLEGAL_TRANSITION, UNKNOWN_RUN, diagnose
+from registries.errors import ILLEGAL_TRANSITION, LATE_RESULT, UNKNOWN_RUN, diagnose
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_URL = f"sqlite:///{(REPO_ROOT / 'runs' / 'run_store.db').as_posix()}"
@@ -61,6 +64,10 @@ __all__ = [
     "ArtifactRecord",
     "DecisionRecord",
     "EventRecord",
+    "LateResult",
+    "LedgerEntry",
+    "LateResult",
+    "LedgerEntry",
     "ReviewItemRecord",
     "RunRecord",
     "RunStore",
@@ -75,6 +82,16 @@ __all__ = [
 
 class UnknownRun(RunStoreError):
     """No run is recorded under that id."""
+
+
+class LateResult(RunStoreError):
+    """A result arrived for an attempt that something newer has already replaced.
+
+    The case that actually happens: a step times out, the executor starts attempt two,
+    and attempt one finishes anyway. Its answer is not wrong - it is simply no longer the
+    one that counts, and letting it land would mean the ledger recorded a result nothing
+    downstream was built on.
+    """
 
 
 # ------------------------------------------------------------------ records
@@ -99,6 +116,8 @@ class RunRecord:
     output_tokens: int
     state_reason: str | None = None
     superseded_by: str | None = None
+    active_seconds: float = 0.0
+    resumed_at: str | None = None
 
     @property
     def is_finished(self) -> bool:
@@ -117,6 +136,19 @@ class StepRecord:
     result_ref: str | None = None
     started_at: str | None = None
     ended_at: str | None = None
+
+
+@dataclass(frozen=True)
+class LedgerEntry:
+    """A completed step, as the ledger remembers it."""
+
+    step_key: str
+    step_id: str
+    result_ref: str
+    media_type: str
+    size_bytes: int
+    attempt: int
+    recorded_at: str
 
 
 @dataclass(frozen=True)
@@ -211,10 +243,36 @@ class RunStore(Protocol):
         loop: str | None = None,
     ) -> None: ...
     def finish_step(
-        self, run_id: str, step_id: str, status: StepStatus, result_ref: str | None = None
+        self, run_id: str, step_id: str, status: StepStatus, reason: str = ...
     ) -> None: ...
     def steps(self, run_id: str) -> tuple[StepRecord, ...]: ...
     def completed_step_keys(self, run_id: str) -> frozenset[str]: ...
+    def ensure_step(
+        self,
+        run_id: str,
+        step_id: str,
+        step_key: str,
+        kind: str,
+        skill: str | None = None,
+        loop: str | None = None,
+    ) -> None: ...
+    def begin_attempt(self, run_id: str, step_id: str) -> int: ...
+    def commit_step(
+        self,
+        run_id: str,
+        step_id: str,
+        step_key: str,
+        result_ref: str,
+        attempt: int,
+        media_type: str = ...,
+        size_bytes: int = ...,
+    ) -> LedgerEntry: ...
+    def ledger_entry(self, step_key: str) -> LedgerEntry | None: ...
+    def ledger(self, run_id: str) -> tuple[LedgerEntry, ...]: ...
+
+    # the wall clock that stops while a person is thinking
+    def start_clock(self, run_id: str) -> None: ...
+    def stop_clock(self, run_id: str) -> float: ...
 
     # the event stream: append and read, and nothing else
     def append_event(self, event: dict[str, Any]) -> int: ...
@@ -427,17 +485,33 @@ class SqlRunStore:
             )
 
     def finish_step(
-        self, run_id: str, step_id: str, status: StepStatus, result_ref: str | None = None
+        self, run_id: str, step_id: str, status: StepStatus, reason: str = ""
     ) -> None:
+        """End a step that produced nothing: failed, quarantined, skipped, not reached.
+
+        COMPLETED is refused here and belongs to `commit_step`, which writes the result
+        into the ledger in the same transaction. A step that could be marked completed
+        without a result would be one the resume frontier re-executes anyway, and the run
+        would look finished while quietly paying twice.
+        """
+        if status == StepStatus.COMPLETED:
+            raise RunStoreError(
+                diagnose(
+                    LATE_RESULT,
+                    "a step is completed by commit_step, which writes its result into "
+                    "the ledger in the same transaction. finish_step is for the endings "
+                    "that produce nothing.",
+                    locator=f"{run_id}/{step_id}",
+                )
+            )
         with self._session() as session:
             row = session.scalars(
                 select(Step).where(Step.run_id == run_id, Step.step_id == step_id)
             ).one()
-            if row.status != StepStatus.NOT_REACHED:
-                row.attempts += 1
             row.status = status
-            row.result_ref = result_ref
             row.ended_at = now_iso()
+            if reason:
+                row.result_ref = None
 
     def steps(self, run_id: str) -> tuple[StepRecord, ...]:
         with self._session() as session:
@@ -447,14 +521,174 @@ class SqlRunStore:
     def completed_step_keys(self, run_id: str) -> frozenset[str]:
         """The resume frontier. A step whose key is in here is satisfied from the record
         rather than executed again, which is why a resumed run costs nothing for the work
-        it already paid for."""
+        it already paid for.
+
+        Read from the ledger rather than from the step rows. The two are written in one
+        transaction so they cannot disagree, but the ledger is the one holding the
+        result - and a frontier naming a step with no result to hand back would skip work
+        without having done it.
+        """
+        with self._session() as session:
+            rows = session.scalars(select(Ledger.step_key).where(Ledger.run_id == run_id))
+            return frozenset(rows)
+
+    def ensure_step(
+        self,
+        run_id: str,
+        step_id: str,
+        step_key: str,
+        kind: str,
+        skill: str | None = None,
+        loop: str | None = None,
+    ) -> None:
+        """Register a step, or update the key of one already registered.
+
+        The executor calls this, because the executor is what computes the key: it needs
+        the content hashes of the actual inputs, which do not exist until the producers
+        have run. A caller registering steps up front would have to invent a key, and an
+        invented key is one the ledger will never match.
+
+        A key that changed since last time means the inputs changed, so it is a different
+        unit of work. The old ledger row stays - it is still the answer to the old
+        question - and this step is looked up under its new key and runs again. That is
+        the whole of "only the steps whose inputs actually changed are paid for twice".
+        """
+        with self._session() as session:
+            self._row(session, run_id)
+            row = session.scalars(
+                select(Step).where(Step.run_id == run_id, Step.step_id == step_id)
+            ).one_or_none()
+            if row is None:
+                session.add(
+                    Step(
+                        run_id=run_id,
+                        step_id=step_id,
+                        step_key=step_key,
+                        kind=StepKind(kind),
+                        skill=skill,
+                        loop=loop,
+                        status=StepStatus.NOT_REACHED,
+                    )
+                )
+                return
+            if row.step_key != step_key and row.status != StepStatus.COMPLETED:
+                row.step_key = step_key
+                row.status = StepStatus.NOT_REACHED
+                row.attempts = 1
+                row.started_at = None
+                row.ended_at = None
+
+    def begin_attempt(self, run_id: str, step_id: str) -> int:
+        """Claim the next attempt number for a step, and return it.
+
+        The token a result must carry to be accepted. Incremented here rather than at
+        commit time, which is what makes a late result identifiable: attempt one comes
+        back holding a 1 when the step has already moved on to 2.
+        """
+        with self._session() as session:
+            row = session.scalars(
+                select(Step).where(Step.run_id == run_id, Step.step_id == step_id)
+            ).one()
+            if row.started_at is None:
+                row.started_at = now_iso()
+            else:
+                row.attempts += 1
+            return int(row.attempts)
+
+    def commit_step(
+        self,
+        run_id: str,
+        step_id: str,
+        step_key: str,
+        result_ref: str,
+        attempt: int,
+        media_type: str = "application/json",
+        size_bytes: int = 0,
+    ) -> LedgerEntry:
+        """Write the ledger row and the step result in one transaction.
+
+        One transaction, because the alternative has a window in it. Ledger first, and a
+        resumed run believes a step finished that has no result. Step first, and it
+        re-executes work already paid for. Both are silent.
+
+        Refuses a result from a superseded attempt, and refuses a second result for a key
+        the ledger already holds - the second by primary key, which is to say by the
+        database rather than by a check somebody has to remember to write.
+        """
+        with self._session() as session:
+            row = session.scalars(
+                select(Step).where(Step.run_id == run_id, Step.step_id == step_id)
+            ).one()
+            if attempt != row.attempts:
+                raise LateResult(
+                    diagnose(
+                        LATE_RESULT,
+                        f"{step_id} attempt {attempt} finished, but the step is on "
+                        f"attempt {row.attempts}",
+                        locator=f"{run_id}/{step_id}",
+                    )
+                )
+            existing = session.get(Ledger, step_key)
+            if existing is not None:
+                raise LateResult(
+                    diagnose(
+                        LATE_RESULT,
+                        f"the ledger already holds this key from attempt "
+                        f"{existing.attempt}; a key is written once",
+                        locator=f"{run_id}/{step_id}",
+                    )
+                )
+            entry = Ledger(
+                step_key=step_key,
+                run_id=run_id,
+                step_id=step_id,
+                result_ref=result_ref,
+                media_type=media_type,
+                size_bytes=size_bytes,
+                attempt=attempt,
+                recorded_at=now_iso(),
+            )
+            session.add(entry)
+            row.status = StepStatus.COMPLETED
+            row.result_ref = result_ref
+            row.ended_at = now_iso()
+            return _as_ledger(entry)
+
+    def ledger_entry(self, step_key: str) -> LedgerEntry | None:
+        with self._session() as session:
+            row = session.get(Ledger, step_key)
+            return _as_ledger(row) if row is not None else None
+
+    def ledger(self, run_id: str) -> tuple[LedgerEntry, ...]:
         with self._session() as session:
             rows = session.scalars(
-                select(Step.step_key).where(
-                    Step.run_id == run_id, Step.status == StepStatus.COMPLETED
-                )
+                select(Ledger).where(Ledger.run_id == run_id).order_by(Ledger.recorded_at)
             )
-            return frozenset(rows)
+            return tuple(_as_ledger(row) for row in rows)
+
+    # -- the clock that stops while a person is thinking
+
+    def start_clock(self, run_id: str) -> None:
+        """Begin an active stretch. Idempotent: starting a running clock changes nothing."""
+        with self._session() as session:
+            row = self._row(session, run_id)
+            if row.resumed_at is None:
+                row.resumed_at = now_iso()
+
+    def stop_clock(self, run_id: str) -> float:
+        """End the active stretch and bank it. Returns the run's accountable seconds.
+
+        Called when a run blocks on a person, and when it ends. A run waiting on a
+        reviewer holds no process, no lock and no context window, so it burns no budget
+        either - otherwise the ceiling measures how quickly people answer rather than how
+        long the work takes.
+        """
+        with self._session() as session:
+            row = self._row(session, run_id)
+            if row.resumed_at is not None:
+                row.active_seconds = round(row.active_seconds + _elapsed(row.resumed_at), 3)
+                row.resumed_at = None
+            return float(row.active_seconds)
 
     # -- the event stream
 
@@ -680,6 +914,26 @@ def _as_run(row: Run) -> RunRecord:
         output_tokens=row.output_tokens,
         state_reason=row.state_reason,
         superseded_by=row.superseded_by,
+        active_seconds=row.active_seconds,
+        resumed_at=row.resumed_at,
+    )
+
+
+def _elapsed(since_iso: str) -> float:
+    """Seconds from an RFC 3339 stamp until now."""
+    started = datetime.fromisoformat(since_iso.replace("Z", "+00:00"))
+    return max(0.0, (utc() - started).total_seconds())
+
+
+def _as_ledger(row: Ledger) -> LedgerEntry:
+    return LedgerEntry(
+        step_key=row.step_key,
+        step_id=row.step_id,
+        result_ref=row.result_ref,
+        media_type=row.media_type,
+        size_bytes=row.size_bytes,
+        attempt=row.attempt,
+        recorded_at=row.recorded_at,
     )
 
 

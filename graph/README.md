@@ -26,6 +26,33 @@ turn: all refused while building. `plan_hash` covers structure, skill versions, 
 pins, effort, schemas, template, taxonomy, constraints, the scope resolution and the
 precedent-store snapshot.
 
+## execute.py - a retry, a resume and a re-run are one operation
+
+    step_key = sha256(step_id, input content hashes, skill@version, model_pin,
+                      context_ref, output_schema_version)
+
+The compiler knows four of those six. Content hashes and `context_ref` do not exist until
+something has run, which is why `Step.key_material()` stops where it does and the executor
+finishes the job - and why the key is a function rather than a property of `Step`.
+
+**Resume is replay, not recovery.** There is no separate restart path to get wrong. A
+resumed run walks the same order and asks the same question of every step, and the answer
+is a ledger lookup. Killing a run mid-flight and starting it again re-executes zero
+completed steps.
+
+**Only what actually changed is paid for twice.** Change one input and the steps that read
+it get new keys; the ones upstream do not. If a re-run produces byte-identical output, the
+steps below it keep their keys too and are satisfied from the ledger - nothing had to
+reason about that, it falls out of keying on content.
+
+**Retries are for transport only.** A schema or guard failure is not a retry; it is a
+repair loop with changed input, and it belongs to the Loop Controller in P14. Retrying a
+step whose input has not changed is the single most common way these systems waste money.
+
+**Blocking is an ending, not a pause.** A run needing a person checkpoints and exits, and
+the wall clock stops - which is what makes "four hours excluding time waiting on a human"
+an honest number.
+
 ## Two graphs, two suites
 
 Conflating them is the mistake that made three assertions unsatisfiable in the

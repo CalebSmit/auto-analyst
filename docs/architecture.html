@@ -4119,12 +4119,15 @@ class <span class="v">Step</span>:
     on_failure:     <span class="k">Literal</span>["halt","quarantine","review"]
 
     max_turns:      <span class="k">int</span> = 1        <span class="c"># skills are single-turn; see below</span>
-    @property
-    def <span class="hl">key</span>(self) -&gt; <span class="k">str</span>:          <span class="c"># the idempotency key</span>
-        return sha256(self.id,
-                      [r.content_hash for r in self.inputs],
-                      self.skill, MODEL_PIN, self.output_schema,
-                      <span class="hl">self.context_ref</span>)   <span class="c"># \u2190 retrieved precedents live here</span>`;
+
+<span class="c"># The idempotency key. NOT a property of Step: half of it does not exist</span>
+<span class="c"># when the compiler builds one. Content hashes and context_ref are runtime</span>
+<span class="c"># facts, so the compiler exposes what it knows and the executor finishes it.</span>
+def <span class="hl">step_key</span>(step, inputs: dict[str, Ref], context_ref: <span class="k">str</span>) -&gt; <span class="k">str</span>:
+    return sha256(step.id,
+                  step.skill, MODEL_PIN, step.output_schema,   <span class="c"># compile time</span>
+                  <span class="hl">context_ref</span>,                                  <span class="c"># \u2190 precedents live here</span>
+                  [inputs[n].content_hash for n in sorted(inputs)])`;
 
   const ASSERTS =
 `<span class="c"># TWO suites, because there are two graphs. Conflating them is the</span>
@@ -4256,7 +4259,7 @@ class <span class="hl">ProposedAction</span>:
    R_('    resolve.py         scope path \u2192 the resolved skill set', 'Tier 0'),
    R_('    recipes.py         job recipes, loaded and shaped'),
    R_('    compile.py         plan \u2192 typed DAG + plan_hash'),
-   R_('    execute.py         the Step Executor'),
+   R_('    execute.py         the Step Executor', 'keyed, timed, retried'),
    R_('    architecture.json  this graph, exported', '118 nodes, 240 edges, 25 invariants'),
    R_('    architecture_assertions.py   the 25, over the graph above', 'the Map tab\u2019s left rail'),
    R_('    plan_assertions.py           the 7, over a compiled plan', 'runs on every compile'),
@@ -4264,7 +4267,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">tools/</span>         normalize.py, recompute.py, write_template.py'),
    R_('  <span class="t2">guards/</span>        schema, provenance, tieout, reconcile, unmask, numeric_lock'),
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
-   R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, manifest.py, console/'),
+   R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, manifest.py, console/'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');
 
