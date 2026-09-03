@@ -166,6 +166,58 @@ class SkillTree:
     def layers(self) -> tuple[str, ...]:
         return tuple(sorted(self._by_layer))
 
+    # -- tier 2, loaded on demand and not before
+
+    def body(self, skill: Skill) -> str:
+        """The SKILL.md below its frontmatter. Read from disk now, not at load.
+
+        Progressive disclosure in one method: the tree holds frontmatter for every skill
+        and the body for none, so a body is only ever in memory for a skill a plan
+        selected. `tests/p09` wraps this to prove the builder calls it exactly once, for
+        exactly the step's own skill.
+        """
+        text = (REPO_ROOT / skill.path).read_text(encoding="utf-8")
+        return text.split("---", 2)[2].lstrip("\n")
+
+    def reference(
+        self,
+        skill: Skill,
+        name: str,
+        declared: tuple[str, ...] | None = None,
+        layers: tuple[str, ...] = (),
+    ) -> str:
+        """One declared reference file, by name. Same rule: read now, for this skill.
+
+        `declared` is the resolved reference list when an overlay has added to it, and
+        `layers` are the scope layers in force, deepest last - an overlay-added reference
+        lives beside the overlay, at its own layer, not beside the skill it modifies.
+        """
+        allowed = declared if declared is not None else skill.references
+        if name not in allowed:
+            raise RegistryError(
+                diagnose(
+                    SKILL_INVALID,
+                    f"{skill.name} does not declare a reference called {name!r}; a "
+                    f"skill reads the references it declares and no others",
+                    locator=skill.path,
+                )
+            )
+        own = REPO_ROOT / Path(skill.path).parent / "references" / name
+        candidates = [own] + [
+            REPO_ROOT / "skills" / layer / "references" / name for layer in reversed(layers)
+        ]
+        for candidate in candidates:
+            if candidate.is_file():
+                return candidate.read_text(encoding="utf-8")
+        raise RegistryError(
+            diagnose(
+                SKILL_INVALID,
+                f"{skill.name} declares {name!r} and no file by that name exists beside "
+                f"it or at any layer in force",
+                locator=skill.path,
+            )
+        )
+
     def self_check(self) -> None:
         """No duplicate at a layer, and no overlay pointing at nothing."""
         seen: dict[tuple[str, str], Skill] = {}

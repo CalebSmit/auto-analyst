@@ -88,6 +88,8 @@ SKILL_INVALID = "SCOPE.SKILL_INVALID"
 RECIPE_INVALID = "SCOPE.RECIPE_INVALID"
 PLAN_REFUSED = "PROCESS.PLAN_REFUSED"
 LATE_RESULT = "PROCESS.LATE_RESULT"
+PRECEDENT_OUT_OF_SCOPE = "SCOPE.PRECEDENT_OUT_OF_SCOPE"
+UNMASKED_PRECEDENT = "PRIVACY.UNMASKED_PRECEDENT"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 OVERLAY_LOOSENS = "POLICY.OVERLAY_LOOSENS"
@@ -243,6 +245,19 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "before every execution rather than in CI alone, because a plan is built per run "
         "and CI has never seen this one. Fix the recipe or the scope it was compiled "
         "against; there is no flag that skips the check.",
+    ),
+    PRECEDENT_OUT_OF_SCOPE: (
+        "config",
+        "A precedent source returned an example from outside the engagement's resolved "
+        "scope. The query is built from that scope so a Corporate Finance decision is "
+        "never available to an ESOP valuation; a source answering with one is broken, "
+        "and the builder refuses the whole batch rather than filtering quietly.",
+    ),
+    UNMASKED_PRECEDENT: (
+        "system",
+        "A precedent arrived unmasked. The store holds masked examples only, written "
+        "downstream of a human decision. An unmasked one means the write-back or the "
+        "store has been bypassed, and nothing from that batch reaches a model.",
     ),
     LATE_RESULT: (
         "process",

@@ -37,6 +37,7 @@ from enum import StrEnum
 from typing import Any, Protocol, runtime_checkable
 
 from graph.compile import CompiledGraph, Step
+from graph.plan_assertions import check_plan
 from ops.blobs import ContentRef, ContentStore, LocalContentStore
 from ops.events import EventBus
 from ops.models import RunState, StepStatus
@@ -219,6 +220,12 @@ class StepExecutor:
         for a pass - the run is not over, this process's part in it is - and an exception
         would make the caller decide whether an ending was an error.
         """
+        # Plan assertions gate every pass, the resume included. A plan mutated after it
+        # was compiled, or read back from a checkpoint, gets the same check the compiler
+        # gave it - nothing executes that has not been through them, and a resume is an
+        # execution.
+        check_plan(plan)
+
         report = ExecutionReport(run_id=run_id, plan_hash=plan.plan_hash)
         available: dict[str, ContentRef] = dict(run_inputs or {})
         self.store.start_clock(run_id)

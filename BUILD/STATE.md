@@ -5,27 +5,28 @@
 
 ## Where the build is
 
-- **8 of 28 phases closed**
-- Last green checkpoint: **C2**
-- Current phase: **P09 - Context builder** (gate: auto)
+- **9 of 28 phases closed**
+- Last green checkpoint: **C3**
+- Current phase: **P10 - Policy gate, constraints, guarded runtime** (gate: auto)
 
 ## The next action
 
-Work P09. Its full definition is in [BUILD/phases/P09.md](phases/P09.md).
+Work P10. Its full definition is in [BUILD/phases/P10.md](phases/P10.md).
 
-> Everything a model is shown is assembled in one place and recorded, so any call can be reconstructed exactly.
+> A wrong action can produce a right-looking result. Verification catches a wrong result; only a decision taken before execution catches a wrong act.
 
 Tasks:
 
-- [ ] Assemble skill body, declared references, firm standards, retrieved precedents, engagement_profile and the masked payload
-- [ ] Content-hash the assembled whole into context_ref
-- [ ] Persist the assembled context against the run
-- [ ] Progressive disclosure: reference files loaded only once a skill is selected
+- [ ] ProposedAction and the four allow conditions: declared tool, args satisfy every predicate, engagement matches, estimated cost within remaining budget
+- [ ] constraints.yaml predicates evaluated, not interpreted
+- [ ] The six-name tool namespace (finding F3): recompute and timing_normalizer compute; chart_of_accounts_lookup, precedent_lookup, index_lookup and template_schema_lookup read
+- [ ] Every denial recorded as an event with a code and an owner
+- [ ] Call-time caps applied by the runtime, not trusted from the caller
 
 Then:
 
-    python tools/gate.py check P09
-    python tools/gate.py close P09
+    python tools/gate.py check P10
+    python tools/gate.py close P10
 
 ## Before you start
 
@@ -45,4 +46,5 @@ Then:
 - **P06** Graph compiler (2026-09-03)
 - **P07** The assertion suites (2026-09-03)
 - **P08** Step executor, idempotency, resume (2026-09-03)
+- **P09** Context builder (2026-09-03)
 

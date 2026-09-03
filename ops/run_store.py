@@ -729,6 +729,18 @@ class SqlRunStore:
     ) -> None:
         with self._session() as session:
             self._row(session, run_id)
+            # The same bytes at the same name is the same artifact. A resumed run
+            # rebuilds contexts it built before, and recording them twice would make an
+            # idempotent pass look like it did something.
+            existing = session.scalars(
+                select(Artifact).where(
+                    Artifact.run_id == run_id,
+                    Artifact.name == name,
+                    Artifact.content_hash == content_hash,
+                )
+            ).one_or_none()
+            if existing is not None:
+                return
             session.add(
                 Artifact(
                     run_id=run_id,
