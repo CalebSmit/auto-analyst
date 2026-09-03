@@ -586,7 +586,7 @@
       "title": "First real skill: timing normalization",
       "block": "Block D - First real vertical, local end to end",
       "gate": "human",
-      "status": "open",
+      "status": "done",
       "human_check": "You confirm the alignment the system proposes on a real engagement is one you would have made yourself - and that every unmatched line it reported is genuinely unmatched.",
       "intent": "The first real skill, chosen first because its arithmetic is entirely deterministic: the model proposes an alignment and the tool does every calculation.",
       "builds": [
@@ -611,7 +611,9 @@
         "python -m uv run ruff check harness tools/normalize.py tests/p18 tests/checkpoints/c06",
         "python -m uv run mypy harness tools/normalize.py"
       ],
-      "notes": "First skill on purpose: if the model is wrong here the tool disagrees immediately, so the feedback loop is short and mechanical."
+      "notes": "First skill on purpose: if the model is wrong here the tool disagrees immediately, so the feedback loop is short and mechanical.",
+      "closed": "2026-09-03",
+      "signoff": "Caleb: reviewed the synthetic annual_drift alignment (rename, split, merge, one unmatched line) - calls I would have made; good for testing. Real-engagement confirmation and tailoring to my work's Excel models deferred to the P24 pilot."
     },
     {
       "id": "P19",
@@ -790,7 +792,8 @@
         "Model binding resolved through LAYER_ORDER - the same resolver as skills",
         "The ten preflight checks, including engagement profile completeness (F1)",
         "The config change log: who, what, when and why",
-        "Enforcement of what an admin can and cannot change, backed by invariant 23"
+        "Enforcement of what an admin can and cannot change, backed by invariant 23",
+        "Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)"
       ],
       "exit": [
         "A failing preflight check blocks activation of that engagement rather than failing later in a run",
@@ -990,11 +993,12 @@
       "id": "C6",
       "title": "The walking vertical",
       "after": "P18",
-      "status": "open",
+      "status": "done",
       "proves": "Watched folder to masked payload to one real skill to guards to review to local output, on one real engagement",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c06 -q"
-      ]
+      ],
+      "closed": "2026-09-03"
     },
     {
       "id": "C7",

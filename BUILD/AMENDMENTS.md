@@ -276,3 +276,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - check added: python -m uv run ruff check harness tools/normalize.py tests/p18 tests/checkpoints/c06
 - check added: python -m uv run mypy harness tools/normalize.py
+
+## 2026-09-03 - P24 Admin console, preflight, config audit
+
+**Why:** P18 sign-off covers the synthetic annual_drift case only. Caleb reviewed the rename, split, merge and the one unmatched line and would have made the same calls - good for testing. A real engagement's files and the firm's own Excel models do not exist in this build until the pilot, so the real-engagement half of P18's human check is owed here, along with tailoring the skill's output to those models.
+
+- task added: Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)

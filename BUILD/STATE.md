@@ -5,28 +5,27 @@
 
 ## Where the build is
 
-- **17 of 28 phases closed**
-- Last green checkpoint: **C5**
-- Current phase: **P18 - First real skill: timing normalization** (gate: human)
+- **18 of 28 phases closed**
+- Last green checkpoint: **C6**
+- Current phase: **P19 - Line-item tagging and the precedent store** (gate: human)
 
 ## The next action
 
-Work P18. Its full definition is in [BUILD/phases/P18.md](phases/P18.md).
+Work P19. Its full definition is in [BUILD/phases/P19.md](phases/P19.md).
 
-> The first real skill, chosen first because its arithmetic is entirely deterministic: the model proposes an alignment and the tool does every calculation.
+> The highest-volume skill in the system, and the first one that learns - which is exactly why only a human decision can write to what it learns from.
 
 Tasks:
 
-- [ ] SKILL.md with frontmatter, procedure, when-to-use, when-not-to-use, escalation
-- [ ] Reference files: period-conventions.md, line-item-matching.md
-- [ ] The alignment proposal schema - a mapping, never a number
-- [ ] t_timing executing the mapping; all arithmetic in the tool
-- [ ] Golden fixtures plus the alignment-report fixture set
+- [ ] Firm chart-of-accounts taxonomy, versioned
+- [ ] The skill: Category, Excluded from A/L, Include in NWC, with confidence and a one-line rationale per item
+- [ ] Scope-built precedent retrieval - a repeat client sees its own prior decisions first
+- [ ] Write-back gated on a decision id, with no other code path into the store
 
 Then:
 
-    python tools/gate.py check P18
-    python tools/gate.py close P18  --signoff "name: what you checked"
+    python tools/gate.py check P19
+    python tools/gate.py close P19  --signoff "name: what you checked"
 
 ## Before you start
 
@@ -55,4 +54,5 @@ Then:
 - **P15** Confidence router, review queue, decision log (2026-09-03)
 - **P16** Intake: roster, sweep, binding, lock, window (2026-09-03)
 - **P17** Readers and the Source Parse Store (2026-09-03)
+- **P18** First real skill: timing normalization (2026-09-03) - Caleb: reviewed the synthetic annual_drift alignment (rename, split, merge, one unmatched line) - calls I would have made; good for testing. Real-engagement confirmation and tailoring to my work's Excel models deferred to the P24 pilot.
 
