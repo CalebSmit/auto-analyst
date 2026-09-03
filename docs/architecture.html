@@ -2274,7 +2274,7 @@ const PORT_ROWS = [
   why:'The thing most likely to get hard-coded early and hurt later. Costs almost nothing to abstract on day one.'},
  {port:'Job queue',      node:'queue_port',    local:'In-process',       work:'Redis + RQ',                        cloud:'SQS · Service Bus · Pub/Sub',
   why:'Phase 1 needs no queue at all. Having the interface means adding one is not a pipeline refactor.'},
- {port:'LLM provider',   node:'llm_port',      local:'Anthropic API',    work:'Anthropic API',                     cloud:'Bedrock · Vertex',
+ {port:'LLM provider',   node:'llm_port',      local:'Fixture replay · Anthropic API', work:'Anthropic API',          cloud:'Bedrock · Vertex',
   why:'Also the single choke point where the outbound payload scan sits — one door to a model means one place to check.'},
  {port:'Compute',        node:'compute_target',local:'Local process',    work:'Docker',                            cloud:'Container Apps · ECS · Cloud Run',
   why:'One image, config-driven. No managed-service primitive is depended on anywhere, so the deployment target is an environment rather than an architecture.'}
@@ -4258,7 +4258,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">privacy/</span>       mask.py, vault.py, unmask.py, payload_scan.py'),
    R_('  <span class="t2">tools/</span>         normalize.py, recompute.py, write_template.py'),
    R_('  <span class="t2">guards/</span>        schema, provenance, tieout, reconcile, unmask, numeric_lock'),
-   R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/'),
+   R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           events.py, run_store.py, manifest.py, console/'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');

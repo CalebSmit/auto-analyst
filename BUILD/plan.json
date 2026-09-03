@@ -77,7 +77,7 @@
       "title": "Ports and adapters, with one conformance suite",
       "block": "Block A - Foundations (the walking skeleton)",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Six interfaces and their local adapters, plus a single suite every adapter must pass. This is what makes adding ShareFile later a class rather than a refactor.",
       "builds": [
         "storage_port",
@@ -94,7 +94,8 @@
         "queue: in_process adapter",
         "llm: a fake adapter that replays recorded fixtures, so phases 4-10 need no API key",
         "One conformance suite, parameterised over every registered adapter",
-        "An import-boundary test: nothing outside ports/ imports an adapter directly"
+        "An import-boundary test: nothing outside ports/ imports an adapter directly",
+        "ports/compute: a Protocol and a local_process adapter, so the run manifest can record where the work happened"
       ],
       "exit": [
         "All six ports have a Protocol and at least one adapter",
@@ -103,9 +104,11 @@
         "Switching AA_STORAGE_ADAPTER changes behaviour with no pipeline code touched"
       ],
       "checks": [
-        "python -m uv run pytest tests/p03 -q"
+        "python -m uv run pytest tests/p03 -q",
+        "python -m uv run ruff check ."
       ],
-      "notes": "The ShareFile and Box connectors that exist at work become adapters here at handoff. Nothing before P25 depends on them."
+      "notes": "The ShareFile and Box connectors that exist at work become adapters here at handoff. Nothing before P25 depends on them.",
+      "closed": "2026-09-02"
     },
     {
       "id": "P04",
@@ -892,11 +895,12 @@
       "id": "C1",
       "title": "The skeleton holds bytes",
       "after": "P03",
-      "status": "open",
+      "status": "done",
       "proves": "A fake run moves bytes storage to delivery, emits events and writes a manifest",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c01 -q"
-      ]
+      ],
+      "closed": "2026-09-02"
     },
     {
       "id": "C2",

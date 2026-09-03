@@ -61,6 +61,11 @@ class ContractViolation(RegistryError):
 UNKNOWN_CONTRACT = "SCOPE.UNKNOWN_CONTRACT"
 CONTRACT_INDEX_INVALID = "SCOPE.CONTRACT_INDEX_INVALID"
 UNKNOWN_CONSTRAINTS = "SCOPE.UNKNOWN_CONSTRAINTS"
+UNKNOWN_ADAPTER = "SCOPE.UNKNOWN_ADAPTER"
+MISSING_CREDENTIAL = "SCOPE.MISSING_CREDENTIAL"
+MODEL_PIN_UNAVAILABLE = "SCOPE.MODEL_PIN_UNAVAILABLE"
+UNREADABLE_FILE = "INTAKE.UNREADABLE_FILE"
+WRITE_FAILED = "DELIVER.WRITE_FAILED"
 SCHEMA_INVALID = "SKILL.SCHEMA_INVALID"
 NO_PROVENANCE = "SKILL.NO_PROVENANCE"
 FABRICATED_SOURCE = "SKILL.FABRICATED_SOURCE"
@@ -80,6 +85,35 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "config",
         "constraints.yaml is at a version this run did not pin. Constraints are pinned "
         "per run and recorded in the plan hash; resolve the mismatch deliberately.",
+    ),
+    UNKNOWN_ADAPTER: (
+        "config",
+        "No adapter is registered under that name for this port. Check the "
+        "AA_*_ADAPTER value against ports.adapters() - an unknown name is never "
+        "resolved to a default, because a silent fallback is how a run ends up "
+        "reading from somewhere nobody chose.",
+    ),
+    MISSING_CREDENTIAL: (
+        "config",
+        "The secrets port has no value under that name. Add it to .env (see "
+        ".env.example). The value is never printed, here or anywhere else.",
+    ),
+    MODEL_PIN_UNAVAILABLE: (
+        "config",
+        "The pinned model is not available. Choose a new pin deliberately and "
+        "re-run: a run that silently substituted a different model would produce "
+        "figures nobody could attribute.",
+    ),
+    UNREADABLE_FILE: (
+        "client-data",
+        "The file could not be read. A figure that cites nothing is worse than a "
+        "figure that never existed, so the run stops rather than proceeding with a "
+        "null source id. Ask the client for a readable copy.",
+    ),
+    WRITE_FAILED: (
+        "system",
+        "The delivery port could not write. Usually transient. The write is keyed, "
+        "so retrying produces no duplicate.",
     ),
     SCHEMA_INVALID: (
         "model",
