@@ -1,0 +1,36 @@
+# Overlays declared at valuation/esop/_segment.
+#
+# An overlay changes one aspect of an inherited skill without copying it. The
+# alternative - a second copy of ebitda-normalization under the ESOP layer - means
+# maintaining the same add-back logic in two places, and they drift apart within a year.
+#
+# An overlay may only TIGHTEN. It may raise a review requirement and it may narrow a
+# privacy class; it may never do the reverse, and it may never add a tool. The resolver
+# raises on a loosening rather than warning, because a silently loosened review floor is
+# indistinguishable from a review floor nobody set.
+
+version: 1.0.0
+scope: valuation/esop/_segment
+
+overlays:
+  - target: ebitda-normalization
+    why: >-
+      ESOP work carries DOL adequate-consideration obligations that non-ESOP work does
+      not. The procedure is identical; the standard of review is not.
+    adds:
+      references:
+        - dol-adequate-consideration.md
+        - repurchase-obligation.md
+    tightens:
+      hitl: all_addbacks_require_review
+
+  - target: qc-tieout
+    why: >-
+      The firm QC procedure holds unchanged. ESOP adds items to the checklist rather
+      than replacing it.
+    adds:
+      references:
+        - esop-qc-checklist.md
+      escalate: >-
+        Any finding that touches the repurchase obligation, in addition to whatever the
+        firm procedure already escalates.

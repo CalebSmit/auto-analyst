@@ -1,0 +1,45 @@
+# Which Excel model a scope builds into.
+#
+# Resolved through the same five-layer walk as the skill library, deepest binding wins.
+# One mechanism, two kinds of artifact: "Corporate Finance uses a different model" is a
+# row here rather than a branch in the code, and the same walk serves the hundreds of
+# skills and the handful of templates.
+#
+# A layer that is declared with nothing bound is not a binding - it falls through, which
+# is why Consulting resolves to the firm default rather than to nothing. That is shown
+# rather than hidden: it is the honest state until Consulting names a model.
+#
+# The Template Registry that pins hashes, validates named ranges and refuses an
+# unvalidated template is P21. This file is only the binding, which is what the Scope
+# Resolver owns.
+
+version: 1.0.0
+
+bindings:
+  - layer: _firm
+    file: Chartwell_Master_Model_v14.xlsx
+    template_version: "14.2"
+    why: >-
+      The template most of the firm builds into. Everything inherits this unless it says
+      otherwise.
+
+  - layer: valuation/esop/_segment
+    file: Chartwell_ESOP_Model_v9.xlsx
+    template_version: "9.4"
+    why: >-
+      ESOP work carries repurchase-obligation and adequate-consideration schedules the
+      master template has no rows for.
+
+  - layer: corporate-finance/_group
+    file: CF_LBO_Model_v3.xlsx
+    template_version: "3.1"
+    why: >-
+      Corporate Finance runs a returns-driven model rather than a valuation one.
+
+  - layer: consulting/_group
+    file: null
+    template_version: null
+    why: >-
+      Declared and bound to nothing. It falls through to the firm default; the layer is
+      listed so that "Consulting has not chosen a model" is visible rather than inferred
+      from an absence.

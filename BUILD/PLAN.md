@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**4 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**5 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -22,7 +22,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 
 | | Phase | Gate | Closes when | Status |
 |---|---|---|---|---|
-| [ ] | **P05** Scope resolver | auto | All seven scope combinations resolve to exactly one skill set |  |
+| [x] | **P05** Scope resolver | auto | An overlay that lowers a HITL requirement or widens a privacy class raises | 2026-09-03 |
 | [ ] | **P06** Graph compiler | auto | An undeclared cycle is rejected at compile time with a locatable error |  |
 | [ ] | **C2 - A plan compiles and hashes** | integration | A recipe compiles; identical inputs give an identical plan_hash and a changed precedent snapshot changes it; and the store conformance suite passes against Postgres in Docker as well as SQLite |  |
 | [ ] | **P07** The assertion suites | auto | All 25 invariants are executable and pass against the current architecture |  |

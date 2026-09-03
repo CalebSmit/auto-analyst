@@ -1,0 +1,17 @@
+# Overlays declared at valuation/_repeat.
+#
+# This is what the repeat / new distinction is actually for. A returning client's chart
+# of accounts was tagged last year and reviewed by an analyst; that is the best available
+# context and it belongs to that client alone.
+
+version: 1.0.0
+scope: valuation/_repeat
+
+overlays:
+  - target: line-item-tagging
+    why: >-
+      Retrieval order only. No rule is relaxed - the precedent scope narrows to this
+      client's own prior approved decisions, which is a tightening of what may be
+      retrieved rather than a widening of it.
+    adds:
+      precedent_scope: client_first

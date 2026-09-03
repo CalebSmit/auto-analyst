@@ -1,0 +1,148 @@
+# The Scope Registry: which practice groups, segments and client dispositions exist.
+#
+# Declarative rather than implicit in folder names, so the resolver can validate against
+# it. An engagement scoped to a group that does not exist fails at the start rather than
+# silently resolving to nothing - which is the failure mode of inferring a taxonomy from
+# whatever directories happen to be on disk.
+#
+# Adding a practice group is an entry here plus a folder in skills/. Deliberately a
+# two-line change: the firm will add several, and it must not be a project each time.
+
+version: 1.0.0
+
+# Resolution order, shallowest first. Declared as data because the blueprint states it
+# as data, and a five-layer walk written twice is a five-layer walk that will disagree
+# with itself. `{practice}`, `{segment}` and `{disposition}` are filled from a scope path.
+#
+# A deeper layer shadows a shallower one only when it declares the same skill; otherwise
+# it adds. Nothing is ever removed by going deeper - a run cannot lose a firm skill by
+# being specific.
+layer_order:
+  - "_firm"
+  - "{practice}/_group"
+  - "{practice}/_{disposition}"
+  - "{practice}/{segment}/_segment"
+  - "{practice}/{segment}/{disposition}"
+
+practices:
+  - id: valuation
+    name: Valuation
+    defined: true
+    segments:
+      - id: esop
+        name: ESOP
+        defined: true
+      - id: non-esop
+        name: Non-ESOP
+        defined: true
+
+  - id: consulting
+    name: Consulting
+    defined: false
+    note: >-
+      Scaffolded, with no skills at any layer yet. It resolves to the firm layer only,
+      and the resolver says so rather than returning a short list that looks like a
+      considered answer. Shown rather than hidden: that is the honest state until
+      Consulting names its segments.
+    segments:
+      - id: tbd
+        name: segments to be named
+        defined: false
+
+  - id: corporate-finance
+    name: Corporate Finance
+    defined: false
+    note: >-
+      Scaffolded. A different model is bound at the group layer, which is the whole
+      point of binding templates through the same resolver as skills.
+    segments:
+      - id: tbd
+        name: segments to be named
+        defined: false
+
+# Dispositions cut across every practice group. `precedent_scope` is what the Context
+# Builder is allowed to retrieve from; it never crosses an engagement boundary in either
+# case, which is P09's business - this only says how wide the search may be.
+dispositions:
+  - id: repeat
+    name: Repeat client
+    precedent_scope: client_first
+    note: >-
+      What the repeat / new distinction is actually for. A returning client's chart of
+      accounts was tagged last year and reviewed by an analyst; that is the best
+      available context and it belongs to that client alone.
+  - id: non-repeat
+    name: New client
+    precedent_scope: scope_only
+
+# ---------------------------------------------------------------- the ladders
+#
+# An overlay may only tighten. That is only checkable if "tighter" is declared, so both
+# dimensions the rule names are ranked here rather than compared as strings. The
+# practical effect: adding a new hitl value forces somebody to place it on the ladder,
+# which is exactly the decision that should not be made implicitly by a spelling.
+
+review_ladder:
+  # Rank 0. Declared so that "this skill has no review floor" is a value rather than an
+  # absence, and so an overlay can raise from it.
+  - value: none
+    rank: 0
+    means: No review floor. Nothing in the tree uses this today.
+
+  # Rank 10 - triggered by the system's own uncertainty about one field.
+  - value: low_confidence_fields_require_review
+    rank: 10
+    means: Individual low-confidence fields go to a person.
+  - value: confidence_below_threshold_requires_review
+    rank: 10
+    means: Fields under the configured confidence threshold go to a person.
+  - value: ambiguous_periods_require_review
+    rank: 10
+    means: Period alignments the detector could not settle go to a person.
+  - value: unmapped_inputs_require_review
+    rank: 10
+    means: Template inputs with no mapping go to a person.
+
+  # Rank 20 - triggered by materiality or by change, not by uncertainty.
+  - value: material_addbacks_require_review
+    rank: 20
+    means: Add-backs above the materiality floor go to a person.
+  - value: changes_from_prior_year_require_review
+    rank: 20
+    means: Anything that moved since the prior engagement goes to a person.
+
+  # Rank 30 - the whole output goes to a person, not selected items from it.
+  - value: all_addbacks_require_review
+    rank: 30
+    means: Every add-back, material or not, goes to a person.
+  - value: assumptions_require_review
+    rank: 30
+    means: Every assumption goes to a person.
+  - value: comparable_set_requires_review
+    rank: 30
+    means: The comparable set goes to a person before it is used.
+  - value: company_specific_premium_requires_review
+    rank: 30
+    means: Any company-specific adjustment goes to a person.
+  - value: baseline_requires_review
+    rank: 30
+    means: The first-year baseline goes to a person before anything builds on it.
+
+  # Rank 40 - unconditional. There is no output of this skill a person does not see.
+  - value: always_surfaces_to_reviewer
+    rank: 40
+    means: Every output goes to a person, whatever it contains.
+
+# Higher rank is tighter. An overlay moving a skill to a lower rank is widening its
+# privacy class, and it raises.
+sensitivity_ladder:
+  - value: unmasked_ok
+    rank: 0
+    means: >-
+      The skill may receive unmasked values. Requires a stated reason; nothing in the
+      tree declares it today.
+  - value: masked_only
+    rank: 10
+    means: >-
+      The skill must never receive unmasked values, enforced by the dispatcher's tool
+      allowlist rather than by the skill's good intentions. The default for everything.

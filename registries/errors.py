@@ -78,6 +78,14 @@ WRITE_FAILED = "DELIVER.WRITE_FAILED"
 SCHEMA_INVALID = "SKILL.SCHEMA_INVALID"
 NO_PROVENANCE = "SKILL.NO_PROVENANCE"
 FABRICATED_SOURCE = "SKILL.FABRICATED_SOURCE"
+UNRESOLVED_SCOPE = "SCOPE.UNRESOLVED"
+UNKNOWN_PRACTICE = "SCOPE.UNKNOWN_PRACTICE"
+UNKNOWN_SEGMENT = "SCOPE.UNKNOWN_SEGMENT"
+UNKNOWN_DISPOSITION = "SCOPE.UNKNOWN_DISPOSITION"
+UNKNOWN_REVIEW_LEVEL = "SCOPE.UNKNOWN_REVIEW_LEVEL"
+AMBIGUOUS_SKILL = "SCOPE.AMBIGUOUS_SKILL"
+SKILL_INVALID = "SCOPE.SKILL_INVALID"
+OVERLAY_LOOSENS = "POLICY.OVERLAY_LOOSENS"
 UNKNOWN_RUN = "PROCESS.UNKNOWN_RUN"
 ILLEGAL_TRANSITION = "PROCESS.ILLEGAL_TRANSITION"
 APPEND_ONLY_VIOLATION = "PROCESS.APPEND_ONLY_VIOLATION"
@@ -144,6 +152,55 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A figure cites the system's own reasoning as its source. This is rejected as "
         "hard as a missing source. Requote the underlying document, or report the item "
         "as unavailable.",
+    ),
+    UNRESOLVED_SCOPE: (
+        "config",
+        "The scope path is malformed, or scopes.yaml itself does not hold together. A "
+        "run is never started unscoped: resolution decides which skills the engagement "
+        "can even see, so there is no sensible default to fall back to.",
+    ),
+    UNKNOWN_PRACTICE: (
+        "config",
+        "No such practice group in scope/scopes.yaml. Adding one is an entry there plus "
+        "a folder under skills/ - deliberately a two-line change. Until it is declared, "
+        "an engagement scoped to it resolves to nothing, which is why this fails at the "
+        "start of the run rather than producing an empty skill set.",
+    ),
+    UNKNOWN_SEGMENT: (
+        "config",
+        "That segment is not declared under that practice group in scope/scopes.yaml. "
+        "Segments are per practice; a segment of one group is not a segment of another.",
+    ),
+    UNKNOWN_DISPOSITION: (
+        "config",
+        "That client disposition is not declared in scope/scopes.yaml. Dispositions cut "
+        "across every practice group, so the list is short and shared.",
+    ),
+    UNKNOWN_REVIEW_LEVEL: (
+        "config",
+        "The value is not on the ladder in scope/scopes.yaml. Place it deliberately: an "
+        "unranked review level cannot be compared, and an overlay that cannot be "
+        "compared cannot be refused. Where a new value sits is a decision, not a "
+        "spelling.",
+    ),
+    AMBIGUOUS_SKILL: (
+        "config",
+        "Two skills of the same name are declared at the same layer, so resolution has "
+        "no deepest answer. Rename one, or move it to the layer where it is actually "
+        "true - the tree resolves by depth, and a tie has no meaning.",
+    ),
+    SKILL_INVALID: (
+        "config",
+        "A SKILL.md is missing frontmatter, or missing a field the tree requires. A "
+        "skill that cannot declare its own tools, privacy class and review floor cannot "
+        "be dispatched, because there would be nothing for the Policy Gate to enforce.",
+    ),
+    OVERLAY_LOOSENS: (
+        "policy",
+        "An overlay tried to lower a review requirement, widen a privacy class or add a "
+        "tool. Overlays may only tighten. If the looser setting is genuinely right, it "
+        "belongs in the skill at the layer where it is true - changing it from a deeper "
+        "layer would mean the shallower promise was never worth anything.",
     ),
     UNKNOWN_RUN: (
         "process",

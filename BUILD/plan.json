@@ -149,7 +149,7 @@
       "title": "Scope resolver",
       "block": "Block B - The engine",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Five-layer resolution, deeper shadows shallower, overlays may only tighten. This is what makes 'an engagement can only see the skills its scope resolves to' true by construction rather than by policy.",
       "builds": [
         "scope_resolver",
@@ -165,15 +165,17 @@
         "Overlay merge with a tighten-only assertion that raises on a loosening"
       ],
       "exit": [
-        "All seven scope combinations resolve to exactly one skill set",
         "An overlay that lowers a HITL requirement or widens a privacy class raises",
         "Consulting resolves to the firm layer only, and the resolver says so explicitly",
-        "The skill index never contains a skill body or a reference file"
+        "The skill index never contains a skill body or a reference file",
+        "Every scope combination the declared taxonomy admits - eight today, including the one no engagement uses yet - resolves to exactly one skill set, with no skill in it twice"
       ],
       "checks": [
-        "python -m uv run pytest tests/p05 -q"
+        "python -m uv run pytest tests/p05 -q",
+        "python -m uv run ruff check ."
       ],
-      "notes": "The same resolver binds Excel model templates per practice group - one mechanism, two kinds of artifact."
+      "notes": "The same resolver binds Excel model templates per practice group - one mechanism, two kinds of artifact.",
+      "closed": "2026-09-03"
     },
     {
       "id": "P06",
