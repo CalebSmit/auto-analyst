@@ -7,7 +7,7 @@
       "title": "Project structure and build-state system",
       "block": "Block A - Foundations (the walking skeleton)",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Create the shape the whole project lives in, and the state system that lets any session - here, or Cursor on the work machine - know where the build is without reading a conversation. No domain logic at all.",
       "builds": [],
       "tasks": [
@@ -31,7 +31,8 @@
         "python -m uv run pytest tests/p01 -q",
         "python tools/gate.py render"
       ],
-      "notes": "The refusal test matters more than it looks. A check-off mechanism that cannot refuse is decoration."
+      "notes": "The refusal test matters more than it looks. A check-off mechanism that cannot refuse is decoration.",
+      "closed": "2026-09-02"
     },
     {
       "id": "P02",

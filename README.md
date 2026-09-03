@@ -64,9 +64,9 @@ fixtures, so the early phases cost nothing to run.
 
 The design is settled and lives in one self-contained HTML file:
 
-```
-c:/Users/smitc/OneDrive/Documents/Chartwell/Automated Analyst/Chartwell_Automated_Analyst_Architecture.html
-```
+[`docs/architecture.html`](docs/architecture.html) - it travels with the repo, so it is
+there on the work machine too. On this machine the working copy is in OneDrive;
+`python tools/sync_blueprint.py` copies it across and reports any drift.
 
 118 nodes, 240 edges, 25 invariants that are executable rather than decorative, and 67
 failure modes with their controls. Open it in a browser; it needs nothing else.

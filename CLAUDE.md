@@ -62,7 +62,8 @@ guarantees strong enough that an analyst can trust the output without redoing it
 
 The architecture is settled and lives in a single file:
 
-    c:/Users/smitc/OneDrive/Documents/Chartwell/Automated Analyst/Chartwell_Automated_Analyst_Architecture.html
+    docs/architecture.html      <- travels with the repo; this is the one that matters
+    tools/sync_blueprint.py     <- refreshes it from the OneDrive working copy
 
 118 nodes, 240 edges, 25 executable invariants, 67 failure modes. **When the code and the
 blueprint disagree, that is a finding, not a preference** — resolve it explicitly and

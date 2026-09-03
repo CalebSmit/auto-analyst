@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**0 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**1 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -12,7 +12,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 
 | | Phase | Gate | Closes when | Status |
 |---|---|---|---|---|
-| [ ] | **P01** Project structure and build-state system | auto | Every directory in the blueprint repo tree exists and carries a README |  |
+| [x] | **P01** Project structure and build-state system | auto | Every directory in the blueprint repo tree exists and carries a README | 2026-09-02 |
 | [ ] | **P02** Contracts and registries | auto | Every schema loads, self-validates, and carries a version in its id |  |
 | [ ] | **P03** Ports and adapters, with one conformance suite | auto | All six ports have a Protocol and at least one adapter |  |
 | [ ] | **C1 - The skeleton holds bytes** | integration | A fake run moves bytes storage to delivery, emits events and writes a manifest |  |
