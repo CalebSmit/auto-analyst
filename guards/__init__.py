@@ -44,7 +44,21 @@ class GuardResult:
 class GuardFailed(DiagnosticError):
     def __init__(self, result: GuardResult, locator: str = "") -> None:
         assert result.code is not None
-        super().__init__(diagnose(result.code, "; ".join(result.reasons), locator=locator))
+        # The first mismatch, if the guard recorded one, fills the diagnostic's
+        # expected / found / delta - so the record says what disagreed, not just that
+        # something did.
+        mismatches = result.detail.get("mismatches")
+        first: dict[str, Any] = mismatches[0] if isinstance(mismatches, list) and mismatches else {}
+        super().__init__(
+            diagnose(
+                result.code,
+                "; ".join(result.reasons),
+                locator=locator,
+                expected=first.get("recomputed", ""),
+                found=first.get("stated", ""),
+                delta=first.get("delta", ""),
+            )
+        )
         self.result = result
 
 

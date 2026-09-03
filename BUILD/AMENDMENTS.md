@@ -223,3 +223,22 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** P13 finding: ten error codes the registry has carried since P04-P11 (PRIVACY.UNMASKED_PRECEDENT; PROCESS.LATE_RESULT, PLAN_REFUSED, DIAGNOSTICS_INVALID; SCOPE.UNKNOWN_CONTRACT, CONTRACT_INDEX_INVALID, UNKNOWN_CONSTRAINTS, UNKNOWN_ADAPTER, MODEL_PIN_UNAVAILABLE, MISSING_CREDENTIAL) had never reached the blueprint's ERRCODES table, and SKILL.UNKNOWN_SOURCE was new in P13. All added by hand at P13 close. Nothing checks that table against the registry, which is how the gap grew silently over nine phases - P14 owns diagnostics, so the assertion lands there.
 
 - task added: A test that every code in registries/errors.py appears in the blueprint's ERRCODES table, and every code in the table exists in the registry
+
+## 2026-09-03 - P14 Loop controller, quarantine, diagnostics
+
+**Why:** The blueprint's ERRCODES table names eight codes nothing had raised yet (LOOP.EXHAUSTED, LOOP.INPUT_UNCHANGED, PROCESS.REVIEW_SLA_BREACH, PROCESS.RUN_STALLED, DELIVER.QC_FAILED, DELIVER.TEMPLATE_MISSING, INTAKE.UNKNOWN_TYPE, INTAKE.NO_ENGAGEMENT). The two LOOP codes are raised here; the other six are declared in the registry now, with owner and what_now, so the table-vs-registry test holds in both directions and the phases that raise them (P16, P21, ops) inherit an actionable message rather than writing one under pressure.
+
+- check added: python -m uv run ruff check harness graph guards registries ops tests/p14
+- check added: python -m uv run mypy harness graph guards registries ops
+
+## 2026-09-03 - P14 Loop controller, quarantine, diagnostics
+
+**Why:** The Fixed Notice is a module of its own, harness/notice.py, which the blueprint's repo listing did not name (it listed loops.py under harness/ but placed the notice nowhere). Listed now. Templates are checked at import for display-field-only placeholders and internal-looking text; substitution is a single-pass placeholder replace, never str.format, so a value containing braces is text.
+
+- task added: harness/notice.py: the Fixed Notice template set, checked at import for display names only
+
+## 2026-09-03 - P21 Model builder, template registry, release
+
+**Why:** P14 finding: a quarantine now halts only dependent steps, and a step that never started has no inputs, so no honest step_key - and run_manifest@1.0.0 requires every listed step to carry a sha256 key. Halted steps are therefore absent from the manifest's steps list rather than listed as not_reached, which the blueprint's StepStatus note asks for. The executor's report and the quarantine record say what was halted; the manifest does not. Resolving it means the manifest reading the plan (order and step ids) rather than only the step table, which belongs with the release-side manifest work here.
+
+- task added: Manifest lists every plan step, with never-started ones as not_reached and no invented key (P14 finding)

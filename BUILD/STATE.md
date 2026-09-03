@@ -5,28 +5,28 @@
 
 ## Where the build is
 
-- **13 of 28 phases closed**
+- **14 of 28 phases closed**
 - Last green checkpoint: **C4**
-- Current phase: **P14 - Loop controller, quarantine, diagnostics** (gate: auto)
+- Current phase: **P15 - Confidence router, review queue, decision log** (gate: auto)
 
 ## The next action
 
-Work P14. Its full definition is in [BUILD/phases/P14.md](phases/P14.md).
+Work P15. Its full definition is in [BUILD/phases/P15.md](phases/P15.md).
 
-> Failure converges on a person or a record, never on silence - and every loop has a maximum you can read off the plan before the run starts.
+> Decides what a person sees, item by item, and makes their answer the only thing in the system that can write a precedent.
 
 Tasks:
 
-- [ ] Bounded loop regions with the four in-run loops: guard repair (2), tie-out repair (1), self-verification (1), conflict resolution (1)
-- [ ] The input-must-change rule - a retry with unchanged input is the same call at the same price
-- [ ] Quarantine holding full context, with independent branches allowed to finish
-- [ ] The diagnostic namespace: code, owner, expected, found, what_now
-- [ ] A test that every code in registries/errors.py appears in the blueprint's ERRCODES table, and every code in the table exists in the registry
+- [ ] Materiality thresholds and the auto-accept confidence bar, both per engagement
+- [ ] Checkpoint policy that may only tighten, never loosen a skill's floor
+- [ ] Review queue with an SLA and a named owner per engagement
+- [ ] Review surface API and the decision log
+- [ ] Optimistic locking so two reviewers cannot silently overwrite each other
 
 Then:
 
-    python tools/gate.py check P14
-    python tools/gate.py close P14
+    python tools/gate.py check P15
+    python tools/gate.py close P15
 
 ## Before you start
 
@@ -51,4 +51,5 @@ Then:
 - **P11** LLM port, model pin, budget governor (2026-09-03)
 - **P12** Privacy: mask, vault, unmask, verify (2026-09-03)
 - **P13** Guards and their adversarial fixtures (2026-09-03)
+- **P14** Loop controller, quarantine, diagnostics (2026-09-03)
 

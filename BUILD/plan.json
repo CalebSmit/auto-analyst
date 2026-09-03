@@ -441,7 +441,7 @@
       "title": "Loop controller, quarantine, diagnostics",
       "block": "Block C - The harness around one step",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Failure converges on a person or a record, never on silence - and every loop has a maximum you can read off the plan before the run starts.",
       "builds": [
         "loop_controller",
@@ -454,7 +454,8 @@
         "The input-must-change rule - a retry with unchanged input is the same call at the same price",
         "Quarantine holding full context, with independent branches allowed to finish",
         "The diagnostic namespace: code, owner, expected, found, what_now",
-        "A test that every code in registries/errors.py appears in the blueprint's ERRCODES table, and every code in the table exists in the registry"
+        "A test that every code in registries/errors.py appears in the blueprint's ERRCODES table, and every code in the table exists in the registry",
+        "harness/notice.py: the Fixed Notice template set, checked at import for display names only"
       ],
       "exit": [
         "A skill returning byte-identical output is stopped rather than retried",
@@ -463,9 +464,12 @@
         "Nothing partial is ever released from a quarantined run"
       ],
       "checks": [
-        "python -m uv run pytest tests/p14 -q"
+        "python -m uv run pytest tests/p14 -q",
+        "python -m uv run ruff check harness graph guards registries ops tests/p14",
+        "python -m uv run mypy harness graph guards registries ops"
       ],
-      "notes": "Only in-run loops live in a plan. Human clarification is a suspend-and-resume; drift re-review is human-paced across runs. Implementing all three in one mechanism is the mistake the scope column prevents."
+      "notes": "Only in-run loops live in a plan. Human clarification is a suspend-and-resume; drift re-review is human-paced across runs. Implementing all three in one mechanism is the mistake the scope column prevents.",
+      "closed": "2026-09-03"
     },
     {
       "id": "P15",
@@ -683,7 +687,8 @@
         "Model-load emitting a mapping; the Template Writer performing every write",
         "Deliverable QC: opens, resolves, stamped, no residual tokens, no broken external link, no #REF!",
         "The single release gate and the idempotency ledger record inside the release transaction",
-        "Workpaper narrative, written after the numbers are locked, with no schema field a figure can enter through"
+        "Workpaper narrative, written after the numbers are locked, with no schema field a figure can enter through",
+        "Manifest lists every plan step, with never-started ones as not_reached and no invented key (P14 finding)"
       ],
       "exit": [
         "A binding to a cell address is rejected at registration",

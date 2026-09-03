@@ -86,3 +86,37 @@ and again after. Crossing any one raises, records an event with the code and the
 and opens a review item naming the ceiling and the number. A run that quietly degrades to
 a cheaper model is much harder to reason about afterwards than one that stops and says
 why, so there is no method here that throttles, degrades or extends.
+
+## loops.py - the Bounded Loop Controller
+
+Owns every loop, and the ceiling on each. Four in-run loops run here as declared regions
+of a compiled plan (guard repair 2, tie-out repair 1, self-verification 1, conflict
+resolution 1). Human clarification is a suspend-and-resume and drift re-review is
+human-paced; neither is a region and the controller never sees them.
+
+**Input must change.** The next iteration's step key is computed before it is admitted;
+a key already seen in this region is refused with `LOOP.INPUT_UNCHANGED`. A skill that
+returns the same figure to the same feedback is stopped after one pass, not after the
+ceiling - the same call at the same price is a bug, not a retry.
+
+**Every iteration counts twice.** Against the region's maximum and against the run's
+`loop_iterations_max`, read from the event stream - the one `level: loop` event per
+admitted iteration is what the Cost Meter counts too, so the governor and the manifest
+cannot disagree.
+
+**Exhaustion always produces an artifact.** A quarantine record with the full context
+(inputs, every admitted iteration and its key, the guard output, the diagnostic that
+stopped it) and a review item carrying both positions. Each names the other.
+
+A repair changes the input to the step - the guard's feedback is appended under its own
+name - and nothing else. There is no method here that touches a tolerance, a schema or a
+ceiling.
+
+## notice.py - the Fixed Notice
+
+When something fails, a fixed message. A closed set of templates for the moments a
+person is told the system stopped: blocked release, unreachable source, missing template,
+reference-data miss, quarantined step with partial progress, configuration error. No
+model is on the path; nothing is generated, so there is nothing to scan. Templates are
+checked at import for display-name placeholders only and for anything that looks like a
+node id, a path or a key. A missing value is refused rather than defaulted.

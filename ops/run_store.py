@@ -43,6 +43,7 @@ from ops.models import (
     Event,
     Ledger,
     Outcome,
+    Quarantine,
     ReviewItem,
     Run,
     RunState,
@@ -66,6 +67,7 @@ __all__ = [
     "EventRecord",
     "LateResult",
     "LedgerEntry",
+    "QuarantineRecord",
     "LateResult",
     "LedgerEntry",
     "ReviewItemRecord",
@@ -187,6 +189,22 @@ class ReviewItemRecord:
 
 
 @dataclass(frozen=True)
+class QuarantineRecord:
+    step_id: str
+    step_key: str
+    code: str
+    owner: str
+    reason: str
+    loop: str | None = None
+    inputs: dict[str, Any] = field(default_factory=dict)
+    attempts: list[Any] = field(default_factory=list)
+    guard_output: dict[str, Any] = field(default_factory=dict)
+    diagnostic: dict[str, Any] = field(default_factory=dict)
+    review_item_id: str | None = None
+    held_at: str = ""
+
+
+@dataclass(frozen=True)
 class DecisionRecord:
     item_id: str
     decided_by: str
@@ -302,6 +320,10 @@ class RunStore(Protocol):
         writes_precedent: bool = False,
     ) -> None: ...
     def decisions(self, run_id: str) -> tuple[DecisionRecord, ...]: ...
+
+    # -- quarantine: full context, nothing deleted
+    def hold(self, run_id: str, record: QuarantineRecord) -> None: ...
+    def quarantines(self, run_id: str) -> tuple[QuarantineRecord, ...]: ...
 
     def close(self) -> None: ...
 
@@ -852,6 +874,52 @@ class SqlRunStore:
                     decision=DecisionKind(row.decision),
                     rationale=row.rationale,
                     writes_precedent=row.writes_precedent,
+                )
+                for row in rows
+            )
+
+    # -- quarantine
+
+    def hold(self, run_id: str, record: QuarantineRecord) -> None:
+        with self._session() as session:
+            self._row(session, run_id)
+            session.add(
+                Quarantine(
+                    run_id=run_id,
+                    step_id=record.step_id,
+                    step_key=record.step_key,
+                    loop=record.loop,
+                    code=record.code,
+                    owner=record.owner,
+                    reason=record.reason,
+                    inputs=dict(record.inputs),
+                    attempts=list(record.attempts),
+                    guard_output=dict(record.guard_output),
+                    diagnostic=dict(record.diagnostic),
+                    review_item_id=record.review_item_id,
+                    held_at=record.held_at or now_iso(),
+                )
+            )
+
+    def quarantines(self, run_id: str) -> tuple[QuarantineRecord, ...]:
+        with self._session() as session:
+            rows = session.scalars(
+                select(Quarantine).where(Quarantine.run_id == run_id).order_by(Quarantine.id)
+            )
+            return tuple(
+                QuarantineRecord(
+                    step_id=row.step_id,
+                    step_key=row.step_key,
+                    code=row.code,
+                    owner=row.owner,
+                    reason=row.reason,
+                    loop=row.loop,
+                    inputs=dict(row.inputs),
+                    attempts=list(row.attempts),
+                    guard_output=dict(row.guard_output),
+                    diagnostic=dict(row.diagnostic),
+                    review_item_id=row.review_item_id,
+                    held_at=row.held_at,
                 )
                 for row in rows
             )

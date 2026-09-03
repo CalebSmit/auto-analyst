@@ -62,6 +62,7 @@ __all__ = [
     "Ledger",
     "Outcome",
     "OUTCOMES_FOR",
+    "Quarantine",
     "ReviewItem",
     "Run",
     "RunState",
@@ -566,3 +567,43 @@ def check_transition(current: RunState, target: RunState) -> None:
             locator="ops.models.TRANSITIONS",
         )
     )
+
+
+class Quarantine(Base):
+    """Where a step goes when it has failed every way it is allowed to.
+
+    Full context, nothing summarised: the inputs it was given, every iteration the loop
+    admitted (with the key each one ran under and what triggered it), the guard output
+    that rejected the last attempt, and the diagnostic that stopped it. Nothing is
+    deleted. A quarantined step can be re-run by key once the cause is fixed, and the
+    idempotency ledger makes that safe rather than duplicative.
+
+    `review_item_id` is the item exhaustion opened. A quarantine that opened no item is
+    a quarantine nobody will look at, which is why the Loop Controller opens one every
+    time and records it here.
+    """
+
+    __tablename__ = "quarantine"
+    __table_args__ = (
+        UniqueConstraint("run_id", "step_key", name="uq_quarantine_run_key"),
+        CheckConstraint("length(code) > 0", name="quarantine_has_a_code"),
+        CheckConstraint("length(owner) > 0", name="quarantine_has_an_owner"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("run.run_id"), nullable=False)
+    step_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    step_key: Mapped[str] = mapped_column(String(71), nullable=False)
+    loop: Mapped[str | None] = mapped_column(String(64), default=None)
+    code: Mapped[str] = mapped_column(String(64), nullable=False)
+    owner: Mapped[str] = mapped_column(String(16), nullable=False)
+    reason: Mapped[str] = mapped_column(Text, nullable=False)
+    inputs: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    attempts: Mapped[list[Any]] = mapped_column(JSON, nullable=False, default=list)
+    guard_output: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    diagnostic: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    review_item_id: Mapped[str | None] = mapped_column(String(64), default=None)
+    held_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+
+    def __repr__(self) -> str:
+        return f"<Quarantine {self.run_id}/{self.step_id} {self.code}>"

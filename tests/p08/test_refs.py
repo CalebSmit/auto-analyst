@@ -41,7 +41,8 @@ def test_an_attempt_has_no_field_that_could_hold_a_value() -> None:
     quietly making the key uncomputable."""
     fields = {f.name for f in dataclasses.fields(Attempt)}
     assert fields == {
-        "step", "attempt", "step_key", "inputs", "context_ref", "timeout_s", "run_id"
+        "step", "attempt", "step_key", "inputs", "context_ref", "timeout_s", "run_id",
+        "iteration",  # P14: which admitted loop iteration this is - an int, not a value
     }
     for suspicious in ("payload", "data", "value", "body", "content", "bytes"):
         assert suspicious not in fields

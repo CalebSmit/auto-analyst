@@ -28,7 +28,10 @@ from tests.conftest import PENDING_FIXTURES
 from tests.p13.conftest import ENGAGEMENT, FIXTURES, TOLERANCE, case
 from tools.recompute import recompute
 
-BUILT = {"payload_scan", "unmask_verify", "tieout", "numeric_lock", "provenance", "budget_governor"}
+BUILT = {
+    "payload_scan", "unmask_verify", "tieout", "numeric_lock", "provenance", "budget_governor",
+    "loop_controller",  # P14
+}
 
 
 def test_the_table_has_ten_and_they_are_the_blueprints(fixture_table: dict[str, Any]) -> None:
@@ -48,7 +51,7 @@ def test_the_table_has_ten_and_they_are_the_blueprints(fixture_table: dict[str, 
         }
 
 
-def test_six_guards_are_built_and_four_are_owed(fixture_table: dict[str, Any]) -> None:
+def test_seven_guards_are_built_and_three_are_owed(fixture_table: dict[str, Any]) -> None:
     """Said in a test so the number is checked, not remembered."""
     guards = {row["guard"] for row in fixture_table["fixtures"]}
     assert guards & BUILT == BUILT
@@ -60,7 +63,6 @@ def test_six_guards_are_built_and_four_are_owed(fixture_table: dict[str, Any]) -
     assert owed == {
         "untrusted_boundary": "P17",
         "deliverable_qc": "P21",
-        "loop_controller": "P14",
         "engagement_lock": "P16",
     }
 
@@ -149,6 +151,36 @@ def _fire(
             fired["budget_governor"] = exc.diagnostic.code
         fired["tieout"] = None
         fired["provenance"] = None
+
+    elif guard == "loop_controller":
+        from graph.compile import PlanContext, compile_recipe
+        from graph.recipes import load_recipe
+        from graph.resolve import ScopeResolver
+        from harness.loops import LoopController
+        from registries.constraints import ConstraintRegistry
+        from registries.errors import SCHEMA_INVALID, diagnose
+
+        plan = compile_recipe(
+            load_recipe("monthly-refresh"),
+            PlanContext(
+                engagement_id=ENGAGEMENT,
+                scope=ScopeResolver().resolve("valuation/esop/repeat"),
+                taxonomy_version="coa-taxonomy@1.0.0",
+                precedent_snapshot="precedent_snapshot_2026_09_01",
+            ),
+        )
+        controller = LoopController(ConstraintRegistry.load(), store, bus)
+        step = plan.step("ebitda")
+        trigger = diagnose(SCHEMA_INVALID, "fixture")
+        first, second = (a["input_hash"] for a in body["attempts"])
+        opening = controller.admit(
+            started, plan, step, body["loop"], "sha256:" + "0" * 64, first, {}, trigger
+        )
+        assert opening.allowed, "the first iteration carries changed input and is admitted"
+        fired["loop_controller"] = controller.admit(
+            started, plan, step, body["loop"], first, second, {}, trigger
+        ).code
+        fired["budget_governor"] = None
     return fired
 
 

@@ -28,15 +28,44 @@ class Diagnostic:
     what_now: str
     detail: str = ""
     locator: str = ""
+    expected: str = ""
+    found: str = ""
+    delta: str = ""
+    step_id: str = ""
+    skill: str = ""
+    retryable: bool = False
+    """Whether a second attempt with the same input could end differently. False for
+    every guard and loop code: a retry with unchanged input fails identically, which is
+    the fact the Loop Controller is built around."""
 
     def __str__(self) -> str:
         parts = [f"{self.code} [{self.owner}]"]
         if self.locator:
             parts.append(f"at {self.locator}")
+        if self.expected or self.found:
+            parts.append(f"expected {self.expected or '?'}, found {self.found or '?'}")
+            if self.delta:
+                parts.append(f"(delta {self.delta})")
         if self.detail:
             parts.append(f"- {self.detail}")
         parts.append(f"| what to do: {self.what_now}")
         return " ".join(parts)
+
+    def as_dict(self) -> dict[str, object]:
+        """The wire shape: what a quarantine record, a review item and a manifest carry."""
+        return {
+            "code": self.code,
+            "owner": self.owner,
+            "what_now": self.what_now,
+            "detail": self.detail,
+            "where": self.locator,
+            "expected": self.expected,
+            "found": self.found,
+            "delta": self.delta,
+            "step_id": self.step_id,
+            "skill": self.skill,
+            "retryable": self.retryable,
+        }
 
 
 class DiagnosticError(Exception):
@@ -112,6 +141,14 @@ ILLEGAL_TRANSITION = "PROCESS.ILLEGAL_TRANSITION"
 APPEND_ONLY_VIOLATION = "PROCESS.APPEND_ONLY_VIOLATION"
 MANIFEST_INCOMPLETE = "PROCESS.MANIFEST_INCOMPLETE"
 DIAGNOSTICS_INVALID = "PROCESS.DIAGNOSTICS_INVALID"
+LOOP_EXHAUSTED = "LOOP.EXHAUSTED"
+INPUT_UNCHANGED = "LOOP.INPUT_UNCHANGED"
+REVIEW_SLA_BREACH = "PROCESS.REVIEW_SLA_BREACH"
+RUN_STALLED = "PROCESS.RUN_STALLED"
+QC_FAILED = "DELIVER.QC_FAILED"
+TEMPLATE_MISSING = "DELIVER.TEMPLATE_MISSING"
+UNKNOWN_TYPE = "INTAKE.UNKNOWN_TYPE"
+NO_ENGAGEMENT = "INTAKE.NO_ENGAGEMENT"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -237,6 +274,56 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    LOOP_EXHAUSTED: (
+        "model",
+        "A declared loop reached its ceiling without its exit condition being met. The "
+        "step is quarantined with every attempt on record and a review item carries both "
+        "positions - decide the item, or fix the cause and re-run the step by key. Do not "
+        "raise the ceiling in the recipe; ceilings live in constraints.yaml.",
+    ),
+    INPUT_UNCHANGED: (
+        "model",
+        "The next iteration would carry byte-identical input to a previous one, so it "
+        "would be the same call at the same price with the same answer. The loop stopped "
+        "early rather than spending the remaining iterations. The skill returned the same "
+        "output to the same feedback; look at the skill or the feedback, not the loop.",
+    ),
+    REVIEW_SLA_BREACH: (
+        "process",
+        "A review item has been open longer than the review SLA allows. The run is still "
+        "waiting and burning no budget; the item needs a decision from the named reviewer "
+        "or an escalation to the engagement owner. Nothing here is a system fault.",
+    ),
+    RUN_STALLED: (
+        "system",
+        "A running run has recorded no event for longer than the stall threshold. The "
+        "worker may have died holding the lock. Check the worker, then resume the run - "
+        "resume is replay, so nothing completed is re-executed.",
+    ),
+    QC_FAILED: (
+        "system",
+        "The deliverable failed its QC checks and was not released. The Fixed Notice "
+        "names the check; fix the template or the bindings and re-run the delivery step "
+        "by key. A deliverable never ships partially valid.",
+    ),
+    TEMPLATE_MISSING: (
+        "system",
+        "The template registry has no template bound for this scope at the pinned "
+        "version. Register one under the scope path, or bind a fallthrough at a higher "
+        "layer. The run stops here rather than writing into a guessed workbook.",
+    ),
+    UNKNOWN_TYPE: (
+        "client-data",
+        "The intake classifier could not say what kind of document this is, so no skill "
+        "can claim it. Tell the classifier what it is by filename convention or engagement "
+        "profile, or exclude the file. Nothing is processed under a guessed type.",
+    ),
+    NO_ENGAGEMENT: (
+        "client-data",
+        "A file arrived that no engagement claims - no matching folder, header or "
+        "profile. Assign it to an engagement explicitly, or leave it unprocessed. A file "
+        "with no engagement has no scope, and a run with no scope has no skills.",
     ),
     MULTI_TURN_STEP: (
         "policy",
@@ -406,7 +493,30 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
 }
 
 
-def diagnose(code: str, detail: str = "", locator: str = "") -> Diagnostic:
+def diagnose(
+    code: str,
+    detail: str = "",
+    locator: str = "",
+    *,
+    expected: object = "",
+    found: object = "",
+    delta: object = "",
+    step_id: str = "",
+    skill: str = "",
+    retryable: bool = False,
+) -> Diagnostic:
     """Build a diagnostic from a registered code. An unregistered code is a bug here."""
     owner, what_now = WHAT_NOW[code]
-    return Diagnostic(code=code, owner=owner, what_now=what_now, detail=detail, locator=locator)
+    return Diagnostic(
+        code=code,
+        owner=owner,
+        what_now=what_now,
+        detail=detail,
+        locator=locator,
+        expected="" if expected == "" else str(expected),
+        found="" if found == "" else str(found),
+        delta="" if delta == "" else str(delta),
+        step_id=step_id,
+        skill=skill,
+        retryable=retryable,
+    )
