@@ -214,7 +214,7 @@
       "title": "The assertion suites",
       "block": "Block B - The engine",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "The 25 invariants become tests that run in CI and before every execution, rather than properties of a picture that can be quietly wrong for months.",
       "builds": [
         "assertions"
@@ -233,9 +233,12 @@
         "assert_all_loops_bounded enforces max_turns == 1 on every skill step"
       ],
       "checks": [
-        "python -m uv run pytest tests/p07 -q"
+        "python -m uv run pytest tests/p07 -q",
+        "python tools/export_architecture.py --check",
+        "python -m uv run ruff check ."
       ],
-      "notes": "Two graphs, two suites. Conflating the 118-node architecture graph with the ~8-step plan graph is what made three assertions unsatisfiable in the blueprint's first draft."
+      "notes": "Two graphs, two suites. Conflating the 118-node architecture graph with the ~8-step plan graph is what made three assertions unsatisfiable in the blueprint's first draft.",
+      "closed": "2026-09-03"
     },
     {
       "id": "P08",

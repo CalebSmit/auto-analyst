@@ -1,0 +1,3137 @@
+{
+  "generated_from": "docs/architecture.html",
+  "generated_by": "tools/export_architecture.py",
+  "source_digest": "sha256:5a2d83997a62936011a36f89238bbefcdf75bdd6871556d3730962b0c62dc6aa",
+  "counts": {
+    "nodes": 118,
+    "edges": 240,
+    "invariants": 25
+  },
+  "nodes": [
+    {
+      "id": "engagement",
+      "runtime": "resource",
+      "label": "Engagement Workspace",
+      "plain": "Where one deal lives — its files, its job history, its open questions.",
+      "group": "entry",
+      "exec": "code",
+      "now": true,
+      "desc": "Every job carries an <code>engagement_id</code> and a <b>scope path</b> — practice group, segment, and whether the client is returning or new. The ID scopes document access; the scope path decides which skills, constraints and templates exist for the run at all.",
+      "impl": "A thin record: engagement_id, client, scope path (e.g. <code>valuation/esop/repeat</code>), fiscal year end, template version, delivery target, checkpoint policy. Everything else takes it as a required argument. Not an agent — a row in Postgres and a folder convention.",
+      "full": "The reason this is a node and not an implementation detail: cross-client bleed is the failure mode that ends the project, and the only reliable defence is that nothing downstream can even be called without an engagement scope attached."
+    },
+    {
+      "id": "analyst_chat",
+      "runtime": "static",
+      "label": "Analyst Chat",
+      "plain": "Ask the system about a run — “why did you tag this as owner comp?”",
+      "group": "entry",
+      "exec": "llm",
+      "tier": "low",
+      "now": true,
+      "desc": "A read-only conversational surface over the run store. It can explain, cite and show its working. It cannot start a job, change a tag, or write anything.",
+      "impl": "One model call through the LLM Port with a read-only tool set (query_run, get_step, get_source_excerpt). No write tools are registered at all, so “can it change something” is answered by the tool list, not by a system prompt.",
+      "full": "Analysts will not trust output they cannot interrogate. This is where “explain yourself” lives — deliberately separated from the pipeline so that answering a question can never mutate a run. <b>It works on unmasked data, deliberately.</b> A question like “why did you tag Bob’s LLC Checking as owner compensation?” cannot be answered usefully against tokens, and the firm’s Claude account is sanctioned for client data, so there is nothing to work around. It is the one model surface outside the masking path — stated here rather than left for someone to discover in the graph."
+    },
+    {
+      "id": "job_recipes",
+      "runtime": "resource",
+      "label": "Job Recipes",
+      "plain": "Saved, firm-approved sequences — “full DDR intake”, “monthly refresh”.",
+      "group": "entry",
+      "exec": "code",
+      "now": true,
+      "desc": "A named, versioned list of skills to run in order, with their parameters. Selecting one seeds the Run Plan instead of asking the orchestrator to compose one from scratch.",
+      "impl": "YAML files in the repo, loaded into the orchestrator as a candidate plan. Distinct from skills: a recipe composes skills, it does not contain domain logic.",
+      "full": "Most deal work is not novel. When the shape of a job is already known, having the orchestrator rediscover it every time is wasted tokens and a wasted chance at variance. A recipe makes the routine case deterministic and leaves the orchestrator for the cases that actually need judgment."
+    },
+    {
+      "id": "project_roster",
+      "runtime": "resource",
+      "label": "Active Project Roster",
+      "plain": "Which engagements are live this week — and therefore which folders get looked at.",
+      "group": "entry",
+      "exec": "code",
+      "now": true,
+      "desc": "The list of engagements in each of three states: <b>active</b> (swept, runs start), <b>paused</b> (location known, nothing starts, files accumulate) and <b>archived</b> (not swept at all, binding kept for the record). The Sweep Planner reads nothing else.",
+      "impl": "A table keyed on engagement_id with a state column, a watch binding, a delivery binding and a template pin. Changing a state writes to the Config Change Log with who and when. Turning an engagement off never deletes anything and never cancels a run already in flight.",
+      "full": "Three states rather than two, for the same reason a run has five outcomes rather than two: <i>paused</i> and <i>archived</i> look identical on an on/off switch and mean completely different things to whoever is deciding whether to chase a client. And the roster is the reason the system is not scanning forty inactive client folders every night — an engagement that is not on it has no path into the pipeline at all, which is a property of the graph rather than a checkbox someone remembered to tick."
+    },
+    {
+      "id": "config_store",
+      "runtime": "resource",
+      "label": "Configuration Store",
+      "plain": "Where every setup answer lives — paths, destinations, model bindings, review levels.",
+      "group": "pref",
+      "exec": "code",
+      "now": true,
+      "desc": "The versioned record behind the Admin tab: watch locations and their subfolder patterns, delivery destinations, which credential each adapter reads, the model bound to each scope, and per-engagement review level and budget.",
+      "impl": "A versioned config document per environment, validated on write against a schema, with every change appended to the Config Change Log. It writes the engagement record; it does not reach into a run.",
+      "full": "This node exists to make one boundary visible: <b>configuration writes the engagement record, and guards read the run.</b> There is no edge from here to anything that fails closed — the budget ceiling included. So lowering a budget for one engagement is an admin action, and raising one above the firm ceiling is a governance change. Without that separation, every guarantee at the top of this page would quietly have a dial on it."
+    },
+    {
+      "id": "checkpoint_policy",
+      "runtime": "resource",
+      "label": "Checkpoint Policy",
+      "plain": "How much a human reviews. It can raise the bar — it can never lower the floor.",
+      "group": "pref",
+      "exec": "code",
+      "now": true,
+      "desc": "A per-engagement setting: which advisory checkpoints pause for review, and what confidence threshold routes an item to a person. Read by exactly one node downstream.",
+      "impl": "A config object on the engagement, consumed only by the Confidence Router. No guard node subscribes to it. Materiality thresholds and always-review categories are set here.",
+      "full": "Drawn with a single downstream reader on purpose. A setting that could reach the guards would mean the guarantee at the top of this page has a dial on it — and a dial is not a guarantee. Fails-closed guards are outside this setting's reach by construction, not by policy."
+    },
+    {
+      "id": "sweep_planner",
+      "runtime": "step",
+      "label": "Sweep Planner",
+      "plain": "Decides which folders get looked at tonight — and skips every folder that is not live work.",
+      "group": "source",
+      "exec": "code",
+      "now": true,
+      "desc": "Reads the Active Project Roster and the watch definitions, and produces the list of <code>(location, engagement_id)</code> pairs to sweep. Two kinds of watch: a <b>bound watch</b> is one folder to one engagement, explicit; a <b>pattern watch</b> is a parent client folder plus a rule that maps each subfolder to an engagement — one row covering forty clients.",
+      "impl": "Deterministic Python over config. A subfolder that matches no active engagement is <b>never guessed at</b> — it is reported unclaimed and routed to a person, the same rule the Email Watcher follows for an ambiguous message. Asserts that no two watches claim the same path before it sweeps anything.",
+      "full": "Folder-level resolution is configuration and can be wrong; file-level binding fails closed and cannot. Both exist deliberately — the Sweep Planner decides <i>what to look at</i>, and Engagement Binding still independently proves <i>which deal each file belongs to</i> before anything reads it. The silent failure this node is shaped around is a folder that files land in for three weeks while nobody notices no run ever started."
+    },
+    {
+      "id": "sharefile",
+      "runtime": "step",
+      "label": "ShareFile Connector",
+      "plain": "Where clients upload their documents today.",
+      "group": "source",
+      "exec": "code",
+      "is_intake": true,
+      "modes": [
+        "sharefile_box",
+        "hosted"
+      ],
+      "now": true,
+      "desc": "Polls or webhooks a ShareFile folder tree, pulls new items, and hands raw bytes plus original path metadata to the Storage Port.",
+      "impl": "ShareFile REST API with the existing API key, held by the Secrets Port. Implements the same StorageAdapter interface as the local folder — read(), list(), stat(). Failure returns an explicit unavailable, never a partial listing that reads as “no new files”.",
+      "full": "This is the real client-facing surface, but it is deliberately one implementation of an interface rather than the system's spine. Phase 1 runs entirely without it."
+    },
+    {
+      "id": "local_intake",
+      "runtime": "step",
+      "label": "Local Intake Folder",
+      "plain": "A watched folder on your machine. This is how phase 1 runs.",
+      "group": "source",
+      "exec": "code",
+      "is_intake": true,
+      "modes": [
+        "local"
+      ],
+      "now": true,
+      "desc": "A watched directory. Drop files in, a job starts. Identical downstream behaviour to ShareFile — same interface, same fingerprinting, same masking.",
+      "impl": "watchdog or a poll loop over a folder path from config. The default adapter, so the whole pipeline is testable end to end on a laptop with no credentials and no network.",
+      "full": "Local-first is a requirement, not a fallback. Until a run can be reproduced on one machine from a folder of files, no cloud decision is worth making."
+    },
+    {
+      "id": "email_watcher",
+      "runtime": "step",
+      "label": "Email Watcher",
+      "plain": "Client DDR responses often arrive as email attachments, not uploads.",
+      "group": "source",
+      "exec": "hybrid",
+      "tier": "low",
+      "is_intake": true,
+      "modes": [
+        "sharefile_box",
+        "hosted"
+      ],
+      "desc": "Watches a shared mailbox, matches a message to an engagement and a DDR item, and files the attachments as intake. Ambiguous matches go to a person, never to a guess.",
+      "impl": "Graph/IMAP poll → small classifier for engagement + DDR item match → attachments to the Storage Port. Deterministic code does the fetching and filing; the model only proposes the match, and low confidence routes to the Review Queue.",
+      "full": "Optional, and off in phase 1. Included because in practice half a DDR arrives by reply-all, and a pipeline that only understands uploads quietly loses half its inputs."
+    },
+    {
+      "id": "engagement_bind",
+      "runtime": "step",
+      "label": "Engagement Binding",
+      "plain": "Stamps every incoming file with which deal it belongs to.",
+      "group": "source",
+      "exec": "code",
+      "now": true,
+      "desc": "Resolves an incoming item to exactly one <code>engagement_id</code> before anything reads it. Unresolvable items stop and go to a person.",
+      "impl": "Folder convention for ShareFile and local; classifier result for email. Fails closed: an unbound file is never processed “to figure out later what it is”.",
+      "full": "The single cheapest defence against cross-client contamination, and the one that has to happen first — before extraction, before masking, before any model call."
+    },
+    {
+      "id": "storage_port",
+      "runtime": "step",
+      "label": "Storage Port",
+      "plain": "One interface, three sources. Swapping is a config line.",
+      "group": "source",
+      "exec": "code",
+      "isGuard": false,
+      "now": true,
+      "desc": "The abstraction every intake source implements: <code>list()</code>, <code>read()</code>, <code>stat()</code>. Nothing downstream knows or cares where a file came from.",
+      "impl": "A Python Protocol with three implementations (LocalFolder, ShareFile, MailAttachments). Chosen by an env var. The pipeline holds a reference to the interface, never to a concrete client.",
+      "full": "This is the portability argument in one node. No cloud has been chosen at work yet, so the only responsible move is to make the choice reversible. The same discipline is applied to secrets, queue, LLM and delivery — see the Delivery tab."
+    },
+    {
+      "id": "intake_window",
+      "runtime": "step",
+      "label": "Intake Window",
+      "plain": "Decides when enough has arrived to be worth starting a run.",
+      "group": "source",
+      "exec": "code",
+      "now": true,
+      "desc": "Holds arriving files until the intake set is <b>quiet</b> and <b>complete enough</b>, then releases exactly one run over the whole current set. Quiet means no new file for a configured period. Complete enough means the recipe’s required document types are present, or the wait has passed its SLA and the run proceeds with an explicit, recorded coverage gap.",
+      "impl": "Deterministic Python over the intake manifest. Three settings per engagement, all on the Admin tab: <code>quiet_period</code> (default 30 min), <code>required_types</code> (from the job recipe), <code>max_wait</code> (default 24 h). A run consumes <b>the whole current intake set, never a delta</b> — tagging needs the full historical table, and a delta alone is not a valid input to it.",
+      "full": "Without this node the most basic question has no answer: a sweep finds three new files in a folder that already held eight — what happens? A run per file is eleven runs and eleven times the cost, serialised behind the Engagement Lock. A run over the delta produces a wrong historical table. This node makes the answer explicit and configurable rather than an accident of whoever wrote the watcher. It is also the natural home for the honest version of “we are still waiting on the client”: a set that never completes becomes a review item at the SLA, not a folder nobody looks at."
+    },
+    {
+      "id": "engagement_lock",
+      "runtime": "step",
+      "label": "Engagement Lock",
+      "plain": "One run at a time per deal, so two runs cannot fight.",
+      "group": "source",
+      "exec": "code",
+      "now": true,
+      "desc": "Serializes runs on a single engagement. A second run queues rather than starting alongside the first, because both would write to the same mask vault and the same output folder.",
+      "impl": "Advisory lock keyed on engagement_id, with a visible queue and a timeout that alerts rather than force-releasing. A lock held past its timeout is an incident, not something to clear automatically.",
+      "full": "The hazard is narrow and nasty: two runs masking the same account concurrently and issuing different tokens for it. That raises no error — it breaks period alignment downstream and produces a plausible wrong answer, which is the worst failure shape this system has."
+    },
+    {
+      "id": "file_fingerprint",
+      "runtime": "step",
+      "label": "File Intake & Fingerprint",
+      "plain": "Gives every file a permanent ID that every figure will later cite.",
+      "group": "intake",
+      "exec": "code",
+      "now": true,
+      "desc": "Computes a SHA-256 content hash as <code>source_id</code>, records mime type, size, original path and a monotonic <code>source_version</code>, then routes spreadsheet vs. document.",
+      "impl": "Pure Python. Returns a manifest row. Unreadable file stops the run rather than proceeding with a null id — a figure that cites nothing is worse than a figure that never existed.",
+      "full": "Provenance is attached at the moment of arrival so it can never be reconstructed downstream from memory. Every guard later in the map depends on this id being real and stable."
+    },
+    {
+      "id": "doc_reader",
+      "runtime": "step",
+      "label": "Document Reader",
+      "plain": "Pulls text and tables out of PDFs, Word files and scans.",
+      "group": "intake",
+      "exec": "code",
+      "now": true,
+      "desc": "Deterministic extraction to structured JSON, attaching <code>source_id</code> plus a locator (page, table, row) to every emitted item.",
+      "impl": "pypdf / python-docx, with an OCR path for scanned pages. No model involved: extraction is mechanical work, and a model here would cost more, add latency and introduce paraphrase risk on figures that must be verbatim.",
+      "full": "The locator is the part that matters. “Page 14, table 2, row 7” is what lets a reviewer check a number in two seconds instead of two minutes."
+    },
+    {
+      "id": "workbook_reader",
+      "runtime": "step",
+      "label": "Workbook Reader",
+      "plain": "Finds the sheets that matter in a messy workbook — and says what it skipped.",
+      "group": "intake",
+      "exec": "hybrid",
+      "tier": "mid",
+      "desc": "Reads sheet names and header rows structurally, a model selects which sheets are relevant, then deterministic code normalizes only those to a 2-D table. Reports selected <b>and skipped</b> sheets with reasons.",
+      "impl": "Python reads names/headers → one model call returns a selection with reasons → Python normalizes. The full workbook never enters a model context, which keeps both cost and leakage bounded.",
+      "full": "Silent under-selection is the dangerous failure here — a confident answer built on half a workbook looks exactly like a confident answer built on all of it. Reporting the skip list turns that into a visible, correctable event."
+    },
+    {
+      "id": "doc_classifier",
+      "runtime": "step",
+      "label": "Document Classifier",
+      "plain": "Works out what each file actually is.",
+      "group": "intake",
+      "exec": "llm",
+      "tier": "low",
+      "desc": "Classifies to a fixed enum — trial balance, income statement, balance sheet, GL detail, DDR response, tax return, cap table, other. “Other” is a valid, common answer that routes to a person.",
+      "impl": "Small structured-output call over headers and the first rows only, not the full document. Low tier: this is pattern recognition on a closed set, and spending a frontier model on it would be waste.",
+      "full": "Having “other” be a first-class outcome rather than a forced choice is what stops the system confidently mis-filing an unusual document and building on it for the rest of the run."
+    },
+    {
+      "id": "period_detector",
+      "runtime": "step",
+      "label": "Period & Timing Detector",
+      "plain": "Monthly or annual? Which year end? What currency and units?",
+      "group": "intake",
+      "exec": "hybrid",
+      "tier": "low",
+      "desc": "Detects period type, period end dates, fiscal year end, currency, and scale (units / thousands / millions). Ambiguity is reported, never assumed.",
+      "impl": "Deterministic date and header parsing first; a small model call only for the residue the parser cannot resolve. Emits an explicit <code>ambiguous</code> flag that the Timing Normalization skill must handle.",
+      "full": "“Thousands vs. units” is the single most expensive silent error available in this whole pipeline, and it is almost always recoverable from a header the parser can read. Doing it here, once, beats every skill guessing separately."
+    },
+    {
+      "id": "source_parse",
+      "runtime": "step",
+      "label": "Source Parse Store",
+      "plain": "The addressable copy of every source document that provenance and tie-out both read from.",
+      "group": "intake",
+      "exec": "code",
+      "now": true,
+      "desc": "Every table, row and cell a reader extracts is written here under its <code>source_id</code>, addressable by <code>locator</code>, and immutable for the life of the run. Three guards resolve against it: Provenance asks whether a cited source and locator exist, Tie-Out asks for the rows behind a stated total, and the Numeric Lock compares a released figure to the value first read.",
+      "impl": "Content-addressed rows in the run store, keyed <code>(run_id, source_id, locator)</code>. Written once by the readers, never updated. A locator is a sheet range for a workbook and a page/table/row triple for a document; both resolve through one interface, so a guard never needs to know which kind of file a figure came from.",
+      "full": "This was missing until a pre-build review, and it is the kind of gap that surfaces in week nine rather than week one. Provenance, tie-out and the numeric lock are all assertions <i>about source rows</i>, and none of them can be written until something owns the rows. The design said the locator was load-bearing without ever naming what it addresses into. Naming it turns three guards from prose into code with somewhere to read from."
+    },
+    {
+      "id": "untrusted_boundary",
+      "runtime": "step",
+      "label": "Untrusted Content Boundary",
+      "plain": "Treats every document as data to read, never as instructions to follow.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Wraps all external content in fixed sentinels, NFKC-normalizes Unicode, strips zero-width characters, and scans for instruction-injection patterns. The firm's own reference vault passes through here too.",
+      "impl": "Python, before any model call. Normalizes before scanning, because homoglyph and zero-width tricks defeat naive pattern matching while staying perfectly readable to a model. Strong hit stops the run. Every agent prompt carries the matching sentinel rule.",
+      "full": "The firm vault is included deliberately. Firm-authored does not mean safe — a poisoned standards document would reach every skill at once, which is a far worse blast radius than one bad client PDF."
+    },
+    {
+      "id": "mask_engine",
+      "runtime": "step",
+      "label": "Masking Engine",
+      "plain": "Replaces real account names with generic labels before anything leaves.",
+      "group": "privacy",
+      "exec": "code",
+      "isPriv": true,
+      "now": true,
+      "desc": "Deterministic substitution: <code>Bob's LLC Checking</code> → <code>Masked_Company_1 Checking</code>. Covers account names and numbers, entity names, person names, addresses and any identifier in the engagement profile.",
+      "impl": "Pure Python with a per-engagement, stable token scheme, so the same account gets the same token across every file and every run. Emits both the masked payload and the vault entry. No model involvement anywhere in this node.",
+      "full": "<b>Masking is not a security boundary here.</b> The firm’s Claude account is already sanctioned for client data, so nothing in this pipeline depends on masking to be safe. It is kept for two other reasons, both of which survive that. <b>Precedent portability:</b> the Precedent Store reuses one client’s approved tagging decisions as examples on another engagement, and that is only defensible if the examples carry no client identity — masking is what makes the store shareable at all. <b>Model priors:</b> a recognisable company name invites a model to import what it thinks it knows about that company instead of reading the documents in front of it, which is a quality failure rather than a privacy one. Stability then matters as much as coverage: if the same account masks differently in the January and February files, timing normalization cannot line them up, and the system quietly produces a wrong historical table rather than an obvious error."
+    },
+    {
+      "id": "mask_vault",
+      "runtime": "resource",
+      "label": "Mask Vault",
+      "plain": "The map from fake names back to real ones. No model can reach it.",
+      "group": "privacy",
+      "exec": "code",
+      "isPriv": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "The token ↔ real-value store, scoped per engagement and encrypted at rest. Two edges only: the Masking Engine writes it, the Unmasking Engine reads it.",
+      "impl": "Encrypted Postgres table, key from the Secrets Port. Not exposed as a tool to any agent — there is no <code>lookup_real_name</code> function registered anywhere in the SDK tool set.",
+      "full": "The strongest isolation available is absence, not permission. Look at this node on the map: there is no edge from here to anything that runs a model. That is checkable by reading the graph, which is a different and better kind of assurance than a sentence in a policy document."
+    },
+    {
+      "id": "payload_scan",
+      "runtime": "step",
+      "label": "Outbound Payload Scan",
+      "plain": "Checks that a payload matches what the calling skill declared about itself.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Every model-bound payload is scanned against the engagement's vault and identifier list. A hit stops the run. Passes are recorded, so the guard's silence is never ambiguous.",
+      "impl": "Python wrapper around the LLM Port — structurally, the only way to reach a model is through this function. Deterministic string and pattern matching, plus a check that every expected identifier was actually substituted rather than missed.",
+      "full": "The Masking Engine is the control; this is the proof the control worked. Two nodes rather than one, so the check can be tested independently of the thing it checks — a masker that silently no-ops and a scanner that silently passes are the same bug, and splitting them makes it findable. <b>What this gate enforces is a declared contract, not a law of the firm:</b> a skill that says <span class=\"mono\">data_sensitivity: masked_only</span> must not receive unmasked values, and that is checkable. It is also the single choke point where every outbound payload is recorded, which is what makes “what exactly was sent?” answerable for any call."
+    },
+    {
+      "id": "skill_tree",
+      "runtime": "resource",
+      "label": "Skill Tree",
+      "plain": "The whole library, organised by practice group and segment.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "Every skill the firm has, laid out in five layers: firm-wide, practice group, client disposition, segment, and the most specific leaf. A skill is written once at the shallowest layer where it is true, and deeper layers add to it rather than copying it.",
+      "impl": "A folder tree with a declared layer at each level. Adding a practice group is one folder and one line in the Scope Registry; adding a skill is one folder at whichever layer it belongs to. Nothing else changes.",
+      "full": "The alternative — a flat library, or a full copy of every skill per group — fails the same way every time: the same EBITDA procedure ends up in six places and they drift apart within a year. Layering means the shared 80% is written once and reviewed once, and only the genuine differences are written down."
+    },
+    {
+      "id": "scope_resolver",
+      "runtime": "step",
+      "label": "Scope Resolver",
+      "plain": "Tier 0. Works out which skills this engagement can even see.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "Takes the engagement's scope path — practice / segment / client disposition — and resolves it against the tree into one set: the applicable skills, the constraints in force, the template to use, and the precedent scope that may be retrieved from.",
+      "impl": "Deterministic Python, no model. Walks the five layers in order and unions them; a deeper layer shadows a shallower one only when it declares an override. Resolution is part of the plan hash, so a run records the exact skill set it was allowed.",
+      "full": "This is what makes the library scale. Without it the orchestrator would read every description in the firm — two hundred and rising — and pick worse from a longer menu. With it, an ESOP repeat engagement sees about a dozen. It is also the cheapest possible control: a Corporate Finance skill is not something an ESOP run declines to use, it is something that run never had."
+    },
+    {
+      "id": "skill_index",
+      "runtime": "resource",
+      "label": "Skill Index",
+      "plain": "Tier 1 — just the name and one-line description of each skill.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "The only skill content permanently in the orchestrator's context — and only for the skills this engagement's scope resolved to, typically a dozen rather than the whole firm library. Names and one-line descriptions, roughly 40 tokens each. Procedures, references and worked examples are not here.",
+      "impl": "Built at startup by reading the YAML frontmatter of every registered SKILL.md. The Skill Registry is the only thing that can add to it — a folder on disk is not enough to make a skill live.",
+      "full": "This is progressive disclosure in one node, and the Scope Resolver above it is what keeps it viable at scale. The orchestrator chooses between a dozen descriptions rather than two hundred — which is cheaper, and, more importantly, a better choice from a shorter menu. See the Skills tab."
+    },
+    {
+      "id": "orchestrator",
+      "runtime": "step",
+      "label": "Orchestrator Agent",
+      "plain": "Reads what arrived, decides which skills to run and in what order.",
+      "group": "orch",
+      "exec": "llm",
+      "tier": "mid",
+      "desc": "Takes the masked document summary, the classification, and the engagement profile; returns an ordered plan. If a Job Recipe matches, it validates and adapts that instead of composing from scratch.",
+      "impl": "One model call with structured output. Mid tier: this is routing over a closed set with good signal, not deep reasoning. Its context holds the Skill Index and the job manifest — never a SKILL.md body.",
+      "full": "Dispatch is directed, with no path back to itself: no skill returns here to start a fresh request, so there is no cycle a build has to bound. As the library grows past roughly fifteen skills, the natural next step is a domain-scoped sub-orchestrator — one for statement prep, one for valuation — before this node's branching gets hard to reason about."
+    },
+    {
+      "id": "run_plan",
+      "runtime": "step",
+      "label": "Run Plan",
+      "plain": "The plan, written down before any of it runs.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "An explicit ordered list of skill invocations with their inputs, persisted before execution begins and shown live on the Ops Console. It is the input to the Graph Compiler, not something executed directly.",
+      "impl": "A JSON artifact in the run store. The dispatcher executes it step by step; deviations require a new plan version, which is recorded.",
+      "full": "The alternative — an agent improvising its next step each turn — is far harder to review, to test, and to explain to a reviewer after the fact. Writing the plan first turns “what is it doing?” into a question with an answer you can read before it finishes."
+    },
+    {
+      "id": "dispatcher",
+      "runtime": "step",
+      "label": "Skill Dispatcher",
+      "plain": "Loads one skill into a clean context and runs it.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "Invoked by the Step Executor for one compiled step. Loads that step's SKILL.md into a scoped sub-agent, attaches only the tools and references it declares, and enforces its own <code>data_sensitivity</code> and <code>hitl</code> settings.",
+      "impl": "One model call per invocation, with a per-skill tool allowlist built from the frontmatter. A skill declaring <code>data_sensitivity: masked_only</code> is constructed without any tool that could reach unmasked data — the restriction is in the tool list, not in the prompt.",
+      "full": "This is where the skill file format stops being documentation and becomes enforcement. Anything a skill declares about itself, this node is responsible for making true."
+    },
+    {
+      "id": "context_builder",
+      "runtime": "step",
+      "label": "Context Builder",
+      "plain": "Assembles exactly what goes into one model call, and records it.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "The single place where a model call's input is put together: the skill body, the references it declares, the firm standards, the retrieved precedents, the masked payload, and — on a repair pass — the guard failure that sent it back. Emits a content-addressed <code>context_ref</code>.",
+      "impl": "Python. Nothing calls a model without going through here, so “what exactly was in context?” is a hash lookup rather than an archaeology exercise. The context manifest is written to the event bus and into the run manifest.",
+      "full": "Two things depend on this node existing. Reproducibility: a workfile has to be able to say what the model was shown, not just what it answered. And the loops: every declared loop feeds its changed input back to here, which is what makes “an iteration must change something” a checkable claim rather than an intention — the controller compares context hashes."
+    },
+    {
+      "id": "triage",
+      "runtime": "step",
+      "label": "Triage & Escalation",
+      "plain": "When nothing fits, it routes to a person instead of guessing.",
+      "group": "orch",
+      "exec": "llm",
+      "tier": "high",
+      "desc": "The low-confidence fallback. Classifies the problem, gathers context, and either names a skill or writes an escalation. Its output schema has no figures field, so it cannot emit a number.",
+      "impl": "One model call, high tier. Structured output limited to {assessment, suggested_skill?, escalation_reason?}. There is no shape in that schema for a value, so “it guessed a number” is not a failure mode available to it.",
+      "full": "High tier deliberately. The cases that reach here — unusual entity structures, hybrid instruments, incoherent client data — are exactly the ones where a classification mistake costs the most, so this is not the place to economise on model quality."
+    },
+    {
+      "id": "graph_compiler",
+      "runtime": "step",
+      "label": "Run Graph Compiler",
+      "plain": "Turns the plan into a typed graph and checks it before a single step runs.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "Compiles the Run Plan into a directed acyclic graph of typed steps. Every node declares inputs, outputs, timeout, retry policy and an idempotency key; every edge declares the schema and version of the data crossing it. Loops are declared regions with an iteration ceiling — never implicit cycles.",
+      "impl": "Python. Emits <code>{nodes, edges, loops, plan_hash}</code>. The plan hash covers graph structure, skill versions, model pins, template version, taxonomy version, schema versions and the <b>precedent-store snapshot id</b> — that last one added after a review noticed that retrieved precedents change with every approved correction, so without it two runs could share a hash, see different examples and legitimately disagree. Rejects any graph containing a cycle that is not a declared, bounded loop.",
+      "full": "This is where the properties listed in the left rail stop being claims about a picture and become executable assertions. “No model step reads the vault” is a graph query, and it runs against every compiled plan before execution and against the reference graph on every commit. A diagram can be quietly wrong; an assertion that runs cannot."
+    },
+    {
+      "id": "step_executor",
+      "runtime": "step",
+      "label": "Step Executor",
+      "plain": "Runs one step: keyed, timed, retried, and safe to run twice.",
+      "group": "orch",
+      "exec": "code",
+      "now": true,
+      "desc": "Executes a compiled step. Derives an idempotency key from step id, input content hashes, skill version and model pin; a key already in the ledger returns the stored result instead of re-running. Enforces per-step timeout and retry policy, and commits a checkpoint on success.",
+      "impl": "Python. Retries are exponential with jitter and cover transport failures only — a schema or guard failure is not a retry, it is a repair loop with changed input, and it routes to the Loop Controller instead. Every attempt writes an event, including the ones that succeeded first time.",
+      "full": "The key includes <code>context_ref</code>, not just the inputs. That was a correction: the Context Builder folds in retrieved precedents, and those change every time an analyst approves something, so a key built from inputs alone would let a resumed run return a cached result the current context would no longer produce. Idempotency then buys three things with one mechanism: crash resume, safe manual re-runs, and protection against double delivery. It is far cheaper on day one than retrofitted after the first duplicated client model reaches a partner."
+    },
+    {
+      "id": "loop_controller",
+      "runtime": "step",
+      "label": "Bounded Loop Controller",
+      "plain": "Owns every loop in the system, and the ceiling on each one.",
+      "group": "orch",
+      "exec": "code",
+      "failClosed": true,
+      "now": true,
+      "desc": "Six loops are declared in the graph: guard repair, self-verification, conflict resolution, human clarification, the precedent loop, and drift re-review. Each declares a trigger, what must change between iterations, a maximum count, an exit condition, and what happens on exhaustion.",
+      "impl": "Python. Refuses to run an iteration whose input is byte-identical to the previous attempt — a retry with unchanged input is a bug, not a retry. Exhaustion is never a silent give-up: it routes to Quarantine or the Review Queue, and it is recorded either way.",
+      "full": "Unbounded agent loops are the most common way systems like this burn money and time with nobody noticing until the invoice arrives. Declaring loops in the graph, rather than letting them emerge from an agent deciding to try again, makes the worst case a number you can read off the plan before you run it. Full loop table on the Runtime tab."
+    },
+    {
+      "id": "budget_governor",
+      "runtime": "step",
+      "label": "Run Budget Governor",
+      "plain": "Hard ceilings on tokens, spend, wall-clock and total loop iterations.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Every run carries four ceilings: token spend, currency spend, wall-clock, and total loop iterations across all loops. Crossing any one halts the run and escalates. Ceilings are per-engagement with a firm-level default.",
+      "impl": "Checked before every model call and after every step, reading live spend from the Cost Meter. Halt, not throttle: a run that quietly degrades to a cheaper model is much harder to reason about afterwards than one that stops and says why.",
+      "full": "The failure this exists for is a repair loop and a conflict loop interacting on one pathological document and spending four figures overnight. A ceiling turns that from an invoice into a caught incident with a quarantine record attached."
+    },
+    {
+      "id": "sk_ddr",
+      "runtime": "step",
+      "label": "DDR Tagging & Structuring",
+      "plain": "Turns raw client answers into tagged, structured fields.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "mid",
+      "deferred": true,
+      "desc": "Takes unstructured DDR response content and emits tagged fields (A.1, A.2, A.3 …) against the request schedule, each carrying its source and locator. A second pass verifies the structuring against the original text.",
+      "impl": "Skill package with a tagging taxonomy reference and an output JSON schema. The verification pass is a separate invocation with the original excerpt and the proposed structure — a reviewer, not the author.",
+      "full": "The two-pass shape comes straight from the internal deck: structure first, then verify the structure independently. Splitting them matters because a model asked to check its own output in the same turn tends to ratify it."
+    },
+    {
+      "id": "sk_timing",
+      "runtime": "step",
+      "label": "Timing Normalization",
+      "plain": "Turns a pile of single-date files into one historical table.",
+      "group": "skill",
+      "exec": "hybrid",
+      "tier": "mid",
+      "deferred": true,
+      "desc": "Aligns monthly and annual files onto a common period grid with matching line items, reconciling differing chart-of-accounts versions across periods.",
+      "impl": "The model proposes the line-item alignment; the Timing Normalizer tool performs every arithmetic operation. Handles the <code>ambiguous</code> flag from the Period Detector by escalating rather than assuming.",
+      "full": "Step one of the Model Builder in the source deck. The split here is the pattern for the whole system: matching “Repairs & Maintenance” to “Repairs and Maint.” is judgment, and summing twelve months is not."
+    },
+    {
+      "id": "sk_lineitem",
+      "runtime": "step",
+      "label": "Line-Item Tagging",
+      "plain": "Categorises each line — and whether it counts toward A/L or NWC.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "mid",
+      "deferred": true,
+      "desc": "Assigns Category, Excluded from A/L?, Include in NWC? and related flags to every line item, with a confidence score and a rationale on each.",
+      "impl": "Runs on masked data only. Retrieves prior approved decisions from the Precedent Store as few-shot examples, and the firm taxonomy as its reference. Per-item confidence feeds the Confidence Router.",
+      "full": "The highest-volume skill and the one where human review compounds fastest: every correction an analyst makes here becomes a retrieved example for the next engagement, so the review burden should fall over time rather than stay flat."
+    },
+    {
+      "id": "sk_ebitda",
+      "runtime": "step",
+      "label": "EBITDA Normalization",
+      "plain": "Finds add-backs and adjustments, and shows where each came from.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "high",
+      "deferred": true,
+      "desc": "Identifies non-recurring, discretionary and owner-related adjustments. Every proposed add-back carries source, locator, amount and rationale. Material items always route to review regardless of confidence.",
+      "impl": "High tier. Declares <code>hitl: material_addbacks_require_review</code> in its frontmatter, which the dispatcher enforces — the threshold comes from the engagement, but the requirement itself is not switchable.",
+      "full": "Add-backs are where a valuation gets argued, so this skill proposes and evidences; it never silently applies. An add-back nobody looked at is a liability, not a time saving."
+    },
+    {
+      "id": "sk_dcf",
+      "runtime": "step",
+      "label": "DCF Build",
+      "plain": "Assembles discounted cash flow inputs and the range they imply.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "high",
+      "deferred": true,
+      "desc": "WACC build-up, forecast structure, terminal value assumptions. Emits sourced inputs and an indicated range, with every driver traceable to a source or a stated assumption.",
+      "impl": "High tier. Reads the Cost of Capital dataset through the index gate. Output schema requires a two-element range for any indicated value, so a bare point estimate has no shape to be written into.",
+      "full": "The reconciliation of DCF against other methods stays with the appraiser. This skill's job is to get the inputs assembled, sourced and defensible so that judgment starts from a complete picture rather than a blank sheet."
+    },
+    {
+      "id": "sk_gpc",
+      "runtime": "step",
+      "label": "GPC Scrub",
+      "plain": "Screens guideline public companies and scrubs the multiples.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "high",
+      "deferred": true,
+      "desc": "Candidate screening, comparability assessment, and multiple scrubbing. Each surviving multiple carries its source and an as-of date; each rejection carries a reason.",
+      "impl": "High tier. Reads the Multiples dataset through the index gate. Emits both the accepted set and the rejected set — a screen you cannot see is a screen you cannot review.",
+      "full": "The rejection list is the part reviewers actually need. Which companies were considered and thrown out says more about the quality of a comp set than the ones that survived."
+    },
+    {
+      "id": "sk_coc",
+      "runtime": "step",
+      "label": "Cost of Capital",
+      "plain": "Builds the discount rate from sourced components.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "mid",
+      "deferred": true,
+      "desc": "Assembles risk-free rate, equity risk premium, size premium, industry and company-specific adjustments — each component sourced and dated, with the build-up shown.",
+      "impl": "Mid tier: this is largely structured lookup and assembly against a known build-up, with the judgment concentrated in the company-specific adjustment, which routes to review.",
+      "full": "Closes an open question from the project context — where cost of capital data comes from. It is a versioned dataset behind the index gate, so a run can always answer which vintage it used."
+    },
+    {
+      "id": "sk_model",
+      "runtime": "step",
+      "label": "Model Load & Assembly",
+      "plain": "Loads everything into the firm model template.",
+      "group": "skill",
+      "exec": "hybrid",
+      "tier": "mid",
+      "deferred": true,
+      "desc": "Maps normalized historicals (IS, IS.m, BS, BS.m), cost of capital and multiples onto the template's expected inputs, then hands the mapping to the Template Writer.",
+      "impl": "The model produces a mapping; the Template Writer performs every write. The skill never emits a workbook itself — it emits a mapping that deterministic code executes and that a human can read.",
+      "full": "Step five of the Model Builder in the source deck, and the clearest example of the design rule: the interesting part (which line goes where) is judgment, and the risky part (writing numbers into cells) is arithmetic that belongs in code."
+    },
+    {
+      "id": "sk_qc",
+      "runtime": "step",
+      "label": "QC / Tie-Out Review",
+      "plain": "Runs the checklist before an analyst sees the work.",
+      "group": "skill",
+      "exec": "llm",
+      "tier": "high",
+      "deferred": true,
+      "desc": "Cross-statement tie-outs, period-over-period movement checks, coverage gaps and unresolved items. Its strongest possible finding is “no automated issues found” — it cannot approve.",
+      "impl": "High tier. Output schema forbids <code>approved</code>, <code>signed_off</code> and <code>conclusion</code>; the readiness field is an enum limited to <code>items_outstanding</code> or <code>no_automated_issues_found</code>.",
+      "full": "A checklist that finds nothing is not the same as work that is right, and the wording is constrained so a tired reader at 6pm cannot collapse the two."
+    },
+    {
+      "id": "skill_contract",
+      "runtime": "resource",
+      "label": "Skill Contract",
+      "plain": "The shape every skill must fit — inputs, outputs, and what it must declare.",
+      "group": "skill",
+      "exec": "code",
+      "now": true,
+      "desc": "The shared interface: declared inputs and outputs, a JSON output schema, a tool allowlist, a <code>data_sensitivity</code> class, and an <code>hitl</code> rule. A skill that does not satisfy it cannot be registered.",
+      "impl": "A Pydantic model plus a frontmatter validator run at registration time and in CI. The Skills tab shows a complete worked example.",
+      "full": "Two fields here extend Claude's own skill format: <code>data_sensitivity</code> and <code>hitl</code>. Making a skill declare its own privacy class and its own review requirement means the dispatcher can enforce both, instead of those rules living in a prompt that whoever writes the next skill has to remember."
+    },
+    {
+      "id": "policy_gate",
+      "runtime": "step",
+      "label": "Policy Gate",
+      "plain": "Decides whether a proposed action is allowed — before it runs.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Every tool call a skill proposes is evaluated before execution: is this tool on the caller's declared allowlist, do the arguments satisfy the constraint predicates, is the target inside this run's engagement scope, and is there budget left for it? Any answer of no is a denial, recorded.",
+      "impl": "Python, wrapping the tool-execution path so there is no way to reach a tool around it. Decisions are allow or deny — there is no “allow with a warning”, because a warning nobody reads is an allow.",
+      "full": "This is the control the rest of the map was missing, and it is not the same thing as the guards below it. Verification catches a wrong <i>result</i>. A policy gate catches a wrong <i>action</i> — and an action that should never have happened can produce a perfectly well-formed result that passes every downstream check. Reading another engagement's folder returns valid data. Writing outside the mapping schema produces a valid workbook. Only a pre-execution decision catches those."
+    },
+    {
+      "id": "guarded_runtime",
+      "runtime": "step",
+      "label": "Guarded Tool Runtime",
+      "plain": "The only way a skill can actually touch anything.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Executes approved actions and nothing else. Applies call-time limits from the Constraint Registry — row caps, path scoping, read-only enforcement, per-call cost estimates — then returns the result into the Context Builder rather than straight back to the model.",
+      "impl": "A thin interceptor around every registered tool. Skills are constructed with the wrapped functions only; the unwrapped ones are not in scope, so bypassing it is not a configuration mistake anyone can make.",
+      "full": "Splitting the decision from the enforcement is deliberate: the Policy Gate can be tested against a table of proposed actions with no tools present, and this can be tested against a table of approvals with no model present. A single node doing both would be testable only end to end, which is how enforcement bugs survive."
+    },
+    {
+      "id": "diagnostics",
+      "runtime": "resource",
+      "label": "Diagnostics & Error Codes",
+      "plain": "Every failure has a code, an owner, and what to do next.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "The third registry. A stable code per failure mode (<code>GUARD.TIEOUT_MISMATCH</code>, <code>POLICY.TOOL_NOT_DECLARED</code>), and a fixed diagnostic shape: expected, found, delta, where, which step and skill version, whether it is retryable, who owns it, and what to do about it.",
+      "impl": "A versioned enum plus a Pydantic model, alongside the contracts and constraints. No guard raises a bare exception — every failure path constructs a diagnostic, and CI asserts that every declared code has a <code>what_now</code> string.",
+      "full": "The <b>owner</b> field is what makes this operational rather than decorative. A tie-out mismatch is usually the client's trial balance being wrong; a schema violation is our skill being wrong; a Box timeout is infrastructure. Those go to three different people, and “the run failed” tells none of them anything. Naming the owner in the error is the difference between an alert and an action."
+    },
+    {
+      "id": "constraint_registry",
+      "runtime": "resource",
+      "label": "Constraint Registry",
+      "plain": "The rules about what may happen, in one versioned place.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Declarative permissions and limits: which skills may call which tools, argument predicates, engagement scoping, read-only paths, row and size caps, per-run ceilings, and the materiality thresholds that force review. Versioned and pinned per run.",
+      "impl": "YAML compiled to predicates, versioned in the repo alongside the schemas. The Graph Compiler asserts against it at compile time — a skill declaring a tool the constraints forbid fails the build rather than the run.",
+      "full": "The twin of the Contract Registry: contracts say what <i>shapes</i> are legal, constraints say what <i>actions</i> are legal. Before this existed the answer to “what is this system allowed to do?” was spread across skill frontmatter, the checkpoint policy, the budget defaults and four guards. That is not an answer a risk committee can accept, and it is not one a developer can maintain."
+    },
+    {
+      "id": "t_timing",
+      "runtime": "step",
+      "label": "Timing Normalizer",
+      "plain": "Does the actual arithmetic of lining up periods.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Given a line-item mapping, produces the combined historical table. All summation, annualization and period alignment happens here — never in a model.",
+      "impl": "pandas. Pure function: mapping plus source rows in, table plus a full derivation trail out. Golden-file tested against known workbooks.",
+      "full": "Deterministic, reproducible and cheap to test, which is exactly what you want for the step whose output every later number depends on."
+    },
+    {
+      "id": "t_recompute",
+      "runtime": "step",
+      "label": "Recompute / Tie-Out Engine",
+      "plain": "Re-derives every total a model states, from the source rows.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Takes any figure a skill emits together with its cited source rows, recomputes it independently, and returns match or mismatch with the delta.",
+      "impl": "Pure Python over the extracted source data. Knows nothing about the model that produced the claim; it only has the claim, the citation and the underlying rows.",
+      "full": "This is the mechanism behind the second guarantee on the left. “The model said the total is 4.2m” is an assertion; “the rows sum to 4.2m” is a fact — and only the second one reaches a deliverable."
+    },
+    {
+      "id": "t_template",
+      "runtime": "step",
+      "label": "Model Template Writer",
+      "plain": "Writes the numbers into the firm's model template.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Executes a validated cell mapping against the AI-ready template, preserving formulas, named ranges and formatting. Runs inside assembly, <b>after</b> unmasking and after every guard — the values it writes are already re-identified, tied out and locked.",
+      "impl": "openpyxl against a versioned template file, opened as a copy — the master is never written to. Every destination is a <b>named range</b>, never a cell address: <code>B44</code> is not a contract, and a single inserted row would shift every mapping below it and produce a plausibly wrong deliverable. Refuses to write a destination not present in the mapping schema, so a hallucinated target fails loudly at write time.",
+      "full": "Step five of the source deck's Model Builder, as code. Its position on the map was corrected during review: an earlier draft had the writer running in the tools band — before the guards — which would have meant a workbook built from unverified, still-masked figures. Writing is exactly where a figure can silently change, so it happens last and the Numeric Integrity Lock brackets it."
+    },
+    {
+      "id": "contract_registry",
+      "runtime": "resource",
+      "label": "Contract Registry",
+      "plain": "The schemas everything is validated against, versioned.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Versioned JSON schemas for every typed object that crosses an edge: the figure envelope, each skill output, review items, events, the run manifest, and the two configuration-sourced inputs — <code>engagement_profile</code> and the <code>participant_census</code> document type. Schema versions are pinned per run and recorded in the plan hash. An index file is the pin: the loader reads only what it lists, at the version it lists, and a schema file the index does not name is an error rather than a contract.",
+      "impl": "JSON Schema plus generated Pydantic models, versioned in the repo. A schema change is a breaking change and goes through review exactly like a skill change. The Graph Compiler reads this to type the edges.",
+      "full": "The figure envelope is the load-bearing one — value, unit, scale, currency, period, source, locator, derivation, confidence. Every guard on this map is really an assertion about that envelope, which is why it is defined once centrally rather than restated per skill. Full definition on the Runtime tab."
+    },
+    {
+      "id": "t_registry",
+      "runtime": "resource",
+      "label": "Template Registry",
+      "plain": "Which version of the model template a deliverable was built from.",
+      "group": "tool",
+      "exec": "code",
+      "now": true,
+      "desc": "Versioned store of model templates and output formats, <b>resolved by scope through the same five layers as a skill</b> — an ESOP engagement and a sell-side mandate do not share a template, and a layer with nothing bound falls through to the firm default. Registering a template introspects the workbook and asserts it declares every named range the mapping requires, so a model missing two inputs fails at binding rather than delivering two empty cells. Every deliverable is stamped with the <code>template_version</code> it was built from. A missing or unresolvable template returns a fixed notice.",
+      "impl": "Versioned files with a manifest; the version string is written into the run manifest and into the workbook itself.",
+      "full": "Closes another open question from the project context. Six months from now, “why does this model look different from that one?” needs an answer that is not archaeology."
+    },
+    {
+      "id": "scope_registry",
+      "runtime": "resource",
+      "label": "Scope Registry",
+      "plain": "Which practice groups, segments and client types exist.",
+      "group": "data",
+      "exec": "code",
+      "now": true,
+      "desc": "The declared taxonomy: practice groups (Valuation, Consulting, Corporate Finance and any others), their segments (ESOP, non-ESOP…), and the client dispositions that cut across them (repeat, new). Versioned like any other reference artifact.",
+      "impl": "A short YAML file. Adding a practice group is an entry here plus a folder in the Skill Tree — deliberately a two-line change, because the firm will add several and it must not be a project each time.",
+      "full": "Keeping the taxonomy declarative rather than implicit in folder names means the resolver can validate against it: an engagement scoped to a group that does not exist fails at the start rather than silently resolving to nothing. It is also what routes a new skill to the right reviewers — a Corporate Finance partner should not be the one approving ESOP valuation logic."
+    },
+    {
+      "id": "foundations",
+      "runtime": "resource",
+      "label": "Foundations Vault",
+      "plain": "Firm standards every skill must follow. No skill can opt out.",
+      "group": "data",
+      "exec": "code",
+      "desc": "Valuation standards, firm QC conventions, tagging policy and house rules. Attached to every skill invocation by the dispatcher rather than referenced per skill.",
+      "impl": "A knowledge source the dispatcher attaches unconditionally. Passes the Untrusted Content Boundary like any other document — firm-authored does not mean safe.",
+      "full": "Making this a dispatcher-level attachment rather than a per-skill reference means standards cannot be omitted by whoever writes the next skill. It is one of the few things worth making non-optional."
+    },
+    {
+      "id": "coa_taxonomy",
+      "runtime": "resource",
+      "label": "Chart of Accounts Taxonomy",
+      "plain": "The firm's categories and tagging rules for line items.",
+      "group": "data",
+      "exec": "code",
+      "desc": "Canonical category list, NWC and A/L inclusion rules, and the mapping conventions the tagging skills work against.",
+      "impl": "A versioned reference document plus a lookup tool. The version used is recorded per run.",
+      "full": "Keeping this as data rather than prompt text means it can be updated, reviewed and versioned by the people who actually own the convention — without touching a skill."
+    },
+    {
+      "id": "precedent_store",
+      "runtime": "resource",
+      "label": "Precedent Store",
+      "plain": "Every tagging decision an analyst has approved, reused as an example.",
+      "group": "data",
+      "exec": "code",
+      "desc": "Approved and corrected classifications from past engagements, retrieved as few-shot examples. Masked, and <b>scoped</b>: a query is built from the engagement's resolved scope, so a Corporate Finance decision is never available to an ESOP valuation. For a returning client, that client's own prior decisions are retrieved first.",
+      "impl": "Embedding index over masked line-item descriptions with their approved category and rationale. Written to only by the Precedent Write-back node, downstream of a human decision.",
+      "full": "This is the loop that makes review worth doing. Without it an analyst corrects the same mis-tag forever; with it the correction is the signal and the review burden falls over time. Nothing enters without a human having approved it — and nothing leaves outside the scope it was learned in, which is the substantive difference between a repeat client and a new one."
+    },
+    {
+      "id": "index_gate",
+      "runtime": "resource",
+      "label": "Data Index Gate",
+      "plain": "Checks an index before querying, so it never invents a lookup.",
+      "group": "data",
+      "exec": "code",
+      "isGuard": true,
+      "now": true,
+      "desc": "Reads only the dataset index. A match retrieves the real record; no match returns an explicit not-in-dataset notice. No full-corpus scan, no fallback to model memory.",
+      "impl": "Index lookup in Python, in front of every reference dataset. Miss routes to the Fixed Notice node. Reading only the index costs some recall, which is the right trade when the alternative is a confident invented multiple.",
+      "full": "The failure mode this exists to prevent is specific and expensive: asked for a multiple that is not in the dataset, an unguarded model produces a plausible one from memory, and it looks identical to a real one on the page."
+    },
+    {
+      "id": "coc_data",
+      "runtime": "resource",
+      "label": "Cost of Capital Data",
+      "plain": "Risk-free rates, premia, industry betas — versioned and dated.",
+      "group": "data",
+      "exec": "code",
+      "deferred": true,
+      "desc": "The dataset behind the Cost of Capital skill. Every retrieved figure carries a source and an as-of date, so a stale input is a visible fact rather than a silent error.",
+      "impl": "Reference tables behind the index gate, refreshed on a stated cadence with the vintage recorded per run.",
+      "full": "Marked not yet built so the map does not imply a working dependency that does not exist. The gate in front of it is buildable now, so wiring this in later is a single connection."
+    },
+    {
+      "id": "multiples_data",
+      "runtime": "resource",
+      "label": "Multiples Data",
+      "plain": "Historical transaction and trading multiples.",
+      "group": "data",
+      "exec": "code",
+      "deferred": true,
+      "desc": "Internal and licensed multiples, reached only through the index gate. Each figure carries source and as-of date.",
+      "impl": "Same pattern: index-first retrieval, explicit unavailable on a miss, vintage recorded per run.",
+      "full": "Also not yet built. The important part — that it cannot be queried without going through the gate — is already true of the graph."
+    },
+    {
+      "id": "schema_gate",
+      "runtime": "step",
+      "label": "Output Schema Validator",
+      "plain": "Rejects any skill output that is not the right shape.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Validates every skill output against that skill's declared JSON schema, including forbidden fields. A violation stops the run.",
+      "impl": "Pydantic validation at the dispatcher boundary. Forbidden-field checks are part of the schema, so “the skill wrote a conclusion into a field that should not exist” is caught structurally.",
+      "full": "The cheapest guard on the map and the one that catches the most. Everything downstream is written assuming the shape is right, so a validator that fails open would be worse than no validator at all."
+    },
+    {
+      "id": "provenance_gate",
+      "runtime": "step",
+      "label": "Provenance Check",
+      "plain": "Rejects any number that cannot say where it came from.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Every figure must carry <code>source_id</code>, locator and <code>source_version</code>. Fabricated provenance — an id matching “model”, “derived” or “analysis” — is rejected as hard as a missing one.",
+      "impl": "Python validation against the figure schema, checking that each cited source_id actually exists in the run's intake manifest. Fails closed.",
+      "full": "Makes “no number without a source” structural rather than best-effort, and catches provenance being reconstructed at the end rather than carried from the start."
+    },
+    {
+      "id": "tieout_gate",
+      "runtime": "step",
+      "label": "Tie-Out Check",
+      "plain": "Every stated total is recomputed. A mismatch stops the run.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Calls the Recompute Engine on every figure that claims to be a sum, subtotal or derived value, and compares to the stated figure within a tolerance recorded in the manifest.",
+      "impl": "Python. A mismatch stops the run and writes both values, the delta and the cited rows to the manifest, so a reviewer sees what disagreed rather than just that something did.",
+      "full": "This is the second guarantee, enforced. <b>Be precise about what it proves.</b> The model proposes a value and names the rows it came from; this node re-derives the value from those rows. That eliminates arithmetic error and invented totals completely. It does <i>not</i> prove the model cited the <b>right</b> rows — eight wrong rows added correctly still pass here. Selection is caught further along, by materiality review, by the self-verification pass that sees the source excerpt without the first pass’s reasoning, and by the sampling audit. It is also the guard most likely to fire in early testing, which is the point — a system that never disagrees with itself is not being checked. And saying this plainly is worth more than a stronger-sounding claim a partner could take apart in one question."
+    },
+    {
+      "id": "reconcile",
+      "runtime": "step",
+      "label": "Reconciliation & Conflict Surfacing",
+      "plain": "Where two skills disagree, that becomes a visible list.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "now": true,
+      "desc": "Collates outputs across skills and surfaces contradictions: a line item categorised differently by two skills, a trial balance that will not tie to the income statement, a period present in one file and absent in another.",
+      "impl": "Deterministic set comparison over structured outputs. Emits a conflict list with both positions and their sources. Conflicts route to review; they are never auto-resolved by preferring the later writer.",
+      "full": "Without this node the last skill to write simply wins, and the disagreement — which is the single most useful signal the system produces about its own reliability — disappears silently."
+    },
+    {
+      "id": "confidence_router",
+      "runtime": "step",
+      "label": "Confidence Router",
+      "plain": "Decides what goes straight through and what a person sees.",
+      "group": "guard",
+      "exec": "code",
+      "now": true,
+      "desc": "Routes each item on its confidence score, its materiality, and the skill's own <code>hitl</code> declaration: auto-accept, queue for review, or block.",
+      "impl": "The one node that reads the Checkpoint Policy. Thresholds are configurable; the skill-declared review requirements and the fails-closed guards are not — this node can add review, never remove it.",
+      "full": "Item-level, not run-level. An analyst approves eleven uncertain line-item tags out of four hundred, rather than approving “the run” — which is the difference between review that catches things and review that becomes a rubber stamp. What it auto-accepts is not left unexamined either: a stratified sample goes to the Sampling Audit precisely because nobody was asked to look at it."
+    },
+    {
+      "id": "unmask_engine",
+      "runtime": "step",
+      "label": "Unmasking Engine",
+      "plain": "Puts the real names back. A script does this — never a model.",
+      "group": "privacy",
+      "exec": "code",
+      "isPriv": true,
+      "now": true,
+      "desc": "Deterministic reverse substitution using the vault. Runs after all model work is complete, on validated output only.",
+      "impl": "Pure Python, reading the vault directly. No agent has a tool that reaches this function; it is called by the pipeline, not by a skill.",
+      "full": "Straight from the project context's key design pattern, and the reason the Mask Vault has no edge to any model node. Re-identification is the one step where a plausible-looking mistake is indistinguishable from correctness, so it is the last place a model belongs."
+    },
+    {
+      "id": "unmask_verify",
+      "runtime": "step",
+      "label": "Unmask Integrity Check",
+      "plain": "Confirms every fake name resolved, and none were left behind.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Three assertions: every mask token present in the input resolved to a real value; no mask token survives into the output; no token resolved that was never issued for this engagement.",
+      "impl": "Set comparison between issued tokens, tokens found, and tokens resolved. Any of the three failing stops the run.",
+      "full": "The third assertion is the one that matters most — a token resolving to a value from a different engagement is the cross-client failure this whole band exists to prevent, and it is exactly the kind of bug that would otherwise surface in a client's hands."
+    },
+    {
+      "id": "numeric_lock",
+      "runtime": "step",
+      "label": "Numeric Integrity Lock",
+      "plain": "Confirms that unmasking and writing did not change a single number.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Tokenizes every numeric value and citation marker before and after unmasking and template writing. The set difference must be empty. Any change stops the run.",
+      "impl": "Python tokenizer over both versions. Built as its own node rather than folded into either transform, so it can be tested independently of the step it checks.",
+      "full": "Lets names and formatting change freely while making it impossible for a figure to be altered, rounded or restated in the process. Transformation steps are precisely where a number goes quietly wrong."
+    },
+    {
+      "id": "quarantine",
+      "runtime": "step",
+      "label": "Quarantine",
+      "plain": "Where a step goes when it has failed every way it is allowed to.",
+      "group": "guard",
+      "exec": "code",
+      "now": true,
+      "desc": "Holds a failed step with its full context: inputs, every attempt, the guard output that rejected it, and the reason it stopped. Independent branches of the run continue; dependent branches halt.",
+      "impl": "A table plus a console view. Nothing is deleted, and a quarantined step can be re-run by key once the cause is fixed — the idempotency ledger makes that safe rather than duplicative.",
+      "full": "The alternative is a run that fails wholesale because of one bad file. Partial progress is worth keeping: if nine of eleven documents processed cleanly, an analyst should get those nine plus a clear account of the other two, not an error message and nothing else."
+    },
+    {
+      "id": "review_queue",
+      "runtime": "step",
+      "label": "Review Queue",
+      "plain": "An inbox of items needing a decision — not an inbox of runs.",
+      "group": "hitl",
+      "exec": "code",
+      "now": true,
+      "desc": "Holds individual items: an uncertain tag, a material add-back, a surfaced conflict, an unmatched email. Each carries its source excerpt, the proposal, the confidence and the reason it was queued.",
+      "impl": "A table plus an API. A run with queued items pauses at that step and continues when they are resolved; independent later steps proceed in parallel where the plan allows.",
+      "full": "Granularity is the whole design decision here. “Approve this run” is a button people learn to press without looking. “Is this Repairs & Maintenance or Capex?” is a question that gets a real answer."
+    },
+    {
+      "id": "review_surface",
+      "runtime": "step",
+      "label": "Analyst Review Surface",
+      "plain": "Shows you the source and the question before it shows you the answer.",
+      "group": "hitl",
+      "exec": "code",
+      "now": true,
+      "desc": "The review UI. Source excerpt and the question first; the model's proposal and confidence revealed on request. Approve, edit or reject, with a required reason on edits and rejections.",
+      "impl": "Judgment-first ordering is a deliberate default, not a preference — the proposal is a second click. Real account names are shown here; this surface sits inside the trust boundary.",
+      "full": "Anchoring is well documented: shown a confident answer first, a reviewer tends to look for reasons it is right. Ordering the interaction so the reviewer forms a view before seeing the proposal is close to free, and it is the difference between review and ratification."
+    },
+    {
+      "id": "decision_log",
+      "runtime": "step",
+      "label": "Decision Log",
+      "plain": "Who decided what, when, and why.",
+      "group": "hitl",
+      "exec": "code",
+      "now": true,
+      "desc": "Append-only record of every human decision: item, decision, reason, reviewer, timestamp, and the model proposal that was accepted or overridden.",
+      "impl": "Append-only table, written into the run manifest at the end of the run.",
+      "full": "Two audiences. A reviewer six months later asking why a line was treated a particular way, and the system itself — an override rate that climbs on one skill is the clearest possible signal that the skill needs work."
+    },
+    {
+      "id": "outcome_feedback",
+      "runtime": "static",
+      "label": "Outcome Feedback",
+      "plain": "What we learn weeks later, when someone finds a figure was wrong.",
+      "group": "hitl",
+      "exec": "code",
+      "desc": "Captures late ground truth: a reviewer correcting a delivered figure, a partner changing a treatment, a client challenging a number. Attributes it back to the run, the step, and the exact skill version that produced it.",
+      "impl": "A correction entered against a delivered artifact resolves through the manifest to a run, a step and a skill@version, then feeds the drift monitor and — once approved — the precedent store.",
+      "full": "This is the single most valuable evaluation signal the system can produce, and almost every system like this ignores it. Fixtures tell you about cases someone thought of. Guards tell you a run was internally consistent. Only a later correction tells you whether a run that <i>passed everything</i> was actually right — and a rise in these is the earliest honest warning that confidence is outrunning quality."
+    },
+    {
+      "id": "precedent_writeback",
+      "runtime": "step",
+      "label": "Precedent Write-back",
+      "plain": "Approved corrections become examples for next time.",
+      "group": "hitl",
+      "exec": "code",
+      "now": true,
+      "desc": "Takes approved and corrected decisions, masks them, and writes them to the Precedent Store as retrievable examples.",
+      "impl": "Runs only on human-approved outcomes. Masked before storage, so precedents carry the pattern and not the client.",
+      "full": "The one path by which the system gets better without anyone retraining anything. It is also why the Precedent Store has exactly one writer — an unreviewed decision must never become tomorrow's example."
+    },
+    {
+      "id": "sample_audit",
+      "runtime": "static",
+      "label": "Sampling Audit",
+      "plain": "A share of the items nobody was asked to review gets reviewed anyway.",
+      "group": "hitl",
+      "exec": "code",
+      "now": true,
+      "desc": "Draws a stratified random sample of the items the Confidence Router auto-accepted and puts them in front of a reviewer. The rate is set per engagement, and the outcomes feed the Drift Monitor.",
+      "impl": "Stratified by skill and by confidence band, deliberately including the high-confidence items nobody would otherwise look at. Sampled items are reviewed judgment-first, like any other review item.",
+      "full": "This is the only control aimed at the residual risk this system genuinely carries: a classification that is confidently wrong, internally consistent, correctly sourced, and clears every automated check. No guard catches that, because there is nothing structurally wrong with it. A sample catches it eventually, and the override rate it produces is the signal that a skill is drifting."
+    },
+    {
+      "id": "model_builder",
+      "runtime": "step",
+      "label": "Model Builder",
+      "plain": "Combines the historicals, template, cost of capital and multiples.",
+      "group": "out",
+      "exec": "code",
+      "now": true,
+      "desc": "Assembles the final client model: normalized IS, IS.m, BS and BS.m, plus cost of capital and multiples, into the versioned template.",
+      "impl": "Deterministic Python. Resolves the validated mapping, then hands it to the Template Writer. Inputs are unmasked, tied-out, locked figures only — nothing reaches here that has not cleared every guard on the band above.",
+      "full": "The deliverable the project context is ultimately aiming at. Everything above exists so that this step is boring: by the time it runs, every number has a source and has been recomputed."
+    },
+    {
+      "id": "ddr_pack",
+      "runtime": "step",
+      "label": "DDR Response Pack",
+      "plain": "The structured, tagged DDR output.",
+      "group": "out",
+      "exec": "code",
+      "now": true,
+      "desc": "Tagged DDR fields with sources and locators, plus an explicit list of outstanding and unanswered items.",
+      "impl": "Rendered from validated structured output. The gap list is generated from the request schedule, not from what happened to be found.",
+      "full": "The outstanding list is the useful half. Knowing which fourteen items the client still has not answered is what moves a deal along."
+    },
+    {
+      "id": "workpaper",
+      "runtime": "step",
+      "label": "Workpaper Narrative",
+      "plain": "Writes the summary — what was found and what needs judgment.",
+      "group": "out",
+      "exec": "llm",
+      "tier": "mid",
+      "desc": "Prose summary of the run: what was processed, what was adjusted, what remains open, what a reviewer should look at first. Renders figures; originates none.",
+      "impl": "Positioned <b>upstream</b> of the Deliverable QC Gate and the Numeric Integrity Lock, so nothing it writes escapes verification. Style-only prompt over already-validated structured data.",
+      "full": "A general rule on this map: no generative step runs downstream of a guard. “Make this read more naturally” is exactly the instruction that turns a range into something that sounds settled, so it happens before verification, never after."
+    },
+    {
+      "id": "deliverable_qc",
+      "runtime": "step",
+      "label": "Deliverable QC Gate",
+      "plain": "Opens the file and checks it before anyone else does.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Opens the produced artifact and asserts: it loads, formulas resolve, no <code>#REF!</code> or <code>#VALUE!</code>, no residual mask tokens, template version stamped, every figure traceable.",
+      "impl": "openpyxl round-trip plus pattern checks. Failure stops the run and routes to the Fixed Notice, never to a partially valid deliverable.",
+      "full": "The last chance to catch a file that is technically produced but practically broken — which, with generated spreadsheets, is a common enough outcome to deserve its own gate."
+    },
+    {
+      "id": "release_gate",
+      "runtime": "step",
+      "label": "Single Release Gate",
+      "plain": "One node, one way out. Everything leaves through here.",
+      "group": "guard",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "isExit": true,
+      "now": true,
+      "desc": "The sole release point for client work. One inbound edge, from the Deliverable QC Gate. Records the release event with its artifact hashes, then hands off to the Idempotency Ledger so the same artifact can never be written twice.",
+      "impl": "A build-time assertion enforces that the only edges into the Delivery Port are from the Idempotency Ledger and the Run Manifest — no skill, guard or builder can reach a delivery adapter directly. Verifiable by reading the graph rather than by trusting this sentence.",
+      "full": "One node with one inbound edge is trivially auditable, which is the entire reason to build it this way. “Can anything reach a client without passing QC?” should be answerable by looking, in about five seconds. The run manifest is the one thing that bypasses this gate, deliberately: it must be written even when a run halts, and it is a record rather than client work."
+    },
+    {
+      "id": "fixed_notice",
+      "runtime": "step",
+      "label": "Fixed Notice",
+      "plain": "When something fails, a fixed message — never an improvised one.",
+      "group": "notice",
+      "exec": "code",
+      "now": true,
+      "desc": "Hard-coded messages for blocked releases, unreachable sources, missing templates and not-in-dataset misses. No model anywhere in this path.",
+      "impl": "A template set in code. Copy uses display names only — no node ids, internal paths or folder names leak. Nothing here is generated, so there is nothing to scan.",
+      "full": "The failure this prevents is a calling agent narrating around a missing dependency instead of surfacing it. Fixed strings cannot improvise, which is exactly the property you want at the moment something has gone wrong."
+    },
+    {
+      "id": "idempotency_ledger",
+      "runtime": "step",
+      "label": "Idempotency Ledger",
+      "plain": "Stops the same deliverable being written twice.",
+      "group": "out",
+      "exec": "code",
+      "now": true,
+      "desc": "Records run id, artifact hash and destination at the moment of release. A repeat write with the same key is a no-op that returns the original location rather than creating a second file.",
+      "impl": "Written in the same transaction as the release event. It covers the case that actually happens in practice: a delivery succeeds, the acknowledgement is lost, and the step is retried.",
+      "full": "Exactly-once delivery over an at-least-once transport is a ledger, not a hope. Without it, a network blip during a Box write leaves two client models with different names, no indication which is current, and a partner asking which one to send."
+    },
+    {
+      "id": "delivery_port",
+      "runtime": "step",
+      "label": "Delivery Port",
+      "plain": "One interface. Local folder, or Box two different ways.",
+      "group": "out",
+      "exec": "code",
+      "now": true,
+      "desc": "The write-side abstraction: <code>put()</code>, <code>ensure_folder()</code>, <code>version()</code>. Chosen by config. Two inbound edges only — released artifacts via the ledger, and the run manifest.",
+      "impl": "Python Protocol with three implementations. The run manifest is written through the same port as the deliverable, so the record lands beside the work it describes.",
+      "full": "Mirror of the Storage Port. Between them, moving from a laptop to whatever infrastructure work eventually sanctions is two config lines and no changed logic."
+    },
+    {
+      "id": "box_mcp",
+      "runtime": "step",
+      "label": "Box via MCP",
+      "plain": "Agent-driven Box access, scoped to the person running it.",
+      "group": "out",
+      "exec": "code",
+      "modes": [
+        "sharefile_box",
+        "hosted"
+      ],
+      "desc": "Box reached through an MCP server. Per-user scoping, interactive auth, good for analyst-initiated operations where the acting identity should be a person.",
+      "impl": "MCP server registered with the SDK; the Delivery Port wraps it so nothing else in the system knows which Box path is in use.",
+      "full": "Preferred where a human is in the loop and the audit trail should name them. See the Delivery tab for the trade-off against Client Credentials."
+    },
+    {
+      "id": "box_ccg",
+      "runtime": "step",
+      "label": "Box via Client Credentials",
+      "plain": "Service-account Box access for unattended runs.",
+      "group": "out",
+      "exec": "code",
+      "modes": [
+        "sharefile_box",
+        "hosted"
+      ],
+      "desc": "Box Client Credentials Grant with a service account. Non-interactive, suited to scheduled and unattended delivery.",
+      "impl": "CCG token flow, credentials from the Secrets Port, folder scope restricted to the engagement tree. Same Delivery Port interface as MCP.",
+      "full": "The right choice for anything running on a schedule. The cost is that the audit trail names a service account rather than a person, which is why both options exist rather than one."
+    },
+    {
+      "id": "local_out",
+      "runtime": "step",
+      "label": "Local Output Folder",
+      "plain": "Writes to a folder on disk. How phase 1 delivers.",
+      "group": "out",
+      "exec": "code",
+      "modes": [
+        "local"
+      ],
+      "now": true,
+      "desc": "Writes the deliverable and its run manifest to a local path. Same interface, same guards, same manifest as any other target.",
+      "impl": "Plain filesystem writes. The default, so the whole pipeline is demonstrable with no cloud account of any kind.",
+      "full": "Phase 1 must be provable on one machine. Everything else is a swapped adapter behind the same port."
+    },
+    {
+      "id": "skill_drop",
+      "runtime": "static",
+      "label": "Skill Drop Folder",
+      "plain": "Anyone can drop a rough skill here. No format required.",
+      "group": "gov",
+      "exec": "code",
+      "now": true,
+      "desc": "The one folder a person touches. Drafts written anywhere — in Claude, in a text editor, in a colleague's notes — land here exactly as they are. Nothing is demanded of them: no frontmatter, no schema, no scope, no fixtures.",
+      "impl": "<code>skills-intake/_drop/</code>, watched. Anything dropped is copied, hashed and moved into triage within seconds; the original is left untouched so nobody loses work by contributing.",
+      "full": "Making the front door frictionless is deliberate. If conforming to the contract were a prerequisite for contributing, people would stop contributing and start working around the system — which is worse than a messy inbox. The rigour is applied after the drop, not demanded before it."
+    },
+    {
+      "id": "skill_conformance",
+      "runtime": "static",
+      "label": "Conformance Check",
+      "plain": "Scans the draft, then reports exactly what is missing.",
+      "group": "gov",
+      "exec": "code",
+      "isGuard": true,
+      "failClosed": true,
+      "now": true,
+      "desc": "Two scans and a diff. Scans for prompt injection and for anything that looks like real client data, then diffs the draft against the Skill Contract and emits a gap report: missing frontmatter, undeclared or non-existent tools, no output schema, no escalation rules, no fixtures.",
+      "impl": "Deterministic Python, run inside the governance scope with no engagement credentials — so the client-data check is pattern-based rather than vault-based. It errs toward flagging and a person clears it.",
+      "full": "A rough draft is a document from outside the system and gets the same treatment as a client document: assume nothing, scan first. Someone drafting a skill will paste a real trial balance in as an example sooner or later, and that must not quietly become a file in the repo. The gap report is what makes adaptation tractable — it turns “make this fit” into a checklist instead of a judgment about where to begin."
+    },
+    {
+      "id": "skill_adapt",
+      "runtime": "static",
+      "label": "Adaptation Bench",
+      "plain": "Where a rough draft is fitted to the contract and given a scope.",
+      "group": "gov",
+      "exec": "hybrid",
+      "tier": "high",
+      "now": true,
+      "desc": "Fills the gaps the conformance report named: frontmatter, declared inputs and outputs, a tool allowlist valid against the Constraint Registry, a data sensitivity class, an hitl floor, an output schema, a when-<i>not</i>-to-use section and escalation rules. Proposes the scope layer; a person confirms it.",
+      "impl": "A model working from the gap report and the Skill Contract. It can produce a conforming skill. It <b>cannot</b> produce fixtures — those are evidence the skill works, and evidence comes from an analyst rather than from the thing being tested.",
+      "full": "That limit is the important one. Without it, the drop folder plus a helpful model becomes the route by which unvalidated logic reaches client work. The bench outputs a conforming skill <i>and a fixture request</i>, and the skill cannot register until someone answers it. Scope follows one rule — the shallowest layer where the skill is true — proposed with its reasoning and confirmed by the practice owner, because too deep gets duplicated and too shallow fires where it should not."
+    },
+    {
+      "id": "skill_sandbox",
+      "runtime": "static",
+      "label": "Skill Authoring Sandbox",
+      "plain": "Where an analyst drafts a new skill — walled off from client work.",
+      "group": "gov",
+      "exec": "code",
+      "desc": "A separate workspace for writing a SKILL.md, its references and its output schema. No credential in this scope can read an engagement folder or the mask vault.",
+      "impl": "Its own project scope with its own secrets and no Storage Port binding. The isolation is that the connection does not exist, not that a permission denies it.",
+      "full": "Skills are how this system changes. Making authoring easy is what stops people working around the system; making authoring isolated is what stops that from being dangerous."
+    },
+    {
+      "id": "sandbox_test",
+      "runtime": "static",
+      "label": "Sandbox Test Harness",
+      "plain": "Try the new skill on sample data — never a live client file.",
+      "group": "gov",
+      "exec": "hybrid",
+      "tier": "mid",
+      "desc": "Runs a draft skill against seeded synthetic fixtures and produces a transcript: inputs, outputs, guard results, token cost.",
+      "impl": "The same dispatcher and the same guards as production, pointed at fixture data. A draft skill faces exactly the checks a live one does — which is the only way the transcript means anything.",
+      "full": "The transcript is what the reviewer actually reads. Testing that runs a different code path than production tells a reviewer nothing about how the skill will behave."
+    },
+    {
+      "id": "eval_harness",
+      "runtime": "static",
+      "label": "Evaluation Harness",
+      "plain": "Golden fixtures and acceptance thresholds. A skill passes, or it does not ship.",
+      "group": "gov",
+      "exec": "code",
+      "now": true,
+      "desc": "Runs a candidate skill against a curated fixture set with known-correct outputs, plus adversarial fixtures aimed at the guards. Produces a scorecard against the acceptance thresholds published for that skill.",
+      "impl": "pytest with golden files, run on every skill version and required to pass before the Skill Registry will accept a registration. The graph assertions run in the same suite.",
+      "full": "Guards are tested with failures, not passes: a masker stubbed to a no-op, a total altered just outside tolerance, an injected PDF, a token issued under another engagement. A guard suite that only ever sees clean input tells you nothing about the guard. Detail on the Assurance tab."
+    },
+    {
+      "id": "replay_harness",
+      "runtime": "static",
+      "label": "Replay Harness",
+      "plain": "Re-runs past engagements against a new version and diffs the result.",
+      "group": "gov",
+      "exec": "code",
+      "now": true,
+      "desc": "Takes a candidate skill version and replays it over the content-addressed inputs of past runs, then diffs the outputs against what was delivered and against what a human later corrected.",
+      "impl": "Falls straight out of the rest of the design: inputs are content-addressed, manifests record every version, and steps are keyed — so replaying a past run is executing an old plan with one pin changed. It reads <b>masked payloads only</b>, never a re-identified artifact, so it stays inside the sandbox isolation: the skill only ever saw masked data, and replaying it needs exactly that and nothing more.",
+      "full": "This is the regression eval, and it answers the question fixtures cannot: not “does the new version handle the cases we wrote down” but “would it have changed anything on the last fifty real engagements, and were those changes improvements?” A diff of zero on fifty runs is a very different kind of confidence from a green fixture suite."
+    },
+    {
+      "id": "skill_submit",
+      "runtime": "static",
+      "label": "Submit for Review",
+      "plain": "A deliberate “send it in”. Nothing moves without this click.",
+      "group": "gov",
+      "exec": "code",
+      "desc": "Packages the skill definition, its schema, its references and its sandbox transcript into one submission record and opens a review task.",
+      "impl": "Explicit user action only — never automatic, never on save.",
+      "full": "Building and testing a skill never, by itself, ships anything. Submission is its own visible, intentional step, and that separation is most of the governance."
+    },
+    {
+      "id": "skill_board",
+      "runtime": "static",
+      "label": "Skill Review Board",
+      "plain": "A named reviewer reads it and decides.",
+      "group": "gov",
+      "exec": "code",
+      "desc": "Review queue for submitted skills, <b>routed by scope</b>: a skill written at <code>valuation/esop/_segment</code> goes to the ESOP reviewers, not to whoever is free. Outcomes: approved, returned for changes, or rejected, each with a reason and a named reviewer.",
+      "impl": "A review surface over the submission package and its transcript. Separate from the engagement review queue; different people, different question.",
+      "full": "The question here is not “is this output right” but “should this procedure exist and run unattended on client data”. Those need different reviewers and a different queue."
+    },
+    {
+      "id": "shadow_run",
+      "runtime": "static",
+      "label": "Shadow Deployment",
+      "plain": "A new version runs alongside the live one before it replaces it.",
+      "group": "gov",
+      "exec": "code",
+      "desc": "Executes a candidate version on real runs in parallel with the registered version, compares outputs, and reports the disagreement rate — without the candidate ever touching a deliverable.",
+      "impl": "Candidate output is written to the run store and has no path to the Delivery Port. Promotion requires an agreement threshold sustained over a stated number of real runs, not a single good day.",
+      "full": "Fixtures tell you a skill works on the cases someone thought of. Shadow running tells you what it does on the cases nobody thought of, at no risk to a client, which is the only honest way to gain confidence before a version handles work on its own."
+    },
+    {
+      "id": "skill_registry",
+      "runtime": "static",
+      "label": "Skill Registry & Versioning",
+      "plain": "The only way a skill becomes live. Approval alone is not enough.",
+      "group": "gov",
+      "exec": "code",
+      "desc": "Registers an approved skill at a specific version and publishes it into the Skill Index. Versions are immutable; a change is a new version and a new review.",
+      "impl": "The single write path into the Skill Index. A SKILL.md sitting in a folder is not live — registration is a separate, recorded act.",
+      "full": "Approval is a decision; registration is a deployment. Keeping them as two events means “someone approved this” and “this is running on client work” can never be the same moment by accident. This is the only edge from this column into the live system, and it carries a definition — never data, and never a client file."
+    },
+    {
+      "id": "governance_log",
+      "runtime": "static",
+      "label": "Governance Record",
+      "plain": "Every skill submitted, every decision, permanently.",
+      "group": "gov",
+      "exec": "code",
+      "desc": "Append-only record of submissions, transcripts, decisions, reviewers and registered versions.",
+      "impl": "Append-only store in a governance scope, separate from any engagement folder.",
+      "full": "Answers the question a firm should always be able to answer about an automated system: what does it do, who decided it could, and when."
+    },
+    {
+      "id": "event_bus",
+      "runtime": "resource",
+      "label": "Event Bus",
+      "plain": "Every node reports what it just did.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Typed events from every step: <code>skill.dispatched</code>, <code>mask.applied</code>, <code>guard.tieout.pass</code>, <code>hitl.item.queued</code>, <code>release.written</code>. Guard passes are emitted, not only failures.",
+      "impl": "Append-only event table plus an in-process publisher. Append-only is enforced three ways &mdash; no mutating method on the API, an ORM flush guard, and <code>BEFORE UPDATE</code>/<code>BEFORE DELETE</code> triggers on both backends, so the guarantee survives a psql prompt. Emission is fire-and-forget: a failure to <i>record</i> never fails a run, because observability must not become a new way for work to break. A malformed event still raises &mdash; that is a defect in the emitting node, not an infrastructure hiccup.",
+      "full": "Emitting passes as well as failures is the point. A guard that only speaks up when it fires is indistinguishable, on a quiet day, from a guard that never ran at all."
+    },
+    {
+      "id": "run_store",
+      "runtime": "resource",
+      "label": "Run Store",
+      "plain": "The database behind everything the dashboard shows.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Runs, steps, events, artifacts, costs, review items and decisions. The single source of truth for what happened.",
+      "impl": "A repository behind a Protocol, chosen by one URL: SQLite locally through P24, Postgres after. Reads hand back frozen records rather than live ORM rows, so &ldquo;the store is the source of truth&rdquo; is a property of the store and not a request to callers. Also what the Analyst Chat reads, and what the Run Manifest is assembled from at the end of a run.",
+      "full": "One store rather than logs scattered across services, because the question people actually ask — “what happened on the Henderson job on Tuesday?” — should be one query."
+    },
+    {
+      "id": "checkpoint_store",
+      "runtime": "resource",
+      "label": "Checkpoint & Resume",
+      "plain": "A crashed run resumes where it stopped, not from the beginning.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Commits run state after every successfully completed step. On restart, completed steps are satisfied from the idempotency ledger and execution continues from the frontier.",
+      "impl": "State is the compiled graph plus per-step results and status. Because steps are keyed and pure with respect to their inputs, resume is replay rather than reconstruction — there is no separate recovery code path to get wrong.",
+      "full": "This matters more than it looks. Without it, a crash three quarters through a long run means paying again for every model call already made, and re-queuing every review item an analyst already answered — which is the fastest way to lose their willingness to use the thing."
+    },
+    {
+      "id": "ops_console",
+      "runtime": "static",
+      "label": "Ops Console",
+      "plain": "The always-on dashboard. What is running, right now.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Live run feed, plan progress, per-skill trace, guard status strip, review inbox, cost meter, artifacts. Streams from the event bus.",
+      "impl": "FastAPI + server-sent events to a browser client. A <b>reader</b> of the event bus — it holds no pipeline state and nothing depends on it. See the Ops Console tab for the mock.",
+      "full": "Console down, runs continue. Run stalled, the console says so. Getting that dependency direction right is what makes it safe to have the dashboard always on."
+    },
+    {
+      "id": "run_scorecard",
+      "runtime": "step",
+      "label": "Run Scorecard",
+      "plain": "The verdict: did this run actually work, and against what bar?",
+      "group": "ops",
+      "exec": "code",
+      "failClosed": true,
+      "now": true,
+      "desc": "Computes a per-run verdict against declared acceptance criteria — document and period coverage, provenance completeness, tie-out agreement, conflicts resolved, residual masking, numeric integrity, budget, review outstanding, deliverable QC. Emits <b>pass</b>, <b>pass with exceptions</b>, <b>halted</b>, <b>blocked</b> or <b>partial</b>, and names every criterion that failed.",
+      "impl": "Deterministic, computed from the event stream at end of run and written into the manifest. The criteria and their thresholds are versioned like any other contract, so “what counted as working” is answerable for a run from six months ago.",
+      "full": "Guards answer “did this particular check pass”. Nobody was answering “did the run work”, which left it a matter of opinion formed by scrolling a log. A run is not a boolean either — conflating <i>halted before producing anything</i> with <i>delivered but three figures needed a person</i> hides exactly the information a practice lead needs."
+    },
+    {
+      "id": "analytics",
+      "runtime": "static",
+      "label": "Analytics Dashboard",
+      "plain": "Across all runs: is this working, and what should we fix?",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "The aggregate view over every run. Outcome mix, first-pass yield, where runs stop, failures ranked by frequency and owner, autonomy and override trends against the human baseline, cost, and per-skill scorecards by scope.",
+      "impl": "Reads the run store; holds no state of its own. Every panel is built to answer one question rather than to fill space — see the Console tab.",
+      "full": "The live console answers “what is happening right now”. This answers the four questions that decide whether the project continues: is the system healthy, what should we fix first, is it getting better, and is anything stuck. Each of those has a number, and each number has the human baseline beside it — without which none of them mean anything."
+    },
+    {
+      "id": "admin_console",
+      "runtime": "static",
+      "label": "Admin Console",
+      "plain": "Where a person actually sets this thing up.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "The setup surface: environment and port bindings, watch locations, the active project roster, delivery destinations, the model bound to each practice area, preflight, and what an admin may and may not change.",
+      "impl": "Reads and writes the Configuration Store and the Active Project Roster; every write lands in the Config Change Log. It cannot reach a skill definition, a guard, or the live skills tree — those have their own governance chain.",
+      "full": "The system is designed to produce configuration failures — <span class=\"mono\">config</span> is one of the six failure owners, described as “almost always a setup gap on a new engagement”. Until this tab existed there was nowhere for those failures to be prevented and nowhere for them to be fixed, which made the single most likely class of problem also the least served. Admin tab."
+    },
+    {
+      "id": "preflight",
+      "runtime": "static",
+      "label": "Setup Preflight",
+      "plain": "Checks a setup before anyone relies on it — and says exactly what is wrong.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Ten checks over a proposed or live configuration: path readable · credential present and unexpired · no two watches claiming one path · every active engagement has a resolving scope, a complete engagement profile, a template pin, a destination, a review policy and a budget · template hash matches the registered version · template declares every required input · destination writable · named recipe exists · headroom.",
+      "impl": "Runs on demand and on every config write. Emits the standard diagnostic — code, owner, expected, found, and <span class=\"mono\">what_now</span> — with the owner set to <span class=\"mono\">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run.",
+      "full": "A setup error found here costs a minute. The same error found at run time costs a halted run, a diagnostic somebody has to read, and a client waiting. Deliberately not part of any run — it is a setup-time activity, so it never appears in a run’s event stream and never colours a node on the trace."
+    },
+    {
+      "id": "config_audit",
+      "runtime": "resource",
+      "label": "Config Change Log",
+      "plain": "Who changed what, when, and why.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Append-only record of every configuration change: the field, the old and new values, the person, the timestamp and a reason. Covers roster state changes, model rebindings, destination changes and credential rotations.",
+      "impl": "Written by the Admin Console on every config write. Separate from the Run Manifest by necessity — configuration changes happen <i>between</i> runs, so no run record can hold them.",
+      "full": "The most common real question after a surprising result is “what changed?”, and configuration is the likeliest answer. A run manifest can say which template version a deliverable used; only this can say that somebody repointed the practice group at a different model on Tuesday afternoon and why."
+    },
+    {
+      "id": "cost_meter",
+      "runtime": "resource",
+      "label": "Token & Cost Meter",
+      "plain": "What each run and each skill actually cost.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Tokens and spend by run, by skill and by model tier, with a per-engagement rollup.",
+      "impl": "Derived from usage on every model call. Tier choices on this map are cost decisions, and this is where they get checked against reality.",
+      "full": "Without this, model tier selection is guesswork forever. With it, “does the classifier need to be mid tier?” is a question with a number attached."
+    },
+    {
+      "id": "drift_monitor",
+      "runtime": "static",
+      "label": "Drift Monitor",
+      "plain": "Watches whether a skill is quietly getting worse.",
+      "group": "ops",
+      "exec": "code",
+      "desc": "Tracks human override rate, confidence distribution, guard failure rate and sampling-audit outcomes over time, <b>per skill and per scope</b>, alerting on a sustained move rather than a single bad run.",
+      "impl": "Derived from the decision log and the event stream. A sustained rise in override rate opens a re-review on that skill in the governance chain — the outermost loop in the system.",
+      "full": "Model providers update models. Clients change their chart of accounts. A skill edit has an effect nobody predicted. None announce themselves and none show in a single run. The override rate is the one number that moves when any of them does — and splitting it by scope matters, because the same skill can be healthy in non-ESOP work and degrading in ESOP work, which a single blended number would hide."
+    },
+    {
+      "id": "stall_alert",
+      "runtime": "static",
+      "label": "Stall & Alert Detection",
+      "plain": "A run that goes quiet is a visible fact, not a mystery.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Watches for steps exceeding expected duration, runs that stop emitting, repeated guard failures, and review items ageing past a threshold.",
+      "impl": "Timer over the event stream. Alerts route to the console and, optionally, to a person.",
+      "full": "The failure mode for an unattended pipeline is not a crash — a crash is loud. It is a run that silently stops and is noticed three days later when someone asks for the model."
+    },
+    {
+      "id": "run_manifest",
+      "runtime": "step",
+      "label": "Run Manifest",
+      "plain": "The permanent record of one run, written at the end.",
+      "group": "ops",
+      "exec": "code",
+      "now": true,
+      "desc": "Every source and its hash, every guard event including passes, every model and version used, every human decision, template version, coverage gaps, and total cost.",
+      "impl": "Assembled from the run store at completion and written through the Delivery Port beside the deliverable. Append-only by convention; destination versioning gives immutability.",
+      "full": "Written once at the end rather than maintained as live mutable state, which makes it a clean artifact rather than a thing that can be half-updated. It is also the answer to the question that actually gets asked in a review: what did the system check, on what sources, using which models, and what did it find."
+    },
+    {
+      "id": "secrets_port",
+      "runtime": "resource",
+      "label": "Secrets Port",
+      "plain": "Where credentials come from — .env today, a vault later.",
+      "group": "port",
+      "exec": "code",
+      "now": true,
+      "desc": "One interface for every credential: ShareFile key, Box credentials, database, model API key, mask vault encryption key.",
+      "impl": "Protocol with implementations for env file, OS keyring and cloud secret managers. No credential is ever read directly from the environment by feature code.",
+      "full": "Cheap to build now, and the single thing most likely to be hard-coded early and painful to unpick later."
+    },
+    {
+      "id": "llm_port",
+      "runtime": "resource",
+      "label": "LLM Provider Port",
+      "plain": "Which model provider, behind one interface.",
+      "group": "port",
+      "exec": "code",
+      "now": true,
+      "desc": "Wraps model access so a provider change does not touch skill code. All calls pass the Outbound Payload Scan.",
+      "impl": "Anthropic API by default; Bedrock or Vertex are configuration, not a rewrite. Model ids and versions are recorded per call for reproducibility.",
+      "full": "Also the enforcement point for the first guarantee: because there is exactly one way to reach a model, there is exactly one place the payload scan has to sit."
+    },
+    {
+      "id": "model_pin",
+      "runtime": "resource",
+      "label": "Model & Prompt Pin",
+      "plain": "Which exact model, effort setting and prompt version a run used.",
+      "group": "port",
+      "exec": "code",
+      "now": true,
+      "desc": "Pins model id, model version, effort level and prompt/skill version for the life of a run and records them in the manifest. A pinned model that is no longer available fails the run at startup rather than silently substituting a different one.",
+      "impl": "Part of the plan hash. Upgrading a pin is a deliberate, reviewed change with a shadow run behind it. The low / mid / high tiers on this map resolve to concrete models — mapping and current rates on the Delivery tab.",
+      "full": "Reproducibility is the point. A workfile that cannot say which model produced a figure is a workfile that cannot be defended, and silent provider-side substitution is the most common way that happens without anyone choosing it."
+    },
+    {
+      "id": "queue_port",
+      "runtime": "resource",
+      "label": "Job Queue Port",
+      "plain": "How work gets scheduled.",
+      "group": "port",
+      "exec": "code",
+      "now": true,
+      "desc": "Job submission, retry and status behind one interface.",
+      "impl": "In-process for local runs; Redis + RQ for a server; a managed queue in a cloud. Same interface throughout.",
+      "full": "Phase 1 needs no queue at all. Having the interface from the start means adding one later is not a refactor of the pipeline."
+    },
+    {
+      "id": "compute_target",
+      "runtime": "resource",
+      "label": "Compute Target",
+      "plain": "Runs as a container. Anywhere that runs containers works.",
+      "group": "port",
+      "exec": "code",
+      "now": true,
+      "desc": "One Docker image, driven by config. No managed-service primitive is depended on anywhere in the code.",
+      "impl": "Local process, Docker, or any container host — Azure Container Apps, ECS, Cloud Run, on-prem. The deployment choice is an environment, not an architecture.",
+      "full": "The project context is explicit that no work-sanctioned cloud exists yet. The only responsible response is to make that decision reversible, and containers plus ports is the cheapest way to do it."
+    }
+  ],
+  "edges": [
+    {
+      "from": "engagement",
+      "to": "engagement_bind",
+      "kind": "flow",
+      "label": "engagement_id"
+    },
+    {
+      "from": "job_recipes",
+      "to": "orchestrator",
+      "kind": "flow",
+      "label": "seed the plan"
+    },
+    {
+      "from": "engagement",
+      "to": "project_roster",
+      "kind": "record",
+      "label": "listed"
+    },
+    {
+      "from": "project_roster",
+      "to": "sweep_planner",
+      "kind": "data",
+      "label": "active only"
+    },
+    {
+      "from": "config_store",
+      "to": "sweep_planner",
+      "kind": "pref",
+      "label": "watch patterns"
+    },
+    {
+      "from": "config_store",
+      "to": "engagement",
+      "kind": "pref",
+      "label": "budget · destination · template pin"
+    },
+    {
+      "from": "config_store",
+      "to": "storage_port",
+      "kind": "pref",
+      "label": "adapter + locations"
+    },
+    {
+      "from": "config_store",
+      "to": "delivery_port",
+      "kind": "pref",
+      "label": "destination"
+    },
+    {
+      "from": "config_store",
+      "to": "secrets_port",
+      "kind": "port",
+      "label": "which credential"
+    },
+    {
+      "from": "config_store",
+      "to": "checkpoint_policy",
+      "kind": "pref",
+      "label": "review level — may only raise"
+    },
+    {
+      "from": "config_store",
+      "to": "t_registry",
+      "kind": "pref",
+      "label": "model bound per scope"
+    },
+    {
+      "from": "sweep_planner",
+      "to": "sharefile",
+      "kind": "flow",
+      "label": "sweep these"
+    },
+    {
+      "from": "sweep_planner",
+      "to": "local_intake",
+      "kind": "flow",
+      "label": "sweep these"
+    },
+    {
+      "from": "sweep_planner",
+      "to": "email_watcher",
+      "kind": "flow",
+      "label": "sweep these"
+    },
+    {
+      "from": "sweep_planner",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "folder matches no engagement"
+    },
+    {
+      "from": "admin_console",
+      "to": "config_store",
+      "kind": "flow",
+      "label": "writes"
+    },
+    {
+      "from": "admin_console",
+      "to": "project_roster",
+      "kind": "flow",
+      "label": "activate · pause"
+    },
+    {
+      "from": "admin_console",
+      "to": "preflight",
+      "kind": "flow",
+      "label": "check this setup"
+    },
+    {
+      "from": "admin_console",
+      "to": "config_audit",
+      "kind": "record",
+      "label": "every change"
+    },
+    {
+      "from": "config_store",
+      "to": "preflight",
+      "kind": "data"
+    },
+    {
+      "from": "t_registry",
+      "to": "preflight",
+      "kind": "data",
+      "label": "inputs declared?"
+    },
+    {
+      "from": "preflight",
+      "to": "diagnostics",
+      "kind": "block",
+      "label": "config errors"
+    },
+    {
+      "from": "checkpoint_policy",
+      "to": "confidence_router",
+      "kind": "pref",
+      "label": "thresholds · cannot lower a guard"
+    },
+    {
+      "from": "analyst_chat",
+      "to": "run_store",
+      "kind": "data",
+      "label": "read-only"
+    },
+    {
+      "from": "sharefile",
+      "to": "storage_port",
+      "kind": "flow",
+      "label": "client uploads"
+    },
+    {
+      "from": "local_intake",
+      "to": "storage_port",
+      "kind": "flow",
+      "label": "watched folder"
+    },
+    {
+      "from": "email_watcher",
+      "to": "storage_port",
+      "kind": "flow",
+      "label": "attachments"
+    },
+    {
+      "from": "engagement_bind",
+      "to": "intake_window",
+      "kind": "flow",
+      "label": "scoped"
+    },
+    {
+      "from": "intake_window",
+      "to": "engagement_lock",
+      "kind": "flow",
+      "label": "quiet + complete → one run"
+    },
+    {
+      "from": "intake_window",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "set never completed"
+    },
+    {
+      "from": "job_recipes",
+      "to": "intake_window",
+      "kind": "data",
+      "label": "required document set"
+    },
+    {
+      "from": "config_store",
+      "to": "intake_window",
+      "kind": "pref",
+      "label": "quiet period · max wait"
+    },
+    {
+      "from": "engagement_lock",
+      "to": "storage_port",
+      "kind": "flow",
+      "label": "one run per deal"
+    },
+    {
+      "from": "storage_port",
+      "to": "file_fingerprint",
+      "kind": "flow",
+      "label": "raw files"
+    },
+    {
+      "from": "sharefile",
+      "to": "fixed_notice",
+      "kind": "block",
+      "label": "unreachable"
+    },
+    {
+      "from": "email_watcher",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "ambiguous match"
+    },
+    {
+      "from": "file_fingerprint",
+      "to": "doc_reader",
+      "kind": "flow",
+      "label": "document"
+    },
+    {
+      "from": "file_fingerprint",
+      "to": "workbook_reader",
+      "kind": "flow",
+      "label": "spreadsheet"
+    },
+    {
+      "from": "doc_reader",
+      "to": "doc_classifier",
+      "kind": "flow",
+      "label": "text + tables"
+    },
+    {
+      "from": "workbook_reader",
+      "to": "doc_classifier",
+      "kind": "flow",
+      "label": "selected sheets"
+    },
+    {
+      "from": "doc_classifier",
+      "to": "period_detector",
+      "kind": "flow"
+    },
+    {
+      "from": "doc_classifier",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "classified “other”"
+    },
+    {
+      "from": "period_detector",
+      "to": "untrusted_boundary",
+      "kind": "guard",
+      "label": "wrap as data"
+    },
+    {
+      "from": "file_fingerprint",
+      "to": "source_parse",
+      "kind": "data",
+      "label": "source_id"
+    },
+    {
+      "from": "doc_reader",
+      "to": "source_parse",
+      "kind": "flow",
+      "label": "page · table · row"
+    },
+    {
+      "from": "workbook_reader",
+      "to": "source_parse",
+      "kind": "flow",
+      "label": "sheet · range"
+    },
+    {
+      "from": "source_parse",
+      "to": "provenance_gate",
+      "kind": "data",
+      "label": "does this locator exist?"
+    },
+    {
+      "from": "source_parse",
+      "to": "t_recompute",
+      "kind": "data",
+      "label": "the rows behind a total"
+    },
+    {
+      "from": "untrusted_boundary",
+      "to": "mask_engine",
+      "kind": "guard",
+      "label": "sanitized content"
+    },
+    {
+      "from": "mask_engine",
+      "to": "mask_vault",
+      "kind": "flow",
+      "label": "token map written"
+    },
+    {
+      "from": "mask_engine",
+      "to": "payload_scan",
+      "kind": "masked",
+      "label": "masked payload"
+    },
+    {
+      "from": "payload_scan",
+      "to": "orchestrator",
+      "kind": "masked",
+      "label": "cleared for a model"
+    },
+    {
+      "from": "payload_scan",
+      "to": "context_builder",
+      "kind": "masked",
+      "label": "cleared for a model"
+    },
+    {
+      "from": "mask_vault",
+      "to": "unmask_engine",
+      "kind": "data",
+      "label": "token map · code only"
+    },
+    {
+      "from": "engagement",
+      "to": "scope_resolver",
+      "kind": "flow",
+      "label": "practice / segment / client"
+    },
+    {
+      "from": "scope_registry",
+      "to": "scope_resolver",
+      "kind": "data",
+      "label": "the declared taxonomy"
+    },
+    {
+      "from": "skill_tree",
+      "to": "scope_resolver",
+      "kind": "data",
+      "label": "five layers"
+    },
+    {
+      "from": "scope_resolver",
+      "to": "skill_index",
+      "kind": "flow",
+      "label": "the resolved set — a dozen, not two hundred"
+    },
+    {
+      "from": "scope_resolver",
+      "to": "constraint_registry",
+      "kind": "flow",
+      "label": "scope overlay applied"
+    },
+    {
+      "from": "scope_resolver",
+      "to": "context_builder",
+      "kind": "flow",
+      "label": "precedent scope + template pin"
+    },
+    {
+      "from": "scope_resolver",
+      "to": "graph_compiler",
+      "kind": "data",
+      "label": "scope → plan_hash"
+    },
+    {
+      "from": "scope_registry",
+      "to": "skill_board",
+      "kind": "data",
+      "label": "routes review to the right group"
+    },
+    {
+      "from": "skill_index",
+      "to": "orchestrator",
+      "kind": "data",
+      "label": "name + description only"
+    },
+    {
+      "from": "orchestrator",
+      "to": "run_plan",
+      "kind": "flow",
+      "label": "plan written first"
+    },
+    {
+      "from": "run_plan",
+      "to": "dispatcher",
+      "kind": "flow",
+      "label": "ordered invocations"
+    },
+    {
+      "from": "orchestrator",
+      "to": "triage",
+      "kind": "flow",
+      "label": "no confident match"
+    },
+    {
+      "from": "triage",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "escalate to a person"
+    },
+    {
+      "from": "foundations",
+      "to": "context_builder",
+      "kind": "data",
+      "label": "attached to every call"
+    },
+    {
+      "from": "foundations",
+      "to": "untrusted_boundary",
+      "kind": "guard",
+      "label": "firm docs are untrusted too"
+    },
+    {
+      "from": "skill_contract",
+      "to": "dispatcher",
+      "kind": "data",
+      "label": "enforced at dispatch"
+    },
+    {
+      "from": "coa_taxonomy",
+      "to": "context_builder",
+      "kind": "data",
+      "label": "declared references"
+    },
+    {
+      "from": "precedent_store",
+      "to": "context_builder",
+      "kind": "data",
+      "label": "approved precedents"
+    },
+    {
+      "from": "index_gate",
+      "to": "coc_data",
+      "kind": "data",
+      "label": "if indexed"
+    },
+    {
+      "from": "index_gate",
+      "to": "multiples_data",
+      "kind": "data",
+      "label": "if indexed"
+    },
+    {
+      "from": "index_gate",
+      "to": "fixed_notice",
+      "kind": "block",
+      "label": "not in dataset"
+    },
+    {
+      "from": "coc_data",
+      "to": "sk_coc",
+      "kind": "data"
+    },
+    {
+      "from": "coc_data",
+      "to": "sk_dcf",
+      "kind": "data"
+    },
+    {
+      "from": "multiples_data",
+      "to": "sk_gpc",
+      "kind": "data"
+    },
+    {
+      "from": "t_registry",
+      "to": "t_template",
+      "kind": "data",
+      "label": "template_version"
+    },
+    {
+      "from": "t_registry",
+      "to": "fixed_notice",
+      "kind": "block",
+      "label": "no template"
+    },
+    {
+      "from": "sk_ddr",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_timing",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_lineitem",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_ebitda",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_dcf",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_gpc",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_coc",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_model",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_qc",
+      "to": "schema_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "t_timing",
+      "to": "provenance_gate",
+      "kind": "flow",
+      "label": "derived table"
+    },
+    {
+      "from": "t_recompute",
+      "to": "tieout_gate",
+      "kind": "flow",
+      "label": "recomputed totals"
+    },
+    {
+      "from": "schema_gate",
+      "to": "provenance_gate",
+      "kind": "guard",
+      "label": "schema-valid"
+    },
+    {
+      "from": "provenance_gate",
+      "to": "tieout_gate",
+      "kind": "guard",
+      "label": "sourced figures"
+    },
+    {
+      "from": "tieout_gate",
+      "to": "reconcile",
+      "kind": "guard",
+      "label": "tied out"
+    },
+    {
+      "from": "reconcile",
+      "to": "confidence_router",
+      "kind": "guard",
+      "label": "conflicts surfaced"
+    },
+    {
+      "from": "reconcile",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "conflicts"
+    },
+    {
+      "from": "confidence_router",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "below threshold · material"
+    },
+    {
+      "from": "confidence_router",
+      "to": "unmask_engine",
+      "kind": "flow",
+      "label": "auto-accepted"
+    },
+    {
+      "from": "unmask_engine",
+      "to": "unmask_verify",
+      "kind": "guard",
+      "label": "re-identified"
+    },
+    {
+      "from": "unmask_verify",
+      "to": "numeric_lock",
+      "kind": "guard",
+      "label": "tokens resolved"
+    },
+    {
+      "from": "numeric_lock",
+      "to": "model_builder",
+      "kind": "guard",
+      "label": "figures locked"
+    },
+    {
+      "from": "numeric_lock",
+      "to": "ddr_pack",
+      "kind": "guard",
+      "label": "figures locked"
+    },
+    {
+      "from": "numeric_lock",
+      "to": "workpaper",
+      "kind": "guard",
+      "label": "figures locked"
+    },
+    {
+      "from": "review_queue",
+      "to": "review_surface",
+      "kind": "flow",
+      "label": "items"
+    },
+    {
+      "from": "review_surface",
+      "to": "decision_log",
+      "kind": "human",
+      "label": "approve / edit / reject"
+    },
+    {
+      "from": "review_surface",
+      "to": "unmask_engine",
+      "kind": "human",
+      "label": "approved items continue"
+    },
+    {
+      "from": "decision_log",
+      "to": "precedent_writeback",
+      "kind": "flow"
+    },
+    {
+      "from": "precedent_writeback",
+      "to": "precedent_store",
+      "kind": "data",
+      "label": "masked examples"
+    },
+    {
+      "from": "decision_log",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "human decisions"
+    },
+    {
+      "from": "model_builder",
+      "to": "deliverable_qc",
+      "kind": "flow",
+      "label": "client model"
+    },
+    {
+      "from": "ddr_pack",
+      "to": "deliverable_qc",
+      "kind": "flow",
+      "label": "response pack"
+    },
+    {
+      "from": "workpaper",
+      "to": "deliverable_qc",
+      "kind": "flow",
+      "label": "narrative"
+    },
+    {
+      "from": "deliverable_qc",
+      "to": "release_gate",
+      "kind": "guard",
+      "label": "verified artifact"
+    },
+    {
+      "from": "release_gate",
+      "to": "idempotency_ledger",
+      "kind": "guard",
+      "label": "release key"
+    },
+    {
+      "from": "idempotency_ledger",
+      "to": "delivery_port",
+      "kind": "flow",
+      "label": "exactly once"
+    },
+    {
+      "from": "release_gate",
+      "to": "fixed_notice",
+      "kind": "block",
+      "label": "failed QC"
+    },
+    {
+      "from": "delivery_port",
+      "to": "box_mcp",
+      "kind": "flow"
+    },
+    {
+      "from": "delivery_port",
+      "to": "box_ccg",
+      "kind": "flow"
+    },
+    {
+      "from": "delivery_port",
+      "to": "local_out",
+      "kind": "flow"
+    },
+    {
+      "from": "run_manifest",
+      "to": "delivery_port",
+      "kind": "flow",
+      "label": "workfile record"
+    },
+    {
+      "from": "skill_drop",
+      "to": "skill_conformance",
+      "kind": "flow",
+      "label": "anything, any format"
+    },
+    {
+      "from": "skill_conformance",
+      "to": "skill_adapt",
+      "kind": "guard",
+      "label": "scanned · gap report"
+    },
+    {
+      "from": "skill_adapt",
+      "to": "skill_sandbox",
+      "kind": "flow",
+      "label": "conforms — joins the normal chain"
+    },
+    {
+      "from": "skill_contract",
+      "to": "skill_conformance",
+      "kind": "data",
+      "label": "the target shape"
+    },
+    {
+      "from": "constraint_registry",
+      "to": "skill_conformance",
+      "kind": "data",
+      "label": "tools that may be declared"
+    },
+    {
+      "from": "skill_drop",
+      "to": "governance_log",
+      "kind": "record",
+      "label": "every drop recorded"
+    },
+    {
+      "from": "skill_conformance",
+      "to": "governance_log",
+      "kind": "record",
+      "label": "scan result + gaps"
+    },
+    {
+      "from": "skill_sandbox",
+      "to": "sandbox_test",
+      "kind": "flow",
+      "label": "build & iterate"
+    },
+    {
+      "from": "sandbox_test",
+      "to": "eval_harness",
+      "kind": "flow",
+      "label": "candidate + fixtures"
+    },
+    {
+      "from": "eval_harness",
+      "to": "replay_harness",
+      "kind": "flow",
+      "label": "passed its fixtures"
+    },
+    {
+      "from": "replay_harness",
+      "to": "skill_submit",
+      "kind": "flow",
+      "label": "fixtures + regression diff"
+    },
+    {
+      "from": "skill_submit",
+      "to": "skill_board",
+      "kind": "flow",
+      "label": "submitted"
+    },
+    {
+      "from": "skill_board",
+      "to": "shadow_run",
+      "kind": "flow",
+      "label": "approved for shadow"
+    },
+    {
+      "from": "shadow_run",
+      "to": "skill_registry",
+      "kind": "flow",
+      "label": "promote at agreement threshold"
+    },
+    {
+      "from": "skill_registry",
+      "to": "skill_tree",
+      "kind": "flow",
+      "label": "registered at a scope path · definition only"
+    },
+    {
+      "from": "skill_submit",
+      "to": "governance_log",
+      "kind": "record"
+    },
+    {
+      "from": "skill_board",
+      "to": "governance_log",
+      "kind": "record",
+      "label": "decision recorded"
+    },
+    {
+      "from": "untrusted_boundary",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "injection scan"
+    },
+    {
+      "from": "payload_scan",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "mask.applied"
+    },
+    {
+      "from": "dispatcher",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "skill.dispatched"
+    },
+    {
+      "from": "schema_gate",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "guard events"
+    },
+    {
+      "from": "tieout_gate",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "guard events · passes too"
+    },
+    {
+      "from": "confidence_router",
+      "to": "event_bus",
+      "kind": "record"
+    },
+    {
+      "from": "numeric_lock",
+      "to": "event_bus",
+      "kind": "record"
+    },
+    {
+      "from": "review_queue",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "hitl.item.queued"
+    },
+    {
+      "from": "release_gate",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "release.written"
+    },
+    {
+      "from": "event_bus",
+      "to": "run_store",
+      "kind": "flow"
+    },
+    {
+      "from": "run_store",
+      "to": "run_scorecard",
+      "kind": "flow",
+      "label": "every event"
+    },
+    {
+      "from": "diagnostics",
+      "to": "run_scorecard",
+      "kind": "data",
+      "label": "failure classification"
+    },
+    {
+      "from": "diagnostics",
+      "to": "quarantine",
+      "kind": "data",
+      "label": "diagnosis + owner"
+    },
+    {
+      "from": "diagnostics",
+      "to": "fixed_notice",
+      "kind": "data",
+      "label": "the message a person sees"
+    },
+    {
+      "from": "run_scorecard",
+      "to": "ops_console",
+      "kind": "flow",
+      "label": "verdict"
+    },
+    {
+      "from": "run_scorecard",
+      "to": "analytics",
+      "kind": "flow"
+    },
+    {
+      "from": "run_scorecard",
+      "to": "run_manifest",
+      "kind": "record",
+      "label": "verdict + criteria version"
+    },
+    {
+      "from": "run_store",
+      "to": "analytics",
+      "kind": "flow",
+      "label": "all runs"
+    },
+    {
+      "from": "cost_meter",
+      "to": "analytics",
+      "kind": "flow"
+    },
+    {
+      "from": "drift_monitor",
+      "to": "analytics",
+      "kind": "flow",
+      "label": "quality trend"
+    },
+    {
+      "from": "run_manifest",
+      "to": "outcome_feedback",
+      "kind": "data",
+      "label": "attributes a correction to a run + version"
+    },
+    {
+      "from": "outcome_feedback",
+      "to": "drift_monitor",
+      "kind": "record",
+      "label": "lagged ground truth"
+    },
+    {
+      "from": "outcome_feedback",
+      "to": "precedent_writeback",
+      "kind": "human",
+      "label": "a correction becomes an example"
+    },
+    {
+      "from": "run_manifest",
+      "to": "replay_harness",
+      "kind": "masked",
+      "label": "masked payloads only"
+    },
+    {
+      "from": "run_store",
+      "to": "ops_console",
+      "kind": "flow",
+      "label": "live feed"
+    },
+    {
+      "from": "run_store",
+      "to": "cost_meter",
+      "kind": "flow"
+    },
+    {
+      "from": "run_store",
+      "to": "stall_alert",
+      "kind": "flow"
+    },
+    {
+      "from": "run_store",
+      "to": "run_manifest",
+      "kind": "flow",
+      "label": "assembled at end of run"
+    },
+    {
+      "from": "run_plan",
+      "to": "graph_compiler",
+      "kind": "flow",
+      "label": "plan → typed DAG"
+    },
+    {
+      "from": "graph_compiler",
+      "to": "step_executor",
+      "kind": "flow",
+      "label": "compiled graph + plan_hash"
+    },
+    {
+      "from": "contract_registry",
+      "to": "graph_compiler",
+      "kind": "data",
+      "label": "edge schemas"
+    },
+    {
+      "from": "step_executor",
+      "to": "dispatcher",
+      "kind": "flow",
+      "label": "one step, keyed"
+    },
+    {
+      "from": "step_executor",
+      "to": "checkpoint_store",
+      "kind": "record",
+      "label": "step committed"
+    },
+    {
+      "from": "checkpoint_store",
+      "to": "step_executor",
+      "kind": "loop",
+      "label": "resume from the frontier"
+    },
+    {
+      "from": "budget_governor",
+      "to": "step_executor",
+      "kind": "guard",
+      "label": "halt at ceiling"
+    },
+    {
+      "from": "cost_meter",
+      "to": "budget_governor",
+      "kind": "data",
+      "label": "live spend"
+    },
+    {
+      "from": "model_pin",
+      "to": "graph_compiler",
+      "kind": "port",
+      "label": "part of plan_hash"
+    },
+    {
+      "from": "model_pin",
+      "to": "llm_port",
+      "kind": "port",
+      "label": "pinned model + effort"
+    },
+    {
+      "from": "contract_registry",
+      "to": "schema_gate",
+      "kind": "data",
+      "label": "output schemas"
+    },
+    {
+      "from": "contract_registry",
+      "to": "provenance_gate",
+      "kind": "data",
+      "label": "figure envelope"
+    },
+    {
+      "from": "schema_gate",
+      "to": "loop_controller",
+      "kind": "loop",
+      "label": "repair × 2"
+    },
+    {
+      "from": "tieout_gate",
+      "to": "loop_controller",
+      "kind": "loop",
+      "label": "repair × 1"
+    },
+    {
+      "from": "reconcile",
+      "to": "loop_controller",
+      "kind": "loop",
+      "label": "conflict × 1"
+    },
+    {
+      "from": "sk_ddr",
+      "to": "loop_controller",
+      "kind": "loop",
+      "label": "self-verify × 1"
+    },
+    {
+      "from": "loop_controller",
+      "to": "context_builder",
+      "kind": "loop",
+      "label": "the changed input for the next pass"
+    },
+    {
+      "from": "loop_controller",
+      "to": "quarantine",
+      "kind": "block",
+      "label": "iterations exhausted"
+    },
+    {
+      "from": "loop_controller",
+      "to": "review_queue",
+      "kind": "human",
+      "label": "exhausted → a person"
+    },
+    {
+      "from": "review_surface",
+      "to": "loop_controller",
+      "kind": "loop",
+      "label": "answer → re-run downstream"
+    },
+    {
+      "from": "budget_governor",
+      "to": "quarantine",
+      "kind": "block",
+      "label": "ceiling exceeded"
+    },
+    {
+      "from": "quarantine",
+      "to": "event_bus",
+      "kind": "record"
+    },
+    {
+      "from": "quarantine",
+      "to": "fixed_notice",
+      "kind": "block",
+      "label": "partial result reported"
+    },
+    {
+      "from": "drift_monitor",
+      "to": "skill_board",
+      "kind": "loop",
+      "label": "sustained drift → re-review"
+    },
+    {
+      "from": "dispatcher",
+      "to": "context_builder",
+      "kind": "flow",
+      "label": "skill selected"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_ddr",
+      "kind": "masked",
+      "label": "grounded context"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_timing",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_lineitem",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_ebitda",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_dcf",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_gpc",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_coc",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_model",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "sk_qc",
+      "kind": "masked"
+    },
+    {
+      "from": "context_builder",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "context manifest"
+    },
+    {
+      "from": "sk_ddr",
+      "to": "policy_gate",
+      "kind": "guard",
+      "label": "proposed tool call"
+    },
+    {
+      "from": "sk_timing",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_lineitem",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_ebitda",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_dcf",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_gpc",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_coc",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_model",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "sk_qc",
+      "to": "policy_gate",
+      "kind": "guard"
+    },
+    {
+      "from": "constraint_registry",
+      "to": "policy_gate",
+      "kind": "data",
+      "label": "rules + permissions"
+    },
+    {
+      "from": "constraint_registry",
+      "to": "guarded_runtime",
+      "kind": "data",
+      "label": "call-time limits"
+    },
+    {
+      "from": "constraint_registry",
+      "to": "graph_compiler",
+      "kind": "data",
+      "label": "asserted at compile time"
+    },
+    {
+      "from": "policy_gate",
+      "to": "guarded_runtime",
+      "kind": "guard",
+      "label": "approved action"
+    },
+    {
+      "from": "policy_gate",
+      "to": "quarantine",
+      "kind": "block",
+      "label": "denied · recorded"
+    },
+    {
+      "from": "policy_gate",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "allow / deny"
+    },
+    {
+      "from": "guarded_runtime",
+      "to": "t_timing",
+      "kind": "flow"
+    },
+    {
+      "from": "guarded_runtime",
+      "to": "t_recompute",
+      "kind": "flow"
+    },
+    {
+      "from": "guarded_runtime",
+      "to": "index_gate",
+      "kind": "flow",
+      "label": "reference lookup"
+    },
+    {
+      "from": "guarded_runtime",
+      "to": "context_builder",
+      "kind": "loop",
+      "label": "tool result rejoins context"
+    },
+    {
+      "from": "guarded_runtime",
+      "to": "event_bus",
+      "kind": "record",
+      "label": "every tool call"
+    },
+    {
+      "from": "confidence_router",
+      "to": "sample_audit",
+      "kind": "flow",
+      "label": "sample of auto-accepted"
+    },
+    {
+      "from": "sample_audit",
+      "to": "review_surface",
+      "kind": "human",
+      "label": "sampled items"
+    },
+    {
+      "from": "sample_audit",
+      "to": "drift_monitor",
+      "kind": "record",
+      "label": "audit outcomes"
+    },
+    {
+      "from": "decision_log",
+      "to": "drift_monitor",
+      "kind": "record",
+      "label": "override rate"
+    },
+    {
+      "from": "run_store",
+      "to": "drift_monitor",
+      "kind": "flow"
+    },
+    {
+      "from": "shadow_run",
+      "to": "drift_monitor",
+      "kind": "record",
+      "label": "disagreement rate"
+    },
+    {
+      "from": "shadow_run",
+      "to": "governance_log",
+      "kind": "record",
+      "label": "shadow result"
+    },
+    {
+      "from": "contract_registry",
+      "to": "eval_harness",
+      "kind": "data",
+      "label": "schemas under test"
+    },
+    {
+      "from": "model_builder",
+      "to": "t_template",
+      "kind": "flow",
+      "label": "mapping → cells"
+    },
+    {
+      "from": "t_template",
+      "to": "deliverable_qc",
+      "kind": "flow",
+      "label": "written workbook"
+    },
+    {
+      "from": "engagement",
+      "to": "checkpoint_policy",
+      "kind": "flow",
+      "label": "per-engagement"
+    },
+    {
+      "from": "engagement",
+      "to": "context_builder",
+      "kind": "data",
+      "label": "engagement_profile"
+    },
+    {
+      "from": "fixed_notice",
+      "to": "event_bus",
+      "kind": "record"
+    },
+    {
+      "from": "secrets_port",
+      "to": "sharefile",
+      "kind": "port",
+      "label": "API key"
+    },
+    {
+      "from": "secrets_port",
+      "to": "box_ccg",
+      "kind": "port",
+      "label": "client credentials"
+    },
+    {
+      "from": "secrets_port",
+      "to": "mask_vault",
+      "kind": "port",
+      "label": "encryption key"
+    },
+    {
+      "from": "llm_port",
+      "to": "orchestrator",
+      "kind": "port",
+      "label": "model calls"
+    },
+    {
+      "from": "llm_port",
+      "to": "dispatcher",
+      "kind": "port",
+      "label": "model calls"
+    },
+    {
+      "from": "queue_port",
+      "to": "dispatcher",
+      "kind": "port",
+      "label": "scheduling"
+    },
+    {
+      "from": "compute_target",
+      "to": "run_store",
+      "kind": "port",
+      "label": "runs on any host"
+    }
+  ],
+  "invariants": [
+    {
+      "t": "No model node can reach the Mask Vault. Re-identification is deterministic code, so a token can never be resolved by something that might guess.",
+      "nodes": [
+        "mask_vault",
+        "mask_engine",
+        "unmask_engine"
+      ]
+    },
+    {
+      "t": "Every payload bound for a model passes through one door, so there is exactly one place to check what leaves and one place to record it.",
+      "nodes": [
+        "mask_engine",
+        "payload_scan",
+        "orchestrator",
+        "dispatcher",
+        "llm_port"
+      ]
+    },
+    {
+      "t": "Only CODE nodes touch re-identification. No skill has an unmask tool — it is the one step where a plausible mistake is indistinguishable from correctness.",
+      "nodes": [
+        "unmask_engine",
+        "unmask_verify",
+        "mask_vault"
+      ]
+    },
+    {
+      "t": "Every figure in a deliverable cleared Provenance and was recomputed by Tie-Out.",
+      "nodes": [
+        "provenance_gate",
+        "tieout_gate",
+        "t_recompute",
+        "numeric_lock",
+        "model_builder",
+        "ddr_pack"
+      ]
+    },
+    {
+      "t": "A generative step may render a verified figure but can never originate or alter one — the narrative is written after the numbers are locked, and its schema has no field a figure can enter through.",
+      "nodes": [
+        "workpaper",
+        "deliverable_qc",
+        "release_gate",
+        "numeric_lock"
+      ]
+    },
+    {
+      "t": "One node releases client work, with one inbound edge. The run manifest is written separately and unconditionally — including when a run halts. Configuration selects the destination but carries no content — only a flow edge can move an artifact.",
+      "nodes": [
+        "release_gate",
+        "deliverable_qc",
+        "idempotency_ledger",
+        "delivery_port",
+        "run_manifest"
+      ]
+    },
+    {
+      "t": "Governance never reads client-identifying data — only masked payloads — and its one edge back into the live system publishes a skill definition, never a file.",
+      "nodes": [
+        "skill_sandbox",
+        "sandbox_test",
+        "eval_harness",
+        "skill_submit",
+        "skill_board",
+        "shadow_run",
+        "skill_registry",
+        "governance_log",
+        "skill_tree"
+      ]
+    },
+    {
+      "t": "Every guard writes to the record — passes included, so silence is never ambiguous.",
+      "nodes": [
+        "untrusted_boundary",
+        "payload_scan",
+        "schema_gate",
+        "tieout_gate",
+        "numeric_lock",
+        "event_bus",
+        "run_manifest"
+      ]
+    },
+    {
+      "t": "Only a human decision can write to the Precedent Store, so the system never learns from itself unchecked.",
+      "nodes": [
+        "review_surface",
+        "decision_log",
+        "precedent_writeback",
+        "precedent_store"
+      ]
+    },
+    {
+      "t": "Nothing runs unscoped, and never two runs at once on one deal.",
+      "nodes": [
+        "engagement",
+        "engagement_bind",
+        "engagement_lock",
+        "storage_port",
+        "file_fingerprint"
+      ]
+    },
+    {
+      "t": "Every loop is declared with a maximum iteration count. The compiler rejects any cycle that is not one.",
+      "nodes": [
+        "loop_controller",
+        "graph_compiler",
+        "budget_governor",
+        "quarantine"
+      ]
+    },
+    {
+      "t": "Every step is keyed and idempotent, so a retry, a resume and a manual re-run are the same operation.",
+      "nodes": [
+        "step_executor",
+        "checkpoint_store",
+        "idempotency_ledger",
+        "graph_compiler"
+      ]
+    },
+    {
+      "t": "Every run records the exact model, prompt, skill, template, taxonomy and schema versions it used.",
+      "nodes": [
+        "model_pin",
+        "graph_compiler",
+        "contract_registry",
+        "t_registry",
+        "run_manifest"
+      ]
+    },
+    {
+      "t": "A scope overlay can only tighten. Nothing deeper in the tree can loosen a review requirement or a privacy class.",
+      "nodes": [
+        "scope_resolver",
+        "skill_tree",
+        "scope_registry",
+        "checkpoint_policy",
+        "confidence_router"
+      ]
+    },
+    {
+      "t": "An engagement can only see the skills its scope resolves to. A Corporate Finance skill is not declined by an ESOP run — it was never in it.",
+      "nodes": [
+        "scope_resolver",
+        "skill_tree",
+        "skill_index",
+        "orchestrator",
+        "engagement"
+      ]
+    },
+    {
+      "t": "Precedents are retrieved only from the engagement’s own scope, and a repeat client sees its own prior decisions first.",
+      "nodes": [
+        "scope_resolver",
+        "precedent_store",
+        "context_builder",
+        "precedent_writeback"
+      ]
+    },
+    {
+      "t": "Every tool call is authorised before it executes. No skill can reach a tool around the gate.",
+      "nodes": [
+        "policy_gate",
+        "guarded_runtime",
+        "constraint_registry",
+        "sk_ebitda",
+        "sk_qc",
+        "quarantine"
+      ]
+    },
+    {
+      "t": "Everything a model is shown is assembled in one place and recorded, so any call can be reconstructed exactly.",
+      "nodes": [
+        "context_builder",
+        "payload_scan",
+        "foundations",
+        "precedent_store",
+        "event_bus",
+        "run_manifest"
+      ]
+    },
+    {
+      "t": "Every run ends with a computed verdict against versioned criteria. No run’s outcome is a matter of opinion.",
+      "nodes": [
+        "run_scorecard",
+        "run_store",
+        "run_manifest",
+        "ops_console",
+        "analytics"
+      ]
+    },
+    {
+      "t": "Every failure carries a stable code, an owner and what to do next. A message nobody can act on is a defect.",
+      "nodes": [
+        "diagnostics",
+        "quarantine",
+        "fixed_notice",
+        "run_scorecard",
+        "ops_console"
+      ]
+    },
+    {
+      "t": "A dropped draft is a candidate, not a skill. No path from the drop folder to the tree skips fixtures, review or a shadow run.",
+      "nodes": [
+        "skill_drop",
+        "skill_conformance",
+        "skill_adapt",
+        "skill_sandbox",
+        "eval_harness",
+        "skill_board",
+        "shadow_run",
+        "skill_registry",
+        "skill_tree"
+      ]
+    },
+    {
+      "t": "Nothing reaches the Skill Index without passing fixtures and a shadow run first.",
+      "nodes": [
+        "eval_harness",
+        "shadow_run",
+        "skill_registry",
+        "skill_index",
+        "skill_board"
+      ]
+    },
+    {
+      "t": "No configuration edge reaches a node that can fail closed. Config writes the engagement record; guards read the run.",
+      "nodes": [
+        "config_store",
+        "admin_console",
+        "checkpoint_policy",
+        "engagement",
+        "budget_governor"
+      ]
+    },
+    {
+      "t": "An engagement not on the roster has no path from any intake source into the pipeline. Inactive is unreachable, not merely unchecked.",
+      "nodes": [
+        "project_roster",
+        "sweep_planner",
+        "sharefile",
+        "local_intake",
+        "email_watcher",
+        "engagement_bind"
+      ]
+    },
+    {
+      "t": "Every active engagement resolves to exactly one delivery destination and exactly one model template pin.",
+      "nodes": [
+        "project_roster",
+        "config_store",
+        "t_registry",
+        "delivery_port",
+        "preflight"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**6 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**7 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -25,7 +25,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P05** Scope resolver | auto | An overlay that lowers a HITL requirement or widens a privacy class raises | 2026-09-03 |
 | [x] | **P06** Graph compiler | auto | An undeclared cycle is rejected at compile time with a locatable error | 2026-09-03 |
 | [x] | **C2 - A plan compiles and hashes** | integration | A recipe compiles; identical inputs give an identical plan_hash and a changed precedent snapshot changes it; and the store conformance suite passes against a real Postgres server as well as SQLite | 2026-09-03 |
-| [ ] | **P07** The assertion suites | auto | All 25 invariants are executable and pass against the current architecture |  |
+| [x] | **P07** The assertion suites | auto | All 25 invariants are executable and pass against the current architecture | 2026-09-03 |
 | [ ] | **P08** Step executor, idempotency, resume | auto | Killing a run mid-flight and resuming re-executes zero completed steps |  |
 | [ ] | **P09** Context builder | auto | context_ref reproduces the exact bytes a model was shown |  |
 | [ ] | **C3 - A run survives being killed** | integration | Kill mid-flight, resume, zero completed steps re-execute, and plan assertions gate the resume |  |

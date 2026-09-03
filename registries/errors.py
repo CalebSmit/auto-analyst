@@ -86,6 +86,7 @@ UNKNOWN_REVIEW_LEVEL = "SCOPE.UNKNOWN_REVIEW_LEVEL"
 AMBIGUOUS_SKILL = "SCOPE.AMBIGUOUS_SKILL"
 SKILL_INVALID = "SCOPE.SKILL_INVALID"
 RECIPE_INVALID = "SCOPE.RECIPE_INVALID"
+PLAN_REFUSED = "PROCESS.PLAN_REFUSED"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 OVERLAY_LOOSENS = "POLICY.OVERLAY_LOOSENS"
@@ -234,6 +235,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "tool. Overlays may only tighten. If the looser setting is genuinely right, it "
         "belongs in the skill at the layer where it is true - changing it from a deeper "
         "layer would mean the shallower promise was never worth anything.",
+    ),
+    PLAN_REFUSED: (
+        "process",
+        "A compiled plan violates an invariant and will not execute. The assertions run "
+        "before every execution rather than in CI alone, because a plan is built per run "
+        "and CI has never seen this one. Fix the recipe or the scope it was compiled "
+        "against; there is no flag that skips the check.",
     ),
     UNKNOWN_RUN: (
         "process",

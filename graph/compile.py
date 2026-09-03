@@ -41,6 +41,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
+from graph.plan_assertions import check_plan
 from graph.recipes import Recipe, RecipeStep
 from graph.resolve import ResolvedScope
 from ports.llm import Effort, ModelPin
@@ -282,7 +283,7 @@ def compile_recipe(
 
     plan_hash = _plan_hash(recipe, context, steps, edges, regions, contract_registry,
                            constraint_registry)
-    return CompiledGraph(
+    compiled = CompiledGraph(
         recipe=recipe.name,
         recipe_version=recipe.version,
         engagement_id=context.engagement_id,
@@ -294,6 +295,12 @@ def compile_recipe(
         plan_hash=plan_hash,
         context=context,
     )
+    # Nothing executes that has not been through the compiler, and nothing leaves the
+    # compiler that has not been through the assertions. There is no flag to skip this:
+    # a compiler that could be asked not to check is one nobody can rely on having
+    # checked.
+    check_plan(compiled)
+    return compiled
 
 
 def _fail(code: str, detail: str, locator: str) -> None:
