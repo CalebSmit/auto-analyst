@@ -886,10 +886,10 @@
         "The work Anthropic key as a .env change and nothing else"
       ],
       "exit": [
-        "docker compose up then pytest is green with no host Python involved",
         "No managed-service primitive is depended on anywhere in the codebase",
         "HANDOFF.md names every environment difference between this machine and the work one",
-        "A clean clone plus .env reaches a passing suite with no undocumented step"
+        "A clean clone plus .env reaches a passing suite with no undocumented step",
+        "The image builds and the whole suite passes inside it with no host Python involved, using any OCI-compatible runtime - podman, containerd, Rancher Desktop or Docker Engine. No step depends on Docker Desktop, and HANDOFF.md names the runtime actually used"
       ],
       "checks": [
         "python -m uv run pytest tests/p28 -q"
