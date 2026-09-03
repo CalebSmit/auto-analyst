@@ -1,0 +1,5 @@
+{
+  "before": "Owner compensation add-back 331,000.00 (TB_FY25!B48); auto allowance 18,400.00; health 12,600.00; total EBITDA 1,284,317.55",
+  "after": "Owner compensation add-back 331,000.00 (TB_FY25!B48); auto allowance 18,000.00; health 13,000.00; total EBITDA 1,284,000.00",
+  "rounds_to": 1000
+}

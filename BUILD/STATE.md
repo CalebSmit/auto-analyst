@@ -5,27 +5,28 @@
 
 ## Where the build is
 
-- **12 of 28 phases closed**
+- **13 of 28 phases closed**
 - Last green checkpoint: **C4**
-- Current phase: **P13 - Guards and their adversarial fixtures** (gate: auto)
+- Current phase: **P14 - Loop controller, quarantine, diagnostics** (gate: auto)
 
 ## The next action
 
-Work P13. Its full definition is in [BUILD/phases/P13.md](phases/P13.md).
+Work P14. Its full definition is in [BUILD/phases/P14.md](phases/P14.md).
 
-> Five assertions about the figure envelope, each with a fixture built specifically to defeat it. A guard with no adversarial fixture is an assumption.
+> Failure converges on a person or a record, never on silence - and every loop has a maximum you can read off the plan before the run starts.
 
 Tasks:
 
-- [ ] Output schema validator, provenance check, tie-out check, reconciliation, numeric integrity lock
-- [ ] The recompute engine, reading the Source Parse Store rather than trusting a stated total
-- [ ] The ten adversarial fixtures from the blueprint's fixture table
-- [ ] Every guard emits on pass as well as on failure
+- [ ] Bounded loop regions with the four in-run loops: guard repair (2), tie-out repair (1), self-verification (1), conflict resolution (1)
+- [ ] The input-must-change rule - a retry with unchanged input is the same call at the same price
+- [ ] Quarantine holding full context, with independent branches allowed to finish
+- [ ] The diagnostic namespace: code, owner, expected, found, what_now
+- [ ] A test that every code in registries/errors.py appears in the blueprint's ERRCODES table, and every code in the table exists in the registry
 
 Then:
 
-    python tools/gate.py check P13
-    python tools/gate.py close P13
+    python tools/gate.py check P14
+    python tools/gate.py close P14
 
 ## Before you start
 
@@ -49,4 +50,5 @@ Then:
 - **P10** Policy gate, constraints, guarded runtime (2026-09-03)
 - **P11** LLM port, model pin, budget governor (2026-09-03)
 - **P12** Privacy: mask, vault, unmask, verify (2026-09-03)
+- **P13** Guards and their adversarial fixtures (2026-09-03)
 

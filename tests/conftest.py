@@ -23,6 +23,10 @@ DEFAULT_PG_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/analyst_
 # fixture because the terminal summary runs after every fixture has been torn down.
 POSTGRES: dict[str, Any] = {"requested": False, "ran": 0, "not_run": 0, "url": "", "error": ""}
 
+# Adversarial fixtures whose target guard a later phase builds. Filled in by tests/p13;
+# reported at the end of the session so "6 of 10 fire" never reads as "all 10 fire".
+PENDING_FIXTURES: list[tuple[str, str, str]] = []
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
@@ -42,7 +46,20 @@ def postgres_url() -> str:
 
 
 def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pytest.Config) -> None:
-    """Say what happened to the Postgres run, every time, whichever way it went."""
+    """Say what happened to the Postgres run, every time, whichever way it went - and
+    which adversarial fixtures are waiting on a guard that is not built yet."""
+    if PENDING_FIXTURES:
+        write = terminalreporter.write_line
+        phases = sorted({built_by for _, _, built_by in PENDING_FIXTURES})
+        write("")
+        write(
+            f"GUARD FIXTURES PENDING - {len(PENDING_FIXTURES)} of the blueprint's ten target "
+            f"a guard not built yet ({', '.join(phases)}).",
+            yellow=True,
+            bold=True,
+        )
+        for fixture_id, guard, built_by in PENDING_FIXTURES:
+            write(f"  {fixture_id}: waits for {guard} ({built_by})", yellow=True)
     if not POSTGRES["not_run"] and not POSTGRES["ran"] and not POSTGRES["error"]:
         return  # this invocation did not include the store conformance suite
 

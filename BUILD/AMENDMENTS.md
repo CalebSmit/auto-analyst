@@ -204,3 +204,22 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** Four things beyond the phase's own files. First: privacy/verify.py is a fifth module the listing did not name. The task says the integrity check is a separate node from the masker so it can be tested apart from the thing it checks, and a separate node is a separate module; the check takes sets and a string and a test hands it a wrong set to prove it notices. Second: cryptography joins the dependencies for Fernet - the vault is encrypted at rest per the blueprint, the key comes through the Secrets Port, and the standard library has no AEAD cipher. Third: the retention period is a placeholder of 730 days and the code says so. Setting the policy is Risk / IT's decision before phase 1 in the blueprint's own decisions table, and the column and the purge exist so that decision has somewhere to land. Fourth, a defect the tests found: the first vault issued tokens that were never written, because its session helper was a bare Session context manager, which closes and discards rather than commits. Fourteen tests failed at once and every one of them was that. The run store's commit-on-exit shape is now used, and the docstring names the mistake. Ruff joins the checks.
 
 - check added: python -m uv run ruff check .
+
+## 2026-09-03 - P13 Guards and their adversarial fixtures
+
+**Why:** Only six of the ten fixture guards exist after P13 (payload_scan, unmask_verify, tieout, numeric_lock, provenance, budget_governor); untrusted_boundary, loop_controller, engagement_lock and deliverable_qc are built by P17, P14, P16 and P21. The criterion as written could not be true until P21. All ten fixtures and case files land now, with the phase that owns each guard named in the table, so a later phase inherits a fixture rather than writing one.
+
+- exit criterion added: All ten fixtures exist with their target guard and owning phase named; each fixture whose guard is built fires it and only it; the rest are reported by phase at the end of every test session, never skipped silently
+- exit criterion dropped: Each of the ten fixtures fires the right guard, and only that guard
+
+## 2026-09-03 - P13 Guards and their adversarial fixtures
+
+**Why:** The Recompute Engine is a tool (blueprint node t_recompute) and lives at tools/recompute.py, in the folder that also holds the dev scripts (gate.py, postgres.py) - the P10 name collision, now with a real tool in it. The tie-out guard takes the engine as an injected callable and imports nothing under tools/, so the boundary test holds. Resolving the folder split is still the user's call.
+
+- check added: python -m uv run ruff check guards ops/source_parse.py tools/recompute.py tests/p13
+
+## 2026-09-03 - P14 Loop controller, quarantine, diagnostics
+
+**Why:** P13 finding: ten error codes the registry has carried since P04-P11 (PRIVACY.UNMASKED_PRECEDENT; PROCESS.LATE_RESULT, PLAN_REFUSED, DIAGNOSTICS_INVALID; SCOPE.UNKNOWN_CONTRACT, CONTRACT_INDEX_INVALID, UNKNOWN_CONSTRAINTS, UNKNOWN_ADAPTER, MODEL_PIN_UNAVAILABLE, MISSING_CREDENTIAL) had never reached the blueprint's ERRCODES table, and SKILL.UNKNOWN_SOURCE was new in P13. All added by hand at P13 close. Nothing checks that table against the registry, which is how the gap grew silently over nine phases - P14 owns diagnostics, so the assertion lands there.
+
+- task added: A test that every code in registries/errors.py appears in the blueprint's ERRCODES table, and every code in the table exists in the registry

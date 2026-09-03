@@ -337,6 +337,33 @@ class Ledger(Base):
         return f"<Ledger {self.step_id} {self.step_key[:15]}... -> {self.result_ref[:15]}...>"
 
 
+class SourceRow(Base):
+    """One row a reader extracted, under its source and locator, immutable for the run.
+
+    The Source Parse Store. Three guards resolve against it: Provenance asks whether a
+    cited source and locator exist, Tie-Out asks for the rows behind a stated total, and
+    the Numeric Lock compares a released figure to the value first read. Written once by
+    the readers, never updated - a guard that could be pointed at rows that changed after
+    the skill read them would be checking a different document.
+    """
+
+    __tablename__ = "source_row"
+    __table_args__ = (
+        UniqueConstraint("run_id", "source_id", "locator", "ordinal", name="uq_source_row"),
+        Index("ix_source_row_locator", "run_id", "source_id", "locator"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("run.run_id"), nullable=False)
+    source_id: Mapped[str] = mapped_column(String(71), nullable=False)
+    locator: Mapped[str] = mapped_column(String(256), nullable=False)
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
+    label: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    value: Mapped[float | None] = mapped_column(Float, default=None)
+    raw: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    """The cell as read, before any parsing. What the numeric lock compares against."""
+
+
 class VaultEntry(Base):
     """One mask token and the value it stands for, encrypted, scoped to an engagement.
 

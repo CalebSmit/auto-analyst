@@ -1,0 +1,74 @@
+{
+  "source_id": "sha256:abababababababababababababababababababababababababababababababab",
+  "rows_locator": "TB_FY25!B44:B47",
+  "rows": [
+    {
+      "label": "Officer salary",
+      "value": 240000.0,
+      "raw": "240,000.00"
+    },
+    {
+      "label": "Officer bonus",
+      "value": 60000.0,
+      "raw": "60,000.00"
+    },
+    {
+      "label": "Auto allowance",
+      "value": 18400.0,
+      "raw": "18,400.00"
+    },
+    {
+      "label": "Health premium",
+      "value": 12600.0,
+      "raw": "12,600.00"
+    }
+  ],
+  "true_total": 331000.0,
+  "altered_total": 332324.0,
+  "tolerance": 1.0,
+  "output": {
+    "schema_version": "skills/ebitda-normalization@1.0.0",
+    "produced_by": "ebitda-normalization@0.1.0",
+    "addback_schedule": [
+      {
+        "candidate_id": "c1",
+        "line_item_ref": "li_officer_comp",
+        "category": "owner_related",
+        "amount": {
+          "value": 332324.0,
+          "unit": "currency",
+          "currency": "USD",
+          "scale": 1,
+          "period": {
+            "type": "FY",
+            "end": "2025-12-31"
+          },
+          "source_id": "sha256:abababababababababababababababababababababababababababababababab",
+          "locator": "TB_FY25!B48",
+          "source_version": 1,
+          "derivation": {
+            "op": "sum",
+            "of": [
+              "TB_FY25!B44:B47"
+            ]
+          },
+          "masked": true,
+          "confidence": 0.9,
+          "produced_by": "ebitda-normalization@0.1.0",
+          "model_pin": "claude-sonnet-5 @ effort=high"
+        },
+        "rationale": "Owner compensation above market",
+        "evidence": [
+          {
+            "source_id": "sha256:abababababababababababababababababababababababababababababababab",
+            "locator": "TB_FY25!B44:B47",
+            "excerpt": "Officer comp lines"
+          }
+        ],
+        "recomputed": false,
+        "above_materiality": true,
+        "review_required": true
+      }
+    ]
+  }
+}

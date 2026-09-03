@@ -1,0 +1,94 @@
+{
+  "sources": {
+    "sha256:abababababababababababababababababababababababababababababababab": 1
+  },
+  "parse_store": {
+    "sha256:abababababababababababababababababababababababababababababababab": {
+      "TB_FY25!B44:B47": [
+        {
+          "label": "Officer salary",
+          "value": 240000.0,
+          "raw": "240,000.00"
+        },
+        {
+          "label": "Officer bonus",
+          "value": 60000.0,
+          "raw": "60,000.00"
+        },
+        {
+          "label": "Auto allowance",
+          "value": 18400.0,
+          "raw": "18,400.00"
+        },
+        {
+          "label": "Health premium",
+          "value": 12600.0,
+          "raw": "12,600.00"
+        }
+      ]
+    }
+  },
+  "output": {
+    "figures": [
+      {
+        "value": 331000.0,
+        "unit": "currency",
+        "currency": "USD",
+        "scale": 1,
+        "period": {
+          "type": "FY",
+          "end": "2025-12-31"
+        },
+        "source_id": "derived",
+        "locator": "TB_FY25!B48",
+        "source_version": 1,
+        "derivation": null,
+        "masked": true,
+        "confidence": 0.9,
+        "produced_by": "ebitda-normalization@0.1.0",
+        "model_pin": "claude-sonnet-5 @ effort=high"
+      },
+      {
+        "value": 48231.0,
+        "unit": "currency",
+        "currency": "USD",
+        "scale": 1,
+        "period": {
+          "type": "FY",
+          "end": "2025-12-31"
+        },
+        "source_id": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "locator": "TB_FY25!B12",
+        "source_version": 1,
+        "derivation": null,
+        "masked": true,
+        "confidence": 0.9,
+        "produced_by": "ebitda-normalization@0.1.0",
+        "model_pin": "claude-sonnet-5 @ effort=high"
+      },
+      {
+        "value": 240000.0,
+        "unit": "currency",
+        "currency": "USD",
+        "scale": 1,
+        "period": {
+          "type": "FY",
+          "end": "2025-12-31"
+        },
+        "source_id": "sha256:abababababababababababababababababababababababababababababababab",
+        "locator": "TB_FY25!B44:B47",
+        "source_version": 1,
+        "derivation": null,
+        "masked": true,
+        "confidence": 0.9,
+        "produced_by": "ebitda-normalization@0.1.0",
+        "model_pin": "claude-sonnet-5 @ effort=high"
+      }
+    ]
+  },
+  "expect": {
+    "fabricated": 1,
+    "unknown": 1,
+    "clean": 1
+  }
+}

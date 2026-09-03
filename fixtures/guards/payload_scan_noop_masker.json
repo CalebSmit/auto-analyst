@@ -1,0 +1,14 @@
+{
+  "engagement_id": "HEND-2026-04",
+  "identifiers": [
+    "Henderson Manufacturing",
+    "Bob Henderson",
+    "Bob's LLC Checking"
+  ],
+  "expected_tokens": [
+    "[[CLIENT_1]]",
+    "[[PERSON_1]]",
+    "[[ACCOUNT_1]]"
+  ],
+  "payload": "Henderson Manufacturing trial balance. Bob's LLC Checking 48,231.00. Owner draw Bob Henderson."
+}

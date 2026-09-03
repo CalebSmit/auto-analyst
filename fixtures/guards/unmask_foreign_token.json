@@ -1,0 +1,9 @@
+{
+  "engagement_id": "HEND-2026-04",
+  "other_engagement_id": "NOVK-2026-11",
+  "identifier": {
+    "kind": "PERSON",
+    "value": "Bob Henderson"
+  },
+  "text_template": "owner draw paid to {token}"
+}

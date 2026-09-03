@@ -1,0 +1,81 @@
+# The ten adversarial fixtures, from the blueprint's fixture table.
+#
+# A guard suite that only ever sees clean input tells you nothing about the guard. Each
+# entry names the guard it is built to defeat and the phase that builds that guard; the
+# test in tests/p13 runs every fixture whose guard exists and reports the rest as pending
+# by phase - reported, never silently skipped, for the same reason the Postgres run is.
+#
+# Every fixture is synthetic. Client data never enters the repo.
+
+version: 1.0.0
+
+fixtures:
+  - id: payload_scan_noop_masker
+    guard: payload_scan
+    built_by: P11
+    what: A payload produced with the masker stubbed to a no-op
+    fires: PRIVACY.UNMASKED_IDENTIFIER
+    case: payload_scan_noop_masker.json
+
+  - id: unmask_foreign_token
+    guard: unmask_verify
+    built_by: P12
+    what: A token issued under a different engagement_id
+    fires: PRIVACY.TOKEN_CROSS_ENGAGEMENT
+    case: unmask_foreign_token.json
+
+  - id: tieout_altered_total
+    guard: tieout
+    built_by: P13
+    what: A total altered by 0.4% - plausible on sight, outside tolerance
+    fires: GUARD.TIEOUT_MISMATCH
+    case: tieout_altered_total.json
+
+  - id: untrusted_hidden_instructions
+    guard: untrusted_boundary
+    built_by: P17
+    what: A PDF carrying instructions in 1pt white text and zero-width characters
+    fires: INTAKE.INJECTION_DETECTED
+    case: untrusted_hidden_instructions.json
+
+  - id: numeric_lock_rounding_writer
+    guard: numeric_lock
+    built_by: P13
+    what: A template writer that rounds to the nearest thousand
+    fires: GUARD.NUMERIC_DRIFT
+    case: numeric_lock_rounding_writer.json
+
+  - id: provenance_derived_source
+    guard: provenance
+    built_by: P13
+    what: A figure citing source_id "derived", and one citing a hash not in the manifest
+    fires: SKILL.FABRICATED_SOURCE
+    case: provenance_derived_source.json
+
+  - id: deliverable_qc_broken_link
+    guard: deliverable_qc
+    built_by: P21
+    what: A workbook with a broken external link and a #REF! in a total row
+    fires: DELIVER.QC_FAILED
+    case: deliverable_qc_broken_link.json
+
+  - id: loop_byte_identical_output
+    guard: loop_controller
+    built_by: P14
+    what: A skill that returns byte-identical output on every attempt
+    fires: LOOP.INPUT_UNCHANGED
+    case: loop_byte_identical_output.json
+
+  - id: budget_trip_every_loop
+    guard: budget_governor
+    built_by: P11
+    what: A fixture engineered to trip every loop at once
+    fires: POLICY.BUDGET_EXCEEDED
+    case: budget_trip_every_loop.json
+
+  - id: engagement_lock_double_launch
+    guard: engagement_lock
+    built_by: P16
+    what: Two runs launched on one engagement in the same second
+    fires: PROCESS.ENGAGEMENT_LOCKED
+    case: engagement_lock_double_launch.json

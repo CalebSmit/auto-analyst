@@ -96,7 +96,7 @@ class ContractRegistry:
         self._entries = entries
         self._schemas = schemas
         self._intake_types = intake_types
-        self._refs = Registry().with_resources(  # type: ignore[var-annotated]
+        self._refs = Registry().with_resources(
             (schema["$id"], Resource.from_contents(schema)) for schema in schemas.values()
         )
         self._validators: dict[str, Draft202012Validator] = {}

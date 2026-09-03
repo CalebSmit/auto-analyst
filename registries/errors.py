@@ -94,6 +94,10 @@ UNMASKED_IDENTIFIER = "PRIVACY.UNMASKED_IDENTIFIER"
 TOKEN_CROSS_ENGAGEMENT = "PRIVACY.TOKEN_CROSS_ENGAGEMENT"
 VAULT_UNAVAILABLE = "PRIVACY.VAULT_UNAVAILABLE"
 UNMASK_RESIDUAL = "GUARD.UNMASK_RESIDUAL"
+TIEOUT_MISMATCH = "GUARD.TIEOUT_MISMATCH"
+RECONCILE_CONFLICT = "GUARD.RECONCILE_CONFLICT"
+NUMERIC_DRIFT = "GUARD.NUMERIC_DRIFT"
+UNKNOWN_SOURCE = "SKILL.UNKNOWN_SOURCE"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 TOOL_NOT_DECLARED = "POLICY.TOOL_NOT_DECLARED"
@@ -316,6 +320,35 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "secrets port, or the store is unreachable. Nothing can be masked or unmasked "
         "without it, and nothing is: a run does not proceed on unmasked payloads "
         "because the vault was down.",
+    ),
+    TIEOUT_MISMATCH: (
+        "client-data",
+        "A stated total does not match what the Recompute Engine derived from the cited "
+        "source rows, outside the run's tolerance. Both values, the delta and the rows "
+        "are in the manifest. Usually the client's own schedule does not foot; sometimes "
+        "the skill cited the wrong rows. Either way a person decides which - the run does "
+        "not pick the nicer number.",
+    ),
+    RECONCILE_CONFLICT: (
+        "model",
+        "Two skills disagree about the same thing - a line item categorised two ways, a "
+        "period present in one output and absent from another. Both positions and their "
+        "sources are on the record. Conflicts route to review; they are never resolved by "
+        "preferring whichever skill wrote last.",
+    ),
+    NUMERIC_DRIFT: (
+        "system",
+        "A number or a citation marker changed between the validated figures and what was "
+        "written out. Rounding, a swapped scale, a dropped cell: the numeric lock does not "
+        "care which. Nothing is released until the two token sets are identical, because "
+        "a transform that changes a figure is not a transform.",
+    ),
+    UNKNOWN_SOURCE: (
+        "model",
+        "A figure cites a source_id that is not in this run's intake manifest, or a "
+        "locator that does not exist in the Source Parse Store. The hash is well-formed "
+        "and the document is not here. A figure that cannot be traced to a file the run "
+        "actually read is not evidence of anything.",
     ),
     UNMASK_RESIDUAL: (
         "system",

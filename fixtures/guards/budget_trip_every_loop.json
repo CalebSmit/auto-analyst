@@ -1,0 +1,10 @@
+{
+  "loops": {
+    "guard_repair": 2,
+    "tieout_repair": 1,
+    "self_verification": 1,
+    "conflict_resolution": 1
+  },
+  "iterations": 9,
+  "ceiling": "loop_iterations_max"
+}

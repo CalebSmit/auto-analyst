@@ -1,0 +1,15 @@
+{
+  "workbook": "Chartwell_ESOP_Model_v9.xlsx",
+  "defects": [
+    {
+      "cell": "DCF!C40",
+      "value": "#REF!",
+      "in_total_row": true
+    },
+    {
+      "cell": "Inputs!B3",
+      "external_link": "//old-share/models/[FY24.xlsx]Sheet1!A1",
+      "resolves": false
+    }
+  ]
+}
