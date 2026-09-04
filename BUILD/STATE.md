@@ -5,29 +5,28 @@
 
 ## Where the build is
 
-- **18 of 28 phases closed**
+- **19 of 28 phases closed**
 - Last green checkpoint: **C6**
-- Current phase: **P19 - Line-item tagging and the precedent store** (gate: human)
+- Current phase: **P20 - EBITDA normalization** (gate: human)
 
 ## The next action
 
-Work P19. Its full definition is in [BUILD/phases/P19.md](phases/P19.md).
+Work P20. Its full definition is in [BUILD/phases/P20.md](phases/P20.md).
 
-> The highest-volume skill in the system, and the first one that learns - which is exactly why only a human decision can write to what it learns from.
+> The first skill where a mistake is expensive rather than merely visible - which is why it is high tier, always self-verified, and never auto-accepts anything material.
 
 Tasks:
 
-- [ ] Firm chart-of-accounts taxonomy, versioned
-- [ ] The skill: Category, Excluded from A/L, Include in NWC, with confidence and a one-line rationale per item
-- [ ] Scope-built precedent retrieval - a repeat client sees its own prior decisions first
-- [ ] Write-back gated on a decision id, with no other code path into the store
-- [ ] Proposal contract skills/line-item-tagging-proposal@1.0.0: one numeric field (the model's confidence), no figure anywhere; every ref, category and cited precedent in a proposal is verified by the procedure before it becomes output
-- [ ] registries/taxonomy.py loads taxonomy/coa-taxonomy@x.y.z.yaml; tools/coa.py and tools/precedent.py are the two gated reads the skill declares
+- [ ] Add-back taxonomy and officer-compensation tests with a cited benchmark
+- [ ] recompute called on every proposed amount
+- [ ] The self-verification pass as a separate invocation that never sees the first pass's reasoning
+- [ ] Materiality routing: above the threshold goes to review regardless of confidence
+- [ ] engagement_profile consumed for the owner-compensation baseline (the F1 contract)
 
 Then:
 
-    python tools/gate.py check P19
-    python tools/gate.py close P19  --signoff "name: what you checked"
+    python tools/gate.py check P20
+    python tools/gate.py close P20  --signoff "name: what you checked"
 
 ## Before you start
 
@@ -57,4 +56,5 @@ Then:
 - **P16** Intake: roster, sweep, binding, lock, window (2026-09-03)
 - **P17** Readers and the Source Parse Store (2026-09-03)
 - **P18** First real skill: timing normalization (2026-09-03) - Caleb: reviewed the synthetic annual_drift alignment (rename, split, merge, one unmatched line) - calls I would have made; good for testing. Real-engagement confirmation and tailoring to my work's Excel models deferred to the P24 pilot.
+- **P19** Line-item tagging and the precedent store (2026-09-03) - Caleb: reviewed the 17 category disagreements and 3 flag departures in fixtures/skills/line-item-tagging/disagreements.md - those are the calls I would make. Taxonomy defaults and the authored gold set stand for testing; Chartwell's conventions and the two-analyst baseline deferred to the P24 pilot.
 

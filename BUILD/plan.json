@@ -620,7 +620,7 @@
       "title": "Line-item tagging and the precedent store",
       "block": "Block E - Real skills and their surfaces",
       "gate": "human",
-      "status": "open",
+      "status": "done",
       "human_check": "You review the 400-item fixture disagreements yourself and confirm the gold set is right where the system and the gold set differ.",
       "intent": "The highest-volume skill in the system, and the first one that learns - which is exactly why only a human decision can write to what it learns from.",
       "builds": [
@@ -647,7 +647,9 @@
       "checks": [
         "python -m uv run pytest tests/p19 -q"
       ],
-      "notes": "A system that learns from its own unreviewed output drifts, and does it invisibly. The single-writer rule is the whole defence."
+      "notes": "A system that learns from its own unreviewed output drifts, and does it invisibly. The single-writer rule is the whole defence.",
+      "closed": "2026-09-03",
+      "signoff": "Caleb: reviewed the 17 category disagreements and 3 flag departures in fixtures/skills/line-item-tagging/disagreements.md - those are the calls I would make. Taxonomy defaults and the authored gold set stand for testing; Chartwell's conventions and the two-analyst baseline deferred to the P24 pilot."
     },
     {
       "id": "P20",
