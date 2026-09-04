@@ -656,7 +656,7 @@
       "title": "EBITDA normalization",
       "block": "Block E - Real skills and their surfaces",
       "gate": "human",
-      "status": "open",
+      "status": "done",
       "human_check": "You confirm the add-backs proposed on a real engagement are defensible, and that nothing material was auto-accepted.",
       "intent": "The first skill where a mistake is expensive rather than merely visible - which is why it is high tier, always self-verified, and never auto-accepts anything material.",
       "builds": [
@@ -681,7 +681,9 @@
       "checks": [
         "python -m uv run pytest tests/p20 -q"
       ],
-      "notes": "Never applies an add-back - proposes it with evidence. There is no field in the schema for a concluded value."
+      "notes": "Never applies an add-back - proposes it with evidence. There is no field in the schema for a concluded value.",
+      "closed": "2026-09-03",
+      "signoff": "Caleb: reviewed the Henderson add-back schedule - officer pay tested against the benchmark and always reviewed, related-party rent held for the market-rent fact, settlement and Q3 project as non-recurring with repairs refused as recurring, vehicle and charitable as discretionary, and the verifier sending the Q3 project to review. Those are the calls I would make; nothing material auto-accepted. Real-engagement add-backs deferred to the P24 pilot."
     },
     {
       "id": "P21",

@@ -5,30 +5,30 @@
 
 ## Where the build is
 
-- **19 of 28 phases closed**
+- **20 of 28 phases closed**
 - Last green checkpoint: **C6**
-- Current phase: **P20 - EBITDA normalization** (gate: human)
+- Current phase: **P21 - Model builder, template registry, release** (gate: auto)
 
 ## The next action
 
-Work P20. Its full definition is in [BUILD/phases/P20.md](phases/P20.md).
+Work P21. Its full definition is in [BUILD/phases/P21.md](phases/P21.md).
 
-> The first skill where a mistake is expensive rather than merely visible - which is why it is high tier, always self-verified, and never auto-accepts anything material.
+> openpyxl into a copy of a pinned template, bound by named range and never by cell address. One node releases client work, with one inbound edge.
 
 Tasks:
 
-- [ ] Add-back taxonomy and officer-compensation tests with a cited benchmark
-- [ ] recompute called on every proposed amount
-- [ ] The self-verification pass as a separate invocation that never sees the first pass's reasoning
-- [ ] Materiality routing: above the threshold goes to review regardless of confidence
-- [ ] engagement_profile consumed for the owner-compensation baseline (the F1 contract)
-- [ ] The self-verification pass as a second procedure and a declared region on the EBITDA step: recipes/monthly-refresh.yaml self_verification:ebitda, harness/procedures VERIFIERS, LOOP.VERIFICATION_PASS
-- [ ] Two proposal contracts: skills/ebitda-normalization-proposal@1.0.0 (candidates, no amount) and skills/ebitda-normalization-verification-proposal@1.0.0 (verdicts, no number)
+- [ ] Template registration: introspect the workbook, list its declared named ranges, assert every required mapping input is present
+- [ ] The CONFIG.TEMPLATE_INPUTS_MISSING diagnostic with code, owner and what_now
+- [ ] Model-load emitting a mapping; the Template Writer performing every write
+- [ ] Deliverable QC: opens, resolves, stamped, no residual tokens, no broken external link, no #REF!
+- [ ] The single release gate and the idempotency ledger record inside the release transaction
+- [ ] Workpaper narrative, written after the numbers are locked, with no schema field a figure can enter through
+- [ ] Manifest lists every plan step, with never-started ones as not_reached and no invented key (P14 finding)
 
 Then:
 
-    python tools/gate.py check P20
-    python tools/gate.py close P20  --signoff "name: what you checked"
+    python tools/gate.py check P21
+    python tools/gate.py close P21
 
 ## Before you start
 
@@ -59,4 +59,5 @@ Then:
 - **P17** Readers and the Source Parse Store (2026-09-03)
 - **P18** First real skill: timing normalization (2026-09-03) - Caleb: reviewed the synthetic annual_drift alignment (rename, split, merge, one unmatched line) - calls I would have made; good for testing. Real-engagement confirmation and tailoring to my work's Excel models deferred to the P24 pilot.
 - **P19** Line-item tagging and the precedent store (2026-09-03) - Caleb: reviewed the 17 category disagreements and 3 flag departures in fixtures/skills/line-item-tagging/disagreements.md - those are the calls I would make. Taxonomy defaults and the authored gold set stand for testing; Chartwell's conventions and the two-analyst baseline deferred to the P24 pilot.
+- **P20** EBITDA normalization (2026-09-03) - Caleb: reviewed the Henderson add-back schedule - officer pay tested against the benchmark and always reviewed, related-party rent held for the market-rent fact, settlement and Q3 project as non-recurring with repairs refused as recurring, vehicle and charitable as discretionary, and the verifier sending the Q3 project to review. Those are the calls I would make; nothing material auto-accepted. Real-engagement add-backs deferred to the P24 pilot.
 
