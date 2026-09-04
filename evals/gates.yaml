@@ -1,0 +1,100 @@
+# The per-skill acceptance gates. A skill passes these or it does not register.
+#
+# Every gate is a named metric, an operator and a number, computed by evals/metrics.py
+# over the skill's fixtures. The blueprint's Assurance tab states each gate in prose;
+# the `blueprint` field carries that prose so the number and the sentence stay side by
+# side. A gate the offline harness cannot measure - shadow disagreement needs real runs
+# - is listed with `measured_by` so coverage reports it as owed rather than pretending.
+#
+# Thresholds are the blueprint's starting proposal. An analyst sets them against a real
+# fixture set at the P24 pilot; that decision is on the Delivery tab.
+
+version: 1.0.0
+
+skills:
+  timing-normalization:
+    status: shipped
+    fixtures: fixtures/skills/timing-normalization
+    gates:
+      - metric: arithmetic_agreement
+        op: ">="
+        threshold: 1.0
+        blueprint: 100% arithmetic agreement with the deterministic tool
+      - metric: line_item_match_rate
+        op: ">="
+        threshold: 0.98
+        blueprint: at least 98% line-item match rate
+      - metric: unmatched_reported
+        op: ">="
+        threshold: 1.0
+        blueprint: every unmatched line reported, none interpolated
+
+  line-item-tagging:
+    status: shipped
+    fixtures: fixtures/skills/line-item-tagging
+    gates:
+      - metric: top1_agreement
+        op: ">="
+        threshold: 0.95
+        blueprint: at least 95% top-1 agreement with the analyst gold set over a 400-item fixture
+      - metric: provenance_failures
+        op: "<="
+        threshold: 0
+        blueprint: zero provenance failures
+      - metric: shadow_disagreement
+        op: "<"
+        threshold: 0.08
+        blueprint: shadow disagreement below 8% over 20 real runs
+        measured_by: shadow_run
+        note: needs real runs; the offline harness reports it as owed
+
+  ebitda-normalization:
+    status: shipped
+    fixtures: fixtures/skills/ebitda-normalization
+    gates:
+      - metric: tie_rate
+        op: ">="
+        threshold: 1.0
+        blueprint: 100% of proposed add-backs tie via recompute
+      - metric: recall
+        op: ">="
+        threshold: 0.9
+        blueprint: at least 90% recall against analyst-identified add-backs
+      - metric: material_auto_accepted
+        op: "<="
+        threshold: 0
+        blueprint: no add-back above the materiality threshold ever auto-accepted
+      - metric: recurring_flagged
+        op: ">="
+        threshold: 1.0
+        blueprint: a candidate recurring across all periods is escalated, not proposed
+
+  model-load:
+    status: shipped
+    fixtures: fixtures/skills/ebitda-normalization
+    gates:
+      - metric: inputs_mapped_or_reported
+        op: ">="
+        threshold: 1.0
+        blueprint: 100% of template inputs either mapped or reported unmapped
+      - metric: writes_outside_schema
+        op: "<="
+        threshold: 0
+        blueprint: zero writes outside the mapping schema
+
+  # Declared in the blueprint's gate table, not yet shipped. Listed so coverage says so.
+  ddr-tagging:
+    status: not_shipped
+    blueprint: at least 97% field-level agreement; 100% of unanswered schedule items reported as outstanding; zero invented answers on an adversarial fixture
+  qc-tieout:
+    status: not_shipped
+    blueprint: detects 100% of a seeded fault set; readiness value never outside the permitted enum
+  dcf-build:
+    status: not_shipped
+    blueprint: every input traced to a source or a stated assumption; no point value emitted
+  gpc-scrub:
+    status: not_shipped
+    blueprint: rejected comparables reported with reasons; no point value emitted
+  cost-of-capital:
+    status: not_shipped
+    blueprint: every input traced to a source or a stated assumption; the company-specific premium always reviewed

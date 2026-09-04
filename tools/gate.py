@@ -555,6 +555,35 @@ def render_phase_files(plan: dict) -> None:
         (PHASES_DIR / f"{p['id']}.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
+def cmd_eval(_plan: dict, args) -> int:
+    """gate eval <skill> | --all | --coverage [--register WHO].
+
+    The Evaluation Harness as a first-class command: the scorecard against the named
+    gates, the coverage report with what is not covered, and registration on a pass.
+    """
+    import shlex
+
+    forwarded = []
+    if args.skill:
+        forwarded.append(args.skill)
+    if args.all:
+        forwarded.append("--all")
+    if args.coverage:
+        forwarded.append("--coverage")
+    if args.register:
+        forwarded += ["--register", args.register]
+    # The gate tool itself imports nothing from the project, so it keeps working when
+    # the environment is what is broken. Inside the project environment already (the
+    # test runner, or a shell that activated it) the harness runs directly; otherwise
+    # under uv, like every phase check.
+    import importlib.util
+
+    if importlib.util.find_spec("jsonschema") is not None:
+        return subprocess.run([sys.executable, "-m", "evals", *forwarded], cwd=ROOT).returncode
+    command = "python -m uv run python -m evals " + shlex.join(forwarded)
+    return subprocess.run(command, shell=True, cwd=ROOT).returncode
+
+
 def cmd_render(plan: dict, _args) -> int:
     render(plan)
     render_phase_files(plan)
@@ -609,6 +638,12 @@ def main() -> int:
     c.add_argument("--rule", required=True)
     c.add_argument("--phase")
 
+    c = sub.add_parser("eval", help="score a skill against its acceptance gates")
+    c.add_argument("skill", nargs="?")
+    c.add_argument("--all", action="store_true", help="every shipped skill")
+    c.add_argument("--coverage", action="store_true", help="what is and is not covered")
+    c.add_argument("--register", metavar="WHO", help="register the version on a pass")
+
     args = ap.parse_args()
     plan = load()
     return {
@@ -619,6 +654,7 @@ def main() -> int:
         "amend": cmd_amend,
         "ledger": cmd_ledger,
         "render": cmd_render,
+        "eval": cmd_eval,
     }[args.cmd](plan, args)
 
 

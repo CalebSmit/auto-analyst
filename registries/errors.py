@@ -161,6 +161,7 @@ PRECEDENT_NO_DECISION = "PROCESS.PRECEDENT_NO_DECISION"
 VERIFICATION_PASS = "LOOP.VERIFICATION_PASS"
 TEMPLATE_INPUTS_MISSING = "CONFIG.TEMPLATE_INPUTS_MISSING"
 CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
+BELOW_GATE = "SKILL.BELOW_GATE"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -286,6 +287,14 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    BELOW_GATE: (
+        "model",
+        "A skill version scored below one of its acceptance gates, or the version is "
+        "already registered. It cannot be registered and does not ship. Fix the skill "
+        "against its fixtures and re-run the evaluation; do not lower the gate - the "
+        "thresholds are the practice's, set against a real fixture set, not the "
+        "skill's to negotiate.",
     ),
     TEMPLATE_INPUTS_MISSING: (
         "config",

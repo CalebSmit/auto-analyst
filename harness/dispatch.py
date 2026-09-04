@@ -23,6 +23,7 @@ SKILL.md files and no Python at all - P10 made that a test.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -47,6 +48,23 @@ from registries.skills import SkillTree
 __all__ = ["Dispatched", "Procedure", "SkillDispatcher"]
 
 NODE = "dispatcher"
+
+
+def _canonical(value: Any) -> bytes:
+    """Canonical JSON of an inputs object or a proposal. A dataclass is recorded field
+    by field; a set becomes a sorted list; anything else is the JSON it already is."""
+    body = (
+        dataclasses.asdict(value)
+        if dataclasses.is_dataclass(value) and not isinstance(value, type)
+        else value
+    )
+
+    def plain(x: Any) -> Any:
+        if isinstance(x, frozenset | set):
+            return sorted(x)
+        raise TypeError(f"{type(x).__name__} is not recordable")
+
+    return json.dumps(body, sort_keys=True, separators=(",", ":"), default=plain).encode("utf-8")
 
 
 class Procedure(Protocol):
@@ -91,6 +109,8 @@ class Dispatched:
     context: AssembledContext
     request_hash: str
     model_calls: int = 1
+    inputs_ref: ContentRef | None = None
+    proposal_ref: ContentRef | None = None
 
 
 class SkillDispatcher:
@@ -233,13 +253,27 @@ class SkillDispatcher:
             media_type="application/json",
             name=f"output:{step.id}",
         )
+        # What the step was given and what the model answered, on the record beside the
+        # output: the Replay Harness restores a step from exactly these.
+        inputs_ref = self.blobs.put(
+            _canonical(inputs), media_type="application/json", name=f"inputs:{step.id}"
+        )
+        proposal_ref = self.blobs.put(
+            _canonical(proposal), media_type="application/json", name=f"proposal:{step.id}"
+        )
         self._emit(
             run_id,
             engagement_id,
             step.id,
             "skill.completed",
             f"{caller}: output {output_ref.content_hash[:19]}",
-            payload={"output_ref": output_ref.content_hash, "request_hash": call.request_hash},
+            payload={
+                "output_ref": output_ref.content_hash,
+                "inputs_ref": inputs_ref.content_hash,
+                "proposal_ref": proposal_ref.content_hash,
+                "request_hash": call.request_hash,
+                "skill": caller,
+            },
         )
         return Dispatched(
             step_id=step.id,
@@ -249,9 +283,11 @@ class SkillDispatcher:
             proposal=proposal,
             context=built,
             request_hash=call.request_hash,
+            inputs_ref=inputs_ref,
+            proposal_ref=proposal_ref,
         )
 
-    def _emit(
+    def _emit(  # noqa: PLR0913 - one call, one record
         self,
         run_id: str,
         engagement_id: str,

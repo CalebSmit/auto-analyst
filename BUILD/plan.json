@@ -733,7 +733,7 @@
       "title": "Eval and replay harnesses",
       "block": "Block F - Assurance and operations",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Fixtures only cover cases somebody thought of. Replay answers the question fixtures cannot: would this candidate have changed anything real?",
       "builds": [
         "eval_harness",
@@ -743,18 +743,22 @@
         "Golden fixtures per skill plus the adversarial fixtures per guard",
         "The per-skill acceptance gates from the blueprint's gate table",
         "Replay: re-run a candidate over the masked inputs of past engagements and diff against what was delivered",
-        "gate eval <skill> as a first-class command"
+        "gate eval <skill> as a first-class command",
+        "evals/gates.yaml as the named numeric form of the blueprint's gate table, with owed gates marked by the control that measures them",
+        "The dispatcher records inputs and proposal blobs per skill step; the Replay Harness restores a step from them"
       ],
       "exit": [
         "Every shipped skill has fixtures and a named numeric gate",
         "Replay produces a diff against past deliverables, not just a pass/fail",
         "A skill below its gate cannot be registered",
-        "Fixture coverage is reported, including what is not covered"
+        "Fixture coverage is reported, including what is not covered",
+        "A gate the offline harness cannot measure is reported as owed - on the scorecard, in coverage and on the registration record - never as passed"
       ],
       "checks": [
         "python -m uv run pytest tests/p22 -q"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-03"
     },
     {
       "id": "P23",

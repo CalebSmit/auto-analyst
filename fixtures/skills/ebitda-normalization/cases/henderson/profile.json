@@ -1,0 +1,44 @@
+{
+ "schema_version": "engagement_profile@1.0.0",
+ "engagement_id": "HEND-2026-04",
+ "practice": "valuation",
+ "segment": "esop",
+ "disposition": "repeat",
+ "industry_classification": {
+  "system": "NAICS",
+  "code": "332710",
+  "description": "Machine shops"
+ },
+ "size_band": {
+  "metric": "revenue",
+  "band": "10-50M",
+  "as_of": "2025-12-31"
+ },
+ "fiscal_calendar": {
+  "basis": "calendar",
+  "year_end_month": 12,
+  "year_end_day": 31
+ },
+ "scale_convention": 1,
+ "owner_compensation_baseline": {
+  "amount": 285000,
+  "currency": "USD",
+  "basis": "survey_median",
+  "source": "ERI 2025",
+  "as_of": "2025-06-30"
+ },
+ "materiality_threshold": {
+  "amount": 20000,
+  "currency": "USD"
+ },
+ "checkpoint_policy": {
+  "owner": "Dana Whitfield",
+  "sla_hours": 48.0,
+  "auto_accept_confidence": 0.85,
+  "always_review_categories": [
+   "owner_related"
+  ]
+ },
+ "recorded_by": "setup@chartwell.invalid",
+ "recorded_at": "2026-09-01T08:00:00Z"
+}

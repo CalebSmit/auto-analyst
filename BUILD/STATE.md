@@ -5,27 +5,28 @@
 
 ## Where the build is
 
-- **21 of 28 phases closed**
+- **22 of 28 phases closed**
 - Last green checkpoint: **C7**
-- Current phase: **P22 - Eval and replay harnesses** (gate: auto)
+- Current phase: **P23 - Ops console, scorecard, drift, stalls** (gate: auto)
 
 ## The next action
 
-Work P22. Its full definition is in [BUILD/phases/P22.md](phases/P22.md).
+Work P23. Its full definition is in [BUILD/phases/P23.md](phases/P23.md).
 
-> Fixtures only cover cases somebody thought of. Replay answers the question fixtures cannot: would this candidate have changed anything real?
+> Every run ends with a computed verdict against versioned criteria, so no run's outcome is a matter of opinion.
 
 Tasks:
 
-- [ ] Golden fixtures per skill plus the adversarial fixtures per guard
-- [ ] The per-skill acceptance gates from the blueprint's gate table
-- [ ] Replay: re-run a candidate over the masked inputs of past engagements and diff against what was delivered
-- [ ] gate eval <skill> as a first-class command
+- [ ] FastAPI plus SSE over the event bus
+- [ ] The run scorecard: coverage, provenance, tie-out, conflicts, masking, numeric integrity, budget, review outstanding, deliverable QC
+- [ ] Versioned acceptance criteria, so 'what counted as working' is answerable for a run six months old
+- [ ] Drift monitor over override rate, confidence distribution and guard failure rate
+- [ ] Stall detection against the review SLA
 
 Then:
 
-    python tools/gate.py check P22
-    python tools/gate.py close P22
+    python tools/gate.py check P23
+    python tools/gate.py close P23
 
 ## Before you start
 
@@ -58,4 +59,5 @@ Then:
 - **P19** Line-item tagging and the precedent store (2026-09-03) - Caleb: reviewed the 17 category disagreements and 3 flag departures in fixtures/skills/line-item-tagging/disagreements.md - those are the calls I would make. Taxonomy defaults and the authored gold set stand for testing; Chartwell's conventions and the two-analyst baseline deferred to the P24 pilot.
 - **P20** EBITDA normalization (2026-09-03) - Caleb: reviewed the Henderson add-back schedule - officer pay tested against the benchmark and always reviewed, related-party rent held for the market-rent fact, settlement and Q3 project as non-recurring with repairs refused as recurring, vehicle and charitable as discretionary, and the verifier sending the Q3 project to review. Those are the calls I would make; nothing material auto-accepted. Real-engagement add-backs deferred to the P24 pilot.
 - **P21** Model builder, template registry, release (2026-09-03)
+- **P22** Eval and replay harnesses (2026-09-03)
 
