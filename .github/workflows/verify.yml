@@ -1,0 +1,105 @@
+# Every push and every pull request, verified the way a person would verify it locally.
+#
+# Two jobs, because they prove different things. `verify` runs the whole build against a
+# real Postgres and a real Redis, which no developer machine is guaranteed to have.
+# `container` builds the image and runs the suite inside it with no host Python at all -
+# the one exit criterion of P28 that a machine without an OCI runtime cannot check.
+#
+# This file does nothing until the repo has a remote. It is here so that the day it gets
+# one, the checks that need a Linux box with services on it start running without anybody
+# having to remember they were owed.
+
+name: verify
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: the whole build, against Postgres and Redis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: analyst_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    env:
+      AA_TEST_PG_URL: postgresql+psycopg://postgres:postgres@localhost:5432/analyst_test
+      AA_TEST_REDIS_URL: redis://localhost:6379/15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The surface snapshot and the state files are compared against the repo, so
+          # the checkout has to be the real thing rather than a shallow subset.
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.9"
+          enable-cache: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install
+        run: uv sync --frozen --all-groups
+
+      - name: verify
+        # Everything: surfaces, lint, types, blueprint freshness, state freshness, and
+        # the suite against both backends. --repeat 2 catches the order and timing luck
+        # that a single green run hides.
+        run: python tools/verify.py --postgres --redis --repeat 2
+
+  container:
+    name: the image builds and the suite passes inside it
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.12.9"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install
+        run: uv sync --frozen --all-groups
+
+      - name: which runtime
+        # Named in the log, because HANDOFF.md asks which runtime actually ran it.
+        run: docker version --format '{{.Server.Version}}'
+
+      - name: the container half
+        run: uv run pytest tests/p28 tests/checkpoints/c10 -q --container

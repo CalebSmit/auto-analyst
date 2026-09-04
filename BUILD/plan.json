@@ -956,18 +956,24 @@
         "On the work machine: confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18 through P25)",
         "On the work machine: publish Chartwell's chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)",
         "On the work machine: have an analyst confirm real-engagement add-backs are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)",
-        "On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)"
+        "On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)",
+        "One command that verifies the whole build and says what it did not run (tools/verify.py)",
+        "The public-surface snapshot and the regression suite that guards it (tools/surfaces.py, BUILD/surfaces.json, tests/regression)",
+        "CHANGING.md: the protocol for changing the system after v1",
+        "A CI workflow that runs the Postgres, Redis and container halves a laptop cannot"
       ],
       "exit": [
         "No managed-service primitive is depended on anywhere in the codebase",
         "HANDOFF.md names every environment difference between this machine and the work one",
         "A clean clone plus .env reaches a passing suite with no undocumented step",
-        "The image builds and the whole suite passes inside it with no host Python involved, using any OCI-compatible runtime - podman, containerd, Rancher Desktop or Docker Engine. No step depends on Docker Desktop, and HANDOFF.md names the runtime actually used"
+        "The image builds and the whole suite passes inside it with no host Python involved, using any OCI-compatible runtime - podman, containerd, Rancher Desktop or Docker Engine. No step depends on Docker Desktop, and HANDOFF.md names the runtime actually used",
+        "A change that moves a public surface fails a test naming it, and accepting it is a recorded decision"
       ],
       "checks": [
         "python -m uv run pytest tests/p28 -q",
         "python -m uv run ruff check .",
-        "python -m uv run mypy governance evals orchestrate workers ports intake ops registries graph review admin deliver precedent"
+        "python -m uv run mypy governance evals orchestrate workers ports intake ops registries graph review admin deliver precedent",
+        "python -m uv run pytest tests/regression -q"
       ],
       "notes": "The three work repos - model builder, ShareFile connector, Box connector - are named here as adapters to write, not as dependencies to satisfy."
     }

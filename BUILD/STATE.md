@@ -26,6 +26,10 @@ Tasks:
 - [ ] On the work machine: publish Chartwell's chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
 - [ ] On the work machine: have an analyst confirm real-engagement add-backs are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
 - [ ] On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)
+- [ ] One command that verifies the whole build and says what it did not run (tools/verify.py)
+- [ ] The public-surface snapshot and the regression suite that guards it (tools/surfaces.py, BUILD/surfaces.json, tests/regression)
+- [ ] CHANGING.md: the protocol for changing the system after v1
+- [ ] A CI workflow that runs the Postgres, Redis and container halves a laptop cannot
 
 Then:
 

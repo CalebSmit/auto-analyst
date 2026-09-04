@@ -1,0 +1,1122 @@
+{
+ "constraints": {
+  "ceilings": {
+   "note": "transport_retries covers transport failures only. A guard failure is never a retry \u2014 it is a loop iteration, and it must change the input to count.",
+   "per_run": {
+    "loop_iterations_max": 8,
+    "tokens_max": 3000000,
+    "usd_max": 40.0,
+    "wall_clock_s": 5400
+   },
+   "per_step": {
+    "timeout_s": 300,
+    "transport_retries_max": 2,
+    "usd_max": 6.0
+   }
+  },
+  "loops": {
+   "conflict_resolution": {
+    "max_iterations": 1,
+    "scope": "in_run"
+   },
+   "drift_re_review": {
+    "max_iterations": null,
+    "scope": "cross_run"
+   },
+   "guard_repair": {
+    "max_iterations": 2,
+    "scope": "in_run"
+   },
+   "human_clarification": {
+    "max_iterations": 1,
+    "scope": "run_spanning"
+   },
+   "self_verification": {
+    "max_iterations": 1,
+    "scope": "in_run"
+   },
+   "tieout_repair": {
+    "max_iterations": 1,
+    "scope": "in_run"
+   }
+  },
+  "tools": {
+   "chart_of_accounts_lookup": {
+    "caps": {
+     "max_rows": 5000,
+     "pinned_version_required": true
+    },
+    "kind": "reads",
+    "read_only": true
+   },
+   "index_lookup": {
+    "caps": {
+     "freshness_days": 400,
+     "max_rows": 500
+    },
+    "kind": "reads",
+    "read_only": true
+   },
+   "precedent_lookup": {
+    "caps": {
+     "max_rows": 200,
+     "scope_required": true
+    },
+    "kind": "reads",
+    "read_only": true
+   },
+   "recompute": {
+    "caps": {
+     "max_calls_per_step": 200,
+     "max_rows": 50000
+    },
+    "kind": "computes",
+    "read_only": false
+   },
+   "template_schema_lookup": {
+    "caps": {
+     "max_rows": 2000
+    },
+    "kind": "reads",
+    "read_only": true
+   },
+   "timing_normalizer": {
+    "caps": {
+     "max_calls_per_step": 20,
+     "max_periods": 40,
+     "max_rows": 50000
+    },
+    "kind": "computes",
+    "read_only": false
+   }
+  },
+  "version": "1.0.0"
+ },
+ "contracts": {
+  "ids": [
+   "config_document@1.0.0",
+   "config_document@1.1.0",
+   "engagement_profile@1.0.0",
+   "event@1.0.0",
+   "event@1.1.0",
+   "figure@1.0.0",
+   "participant_census@1.0.0",
+   "run_manifest@1.0.0",
+   "run_manifest@1.1.0",
+   "run_plan@1.0.0",
+   "run_plan_proposal@1.0.0",
+   "skills/cost-of-capital@1.0.0",
+   "skills/dcf-build@1.0.0",
+   "skills/ddr-tagging@1.0.0",
+   "skills/dol-adequate-consideration@1.0.0",
+   "skills/ebitda-normalization-proposal@1.0.0",
+   "skills/ebitda-normalization-verification-proposal@1.0.0",
+   "skills/ebitda-normalization@1.0.0",
+   "skills/first-year-baseline@1.0.0",
+   "skills/gpc-scrub@1.0.0",
+   "skills/line-item-tagging-proposal@1.0.0",
+   "skills/line-item-tagging@1.0.0",
+   "skills/model-load-proposal@1.0.0",
+   "skills/model-load@1.0.0",
+   "skills/prior-year-rollforward@1.0.0",
+   "skills/qc-tieout@1.0.0",
+   "skills/repurchase-obligation@1.0.0",
+   "skills/timing-normalization-proposal@1.0.0",
+   "skills/timing-normalization@1.0.0",
+   "triage@1.0.0",
+   "workpaper@1.0.0"
+  ],
+  "schemas": {
+   "config_document@1.0.0": "sha256:ba3325f94ec720baf097286d1ca5873a",
+   "config_document@1.1.0": "sha256:759457bf68f85b58b80e502c4fc4b976",
+   "engagement_profile@1.0.0": "sha256:1ae3c76e19ad166727a225018b51fabf",
+   "event@1.0.0": "sha256:226fe38211d99436b60a12fc5647788c",
+   "event@1.1.0": "sha256:3bc238c289b1e8b798cfaa99cb8db4ef",
+   "figure@1.0.0": "sha256:056ec7b7c6643252ae40f17a6e8c4b8d",
+   "participant_census@1.0.0": "sha256:1a3a755858d312a5cee12754f44308f6",
+   "run_manifest@1.0.0": "sha256:bca7bf3919ea1bdf5959db282c202e23",
+   "run_manifest@1.1.0": "sha256:4de71f14ef0d9034779c52c924b449c1",
+   "run_plan@1.0.0": "sha256:649791e4ac5deaa775f6093da9bc2e5f",
+   "run_plan_proposal@1.0.0": "sha256:48b131c438ea6a0410b7669435d27e1a",
+   "skills/cost-of-capital@1.0.0": "sha256:535d200a196ef6532ab5eddca399c651",
+   "skills/dcf-build@1.0.0": "sha256:fad773a01c31e9061e5468b591557fe5",
+   "skills/ddr-tagging@1.0.0": "sha256:bdca9449d6345d3b28b342fd2a702255",
+   "skills/dol-adequate-consideration@1.0.0": "sha256:a0e6236b404eec9753589eccd6f7747a",
+   "skills/ebitda-normalization-proposal@1.0.0": "sha256:2cf56ac2944c9df6f4d2488921dc5781",
+   "skills/ebitda-normalization-verification-proposal@1.0.0": "sha256:5669e636777be6650ab6a0fa88de981b",
+   "skills/ebitda-normalization@1.0.0": "sha256:f8c82faffa40e85272c358c23dc5b836",
+   "skills/first-year-baseline@1.0.0": "sha256:b642cd05ec69250c5abee2d8b9192490",
+   "skills/gpc-scrub@1.0.0": "sha256:61d72da7040bb77bbd6db3e4bf8cd11c",
+   "skills/line-item-tagging-proposal@1.0.0": "sha256:a051dee028684a7cf5565f56f3f2fbd4",
+   "skills/line-item-tagging@1.0.0": "sha256:c5d51969153fb81faa30de1874b118ba",
+   "skills/model-load-proposal@1.0.0": "sha256:937a72a740a2082b2defc1f51616e1bc",
+   "skills/model-load@1.0.0": "sha256:7e2817b02952db1707e7e96ed6613804",
+   "skills/prior-year-rollforward@1.0.0": "sha256:2bc4aba19b35570d88b3b8fb78133928",
+   "skills/qc-tieout@1.0.0": "sha256:17f4eab737a5a3518bcd20e80cb1918c",
+   "skills/repurchase-obligation@1.0.0": "sha256:d737656eb9e349aacde00937a7481201",
+   "skills/timing-normalization-proposal@1.0.0": "sha256:6614bda7d3e8fffc24ecb6bbdcf3fdd3",
+   "skills/timing-normalization@1.0.0": "sha256:36d0ae2f2787cb7b519606aa2010d435",
+   "triage@1.0.0": "sha256:e27ea25242c858c137650b4957ab1cd4",
+   "workpaper@1.0.0": "sha256:f4bd6bb257591d651e67659ebf306399"
+  },
+  "version": "1.0.0"
+ },
+ "criteria": {
+  "criteria": {
+   "budget": {
+    "bar": "Within all four ceilings",
+    "guards": [],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "conflicts": {
+    "bar": "Every surfaced conflict resolved by a person or reported",
+    "guards": [
+     "reconcile"
+    ],
+    "max_failed": 0,
+    "resolved_by": [
+     "conflict",
+     "loop_exhausted"
+    ]
+   },
+   "deliverable_qc": {
+    "bar": "Opens, resolves, stamped, no residual tokens",
+    "guards": [
+     "deliverable_qc"
+    ],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "document_coverage": {
+    "bar": "Every document in the declared set processed, or the gap reported",
+    "guards": [],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "numeric_integrity": {
+    "bar": "Zero figures altered across a transform",
+    "guards": [
+     "numeric_lock"
+    ],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "period_coverage": {
+    "bar": "No unexplained gap in the requested range",
+    "guards": [],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "provenance": {
+    "bar": "100% of figures carry source, locator and version",
+    "guards": [
+     "provenance",
+     "provenance_gate"
+    ],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "residual_masking": {
+    "bar": "Zero mask tokens in any artifact",
+    "guards": [
+     "payload_scan",
+     "unmask_verify"
+    ],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "review_outstanding": {
+    "bar": "Zero items unresolved at release",
+    "guards": [],
+    "max_failed": 0,
+    "resolved_by": []
+   },
+   "tieout": {
+    "bar": "100% of stated totals agree with recompute",
+    "guards": [
+     "tieout",
+     "tieout_gate"
+    ],
+    "max_failed": 0,
+    "resolved_by": []
+   }
+  },
+  "verdicts": [
+   "blocked",
+   "halted",
+   "partial",
+   "pass",
+   "pass_with_exceptions"
+  ],
+  "version": "run_criteria@1.0.0"
+ },
+ "diagnostics": {
+  "codes": {
+   "CONFIG.ADMIN_FORBIDDEN": "config",
+   "CONFIG.BINDING_MISSING": "config",
+   "CONFIG.BUDGET_ABOVE_CEILING": "config",
+   "CONFIG.CELL_ADDRESS_BINDING": "config",
+   "CONFIG.CREDENTIAL_EXPIRED": "config",
+   "CONFIG.DESTINATION_UNWRITABLE": "config",
+   "CONFIG.PATH_UNREADABLE": "config",
+   "CONFIG.PROFILE_INCOMPLETE": "config",
+   "CONFIG.TEMPLATE_HASH_MISMATCH": "config",
+   "CONFIG.TEMPLATE_INPUTS_MISSING": "config",
+   "CONFIG.TEMPLATE_UNREGISTERED": "config",
+   "DELIVER.QC_FAILED": "system",
+   "DELIVER.TEMPLATE_MISSING": "system",
+   "DELIVER.WRITE_FAILED": "system",
+   "GUARD.NUMERIC_DRIFT": "system",
+   "GUARD.RECONCILE_CONFLICT": "model",
+   "GUARD.TIEOUT_MISMATCH": "client-data",
+   "GUARD.UNMASK_RESIDUAL": "system",
+   "INTAKE.INJECTION_DETECTED": "client-data",
+   "INTAKE.NO_ENGAGEMENT": "client-data",
+   "INTAKE.UNKNOWN_TYPE": "client-data",
+   "INTAKE.UNREADABLE_FILE": "client-data",
+   "INTAKE.WATCH_OVERLAP": "config",
+   "LOOP.CEILING_EXCEEDED": "config",
+   "LOOP.EXHAUSTED": "model",
+   "LOOP.INPUT_UNCHANGED": "model",
+   "LOOP.UNDECLARED_CYCLE": "config",
+   "LOOP.VERIFICATION_PASS": "process",
+   "POLICY.ARG_OUT_OF_SCOPE": "policy",
+   "POLICY.BUDGET_EXCEEDED": "policy",
+   "POLICY.CAP_EXCEEDED": "policy",
+   "POLICY.MULTI_TURN_STEP": "policy",
+   "POLICY.OVERLAY_LOOSENS": "policy",
+   "POLICY.TOOL_NOT_DECLARED": "policy",
+   "PRIVACY.TOKEN_CROSS_ENGAGEMENT": "system",
+   "PRIVACY.UNMASKED_IDENTIFIER": "system",
+   "PRIVACY.UNMASKED_PRECEDENT": "system",
+   "PRIVACY.VAULT_UNAVAILABLE": "system",
+   "PROCESS.APPEND_ONLY_VIOLATION": "system",
+   "PROCESS.DIAGNOSTICS_INVALID": "system",
+   "PROCESS.ENGAGEMENT_LOCKED": "process",
+   "PROCESS.ILLEGAL_TRANSITION": "process",
+   "PROCESS.LATE_RESULT": "process",
+   "PROCESS.MANIFEST_INCOMPLETE": "system",
+   "PROCESS.OUTCOME_CONTRADICTED": "system",
+   "PROCESS.PLAN_REFUSED": "process",
+   "PROCESS.PRECEDENT_NO_DECISION": "system",
+   "PROCESS.RATIONALE_REQUIRED": "process",
+   "PROCESS.REVIEW_SLA_BREACH": "process",
+   "PROCESS.RUN_STALLED": "system",
+   "PROCESS.STALE_DECISION": "process",
+   "PROCESS.UNKNOWN_RUN": "process",
+   "PROCESS.WORKER_LOST": "system",
+   "SCOPE.ADAPTER_NOT_WIRED": "config",
+   "SCOPE.AMBIGUOUS_SKILL": "config",
+   "SCOPE.CONTRACT_INDEX_INVALID": "config",
+   "SCOPE.MISSING_CREDENTIAL": "config",
+   "SCOPE.MODEL_PIN_UNAVAILABLE": "config",
+   "SCOPE.PRECEDENT_OUT_OF_SCOPE": "config",
+   "SCOPE.RECIPE_INVALID": "config",
+   "SCOPE.SKILL_INVALID": "config",
+   "SCOPE.UNKNOWN_ADAPTER": "config",
+   "SCOPE.UNKNOWN_CONSTRAINTS": "config",
+   "SCOPE.UNKNOWN_CONTRACT": "config",
+   "SCOPE.UNKNOWN_CRITERIA": "config",
+   "SCOPE.UNKNOWN_DISPOSITION": "config",
+   "SCOPE.UNKNOWN_PRACTICE": "config",
+   "SCOPE.UNKNOWN_REVIEW_LEVEL": "config",
+   "SCOPE.UNKNOWN_SEGMENT": "config",
+   "SCOPE.UNKNOWN_TAXONOMY": "config",
+   "SCOPE.UNKNOWN_TOOL": "config",
+   "SCOPE.UNRESOLVED": "config",
+   "SKILL.BELOW_GATE": "model",
+   "SKILL.CLIENT_DATA_IN_DRAFT": "client-data",
+   "SKILL.FABRICATED_SOURCE": "model",
+   "SKILL.GATE_SKIPPED": "process",
+   "SKILL.NO_PROVENANCE": "model",
+   "SKILL.SCHEMA_INVALID": "model",
+   "SKILL.SHADOW_INSUFFICIENT": "process",
+   "SKILL.UNKNOWN_LINE_ITEM": "model",
+   "SKILL.UNKNOWN_PRECEDENT": "model",
+   "SKILL.UNKNOWN_SOURCE": "model"
+  },
+  "families": [
+   "CONFIG",
+   "DELIVER",
+   "GUARD",
+   "INTAKE",
+   "LOOP",
+   "POLICY",
+   "PRIVACY",
+   "PROCESS",
+   "SCOPE",
+   "SKILL"
+  ]
+ },
+ "evals": {
+  "cost-of-capital": [],
+  "dcf-build": [],
+  "ddr-tagging": [],
+  "ebitda-normalization": [
+   {
+    "measured_by": "eval_harness",
+    "metric": "tie_rate",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 1.0
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "recall",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 0.9
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "material_auto_accepted",
+    "op": "<=",
+    "runs": 0,
+    "threshold": 0.0
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "recurring_flagged",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 1.0
+   }
+  ],
+  "gpc-scrub": [],
+  "line-item-tagging": [
+   {
+    "measured_by": "eval_harness",
+    "metric": "top1_agreement",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 0.95
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "provenance_failures",
+    "op": "<=",
+    "runs": 0,
+    "threshold": 0.0
+   },
+   {
+    "measured_by": "shadow_run",
+    "metric": "shadow_disagreement",
+    "op": "<",
+    "runs": 20,
+    "threshold": 0.08
+   }
+  ],
+  "model-load": [
+   {
+    "measured_by": "eval_harness",
+    "metric": "inputs_mapped_or_reported",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 1.0
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "writes_outside_schema",
+    "op": "<=",
+    "runs": 0,
+    "threshold": 0.0
+   }
+  ],
+  "qc-tieout": [],
+  "timing-normalization": [
+   {
+    "measured_by": "eval_harness",
+    "metric": "arithmetic_agreement",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 1.0
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "line_item_match_rate",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 0.98
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "unmatched_reported",
+    "op": ">=",
+    "runs": 0,
+    "threshold": 1.0
+   }
+  ]
+ },
+ "governance": {
+  "nodes": {
+   "adapted": "skill_adapt",
+   "approved": "skill_board",
+   "drafted": "skill_sandbox",
+   "dropped": "skill_drop",
+   "evaluated": "eval_harness",
+   "exercised": "sandbox_test",
+   "registered": "skill_registry",
+   "replayed": "replay_harness",
+   "scanned": "skill_conformance",
+   "shadowed": "shadow_run",
+   "submitted": "skill_submit"
+  },
+  "stages": [
+   "dropped",
+   "scanned",
+   "adapted",
+   "drafted",
+   "exercised",
+   "evaluated",
+   "replayed",
+   "submitted",
+   "approved",
+   "shadowed",
+   "registered"
+  ]
+ },
+ "graph": {
+  "invariants": [
+   "1. assert_no_model_reaches_the_vault",
+   "2. assert_one_door_to_a_model",
+   "3. assert_only_code_touches_reidentification",
+   "4. assert_every_figure_cleared_provenance_and_tieout",
+   "5. assert_generation_never_originates_a_figure",
+   "6. assert_one_release_with_one_inbound_edge",
+   "7. assert_governance_never_reads_client_data",
+   "8. assert_every_guard_writes_to_the_record",
+   "9. assert_only_a_human_writes_precedent",
+   "10. assert_nothing_runs_unscoped",
+   "11. assert_every_loop_is_declared",
+   "12. assert_every_step_is_keyed",
+   "13. assert_every_run_records_its_versions",
+   "14. assert_a_scope_overlay_can_only_tighten",
+   "15. assert_an_engagement_sees_only_its_scope",
+   "16. assert_precedents_stay_in_scope",
+   "17. assert_every_tool_call_is_authorised",
+   "18. assert_context_is_assembled_in_one_place",
+   "19. assert_every_run_ends_with_a_computed_verdict",
+   "20. assert_every_failure_carries_a_code",
+   "21. assert_a_dropped_draft_is_only_a_candidate",
+   "22. assert_nothing_reaches_the_index_untested",
+   "23. assert_config_cannot_reach_a_failclosed_node",
+   "24. assert_the_roster_gates_every_source",
+   "25. assert_one_destination_and_one_template"
+  ],
+  "node_ids": [
+   "admin_console",
+   "analyst_chat",
+   "analytics",
+   "box_ccg",
+   "box_mcp",
+   "budget_governor",
+   "checkpoint_policy",
+   "checkpoint_store",
+   "coa_taxonomy",
+   "coc_data",
+   "compute_target",
+   "confidence_router",
+   "config_audit",
+   "config_store",
+   "constraint_registry",
+   "context_builder",
+   "contract_registry",
+   "cost_meter",
+   "ddr_pack",
+   "decision_log",
+   "deliverable_qc",
+   "delivery_port",
+   "diagnostics",
+   "dispatcher",
+   "doc_classifier",
+   "doc_reader",
+   "drift_monitor",
+   "email_watcher",
+   "engagement",
+   "engagement_bind",
+   "engagement_lock",
+   "eval_harness",
+   "event_bus",
+   "file_fingerprint",
+   "fixed_notice",
+   "foundations",
+   "governance_log",
+   "graph_compiler",
+   "guarded_runtime",
+   "idempotency_ledger",
+   "index_gate",
+   "intake_window",
+   "job_recipes",
+   "llm_port",
+   "local_intake",
+   "local_out",
+   "loop_controller",
+   "mask_engine",
+   "mask_vault",
+   "model_builder",
+   "model_pin",
+   "multiples_data",
+   "numeric_lock",
+   "ops_console",
+   "orchestrator",
+   "outcome_feedback",
+   "payload_scan",
+   "period_detector",
+   "policy_gate",
+   "precedent_store",
+   "precedent_writeback",
+   "preflight",
+   "project_roster",
+   "provenance_gate",
+   "quarantine",
+   "queue_port",
+   "reconcile",
+   "release_gate",
+   "replay_harness",
+   "review_queue",
+   "review_surface",
+   "run_manifest",
+   "run_plan",
+   "run_scorecard",
+   "run_store",
+   "sample_audit",
+   "sandbox_test",
+   "schema_gate",
+   "scope_registry",
+   "scope_resolver",
+   "secrets_port",
+   "shadow_run",
+   "sharefile",
+   "sk_coc",
+   "sk_dcf",
+   "sk_ddr",
+   "sk_ebitda",
+   "sk_gpc",
+   "sk_lineitem",
+   "sk_model",
+   "sk_qc",
+   "sk_timing",
+   "skill_adapt",
+   "skill_board",
+   "skill_conformance",
+   "skill_contract",
+   "skill_drop",
+   "skill_index",
+   "skill_registry",
+   "skill_sandbox",
+   "skill_submit",
+   "skill_tree",
+   "source_parse",
+   "stall_alert",
+   "step_executor",
+   "storage_port",
+   "sweep_planner",
+   "t_recompute",
+   "t_registry",
+   "t_template",
+   "t_timing",
+   "tieout_gate",
+   "triage",
+   "unmask_engine",
+   "unmask_verify",
+   "untrusted_boundary",
+   "workbook_reader",
+   "workpaper"
+  ],
+  "nodes": 118
+ },
+ "plans": {
+  "full-ddr-intake": {
+   "loops": [
+    "self_verification:ddr",
+    "tieout_repair:qc"
+   ],
+   "order": [
+    "intake",
+    "mask",
+    "ddr",
+    "timing",
+    "tagging",
+    "qc",
+    "release"
+   ],
+   "plan_hash": "sha256:478bac895c70eb64e85f331c044068cc08ca9f3ec1c490e0f7e34ff57c9f5f8e"
+  },
+  "monthly-refresh": {
+   "loops": [
+    "self_verification:tagging",
+    "self_verification:ebitda",
+    "guard_repair:ebitda",
+    "conflict_resolution:tagging",
+    "tieout_repair:qc"
+   ],
+   "order": [
+    "intake",
+    "mask",
+    "timing",
+    "tagging",
+    "ebitda",
+    "model",
+    "qc",
+    "release"
+   ],
+   "plan_hash": "sha256:28979b5f42c0a66cecac047df49ac705b447009d1f5626c755899c4fca52ff8c"
+  },
+  "resolution_hash": "sha256:001fa7c7f7905edc49c16f6cc2feb5e1c3cb992c7394ba747340c875e11097bf",
+  "scope": "valuation/esop/repeat",
+  "skills_resolved": [
+   "cost-of-capital",
+   "dcf-build",
+   "ddr-tagging",
+   "dol-adequate-consideration",
+   "ebitda-normalization",
+   "gpc-scrub",
+   "line-item-tagging",
+   "model-load",
+   "prior-year-rollforward",
+   "qc-tieout",
+   "repurchase-obligation",
+   "timing-normalization"
+  ],
+  "template": "Chartwell_ESOP_Model_v9.xlsx@9.4"
+ },
+ "ports": {
+  "compute": {
+   "adapters": [
+    "local_process"
+   ],
+   "contracts": [],
+   "default": "local_process",
+   "env_var": "AA_COMPUTE_ADAPTER"
+  },
+  "delivery": {
+   "adapters": [
+    "box",
+    "local_folder"
+   ],
+   "contracts": [
+    "box"
+   ],
+   "default": "local_folder",
+   "env_var": "AA_DELIVERY_ADAPTER"
+  },
+  "llm": {
+   "adapters": [
+    "anthropic_messages",
+    "fake"
+   ],
+   "contracts": [],
+   "default": "fake",
+   "env_var": "AA_LLM_ADAPTER"
+  },
+  "queue": {
+   "adapters": [
+    "in_process",
+    "redis_rq"
+   ],
+   "contracts": [],
+   "default": "in_process",
+   "env_var": "AA_QUEUE_ADAPTER"
+  },
+  "secrets": {
+   "adapters": [
+    "dotenv"
+   ],
+   "contracts": [],
+   "default": "dotenv",
+   "env_var": "AA_SECRETS_ADAPTER"
+  },
+  "storage": {
+   "adapters": [
+    "local_folder",
+    "sharefile"
+   ],
+   "contracts": [
+    "sharefile"
+   ],
+   "default": "local_folder",
+   "env_var": "AA_STORAGE_ADAPTER"
+  }
+ },
+ "recipes": {
+  "full-ddr-intake@v1": {
+   "loops": [
+    "self_verification:ddr<=1",
+    "tieout_repair:qc<=1"
+   ],
+   "required_types": [
+    "ddr_response",
+    "request_schedule",
+    "trial_balance"
+   ],
+   "skills": [
+    "ddr-tagging",
+    "timing-normalization",
+    "line-item-tagging",
+    "qc-tieout"
+   ],
+   "steps": [
+    "intake",
+    "mask",
+    "ddr",
+    "timing",
+    "tagging",
+    "qc",
+    "release"
+   ]
+  },
+  "monthly-refresh@v3": {
+   "loops": [
+    "self_verification:tagging<=1",
+    "self_verification:ebitda<=1",
+    "guard_repair:ebitda<=2",
+    "conflict_resolution:tagging<=1",
+    "tieout_repair:qc<=1"
+   ],
+   "required_types": [
+    "trial_balance",
+    "financial_statements"
+   ],
+   "skills": [
+    "timing-normalization",
+    "line-item-tagging",
+    "ebitda-normalization",
+    "model-load",
+    "qc-tieout"
+   ],
+   "steps": [
+    "intake",
+    "mask",
+    "timing",
+    "tagging",
+    "ebitda",
+    "model",
+    "qc",
+    "release"
+   ]
+  }
+ },
+ "record": {
+  "event_prefixes": [
+   "alert."
+  ],
+  "event_suffixes": [
+   "completed",
+   "exhausted",
+   "fail",
+   "failed",
+   "iteration",
+   "pass",
+   "refused",
+   "stalled",
+   "started",
+   "unchanged"
+  ],
+  "event_types": [
+   "budget.ceiling_crossed",
+   "context.assembled",
+   "hitl.item.auto_accepted",
+   "hitl.item.decided",
+   "hitl.item.queued",
+   "hitl.item.routed",
+   "hitl.proposal.revealed",
+   "hitl.sla.breached",
+   "intake.read",
+   "lock.acquired",
+   "lock.queued",
+   "lock.released",
+   "lock.timeout",
+   "model.answered",
+   "model.called",
+   "plan.compiled",
+   "plan.proposed",
+   "plan.refused",
+   "plan.requested",
+   "policy.allow",
+   "release.blocked",
+   "release.replayed",
+   "release.written",
+   "run.enqueued",
+   "run.launched",
+   "run.manifest.written",
+   "run.resumed",
+   "run.scored",
+   "run.superseded",
+   "skill.completed",
+   "skill.dispatched",
+   "step.completed",
+   "step.quarantined",
+   "step.result_discarded",
+   "step.satisfied",
+   "step.started",
+   "step.transport_failed",
+   "tool.called",
+   "tool.cap_exceeded",
+   "triage.escalated",
+   "triage.suggestion_dropped",
+   "worker.deferred",
+   "worker.finished",
+   "worker.lost",
+   "worker.started"
+  ],
+  "outcomes": [
+   "clean",
+   "released_with_review",
+   "halted",
+   "blocked"
+  ],
+  "outcomes_for": {
+   "delivered": [
+    "clean",
+    "released_with_review"
+   ],
+   "halted": [
+    "blocked",
+    "halted"
+   ],
+   "superseded": [
+    "blocked",
+    "clean",
+    "halted",
+    "released_with_review"
+   ]
+  },
+  "run_states": [
+   "queued",
+   "running",
+   "waiting",
+   "quarantined",
+   "halted",
+   "delivered",
+   "superseded"
+  ],
+  "step_statuses": [
+   "completed",
+   "failed",
+   "skipped",
+   "quarantined",
+   "not_reached"
+  ],
+  "transitions": {
+   "delivered": [
+    "superseded"
+   ],
+   "halted": [
+    "superseded"
+   ],
+   "quarantined": [
+    "halted",
+    "running",
+    "superseded"
+   ],
+   "queued": [
+    "running",
+    "superseded"
+   ],
+   "running": [
+    "delivered",
+    "halted",
+    "quarantined",
+    "superseded",
+    "waiting"
+   ],
+   "superseded": [],
+   "waiting": [
+    "halted",
+    "running",
+    "superseded"
+   ]
+  }
+ },
+ "scopes": {
+  "layer_order": [
+   "_firm",
+   "{practice}/_group",
+   "{practice}/_{disposition}",
+   "{practice}/{segment}/_segment",
+   "{practice}/{segment}/{disposition}"
+  ],
+  "paths": [
+   "valuation/esop/repeat",
+   "valuation/esop/non-repeat",
+   "valuation/non-esop/repeat",
+   "valuation/non-esop/non-repeat",
+   "consulting/tbd/repeat",
+   "consulting/tbd/non-repeat",
+   "corporate-finance/tbd/repeat",
+   "corporate-finance/tbd/non-repeat"
+  ],
+  "version": "1.0.0"
+ },
+ "skills": {
+  "overlays": [
+   {
+    "layer": "valuation/_repeat",
+    "target": "line-item-tagging",
+    "tightens": []
+   },
+   {
+    "layer": "valuation/esop/_segment",
+    "target": "ebitda-normalization",
+    "tightens": [
+     "hitl"
+    ]
+   },
+   {
+    "layer": "valuation/esop/_segment",
+    "target": "qc-tieout",
+    "tightens": []
+   }
+  ],
+  "skills": {
+   "cost-of-capital@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "company_specific_premium_requires_review",
+    "layer": "valuation/_group",
+    "output_contract": "skills/cost-of-capital@1.0.0",
+    "status": "skeleton",
+    "tier": "mid",
+    "tools": [
+     "index_lookup"
+    ]
+   },
+   "dcf-build@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "assumptions_require_review",
+    "layer": "valuation/_group",
+    "output_contract": "skills/dcf-build@1.0.0",
+    "status": "skeleton",
+    "tier": "high",
+    "tools": [
+     "recompute"
+    ]
+   },
+   "ddr-tagging@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "low_confidence_fields_require_review",
+    "layer": "_firm",
+    "output_contract": "skills/ddr-tagging@1.0.0",
+    "status": "skeleton",
+    "tier": "mid",
+    "tools": [
+     "chart_of_accounts_lookup"
+    ]
+   },
+   "dol-adequate-consideration@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "always_surfaces_to_reviewer",
+    "layer": "valuation/esop/_segment",
+    "output_contract": "skills/dol-adequate-consideration@1.0.0",
+    "status": "skeleton",
+    "tier": "high",
+    "tools": [
+     "recompute"
+    ]
+   },
+   "ebitda-normalization@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "material_addbacks_require_review",
+    "layer": "valuation/_group",
+    "output_contract": "skills/ebitda-normalization@1.0.0",
+    "status": "draft",
+    "tier": "high",
+    "tools": [
+     "recompute",
+     "chart_of_accounts_lookup",
+     "precedent_lookup"
+    ]
+   },
+   "first-year-baseline@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "baseline_requires_review",
+    "layer": "valuation/_non-repeat",
+    "output_contract": "skills/first-year-baseline@1.0.0",
+    "status": "skeleton",
+    "tier": "mid",
+    "tools": [
+     "chart_of_accounts_lookup"
+    ]
+   },
+   "gpc-scrub@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "comparable_set_requires_review",
+    "layer": "valuation/_group",
+    "output_contract": "skills/gpc-scrub@1.0.0",
+    "status": "skeleton",
+    "tier": "high",
+    "tools": [
+     "index_lookup"
+    ]
+   },
+   "line-item-tagging@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "confidence_below_threshold_requires_review",
+    "layer": "_firm",
+    "output_contract": "skills/line-item-tagging@1.0.0",
+    "status": "draft",
+    "tier": "mid",
+    "tools": [
+     "chart_of_accounts_lookup",
+     "precedent_lookup"
+    ]
+   },
+   "model-load@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "unmapped_inputs_require_review",
+    "layer": "valuation/_group",
+    "output_contract": "skills/model-load@1.0.0",
+    "status": "draft",
+    "tier": "mid",
+    "tools": [
+     "template_schema_lookup"
+    ]
+   },
+   "prior-year-rollforward@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "changes_from_prior_year_require_review",
+    "layer": "valuation/_repeat",
+    "output_contract": "skills/prior-year-rollforward@1.0.0",
+    "status": "skeleton",
+    "tier": "mid",
+    "tools": [
+     "precedent_lookup",
+     "recompute"
+    ]
+   },
+   "qc-tieout@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "always_surfaces_to_reviewer",
+    "layer": "_firm",
+    "output_contract": "skills/qc-tieout@1.0.0",
+    "status": "skeleton",
+    "tier": "high",
+    "tools": [
+     "recompute"
+    ]
+   },
+   "repurchase-obligation@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "always_surfaces_to_reviewer",
+    "layer": "valuation/esop/_segment",
+    "output_contract": "skills/repurchase-obligation@1.0.0",
+    "status": "skeleton",
+    "tier": "mid",
+    "tools": [
+     "recompute"
+    ]
+   },
+   "timing-normalization@0.1.0": {
+    "data_sensitivity": "masked_only",
+    "hitl": "ambiguous_periods_require_review",
+    "layer": "_firm",
+    "output_contract": "skills/timing-normalization@1.0.0",
+    "status": "draft",
+    "tier": "mid",
+    "tools": [
+     "timing_normalizer"
+    ]
+   }
+  }
+ }
+}

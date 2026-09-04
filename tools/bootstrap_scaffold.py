@@ -136,12 +136,12 @@ def main() -> None:
         d.mkdir(parents=True, exist_ok=True)
         made += write_if_absent(d / "__init__.py", "")
     for c in PLAN["checkpoints"]:
-        d = ROOT / "tests" / "checkpoints" / f"c{int(c['id'][1:]):02d}"
+        cp = ROOT / "tests" / "checkpoints" / f"c{int(c['id'][1:]):02d}"
         proves = chr(10).join(textwrap.wrap(c["proves"], 88))
-        d.mkdir(parents=True, exist_ok=True)
-        made += write_if_absent(d / "__init__.py", "")
+        cp.mkdir(parents=True, exist_ok=True)
+        made += write_if_absent(cp / "__init__.py", "")
         made += write_if_absent(
-            d / f"test_{c['id'].lower()}_integration.py",
+            cp / f"test_{c['id'].lower()}_integration.py",
             f'''"""{c["id"]} - {c["title"]}
 
 Proves:

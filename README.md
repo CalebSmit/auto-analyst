@@ -21,9 +21,31 @@ state lives in the repo, not in anybody's head or in a chat log:
 | [`BUILD/LEDGER.md`](BUILD/LEDGER.md) | Dead ends, so they are walked once. |
 | [`BUILD/AMENDMENTS.md`](BUILD/AMENDMENTS.md) | Every plan change, and why. |
 | [`CLAUDE.md`](CLAUDE.md) | The rules a session works under. |
+| [`CHANGING.md`](CHANGING.md) | **How to change it without breaking it.** Read before the first edit. |
+| [`HANDOFF.md`](HANDOFF.md) | What changes on the work machine, and what does not. |
 
 `PLAN.md` and `STATE.md` are **generated** from `BUILD/plan.json` by `tools/gate.py`.
 Never edit them by hand — that is how a plan and its real state start to disagree.
+
+## Verifying a change
+
+```
+python tools/verify.py            # everything: surfaces, lint, types, blueprint, state, suite
+python tools/verify.py --fast     # the first five, four seconds
+python tools/verify.py --repeat 2 # the suite twice, to catch order and timing luck
+```
+
+Six layers protect a change. The suite says the code still does what it says; the
+checkpoints say the phases still agree with each other; 25 architecture invariants say
+the design was not violated; 7 plan assertions say a run is legal before a step executes;
+the adversarial fixtures say each guard still fires. The sixth is newer and answers a
+different question: [`BUILD/surfaces.json`](BUILD/surfaces.json) records every public
+surface - contracts, error codes, tool caps, loop ceilings, review floors, the compiled
+plan hash of every recipe - and `tests/regression` fails when one moves. Accepting a move
+is a recorded decision, not a re-snapshot. [`CHANGING.md`](CHANGING.md) is the protocol.
+
+`verify` always says what it did **not** run. Postgres, Redis and the container each need
+something a given machine may not have, and a green verdict means green on what ran.
 
 ## The gate
 

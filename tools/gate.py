@@ -22,6 +22,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "BUILD"
@@ -39,13 +40,14 @@ NO = "FAIL"
 # ---------------------------------------------------------------- plan i/o
 
 
-def load() -> dict:
+def load() -> dict[str, Any]:
     if not PLAN_JSON.exists():
         sys.exit(f"no plan at {PLAN_JSON}. This repo is not bootstrapped.")
-    return json.loads(PLAN_JSON.read_text(encoding="utf-8"))
+    plan: dict[str, Any] = json.loads(PLAN_JSON.read_text(encoding="utf-8"))
+    return plan
 
 
-def save(plan: dict) -> None:
+def save(plan: dict[str, Any]) -> None:
     PLAN_JSON.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     render(plan)
 
@@ -54,23 +56,25 @@ def today() -> str:
     return dt.date.today().isoformat()
 
 
-def find_phase(plan: dict, pid: str) -> dict:
+def find_phase(plan: dict[str, Any], pid: str) -> dict[str, Any]:
     pid = pid.upper()
     for p in plan["phases"]:
         if p["id"] == pid:
-            return p
+            found: dict[str, Any] = p
+            return found
     sys.exit(f"unknown phase {pid}")
 
 
-def find_checkpoint(plan: dict, cid: str) -> dict:
+def find_checkpoint(plan: dict[str, Any], cid: str) -> dict[str, Any]:
     cid = cid.upper()
     for c in plan["checkpoints"]:
         if c["id"] == cid:
-            return c
+            found: dict[str, Any] = c
+            return found
     sys.exit(f"unknown checkpoint {cid}")
 
 
-def phases_before(plan: dict, cid: str) -> list[dict]:
+def phases_before(plan: dict[str, Any], cid: str) -> list[dict[str, Any]]:
     """Every phase that must be green before this checkpoint."""
     c = find_checkpoint(plan, cid)
     return [p for p in plan["phases"] if p["id"] <= c["after"]]
@@ -108,7 +112,7 @@ def run_checks(checks: list[str], verbose: bool) -> bool:
 # ---------------------------------------------------------------- commands
 
 
-def cmd_status(plan: dict, _args) -> int:
+def cmd_status(plan: dict[str, Any], _args: argparse.Namespace) -> int:
     done = [p for p in plan["phases"] if p["status"] == "done"]
     cur = next((p for p in plan["phases"] if p["status"] != "done"), None)
     last_cp = [c for c in plan["checkpoints"] if c["status"] == "done"]
@@ -144,17 +148,18 @@ def cmd_status(plan: dict, _args) -> int:
     return 0
 
 
-def blocking_checkpoint(plan: dict, pid: str) -> dict | None:
+def blocking_checkpoint(plan: dict[str, Any], pid: str) -> dict[str, Any] | None:
     """A checkpoint sitting between the last closed phase and this one, still red."""
     for c in plan["checkpoints"]:
         if c["status"] != "done" and c["after"] < pid:
             unmet = [p for p in phases_before(plan, c["id"]) if p["status"] != "done"]
             if not unmet:
-                return c
+                blocking: dict[str, Any] = c
+                return blocking
     return None
 
 
-def cmd_check(plan: dict, args) -> int:
+def cmd_check(plan: dict[str, Any], args: argparse.Namespace) -> int:
     p = find_phase(plan, args.id)
     print(f"\n  {p['id']}  {p['title']}   (gate: {p['gate']})")
     print("  exit criteria:")
@@ -166,7 +171,7 @@ def cmd_check(plan: dict, args) -> int:
     return 0 if ok else 1
 
 
-def cmd_close(plan: dict, args) -> int:
+def cmd_close(plan: dict[str, Any], args: argparse.Namespace) -> int:
     p = find_phase(plan, args.id)
 
     if p["status"] == "done":
@@ -208,7 +213,7 @@ def cmd_close(plan: dict, args) -> int:
     return 0
 
 
-def cmd_checkpoint(plan: dict, args) -> int:
+def cmd_checkpoint(plan: dict[str, Any], args: argparse.Namespace) -> int:
     c = find_checkpoint(plan, args.id)
     covered = phases_before(plan, c["id"])
     unmet = [p["id"] for p in covered if p["status"] != "done"]
@@ -242,7 +247,7 @@ def cmd_checkpoint(plan: dict, args) -> int:
     return 1
 
 
-def amend_checkpoint(plan: dict, args) -> int:
+def amend_checkpoint(plan: dict[str, Any], args: argparse.Namespace) -> int:
     """Amend a checkpoint. Same rule as a phase: the reason travels with the change."""
     c = find_checkpoint(plan, args.id)
     changes = []
@@ -280,7 +285,7 @@ def amend_checkpoint(plan: dict, args) -> int:
     return 0
 
 
-def cmd_amend(plan: dict, args) -> int:
+def cmd_amend(plan: dict[str, Any], args: argparse.Namespace) -> int:
     if args.id.startswith("C"):
         return amend_checkpoint(plan, args)
     p = find_phase(plan, args.id)
@@ -354,7 +359,7 @@ def cmd_amend(plan: dict, args) -> int:
     return 0
 
 
-def cmd_ledger(_plan: dict, args) -> int:
+def cmd_ledger(_plan: dict[str, Any], args: argparse.Namespace) -> int:
     entry = [
         f"\n## {today()} - {args.what}",
         f"\n**Phase:** {args.phase or 'not phase-specific'}",
@@ -370,7 +375,7 @@ def cmd_ledger(_plan: dict, args) -> int:
 # ---------------------------------------------------------------- render
 
 
-def render(plan: dict) -> None:
+def render(plan: dict[str, Any]) -> None:
     """PLAN.md and STATE.md are generated. Never edit them by hand."""
     L: list[str] = []
     A = L.append
@@ -389,7 +394,7 @@ def render(plan: dict) -> None:
     A("A red checkpoint blocks the next phase - it means the phases disagree with each other.")
     A("")
 
-    by_block: dict[str, list] = {}
+    by_block: dict[str, list[dict[str, Any]]] = {}
     for p in plan["phases"]:
         by_block.setdefault(p["block"], []).append(p)
 
@@ -487,7 +492,7 @@ def render(plan: dict) -> None:
     STATE_MD.write_text("\n".join(S) + "\n", encoding="utf-8")
 
 
-def render_phase_files(plan: dict) -> None:
+def render_phase_files(plan: dict[str, Any]) -> None:
     """BUILD/phases/PNN.md, regenerated from plan.json.
 
     These were written once by the scaffold and then left alone, which made them stale
@@ -570,7 +575,7 @@ def render_phase_files(plan: dict) -> None:
         (PHASES_DIR / f"{p['id']}.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 
 
-def cmd_eval(_plan: dict, args) -> int:
+def cmd_eval(_plan: dict[str, Any], args: argparse.Namespace) -> int:
     """gate eval <skill> | --all | --coverage [--register WHO].
 
     The Evaluation Harness as a first-class command: the scorecard against the named
@@ -599,7 +604,7 @@ def cmd_eval(_plan: dict, args) -> int:
     return subprocess.run(command, shell=True, cwd=ROOT).returncode
 
 
-def cmd_render(plan: dict, _args) -> int:
+def cmd_render(plan: dict[str, Any], _args: argparse.Namespace) -> int:
     render(plan)
     render_phase_files(plan)
     print(f"  rendered PLAN.md, STATE.md and {len(plan['phases'])} phase files")
