@@ -24,7 +24,7 @@ def test_every_registered_schema_is_itself_a_valid_schema(contracts: ContractReg
     # config_document (P16), timing proposal (P18), tagging proposal (P19), the EBITDA
     # proposal and its verification proposal (P20), the model-load proposal and the
     # workpaper narrative (P21)
-    assert len(contracts.self_check()) == 26
+    assert len(contracts.self_check()) == 28
 
 
 def test_every_id_carries_a_version(contracts: ContractRegistry) -> None:

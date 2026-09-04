@@ -20,7 +20,7 @@ type; Postgres does. Storing datetimes would mean the two backends round-trip di
 and the manifest would not be byte-identical across them - which is the exact class of
 divergence the Postgres run exists to catch, so it is not worth introducing one on
 purpose. Fixed-width UTC text also sorts correctly, and it is already the shape both
-event@1.0.0 and run_manifest@1.1.0 ask for.
+event@1.1.0 and run_manifest@1.1.0 ask for.
 """
 
 from __future__ import annotations
@@ -695,7 +695,7 @@ class RosterRow(Base):
 
 class ConfigDocument(Base):
     """The versioned configuration document, one per environment. Validated on write
-    against config_document@1.0.0; every write bumps the version and appends a change."""
+    against config_document@1.1.0; every write bumps the version and appends a change."""
 
     __tablename__ = "config_document"
 

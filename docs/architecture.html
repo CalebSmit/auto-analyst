@@ -618,7 +618,7 @@ const NODES = [
 
 {id:'config_store',runtime:'resource',label:'Configuration Store',plain:'Where every setup answer lives \u2014 paths, destinations, model bindings, review levels.',group:'pref',exec:'code',now:true,
  desc:'The versioned record behind the Admin tab: watch locations and their subfolder patterns, delivery destinations, which credential each adapter reads, the model bound to each scope, and per-engagement review level and budget.',
- impl:'A versioned config document per environment, validated on write against a schema, with every change appended to the Config Change Log. It writes the engagement record; it does not reach into a run.',
+ impl:'A versioned config document per environment (<span class="mono">config_document@1.1.0</span>), validated on write against its schema and each engagement profile against <span class="mono">engagement_profile@1.0.0</span>, with every change appended to the Config Change Log. It writes the engagement record; it does not reach into a run.',
  full:'This node exists to make one boundary visible: <b>configuration writes the engagement record, and guards read the run.</b> There is no edge from here to anything that fails closed \u2014 the budget ceiling included. So lowering a budget for one engagement is an admin action, and raising one above the firm ceiling is a governance change. Without that separation, every guarantee at the top of this page would quietly have a dial on it.'},
 
 {id:'checkpoint_policy',runtime:'resource',label:'Checkpoint Policy',plain:'How much a human reviews. It can raise the bar — it can never lower the floor.',group:'pref',exec:'code',now:true,
@@ -1140,12 +1140,12 @@ const NODES = [
 
 {id:'admin_console',runtime:'static',label:'Admin Console',plain:'Where a person actually sets this thing up.',group:'ops',exec:'code',now:true,
  desc:'The setup surface: environment and port bindings, watch locations, the active project roster, delivery destinations, the model bound to each practice area, preflight, and what an admin may and may not change.',
- impl:'Reads and writes the Configuration Store and the Active Project Roster; every write lands in the Config Change Log. It cannot reach a skill definition, a guard, or the live skills tree \u2014 those have their own governance chain.',
+ impl:'Reads and writes the Configuration Store and the Active Project Roster (<span class="mono">admin/console.py</span>); every write lands in the Config Change Log. It cannot reach a skill definition, a guard, or the live skills tree \u2014 those have their own governance chain \u2014 and where a method could be pushed past the line it refuses with <span class="mono">CONFIG.ADMIN_FORBIDDEN</span>: a review level is raised, never lowered; a budget sits at or below the firm ceiling; a credential\u2019s presence is visible, never its value.',
  full:'The system is designed to produce configuration failures \u2014 <span class="mono">config</span> is one of the six failure owners, described as \u201calmost always a setup gap on a new engagement\u201d. Until this tab existed there was nowhere for those failures to be prevented and nowhere for them to be fixed, which made the single most likely class of problem also the least served. Admin tab.'},
 
 {id:'preflight',runtime:'static',label:'Setup Preflight',plain:'Checks a setup before anyone relies on it \u2014 and says exactly what is wrong.',group:'ops',exec:'code',now:true,
  desc:'Ten checks over a proposed or live configuration: path readable \u00b7 credential present and unexpired \u00b7 no two watches claiming one path \u00b7 every active engagement has a resolving scope, a complete engagement profile, a template pin, a destination, a review policy and a budget \u00b7 template hash matches the registered version \u00b7 template declares every required input \u00b7 destination writable \u00b7 named recipe exists \u00b7 headroom.',
- impl:'Runs on demand and on every config write. Emits the standard diagnostic \u2014 code, owner, expected, found, and <span class="mono">what_now</span> \u2014 with the owner set to <span class="mono">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run.',
+ impl:'Runs on demand and on every config write (<span class="mono">admin/preflight.py</span>). Emits the standard diagnostic \u2014 code, owner, expected, found, and <span class="mono">what_now</span> \u2014 with the owner set to <span class="mono">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run: the console\u2019s <span class="mono">activate</span> runs preflight for that engagement and refuses with every failing check, each a diagnostic. Not part of any run, so it emits into no event stream.',
  full:'A setup error found here costs a minute. The same error found at run time costs a halted run, a diagnostic somebody has to read, and a client waiting. Deliberately not part of any run \u2014 it is a setup-time activity, so it never appears in a run\u2019s event stream and never colours a node on the trace.'},
 
 {id:'config_audit',runtime:'resource',label:'Config Change Log',plain:'Who changed what, when, and why.',group:'ops',exec:'code',now:true,
@@ -2083,7 +2083,7 @@ const ERRCODES = [
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
  ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED \u00b7 VERIFICATION_PASS','model / config'],
  ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED \u00b7 ENGAGEMENT_LOCKED \u00b7 PRECEDENT_NO_DECISION \u00b7 OUTCOME_CONTRADICTED','process / system'],
- ['CONFIG.*','TEMPLATE_INPUTS_MISSING \u00b7 CELL_ADDRESS_BINDING','config']
+ ['CONFIG.*','TEMPLATE_INPUTS_MISSING \u00b7 CELL_ADDRESS_BINDING \u00b7 PATH_UNREADABLE \u00b7 CREDENTIAL_EXPIRED \u00b7 PROFILE_INCOMPLETE \u00b7 TEMPLATE_UNREGISTERED \u00b7 TEMPLATE_HASH_MISMATCH \u00b7 DESTINATION_UNWRITABLE \u00b7 BUDGET_ABOVE_CEILING \u00b7 BINDING_MISSING \u00b7 ADMIN_FORBIDDEN','config']
 ];
 
 const OWNERS = [
@@ -4234,7 +4234,7 @@ class <span class="hl">ProposedAction</span>:
   const R_ = (l, r) => `<div class="trow"><span class="tl">${l}</span>${r?`<span class="tr">${r}</span>`:''}</div>`;
   const REPO = [
    R_('<span class="t1">automated-analyst/</span>'),
-   R_('  <span class="t2">contracts/</span>      figure.schema.json, skill outputs, events, manifest, engagement_profile', 'registry.yaml pins them'),
+   R_('  <span class="t2">contracts/</span>      figure.schema.json, skill outputs, events, manifest, engagement_profile, config_document', 'registry.yaml pins them; a changed contract is a new version beside the old'),
    R_('  <span class="t2">constraints/</span>    constraints.yaml', 'what may happen'),
    R_('  <span class="t2">scope/</span>          scopes.yaml', 'practice groups, segments'),
    R_('  <span class="t2">registries/</span>     contracts.py, constraints.py, scopes.py, skills.py, diagnostics.py', 'load, pin, refuse'),
@@ -4282,6 +4282,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">review/</span>        policy.py, router.py, queue.py, surface.py, log.py', 'what a person sees'),
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, scorecard.py, criteria/, stall.py, drift.py, analytics.py, console/', 'the record, and the verdict computed from it'),
+   R_('  <span class="t2">admin/</span>         preflight.py, console.py, app.py', 'ten checks, then what an admin may and may not change'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');
 

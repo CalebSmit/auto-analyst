@@ -142,6 +142,45 @@ class ProjectRoster:
         )
         return replace(before, state=state, note=note or before.note)
 
+    def update(self, engagement_id: str, *, who: str, reason: str, **fields: Any) -> RosterEntry:
+        """Change a binding on an entry - destination, template pin, budget, review
+        level, watch, folder - one logged change per field. State goes through
+        `set_state`; the id, the client and the row itself are never changed here."""
+        allowed = {
+            "watch_id",
+            "folder",
+            "destination_id",
+            "template_pin",
+            "budget_usd",
+            "review_level",
+            "note",
+        }
+        unknown = sorted(set(fields) - allowed)
+        if unknown:
+            raise ValueError(f"the roster does not update {', '.join(unknown)}")
+        before = self.get(engagement_id)
+        if before is None:
+            raise KeyError(f"{engagement_id} is not on the roster")
+        with self._store._session() as session:  # noqa: SLF001
+            row = session.get(RosterRow, engagement_id)
+            assert row is not None
+            for name, value in fields.items():
+                setattr(row, name, value)
+            row.updated_at = now_iso()
+        for name, value in fields.items():
+            old_value = getattr(before, name)
+            if old_value != value:
+                self._config.log_change(
+                    who=who,
+                    field=f"roster/{engagement_id}/{name}",
+                    old={"value": old_value},
+                    new={"value": value},
+                    reason=reason,
+                )
+        after = self.get(engagement_id)
+        assert after is not None
+        return after
+
 
 def _as_entry(row: RosterRow) -> RosterEntry:
     return RosterEntry(

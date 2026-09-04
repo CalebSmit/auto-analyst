@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -153,10 +154,14 @@ class ScopeResolver:
         scopes: ScopeRegistry | None = None,
         tree: SkillTree | None = None,
         bindings_file: Path = BINDINGS_FILE,
+        bindings: Mapping[str, TemplateBinding] | None = None,
     ) -> None:
+        """`bindings` overrides the file: the Configuration Store carries the live
+        bindings the Admin Console edits (P24), and `templates/bindings.yaml` is the
+        checked-in seed."""
         self.scopes = scopes or ScopeRegistry.load()
         self.tree = tree or SkillTree.load()
-        self.bindings = _read_bindings(bindings_file)
+        self.bindings = dict(bindings) if bindings is not None else _read_bindings(bindings_file)
 
     def resolve(self, scope: ScopePath | str) -> ResolvedScope:
         path = ScopePath.parse(scope) if isinstance(scope, str) else scope

@@ -1,8 +1,12 @@
 """The Configuration Store: where every setup answer lives - and the Change Log behind it.
 
 A versioned config document per environment, validated on write against
-`config_document@1.0.0`, with every change appended to the Config Change Log: the field,
-the old and new values, the person, the timestamp and a reason.
+`config_document@1.1.0`, with every change appended to the Config Change Log: the field,
+the old and new values, the person, the timestamp and a reason. Since P24 it also holds
+what the rest of the Admin tab edits: destinations with their adapter and credential,
+the model bound to each scope layer, the credentials the environment expects (names and
+expiry, never a value), and per-engagement review level and engagement profile - the
+profile validated against its own contract on every write.
 
 One boundary this module exists to make visible: **configuration writes the engagement
 record, and guards read the run.** There is no field in the document a guard reads, and
@@ -18,14 +22,16 @@ from typing import Any
 
 from sqlalchemy import select
 
+from graph.resolve import TemplateBinding
 from ops.models import ConfigChange, ConfigDocument, now_iso
 from ops.run_store import SqlRunStore
 from registries.contracts import ContractRegistry
 from registries.errors import UNKNOWN_TYPE, WATCH_OVERLAP, RegistryError, diagnose
 
-__all__ = ["ChangeRecord", "ConfigStore", "IntakeTiming", "Watch"]
+__all__ = ["ChangeRecord", "ConfigStore", "Credential", "Destination", "IntakeTiming", "Watch"]
 
-CONTRACT = "config_document@1.0.0"
+CONTRACT = "config_document@1.1.0"
+PROFILE_CONTRACT = "engagement_profile@1.0.0"
 
 
 @dataclass(frozen=True)
@@ -48,6 +54,25 @@ class IntakeTiming:
     quiet_period_minutes: float
     max_wait_hours: float
     lock_timeout_hours: float
+
+
+@dataclass(frozen=True)
+class Destination:
+    id: str
+    name: str
+    path: str
+    adapter: str = "local_folder"
+    credential: str | None = None
+
+
+@dataclass(frozen=True)
+class Credential:
+    """What the environment expects the Secrets Port to hold. A name and a date; the
+    value is not here and cannot be read from here."""
+
+    name: str
+    purpose: str
+    expires_on: str | None = None
 
 
 @dataclass(frozen=True)
@@ -88,6 +113,7 @@ class ConfigStore:
         is written; a document with two watches on one path is refused the same way."""
         self._contracts.validate(CONTRACT, body)
         self._check_conventions(body)
+        self._check_profiles(body)
         _check_no_overlap(tuple(_watch(w) for w in body["watches"]))
 
         with self._store._session() as session:  # noqa: SLF001
@@ -145,6 +171,44 @@ class ConfigStore:
             lock_timeout_hours=float(base["lock_timeout_hours"]),
         )
 
+    def destinations(self) -> tuple[Destination, ...]:
+        return tuple(_destination(d) for d in self.document().get("destinations") or ())
+
+    def destination(self, destination_id: str) -> Destination:
+        found = next((d for d in self.destinations() if d.id == destination_id), None)
+        if found is None:
+            raise KeyError(
+                f"no destination {destination_id!r} in the {self.environment} configuration"
+            )
+        return found
+
+    def model_bindings(self) -> dict[str, TemplateBinding]:
+        """Layer -> binding, in the shape the Scope Resolver walks. A layer bound to
+        nothing is present with an empty file: declared, and falls through."""
+        return {
+            str(b["layer"]): TemplateBinding(
+                layer=str(b["layer"]),
+                file=str(b.get("file") or ""),
+                template_version=str(b.get("template_version") or ""),
+                why=" ".join(str(b.get("why", "")).split()),
+            )
+            for b in self.document().get("model_bindings") or ()
+        }
+
+    def credentials(self) -> tuple[Credential, ...]:
+        return tuple(
+            Credential(str(c["name"]), str(c["purpose"]), c.get("expires_on"))
+            for c in self.document().get("credentials") or ()
+        )
+
+    def engagement(self, engagement_id: str) -> dict[str, Any]:
+        """The per-engagement overrides, or an empty dict."""
+        return dict((self.document().get("engagements") or {}).get(engagement_id) or {})
+
+    def profile(self, engagement_id: str) -> dict[str, Any] | None:
+        found = self.engagement(engagement_id).get("profile")
+        return dict(found) if found else None
+
     def conventions(self) -> dict[str, tuple[str, ...]]:
         return {
             doc_type: tuple(str(t).lower() for t in tokens)
@@ -175,6 +239,21 @@ class ConfigStore:
 
     # -- plumbing
 
+    def _check_profiles(self, body: dict[str, Any]) -> None:
+        """Every engagement profile in the document satisfies its own contract, and
+        names the engagement it sits under. A profile that does not validate is refused
+        with the document, before anything is written."""
+        for engagement_id, over in (body.get("engagements") or {}).items():
+            profile = (over or {}).get("profile")
+            if profile is None:
+                continue
+            self._contracts.validate(PROFILE_CONTRACT, profile)
+            if profile.get("engagement_id") != engagement_id:
+                raise ValueError(
+                    f"the profile under engagements/{engagement_id} names "
+                    f"{profile.get('engagement_id')!r}"
+                )
+
     def _check_conventions(self, body: dict[str, Any]) -> None:
         known = {t.id for t in self._contracts.intake_document_types()}
         for doc_type in body["document_type_conventions"]:
@@ -199,6 +278,16 @@ def _watch(raw: dict[str, Any]) -> Watch:
         recipe=str(raw["recipe"]),
         engagement_id=raw.get("engagement_id"),
         depth=int(raw.get("depth", 2)),
+    )
+
+
+def _destination(raw: dict[str, Any]) -> Destination:
+    return Destination(
+        id=str(raw["id"]),
+        name=str(raw["name"]),
+        path=str(raw["path"]).strip("/"),
+        adapter=str(raw.get("adapter") or "local_folder"),
+        credential=raw.get("credential"),
     )
 
 

@@ -1,37 +1,35 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-03.*
+*Last written 2026-09-04.*
 
 ## Where the build is
 
-- **23 of 28 phases closed**
-- Last green checkpoint: **C7**
-- Current phase: **P24 - Admin console, preflight, config audit** (gate: auto)
+- **24 of 28 phases closed**
+- Last green checkpoint: **C8**
+- Current phase: **P25 - Worker pool and the queue port** (gate: auto)
 
 ## The next action
 
-Work P24. Its full definition is in [BUILD/phases/P24.md](phases/P24.md).
+Work P25. Its full definition is in [BUILD/phases/P25.md](phases/P25.md).
 
-> A new engagement can be set up without touching code, and a setup error is found in a minute rather than in a halted run.
+> A nightly sweep over seven active engagements cannot run one at a time inside a four-hour per-run ceiling.
 
 Tasks:
 
-- [ ] The roster, watches, destinations and model bindings as an editable surface over config_store
-- [ ] Model binding resolved through LAYER_ORDER - the same resolver as skills
-- [ ] The ten preflight checks, including engagement profile completeness (F1)
-- [ ] The config change log: who, what, when and why
-- [ ] Enforcement of what an admin can and cannot change, backed by invariant 23
-- [ ] Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)
-- [ ] Publish Chartwell's own chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, and rebuild fixtures/skills/line-item-tagging from it
-- [ ] Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified
-- [ ] Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/
-- [ ] Bump event@1.0.0 to 1.1.0 with CONFIG in the diagnostic_code pattern before preflight emits one
+- [ ] A bounded worker pool behind the job queue port
+- [ ] Cross-engagement concurrency, with the engagement lock still serialising within one
+- [ ] Redis + RQ adapter for when runs outlive a single process
+- [ ] Backpressure and a visible queue position
+- [ ] Confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18/P24)
+- [ ] Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
+- [ ] Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
+- [ ] Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)
 
 Then:
 
-    python tools/gate.py check P24
-    python tools/gate.py close P24
+    python tools/gate.py check P25
+    python tools/gate.py close P25
 
 ## Before you start
 
@@ -66,4 +64,5 @@ Then:
 - **P21** Model builder, template registry, release (2026-09-03)
 - **P22** Eval and replay harnesses (2026-09-03)
 - **P23** Ops console, scorecard, drift, stalls (2026-09-03)
+- **P24** Admin console, preflight, config audit (2026-09-04)
 

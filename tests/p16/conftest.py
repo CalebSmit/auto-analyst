@@ -50,7 +50,7 @@ VERSIONS = {
 
 def config_document(**overrides: Any) -> dict[str, Any]:
     body: dict[str, Any] = {
-        "schema_version": "config_document@1.0.0",
+        "schema_version": "config_document@1.1.0",
         "environment": "local",
         "watches": [
             {

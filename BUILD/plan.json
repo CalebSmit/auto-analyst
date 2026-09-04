@@ -801,7 +801,7 @@
       "title": "Admin console, preflight, config audit",
       "block": "Block F - Assurance and operations",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "A new engagement can be set up without touching code, and a setup error is found in a minute rather than in a halted run.",
       "builds": [
         "admin_console",
@@ -818,7 +818,8 @@
         "Publish Chartwell's own chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, and rebuild fixtures/skills/line-item-tagging from it",
         "Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified",
         "Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/",
-        "Bump event@1.0.0 to 1.1.0 with CONFIG in the diagnostic_code pattern before preflight emits one"
+        "Bump event@1.0.0 to 1.1.0 with CONFIG in the diagnostic_code pattern before preflight emits one",
+        "Register CF_LBO_Model_v3 with an input schema, or unbind corporate-finance/_group, once Corporate Finance names its model"
       ],
       "exit": [
         "A failing preflight check blocks activation of that engagement rather than failing later in a run",
@@ -829,7 +830,8 @@
       "checks": [
         "python -m uv run pytest tests/p24 -q"
       ],
-      "notes": "config is the most likely failure owner on a new engagement. This is the surface where those failures are prevented rather than diagnosed."
+      "notes": "config is the most likely failure owner on a new engagement. This is the surface where those failures are prevented rather than diagnosed.",
+      "closed": "2026-09-04"
     },
     {
       "id": "P25",
@@ -846,7 +848,11 @@
         "A bounded worker pool behind the job queue port",
         "Cross-engagement concurrency, with the engagement lock still serialising within one",
         "Redis + RQ adapter for when runs outlive a single process",
-        "Backpressure and a visible queue position"
+        "Backpressure and a visible queue position",
+        "Confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18/P24)",
+        "Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)",
+        "Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)",
+        "Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)"
       ],
       "exit": [
         "Several engagements process concurrently while one engagement still serialises",
@@ -1041,11 +1047,12 @@
       "id": "C8",
       "title": "Observable and self-service",
       "after": "P24",
-      "status": "open",
+      "status": "done",
       "proves": "A run is fully observable from its event stream alone, and a new engagement is set up without touching code",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c08 -q"
-      ]
+      ],
+      "closed": "2026-09-04"
     },
     {
       "id": "C9",

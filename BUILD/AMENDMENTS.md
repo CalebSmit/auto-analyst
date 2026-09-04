@@ -356,3 +356,18 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** Finding from P23: the drift monitor computes and reports flags but the cross-run loop it feeds (sustained drift -> skill board re-review) belongs to the governance chain. The monitor writes nothing; P27 opens the re-review from DriftMonitor.report().
 
 - task added: Open a re-review on the skill board from a DriftMonitor flag (the drift_re_review loop)
+
+## 2026-09-04 - P24 Admin console, preflight, config audit
+
+**Why:** Finding: the model bound to each scope layer lived only in templates/bindings.yaml, which no admin surface could edit. config_document@1.1.0 (1.0.0 stays listed) now carries model_bindings, destination adapters and credential names, expected credentials with expiry (never a value), and per-engagement review level and profile - the profile validated against engagement_profile@1.0.0 on every write. The Scope Resolver takes bindings from the store; bindings.yaml is the checked-in seed. event@1.1.0 admits the CONFIG family. Preflight reports the checked-in CF_LBO_Model_v3 binding as CONFIG.TEMPLATE_UNREGISTERED: no master and no input schema exist for it yet.
+
+- task added: Register CF_LBO_Model_v3 with an input schema, or unbind corporate-finance/_group, once Corporate Finance names its model
+
+## 2026-09-04 - P25 Worker pool and the queue port
+
+**Why:** The four P24 tasks that need real engagement files, a real taxonomy, an analyst's add-back review and the work model-builder repo cannot be done on this machine with synthetic fixtures; they move to the pilot phase where that material exists.
+
+- task added: Confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18/P24)
+- task added: Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
+- task added: Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
+- task added: Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)

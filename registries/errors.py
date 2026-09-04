@@ -164,8 +164,69 @@ CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 BELOW_GATE = "SKILL.BELOW_GATE"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
+PATH_UNREADABLE = "CONFIG.PATH_UNREADABLE"
+CREDENTIAL_EXPIRED = "CONFIG.CREDENTIAL_EXPIRED"
+PROFILE_INCOMPLETE = "CONFIG.PROFILE_INCOMPLETE"
+TEMPLATE_UNREGISTERED = "CONFIG.TEMPLATE_UNREGISTERED"
+TEMPLATE_HASH_MISMATCH = "CONFIG.TEMPLATE_HASH_MISMATCH"
+DESTINATION_UNWRITABLE = "CONFIG.DESTINATION_UNWRITABLE"
+BUDGET_ABOVE_CEILING = "CONFIG.BUDGET_ABOVE_CEILING"
+BINDING_MISSING = "CONFIG.BINDING_MISSING"
+ADMIN_FORBIDDEN = "CONFIG.ADMIN_FORBIDDEN"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
+    PATH_UNREADABLE: (
+        "config",
+        "A watch root cannot be listed through the Storage Port. Fix the path or the "
+        "mount, or remove the watch. Nothing is swept from a place that cannot be read, "
+        "and a run does not start to find that out.",
+    ),
+    CREDENTIAL_EXPIRED: (
+        "config",
+        "A credential the environment expects is past the expiry recorded for it, or "
+        "expires within thirty days. Rotate it through the Secrets Port and record the "
+        "new expiry. Preflight sees presence and dates, never a value.",
+    ),
+    PROFILE_INCOMPLETE: (
+        "config",
+        "The engagement profile is missing, invalid, or lacks a checkpoint policy with an "
+        "owner and an SLA. Three skills read it as a required input, so the engagement "
+        "cannot be activated until it is complete (finding F1).",
+    ),
+    TEMPLATE_UNREGISTERED: (
+        "config",
+        "The template the engagement's scope binds to is not in the Template Registry at "
+        "that version. Register it, or bind the scope to one that is. A run does not "
+        "write into a workbook nobody validated.",
+    ),
+    TEMPLATE_HASH_MISMATCH: (
+        "config",
+        "The template on disk is not the bytes the registry pinned. Somebody edited the "
+        "master in place. Restore it, or register the edited file as a new version.",
+    ),
+    DESTINATION_UNWRITABLE: (
+        "config",
+        "The delivery destination could not be written through the Delivery Port. Fix "
+        "the path, the mount or the credential. A run does not build a deliverable it "
+        "cannot deliver.",
+    ),
+    BUDGET_ABOVE_CEILING: (
+        "config",
+        "A per-run budget sits above the firm ceiling in constraints.yaml. Lower the "
+        "budget; raising the ceiling is a governance change, not an admin one.",
+    ),
+    BINDING_MISSING: (
+        "config",
+        "The engagement resolves to no delivery destination, no template, or more than "
+        "one of either. Bind exactly one in the configuration. Every active engagement "
+        "resolves to exactly one destination and one template pin.",
+    ),
+    ADMIN_FORBIDDEN: (
+        "config",
+        "The change is outside what an admin may do: lowering a review requirement, "
+        "raising a budget above the firm ceiling, or touching something that fails "
+        "closed. Those enter through the governance chain, not the Admin tab.",
+    ),
     UNKNOWN_CRITERIA: (
         "config",
         "The run criteria version named is not a file under ops/criteria/, or names a "

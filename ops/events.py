@@ -12,7 +12,7 @@ record, and a guard that stopped running shows up as silence somebody can see.
 failure to record must never fail a run, because observability must not become a new way
 for work to break. That applies to the *store*: a lost connection or a full disk is
 counted and reported through `on_drop`, and the run continues. It does not apply to an
-event that does not satisfy `event@1.0.0`, which is a defect in the emitting node -
+event that does not satisfy `event@1.1.0`, which is a defect in the emitting node -
 deterministic, caught by the suite, and worth failing loudly, because swallowing it
 would silently drop a whole class of event from every run forever.
 
@@ -32,7 +32,7 @@ from ops.models import now_iso
 from ops.run_store import EventRecord, RunStore
 from registries.contracts import ContractRegistry
 
-EVENT_CONTRACT = "event@1.0.0"
+EVENT_CONTRACT = "event@1.1.0"
 
 LEVELS = ("info", "warn", "error", "guard", "loop")
 

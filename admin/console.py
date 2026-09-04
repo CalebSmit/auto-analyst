@@ -1,0 +1,413 @@
+"""The Admin Console: the setup surface, and what an admin may and may not change.
+
+Reads and writes the Configuration Store and the Active Project Roster; every write
+lands in the Config Change Log with who, what, when and why. Preflight runs on every
+write, and activation is gated on it: a failing check blocks activating that engagement
+rather than failing later inside a run.
+
+What an admin can do is a method here. What an admin cannot do is not a method here -
+and where a method could be pushed past the line, it refuses with
+`CONFIG.ADMIN_FORBIDDEN`:
+
+* a review level may be raised, never lowered;
+* a per-run budget may be set at or below the firm ceiling, never above it;
+* a credential's presence can be seen, never its value.
+
+Nothing here reaches a skill definition, a guard, the mask vault or the release gate.
+Those enter through the governance chain (invariant 23: configuration writes the
+engagement record; guards read the run).
+"""
+
+from __future__ import annotations
+
+from dataclasses import replace
+from typing import Any
+
+from admin.preflight import Preflight, PreflightReport, resolve_model
+from graph.resolve import TemplateBinding
+from intake.config import ConfigStore, Destination, Watch
+from intake.roster import ProjectRoster, RosterEntry, RosterState
+from registries.constraints import ConstraintRegistry
+from registries.errors import ADMIN_FORBIDDEN, DiagnosticError, diagnose
+from registries.scopes import ScopePath
+
+__all__ = ["REVIEW_LEVELS", "AdminConsole", "AdminRefused"]
+
+# The per-engagement review level ladder, lowest first. Raising is an admin action;
+# lowering is not one at all.
+REVIEW_LEVELS: tuple[str, ...] = ("standard", "elevated")
+
+
+class AdminRefused(DiagnosticError):
+    """The console would not make that change. Carries every diagnostic behind it."""
+
+    def __init__(self, diagnostics: tuple[Any, ...]) -> None:
+        super().__init__(diagnostics[0])
+        self.diagnostics = diagnostics
+
+
+class AdminConsole:
+    def __init__(
+        self,
+        config: ConfigStore,
+        roster: ProjectRoster,
+        preflight: Preflight,
+        *,
+        constraints: ConstraintRegistry | None = None,
+    ) -> None:
+        self.config = config
+        self.roster = roster
+        self.preflight = preflight
+        self.constraints = constraints or ConstraintRegistry.load()
+
+    # -- reading
+
+    def setup(self) -> dict[str, Any]:
+        """Everything the Admin tab shows, in one shape."""
+        doc = self.config.document()
+        return {
+            "environment": self.config.environment,
+            "version": self.config.version(),
+            "watches": [w.__dict__ for w in self.config.watches()],
+            "destinations": [d.__dict__ for d in self.config.destinations()],
+            "model_bindings": [b.__dict__ for b in self.config.model_bindings().values()],
+            "credentials": [
+                {**c.__dict__, "present": self.preflight.secrets.has(c.name)}
+                for c in self.config.credentials()
+            ],
+            "intake": dict(doc["intake"]),
+            "roster": [self._entry_row(e) for e in self.roster.entries()],
+            "firm_ceiling_usd": self.firm_ceiling,
+            "can": CAN,
+            "cannot": CANNOT,
+        }
+
+    @property
+    def firm_ceiling(self) -> float:
+        return float(self.constraints.ceilings["per_run"]["usd_max"])
+
+    def resolve_model(self, scope_path: str) -> dict[str, Any]:
+        """Which model this scope builds into and which layer said so - the same
+        five-layer walk the skills use."""
+        layers = self.preflight._resolver().scopes.layers_for(ScopePath.parse(scope_path))  # noqa: SLF001
+        binding, walked = resolve_model(scope_path, self.config.model_bindings(), layers)
+        return {
+            "scope_path": scope_path,
+            "layers": list(walked),
+            "binding": binding.__dict__ if binding else None,
+            "bound_at": binding.layer if binding else None,
+        }
+
+    def changes(self) -> tuple[Any, ...]:
+        return self.config.changes()
+
+    def check(self, engagement_id: str | None = None) -> PreflightReport:
+        return self.preflight.run(engagement_id)
+
+    # -- the roster
+
+    def register_engagement(
+        self,
+        entry: RosterEntry,
+        *,
+        profile: dict[str, Any] | None,
+        who: str,
+        reason: str,
+    ) -> RosterEntry:
+        """Put an engagement on the roster with its profile. Registered paused unless
+        asked for active - and active only past preflight."""
+        wanted = entry.state
+        recorded = self.roster.register(
+            replace(entry, state=RosterState.PAUSED), who=who, reason=reason
+        )
+        if profile is not None:
+            self.set_profile(entry.engagement_id, profile, who=who, reason=reason)
+        if wanted is RosterState.ACTIVE:
+            return self.activate(entry.engagement_id, who=who, reason=reason)
+        if wanted is RosterState.ARCHIVED:
+            return self.roster.set_state(entry.engagement_id, wanted, who=who, reason=reason)
+        return recorded
+
+    def activate(self, engagement_id: str, *, who: str, reason: str) -> RosterEntry:
+        """Active only when preflight passes for this engagement. The refusal carries
+        every failing check, each with a code, an owner and what to do."""
+        report = self.preflight.run(engagement_id)
+        blocking = report.blocking(engagement_id)
+        if blocking:
+            raise AdminRefused(tuple(f.diagnostic for f in blocking))
+        return self.roster.set_state(engagement_id, RosterState.ACTIVE, who=who, reason=reason)
+
+    def pause(self, engagement_id: str, *, who: str, reason: str, note: str = "") -> RosterEntry:
+        return self.roster.set_state(
+            engagement_id, RosterState.PAUSED, who=who, reason=reason, note=note
+        )
+
+    def archive(self, engagement_id: str, *, who: str, reason: str, note: str = "") -> RosterEntry:
+        return self.roster.set_state(
+            engagement_id, RosterState.ARCHIVED, who=who, reason=reason, note=note
+        )
+
+    def set_budget(self, engagement_id: str, usd: float, *, who: str, reason: str) -> RosterEntry:
+        """At or below the firm ceiling. Above it is a governance change."""
+        if usd > self.firm_ceiling:
+            raise AdminRefused(
+                (
+                    diagnose(
+                        ADMIN_FORBIDDEN,
+                        f"a per-run budget of ${usd:.2f} is above the firm ceiling of "
+                        f"${self.firm_ceiling:.2f}",
+                        locator=f"roster/{engagement_id}/budget_usd",
+                        expected=f"<= {self.firm_ceiling:.2f}",
+                        found=f"{usd:.2f}",
+                    ),
+                )
+            )
+        return self.roster.update(engagement_id, who=who, reason=reason, budget_usd=float(usd))
+
+    def set_review_level(
+        self, engagement_id: str, level: str, *, who: str, reason: str
+    ) -> RosterEntry:
+        """Raise only. The review requirement on an engagement can go up above the
+        skill's floor; it cannot come down through this surface."""
+        entry = self.roster.get(engagement_id)
+        if entry is None:
+            raise KeyError(f"{engagement_id} is not on the roster")
+        if level not in REVIEW_LEVELS:
+            raise ValueError(f"{level!r} is not a review level; one of {REVIEW_LEVELS}")
+        if REVIEW_LEVELS.index(level) < REVIEW_LEVELS.index(entry.review_level):
+            raise AdminRefused(
+                (
+                    diagnose(
+                        ADMIN_FORBIDDEN,
+                        f"review level on {engagement_id} may be raised from "
+                        f"{entry.review_level}, not lowered to {level}",
+                        locator=f"roster/{engagement_id}/review_level",
+                        expected=f">= {entry.review_level}",
+                        found=level,
+                    ),
+                )
+            )
+        return self.roster.update(engagement_id, who=who, reason=reason, review_level=level)
+
+    def bind_engagement(
+        self,
+        engagement_id: str,
+        *,
+        who: str,
+        reason: str,
+        destination_id: str | None = None,
+        template_pin: str | None = None,
+        watch_id: str | None = None,
+        folder: str | None = None,
+    ) -> RosterEntry:
+        """Point an engagement at a destination, a template, a watch or a folder."""
+        fields = {
+            k: v
+            for k, v in {
+                "destination_id": destination_id,
+                "template_pin": template_pin,
+                "watch_id": watch_id,
+                "folder": folder,
+            }.items()
+            if v is not None
+        }
+        if not fields:
+            raise ValueError("nothing to bind")
+        return self.roster.update(engagement_id, who=who, reason=reason, **fields)
+
+    # -- the configuration document
+
+    def set_profile(
+        self, engagement_id: str, profile: dict[str, Any], *, who: str, reason: str
+    ) -> int:
+        """The engagement record configuration writes. Validated against its contract
+        on the way in; the store refuses an invalid one before anything is written."""
+        return self._edit_engagement(engagement_id, {"profile": dict(profile)}, who, reason)
+
+    def set_intake_override(
+        self,
+        engagement_id: str,
+        *,
+        who: str,
+        reason: str,
+        quiet_period_minutes: float | None = None,
+        max_wait_hours: float | None = None,
+    ) -> int:
+        """Tighten an engagement's intake timing. The store's `timing` reads these as a
+        floor, never as a way to lengthen the environment's lock timeout."""
+        over = {
+            k: v
+            for k, v in {
+                "quiet_period_minutes": quiet_period_minutes,
+                "max_wait_hours": max_wait_hours,
+            }.items()
+            if v is not None
+        }
+        return self._edit_engagement(engagement_id, over, who, reason)
+
+    def add_watch(self, watch: Watch, *, who: str, reason: str) -> int:
+        doc = self.config.document()
+        if any(w["id"] == watch.id for w in doc["watches"]):
+            raise ValueError(f"watch {watch.id} exists; edit it instead")
+        doc["watches"] = [*doc["watches"], _watch_row(watch)]
+        return self._write(doc, who, reason)
+
+    def edit_watch(self, watch: Watch, *, who: str, reason: str) -> int:
+        doc = self.config.document()
+        if not any(w["id"] == watch.id for w in doc["watches"]):
+            raise KeyError(f"no watch {watch.id}")
+        doc["watches"] = [_watch_row(watch) if w["id"] == watch.id else w for w in doc["watches"]]
+        return self._write(doc, who, reason)
+
+    def add_destination(self, destination: Destination, *, who: str, reason: str) -> int:
+        doc = self.config.document()
+        rows = list(doc.get("destinations") or [])
+        if any(d["id"] == destination.id for d in rows):
+            raise ValueError(f"destination {destination.id} exists")
+        doc["destinations"] = [*rows, _destination_row(destination)]
+        return self._write(doc, who, reason)
+
+    def bind_model(
+        self,
+        layer: str,
+        file: str | None,
+        template_version: str | None,
+        *,
+        why: str,
+        who: str,
+        reason: str,
+    ) -> int:
+        """Bind a model to a practice area, a segment or a leaf scope - written once at
+        the shallowest layer where it is true. `file=None` declares the layer with
+        nothing bound, which falls through to the layer above."""
+        doc = self.config.document()
+        rows = [b for b in (doc.get("model_bindings") or []) if b["layer"] != layer]
+        rows.append(
+            {
+                "layer": layer,
+                "file": file,
+                "template_version": template_version,
+                "why": why,
+            }
+        )
+        doc["model_bindings"] = rows
+        return self._write(doc, who, reason)
+
+    def seed_model_bindings(
+        self, bindings: dict[str, TemplateBinding], *, who: str, reason: str
+    ) -> int:
+        """Bring the checked-in `templates/bindings.yaml` into the configuration, once,
+        so the store is the live record from then on."""
+        doc = self.config.document()
+        doc["model_bindings"] = [
+            {
+                "layer": b.layer,
+                "file": b.file or None,
+                "template_version": b.template_version or None,
+                "why": b.why,
+            }
+            for b in bindings.values()
+        ]
+        return self._write(doc, who, reason)
+
+    def record_credential(
+        self,
+        name: str,
+        purpose: str,
+        *,
+        expires_on: str | None,
+        who: str,
+        reason: str,
+    ) -> int:
+        """Say that the environment expects a credential and when it expires. The value
+        is rotated through the Secrets Port; nothing here can hold or show it."""
+        doc = self.config.document()
+        rows = [c for c in (doc.get("credentials") or []) if c["name"] != name]
+        row: dict[str, Any] = {"name": name, "purpose": purpose}
+        if expires_on:
+            row["expires_on"] = expires_on
+        doc["credentials"] = [*rows, row]
+        return self._write(doc, who, reason)
+
+    def credential_present(self, name: str) -> bool:
+        """Presence, never the value."""
+        present: bool = self.preflight.secrets.has(name)
+        return present
+
+    # -- plumbing
+
+    def _edit_engagement(
+        self, engagement_id: str, fields: dict[str, Any], who: str, reason: str
+    ) -> int:
+        doc = self.config.document()
+        engagements = dict(doc.get("engagements") or {})
+        engagements[engagement_id] = {**(engagements.get(engagement_id) or {}), **fields}
+        doc["engagements"] = engagements
+        return self._write(doc, who, reason)
+
+    def _write(self, doc: dict[str, Any], who: str, reason: str) -> int:
+        """Every write is validated by the store and logged field by field there."""
+        return self.config.write(doc, who=who, reason=reason)
+
+    def _entry_row(self, entry: RosterEntry) -> dict[str, Any]:
+        return {
+            "engagement_id": entry.engagement_id,
+            "client": entry.client,
+            "scope_path": entry.scope_path,
+            "state": str(entry.state),
+            "watch_id": entry.watch_id,
+            "folder": entry.folder,
+            "destination_id": entry.destination_id,
+            "template_pin": entry.template_pin or self.preflight.template_pin_for(entry),
+            "budget_usd": entry.budget_usd,
+            "review_level": entry.review_level,
+            "note": entry.note,
+            "profile_recorded": self.config.profile(entry.engagement_id) is not None,
+        }
+
+
+CAN: tuple[str, ...] = (
+    "Activate, pause and archive engagements - which decides the folders swept tonight",
+    "Add and edit watch locations, subfolder patterns and delivery destinations",
+    "Bind a model to a practice area, a segment or one engagement",
+    "Raise the review requirement on an engagement above the skill's floor",
+    "Set a per-run budget at or below the firm ceiling",
+    "Rotate a credential, and see whether one is present - never its value",
+    "Choose the delivery adapter per destination",
+)
+CANNOT: tuple[str, ...] = (
+    "Disable a guard that fails closed, or move one out of the path",
+    "Lower a skill's review floor - a scope overlay may only tighten, and so may this",
+    "Turn off masking, or reach the mask vault",
+    "Raise a budget above the firm ceiling - that is a governance change, not a setup one",
+    "Edit a skill, a prompt or a schema - those enter through the governance chain",
+    "Write into the live skills/ tree - the Registry is its only writer",
+    "Release a deliverable, or bypass the release gate",
+)
+
+
+def _watch_row(watch: Watch) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "id": watch.id,
+        "kind": watch.kind,
+        "name": watch.name,
+        "root": watch.root,
+        "recipe": watch.recipe,
+    }
+    if watch.kind == "bound":
+        row["engagement_id"] = watch.engagement_id
+    else:
+        row["depth"] = watch.depth
+    return row
+
+
+def _destination_row(destination: Destination) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "id": destination.id,
+        "name": destination.name,
+        "path": destination.path,
+        "adapter": destination.adapter,
+    }
+    if destination.credential:
+        row["credential"] = destination.credential
+    return row

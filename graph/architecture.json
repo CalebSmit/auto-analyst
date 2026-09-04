@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:4f7ddd5c5e8cf2a52f840c89988f5e6324bc3e3e5b74558bc9794c706ee244bb",
+  "source_digest": "sha256:0369a16e3bd6a90bbc46d246b4ccb0539b60ede005f2a48e282bf3ab5ae080c0",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -66,7 +66,7 @@
       "exec": "code",
       "now": true,
       "desc": "The versioned record behind the Admin tab: watch locations and their subfolder patterns, delivery destinations, which credential each adapter reads, the model bound to each scope, and per-engagement review level and budget.",
-      "impl": "A versioned config document per environment, validated on write against a schema, with every change appended to the Config Change Log. It writes the engagement record; it does not reach into a run.",
+      "impl": "A versioned config document per environment (<span class=\"mono\">config_document@1.1.0</span>), validated on write against its schema and each engagement profile against <span class=\"mono\">engagement_profile@1.0.0</span>, with every change appended to the Config Change Log. It writes the engagement record; it does not reach into a run.",
       "full": "This node exists to make one boundary visible: <b>configuration writes the engagement record, and guards read the run.</b> There is no edge from here to anything that fails closed — the budget ceiling included. So lowering a budget for one engagement is an admin action, and raising one above the firm ceiling is a governance change. Without that separation, every guarantee at the top of this page would quietly have a dial on it."
     },
     {
@@ -1347,7 +1347,7 @@
       "exec": "code",
       "now": true,
       "desc": "The setup surface: environment and port bindings, watch locations, the active project roster, delivery destinations, the model bound to each practice area, preflight, and what an admin may and may not change.",
-      "impl": "Reads and writes the Configuration Store and the Active Project Roster; every write lands in the Config Change Log. It cannot reach a skill definition, a guard, or the live skills tree — those have their own governance chain.",
+      "impl": "Reads and writes the Configuration Store and the Active Project Roster (<span class=\"mono\">admin/console.py</span>); every write lands in the Config Change Log. It cannot reach a skill definition, a guard, or the live skills tree — those have their own governance chain — and where a method could be pushed past the line it refuses with <span class=\"mono\">CONFIG.ADMIN_FORBIDDEN</span>: a review level is raised, never lowered; a budget sits at or below the firm ceiling; a credential’s presence is visible, never its value.",
       "full": "The system is designed to produce configuration failures — <span class=\"mono\">config</span> is one of the six failure owners, described as “almost always a setup gap on a new engagement”. Until this tab existed there was nowhere for those failures to be prevented and nowhere for them to be fixed, which made the single most likely class of problem also the least served. Admin tab."
     },
     {
@@ -1359,7 +1359,7 @@
       "exec": "code",
       "now": true,
       "desc": "Ten checks over a proposed or live configuration: path readable · credential present and unexpired · no two watches claiming one path · every active engagement has a resolving scope, a complete engagement profile, a template pin, a destination, a review policy and a budget · template hash matches the registered version · template declares every required input · destination writable · named recipe exists · headroom.",
-      "impl": "Runs on demand and on every config write. Emits the standard diagnostic — code, owner, expected, found, and <span class=\"mono\">what_now</span> — with the owner set to <span class=\"mono\">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run.",
+      "impl": "Runs on demand and on every config write (<span class=\"mono\">admin/preflight.py</span>). Emits the standard diagnostic — code, owner, expected, found, and <span class=\"mono\">what_now</span> — with the owner set to <span class=\"mono\">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run: the console’s <span class=\"mono\">activate</span> runs preflight for that engagement and refuses with every failing check, each a diagnostic. Not part of any run, so it emits into no event stream.",
       "full": "A setup error found here costs a minute. The same error found at run time costs a halted run, a diagnostic somebody has to read, and a client waiting. Deliberately not part of any run — it is a setup-time activity, so it never appears in a run’s event stream and never colours a node on the trace."
     },
     {

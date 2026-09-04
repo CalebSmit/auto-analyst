@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from ops.events import EventBus, guard_name_and_result
+from ops.events import EVENT_CONTRACT, EventBus, guard_name_and_result
 from ops.run_store import SqlRunStore
 from registries.contracts import ContractRegistry
 from registries.errors import ContractViolation
@@ -57,7 +57,7 @@ def test_every_event_satisfies_the_contract_as_it_is_emitted(
     reaches the record at all."""
     run_id = started(store)
     emitted = emit(bus, run_id, payload={"skill": "ddr-tagging@1.0.0"})
-    contracts.validate("event@1.0.0", emitted)
+    contracts.validate(EVENT_CONTRACT, emitted)
 
 
 def test_node_id_is_required_because_the_trace_is_derived_from_it(

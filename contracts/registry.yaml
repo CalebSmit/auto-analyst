@@ -29,6 +29,16 @@ contracts:
     version: 1.0.0
     file: event.schema.json
     kind: event
+    note: >-
+      Superseded by 1.1.0 at P24. Listed for as long as any recorded run cites it.
+
+  - id: event
+    version: 1.1.0
+    file: event@1.1.0.schema.json
+    kind: event
+    note: >-
+      Admits the CONFIG diagnostic family (P21 added it; P23 found the pattern had not
+      followed). Preflight and the config audit emit CONFIG codes.
 
   - id: run_manifest
     version: 1.0.0
@@ -71,6 +81,16 @@ contracts:
       The versioned record behind the Admin tab: watches and their patterns, intake
       timing, destinations, per-engagement overrides. Validated on every write (P16).
       Configuration writes the engagement record and never reaches into a run.
+      Superseded by 1.1.0 at P24.
+
+  - id: config_document
+    version: 1.1.0
+    file: config_document@1.1.0.schema.json
+    kind: configuration
+    note: >-
+      P24: the rest of what the Admin tab edits - destination adapters and credentials,
+      the model bound to each scope layer, the credentials the environment expects
+      (names and expiry, never values), per-engagement review level and profile.
 
   - id: participant_census
     version: 1.0.0
