@@ -9,7 +9,7 @@ hand-edited, because a hand edit is how a plan and its real state start to disag
     python tools/gate.py check P07
     python tools/gate.py close P07 [--signoff "Caleb: reviewed 40 items"]
     python tools/gate.py checkpoint C3
-    python tools/gate.py amend P18 "reason" --set-title "..." --add-task "..."
+    python tools/gate.py amend P18 "reason" --set-title "..." --add-task "..." --drop-task "..."
     python tools/gate.py ledger "what was tried" --cause "why it failed" --rule "what to do instead"
     python tools/gate.py render
 """
@@ -293,6 +293,21 @@ def cmd_amend(plan: dict, args) -> int:
         for t in args.add_task:
             p["tasks"].append(t)
             changes.append(f"task added: {t}")
+    if args.drop_task:
+        # A task that this phase cannot do has to move, not sit ticked: render marks
+        # every task of a closed phase done, so an undoable task left behind becomes a
+        # false record the moment the phase closes. The drop is logged with its reason
+        # like every other change, so the history of where it went survives.
+        for fragment in args.drop_task:
+            matched = [t for t in p["tasks"] if fragment.lower() in t.lower()]
+            if len(matched) != 1:
+                listed = "\n  ".join(p["tasks"])
+                sys.exit(
+                    f"--drop-task {fragment!r} matched {len(matched)} tasks; "
+                    f"it must match exactly one. Tasks are:\n  {listed}"
+                )
+            p["tasks"].remove(matched[0])
+            changes.append(f"task dropped: {matched[0]}")
     if args.add_exit:
         for e in args.add_exit:
             p["exit"].append(e)
@@ -620,6 +635,12 @@ def main() -> int:
     c.add_argument("--set-title")
     c.add_argument("--set-gate", choices=["auto", "human"])
     c.add_argument("--add-task", action="append")
+    c.add_argument(
+        "--drop-task",
+        action="append",
+        help="drop a task by unique text fragment - a task this phase cannot do moves "
+        "to one that can, because a closed phase renders every task it lists as done",
+    )
     c.add_argument("--add-exit", action="append")
     c.add_argument(
         "--drop-exit",

@@ -68,3 +68,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Install Postgres on Windows from the portable binaries zip (get.enterprisedb.com/postgresql/postgresql-<v>-windows-x64-binaries.zip) rather than through winget. Extract, initdb, pg_ctl start - no installer, no admin rights, no Windows service, and it deletes with one rmdir. Invoke-WebRequest needs -UseBasicParsing on PowerShell 5.1 or it blocks on the IE first-run prompt.
 
+
+## 2026-09-04 - Measuring how long a step took, and whether two steps overlapped, with time.monotonic() in the P25 pool tests
+
+**Phase:** P25
+
+**Why it failed:** On Windows under Python 3.12 time.monotonic() is GetTickCount64 and advances every 15.6 ms. Steps shorter than a tick read as zero-length, and intervals that merely touch inside one tick read as overlapping - a two-thread pool measured as four runs at once, and in another run as one. The test passed in isolation by luck of tick alignment and failed in the full suite.
+
+**Rule:** Time anything sub-second with time.perf_counter() (QueryPerformanceCounter, microsecond resolution). And prove concurrency with a barrier the parties must reach together, not with sleeps and clocks - a serial pool times out at the barrier, which is a fact rather than a measurement.
+

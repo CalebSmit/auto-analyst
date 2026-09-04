@@ -13,6 +13,10 @@ serialise on the database rather than on luck.
 
 A lock held past its timeout is an incident, not something to clear automatically.
 There is no method here that releases a lock without the holder's run_id.
+
+Holding the lock is not running. A run that has the lock and no worker is still queued -
+nothing is allocated, and its position in the worker pool is visible - and it becomes
+running when a worker takes it up. The lock grants; the executor's pass runs.
 """
 
 from __future__ import annotations
@@ -25,7 +29,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from ops.events import EventBus
-from ops.models import EngagementLockRow, LockQueueRow, RunState
+from ops.models import EngagementLockRow, LockQueueRow
 from ops.run_store import SqlRunStore
 from registries.errors import ENGAGEMENT_LOCKED, RUN_STALLED, Diagnostic, diagnose
 
@@ -86,9 +90,7 @@ class EngagementLock:
                 )
         except IntegrityError:
             return self._queue(engagement_id, run_id, now)
-        run = self.store.run(run_id)
-        if run.state is RunState.QUEUED:
-            self.store.transition(run_id, RunState.RUNNING, reason="engagement lock acquired")
+        self.store.run(run_id)  # the run must exist; the lock grants, it does not run
         self.bus.emit(
             run_id=run_id,
             engagement_id=engagement_id,

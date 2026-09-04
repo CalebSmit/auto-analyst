@@ -814,10 +814,6 @@
         "The ten preflight checks, including engagement profile completeness (F1)",
         "The config change log: who, what, when and why",
         "Enforcement of what an admin can and cannot change, backed by invariant 23",
-        "Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)",
-        "Publish Chartwell's own chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, and rebuild fixtures/skills/line-item-tagging from it",
-        "Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified",
-        "Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/",
         "Bump event@1.0.0 to 1.1.0 with CONFIG in the diagnostic_code pattern before preflight emits one",
         "Register CF_LBO_Model_v3 with an input schema, or unbind corporate-finance/_group, once Corporate Finance names its model"
       ],
@@ -838,7 +834,7 @@
       "title": "Worker pool and the queue port",
       "block": "Block G - Scale, judgment and handoff",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "A nightly sweep over seven active engagements cannot run one at a time inside a four-hour per-run ceiling.",
       "builds": [
         "queue_port",
@@ -848,11 +844,7 @@
         "A bounded worker pool behind the job queue port",
         "Cross-engagement concurrency, with the engagement lock still serialising within one",
         "Redis + RQ adapter for when runs outlive a single process",
-        "Backpressure and a visible queue position",
-        "Confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18/P24)",
-        "Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)",
-        "Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)",
-        "Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)"
+        "Backpressure and a visible queue position"
       ],
       "exit": [
         "Several engagements process concurrently while one engagement still serialises",
@@ -861,9 +853,12 @@
         "A worker dying mid-step leaves a resumable run, not a corrupt one"
       ],
       "checks": [
-        "python -m uv run pytest tests/p25 -q"
+        "python -m uv run pytest tests/p25 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy workers ports intake ops registries graph review"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-04"
     },
     {
       "id": "P26",
@@ -950,7 +945,11 @@
         "The whole suite green inside the container",
         "HANDOFF.md: what changes on the work machine and what does not",
         "Adapter stubs named for the existing ShareFile and Box connectors, with their port contracts written",
-        "The work Anthropic key as a .env change and nothing else"
+        "The work Anthropic key as a .env change and nothing else",
+        "On the work machine: confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18 through P25)",
+        "On the work machine: publish Chartwell's chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)",
+        "On the work machine: have an analyst confirm real-engagement add-backs are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)",
+        "On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)"
       ],
       "exit": [
         "No managed-service primitive is depended on anywhere in the codebase",

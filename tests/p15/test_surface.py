@@ -217,10 +217,11 @@ def test_a_recorded_decision_reenqueues_the_waiting_run_at_its_frontier(
         expected_version=1,
     )
 
-    assert store.run(started).state is RunState.RUNNING
+    assert store.run(started).state is RunState.WAITING, "re-enqueued; nothing allocated yet"
     resumed = events_of(store, started, "run.resumed")
     assert len(resumed) == 1 and resumed[0].payload["job"] == RESUME_JOB
     jobs.drain()
+    assert store.run(started).state is RunState.RUNNING, "the pass is what took it up"
     (report,) = reports
     assert report.satisfied == ["intake", "mask", "timing"]
     assert survivor.calls == list(plan.order[3:])
@@ -260,7 +261,7 @@ def test_a_run_with_another_item_open_keeps_waiting(
         decision=DecisionKind.ACCEPTED,
         expected_version=1,
     )
-    assert store.run(started).state is RunState.RUNNING
+    assert store.run(started).state is RunState.WAITING
     assert len(events_of(store, started, "run.resumed")) == 1
 
 

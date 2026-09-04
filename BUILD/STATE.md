@@ -5,31 +5,28 @@
 
 ## Where the build is
 
-- **24 of 28 phases closed**
+- **25 of 28 phases closed**
 - Last green checkpoint: **C8**
-- Current phase: **P25 - Worker pool and the queue port** (gate: auto)
+- Current phase: **P26 - Orchestrator agent and triage** (gate: human)
 
 ## The next action
 
-Work P25. Its full definition is in [BUILD/phases/P25.md](phases/P25.md).
+Work P26. Its full definition is in [BUILD/phases/P26.md](phases/P26.md).
 
-> A nightly sweep over seven active engagements cannot run one at a time inside a four-hour per-run ceiling.
+> The model proposes a plan; it is still compiled, asserted and hashed before anything runs. This arrives last on purpose.
 
 Tasks:
 
-- [ ] A bounded worker pool behind the job queue port
-- [ ] Cross-engagement concurrency, with the engagement lock still serialising within one
-- [ ] Redis + RQ adapter for when runs outlive a single process
-- [ ] Backpressure and a visible queue position
-- [ ] Confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18/P24)
-- [ ] Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
-- [ ] Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
-- [ ] Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)
+- [ ] Orchestrator working from the skill index (name and description only) and the job manifest
+- [ ] Structured output: a plan proposal, never a value
+- [ ] The proposal goes through the same compiler and the same plan assertions as a recipe
+- [ ] Triage for no confident match, with a schema containing no field for a figure
+- [ ] Fall back to the named recipe when the proposal fails assertions
 
 Then:
 
-    python tools/gate.py check P25
-    python tools/gate.py close P25
+    python tools/gate.py check P26
+    python tools/gate.py close P26  --signoff "name: what you checked"
 
 ## Before you start
 
@@ -65,4 +62,5 @@ Then:
 - **P22** Eval and replay harnesses (2026-09-03)
 - **P23** Ops console, scorecard, drift, stalls (2026-09-03)
 - **P24** Admin console, preflight, config audit (2026-09-04)
+- **P25** Worker pool and the queue port (2026-09-04)
 

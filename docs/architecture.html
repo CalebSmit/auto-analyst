@@ -1191,8 +1191,8 @@ const NODES = [
 
 {id:'queue_port',runtime:'resource',label:'Job Queue Port',plain:'How work gets scheduled.',group:'port',exec:'code',now:true,
  desc:'Job submission, retry and status behind one interface.',
- impl:'In-process for local runs; Redis + RQ for a server; a managed queue in a cloud. Same interface throughout.',
- full:'Phase 1 needs no queue at all. Having the interface from the start means adding one later is not a refactor of the pipeline.'},
+ impl:'In-process for local runs \u2014 a bounded thread pool sized by the Compute Target, never two jobs of one engagement together; Redis + RQ for a server; a managed queue in a cloud. Same interface throughout, and it answers queue position and depth, so a waiting run can say where it stands and the console can show it. The pool behind it (<span class="mono">workers/pool.py</span>) hands a run to a worker only while it holds the Engagement Lock, releases the lock after every pass, and finds a run whose worker died from the record and the port so it resumes from the ledger.',
+ full:'Phase 1 needs no queue at all. Having the interface from the start means adding one later is not a refactor of the pipeline \u2014 and it was not: the Redis adapter landed beside the in-process one and the pipeline did not change a line.'},
 
 {id:'compute_target',runtime:'resource',label:'Compute Target',plain:'Runs as a container. Anywhere that runs containers works.',group:'port',exec:'code',now:true,
  desc:'One Docker image, driven by config. No managed-service primitive is depended on anywhere in the code.',
@@ -2082,7 +2082,7 @@ const ERRCODES = [
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
  ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED \u00b7 VERIFICATION_PASS','model / config'],
- ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED \u00b7 ENGAGEMENT_LOCKED \u00b7 PRECEDENT_NO_DECISION \u00b7 OUTCOME_CONTRADICTED','process / system'],
+ ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED \u00b7 ENGAGEMENT_LOCKED \u00b7 PRECEDENT_NO_DECISION \u00b7 OUTCOME_CONTRADICTED \u00b7 WORKER_LOST','process / system'],
  ['CONFIG.*','TEMPLATE_INPUTS_MISSING \u00b7 CELL_ADDRESS_BINDING \u00b7 PATH_UNREADABLE \u00b7 CREDENTIAL_EXPIRED \u00b7 PROFILE_INCOMPLETE \u00b7 TEMPLATE_UNREGISTERED \u00b7 TEMPLATE_HASH_MISMATCH \u00b7 DESTINATION_UNWRITABLE \u00b7 BUDGET_ABOVE_CEILING \u00b7 BINDING_MISSING \u00b7 ADMIN_FORBIDDEN','config']
 ];
 
@@ -2379,8 +2379,8 @@ const LIFECYCLE = [
 ];
 
 const RUNSTATE = [
- ['queued','the Engagement Lock is held by another run','Nothing is allocated. Position is visible on the console.'],
- ['running','the lock is acquired and the plan compiles','A worker holds it. The wall-clock budget is ticking.'],
+ ['queued','the Engagement Lock is held by another run, or every worker in the pool is busy','Nothing is allocated \u2014 no plan compiled, no clock ticking. Position behind the lock or in the pool is visible on the console.'],
+ ['running','a worker took the run up: the lock is held and the plan compiles','A worker holds it, and only then \u2014 the lock being granted or a decision being recorded allocates nothing. The wall-clock budget is ticking.'],
  ['waiting','a review item blocks a step the plan depends on','<b>The process has exited.</b> State is in the ledger, the lock is released, the wall-clock budget stops ticking. A human decision re-enqueues it.'],
  ['quarantined','a step exhausted its loop and independent branches finished','Held with full context. Dependent branches halted; nothing partial is released.'],
  ['halted','a fail-closed guard stopped the run','Terminal. The manifest is still written, unconditionally.'],
@@ -4283,6 +4283,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, scorecard.py, criteria/, stall.py, drift.py, analytics.py, console/', 'the record, and the verdict computed from it'),
    R_('  <span class="t2">admin/</span>         preflight.py, console.py, app.py', 'ten checks, then what an admin may and may not change'),
+   R_('  <span class="t2">workers/</span>       pool.py', 'several engagements at once; one run at a time within each'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');
 

@@ -27,6 +27,12 @@ POSTGRES: dict[str, Any] = {"requested": False, "ran": 0, "not_run": 0, "url": "
 # reported at the end of the session so "6 of 10 fire" never reads as "all 10 fire".
 PENDING_FIXTURES: list[tuple[str, str, str]] = []
 
+# The Redis + RQ queue adapter runs over an in-memory fake unless --redis is given, and
+# the summary says which. Filled in by tests/p03/conftest.py.
+REDIS_URL_VAR = "AA_TEST_REDIS_URL"
+DEFAULT_REDIS_URL = "redis://localhost:6379/15"
+REDIS: dict[str, Any] = {"requested": False, "fake": 0, "real": 0, "url": "", "error": ""}
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
@@ -40,9 +46,24 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         ),
     )
 
+    parser.addoption(
+        "--redis",
+        action="store_true",
+        default=False,
+        help=(
+            "Run the queue conformance suite against a real Redis server rather than the "
+            "in-memory fake; fails rather than skips if none answers. URL from "
+            f"{REDIS_URL_VAR}, default {DEFAULT_REDIS_URL}"
+        ),
+    )
+
 
 def postgres_url() -> str:
     return os.environ.get(PG_URL_VAR) or DEFAULT_PG_URL
+
+
+def redis_url() -> str:
+    return os.environ.get(REDIS_URL_VAR) or DEFAULT_REDIS_URL
 
 
 def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pytest.Config) -> None:
@@ -61,6 +82,7 @@ def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pyte
         )
         for fixture_id, guard, built_by in pending:
             write(f"  {fixture_id}: waits for {guard} ({built_by})", yellow=True)
+    _redis_summary(terminalreporter)
     if not POSTGRES["not_run"] and not POSTGRES["ran"] and not POSTGRES["error"]:
         return  # this invocation did not include the store conformance suite
 
@@ -83,8 +105,10 @@ def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pyte
 
     if POSTGRES["ran"]:
         write("")
-        write(f"POSTGRES RAN - {POSTGRES['ran']} store conformance test(s) against "
-              f"{POSTGRES['url']}", green=True)
+        write(
+            f"POSTGRES RAN - {POSTGRES['ran']} store conformance test(s) against {POSTGRES['url']}",
+            green=True,
+        )
         return
 
     write("")
@@ -100,7 +124,40 @@ def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pyte
         yellow=True,
     )
     write(
-        f"  To run it: start a server and re-run with --postgres "
-        f"({PG_URL_VAR} overrides the URL).",
+        f"  To run it: start a server and re-run with --postgres ({PG_URL_VAR} overrides the URL).",
         yellow=True,
     )
+
+
+def _redis_summary(terminalreporter: Any) -> None:
+    """The same honesty for the queue adapter: say whether Redis was real or a fake."""
+    write = terminalreporter.write_line
+    if REDIS["error"]:
+        write("")
+        write(
+            f"REDIS UNREACHABLE - --redis was given but no server answered at {REDIS['url']}.",
+            red=True,
+            bold=True,
+        )
+        write(f"  {REDIS['error']}", red=True)
+        return
+    if REDIS["real"]:
+        write("")
+        write(
+            f"REDIS RAN - {REDIS['real']} queue adapter test(s) against {REDIS['url']}",
+            green=True,
+        )
+        return
+    if REDIS["fake"]:
+        write("")
+        write(
+            f"REDIS FAKED - {REDIS['fake']} queue adapter test(s) ran the redis_rq adapter "
+            f"over an in-memory fake, not a server.",
+            yellow=True,
+            bold=True,
+        )
+        write(
+            f"  That proves the adapter's use of RQ, not Redis itself. To run it for real: "
+            f"start a server and re-run with --redis ({REDIS_URL_VAR} overrides the URL).",
+            yellow=True,
+        )

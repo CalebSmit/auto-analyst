@@ -77,7 +77,10 @@ PORTS: dict[str, PortSpec] = {
         name="queue",
         env_var="AA_QUEUE_ADAPTER",
         default="in_process",
-        adapters={"in_process": "ports.queue.in_process"},
+        adapters={
+            "in_process": "ports.queue.in_process",
+            "redis_rq": "ports.queue.redis_rq",
+        },
     ),
     "llm": PortSpec(
         name="llm",

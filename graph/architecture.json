@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:0369a16e3bd6a90bbc46d246b4ccb0539b60ede005f2a48e282bf3ab5ae080c0",
+  "source_digest": "sha256:415446efa6397c93a87b5a4cb8b1598855c294e0b083bf7005668faaa1248457",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -1466,8 +1466,8 @@
       "exec": "code",
       "now": true,
       "desc": "Job submission, retry and status behind one interface.",
-      "impl": "In-process for local runs; Redis + RQ for a server; a managed queue in a cloud. Same interface throughout.",
-      "full": "Phase 1 needs no queue at all. Having the interface from the start means adding one later is not a refactor of the pipeline."
+      "impl": "In-process for local runs — a bounded thread pool sized by the Compute Target, never two jobs of one engagement together; Redis + RQ for a server; a managed queue in a cloud. Same interface throughout, and it answers queue position and depth, so a waiting run can say where it stands and the console can show it. The pool behind it (<span class=\"mono\">workers/pool.py</span>) hands a run to a worker only while it holds the Engagement Lock, releases the lock after every pass, and finds a run whose worker died from the record and the port so it resumes from the ledger.",
+      "full": "Phase 1 needs no queue at all. Having the interface from the start means adding one later is not a refactor of the pipeline — and it was not: the Redis adapter landed beside the in-process one and the pipeline did not change a line."
     },
     {
       "id": "compute_target",

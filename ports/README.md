@@ -27,7 +27,7 @@ Configuration, read fresh on every call:
 | storage | `AA_STORAGE_ADAPTER` | `local_folder` | local_folder |
 | delivery | `AA_DELIVERY_ADAPTER` | `local_folder` | local_folder |
 | secrets | `AA_SECRETS_ADAPTER` | `dotenv` | dotenv |
-| queue | `AA_QUEUE_ADAPTER` | `in_process` | in_process |
+| queue | `AA_QUEUE_ADAPTER` | `in_process` | in_process, redis_rq |
 | llm | `AA_LLM_ADAPTER` | `fake` | fake, anthropic_messages |
 | compute | `AA_COMPUTE_ADAPTER` | `local_process` | local_process |
 

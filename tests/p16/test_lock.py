@@ -32,7 +32,7 @@ def test_two_runs_launched_in_the_same_second_serialise_on_the_lock(
     clock.advance(seconds=0.4)
     second = lock.acquire(HEND, "run_b")
 
-    assert first.acquired and store.run("run_a").state is RunState.RUNNING
+    assert first.acquired and store.run("run_a").state is RunState.QUEUED, "granted, not running"
     assert not second.acquired and second.position == 1
     assert second.code == "PROCESS.ENGAGEMENT_LOCKED"
     assert store.run("run_b").state is RunState.QUEUED
@@ -51,7 +51,7 @@ def test_releasing_hands_the_lock_to_the_next_in_the_queue(
     assert [q.run_id for q in lock.queue(HEND)] == ["run_b", "run_c"]
     promoted = lock.release(HEND, "run_a")
     assert promoted is not None and promoted.acquired and promoted.run_id == "run_b"
-    assert store.run("run_b").state is RunState.RUNNING
+    assert store.run("run_b").state is RunState.QUEUED, "the lock grants; a worker's pass runs"
     assert [q.run_id for q in lock.queue(HEND)] == ["run_c"]
     assert lock.release(HEND, "run_b") is not None
     assert lock.release(HEND, "run_c") is None
@@ -121,4 +121,4 @@ def test_a_release_while_a_run_holds_the_lock_queues_the_new_run(
     (second,) = intake.sweep(LAUNCH).launched
     assert second.queued and second.lock.position == 1
     assert store.run(second.run_id).state is RunState.QUEUED
-    assert store.run(first.run_id).state is RunState.RUNNING
+    assert store.run(first.run_id).state is RunState.QUEUED, "holds the lock; no worker yet"

@@ -164,6 +164,7 @@ CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 BELOW_GATE = "SKILL.BELOW_GATE"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
+WORKER_LOST = "PROCESS.WORKER_LOST"
 PATH_UNREADABLE = "CONFIG.PATH_UNREADABLE"
 CREDENTIAL_EXPIRED = "CONFIG.CREDENTIAL_EXPIRED"
 PROFILE_INCOMPLETE = "CONFIG.PROFILE_INCOMPLETE"
@@ -414,6 +415,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A review item has been open longer than the review SLA allows. The run is still "
         "waiting and burning no budget; the item needs a decision from the named reviewer "
         "or an escalation to the engagement owner. Nothing here is a system fault.",
+    ),
+    WORKER_LOST: (
+        "system",
+        "The worker executing this run died mid-step: its job ended without a result and "
+        "a step started and never ended. Nothing completed is lost - the ledger holds "
+        "every finished step. Check the worker, then resume the run; resume is replay, "
+        "so only the lost step is re-attempted and nothing before it is paid for twice.",
     ),
     RUN_STALLED: (
         "system",

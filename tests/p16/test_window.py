@@ -48,7 +48,7 @@ def test_six_files_over_ten_minutes_produce_one_run(
     (launched,) = result.launched
     assert launched.sources == 6 and launched.lock.acquired and launched.gaps == ()
     run = store.run(launched.run_id)
-    assert run.state is RunState.RUNNING
+    assert run.state is RunState.QUEUED, "launched and holding the lock; no worker yet"
     assert sorted(s["filename"] for s in run.sources) == sorted(names)
     assert all(s["source_version"] == 1 for s in run.sources)
     assert len(store.runs(HEND)) == 1
@@ -101,6 +101,7 @@ def test_a_reupload_becomes_version_two_and_supersedes_without_overwriting(
     clock.advance(minutes=31)
     (first,) = intake.sweep(LAUNCH).launched
     delivery = ports.get_delivery()
+    store.transition(first.run_id, RunState.RUNNING, reason="a worker holds it")  # this test is one
     # Nothing read these sources - no reader ran - so the record cannot support `clean`;
     # since P23 the outcome has to be one the scorecard computes.
     closed = close_out(

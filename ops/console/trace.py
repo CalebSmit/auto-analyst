@@ -66,6 +66,11 @@ EXPLICIT: dict[str, NodeState] = {
     "lock.released": NodeState.PASSED,
     "lock.queued": NodeState.ACTIVE,
     "lock.timeout": NodeState.FAILED,
+    "run.enqueued": NodeState.ACTIVE,
+    "worker.started": NodeState.ACTIVE,
+    "worker.deferred": NodeState.USED,
+    "worker.finished": NodeState.PASSED,
+    "worker.lost": NodeState.FAILED,
     "budget.ceiling_crossed": NodeState.FAILED,
 }
 

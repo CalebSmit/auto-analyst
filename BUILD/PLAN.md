@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**24 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**25 of 28 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -74,7 +74,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 
 | | Phase | Gate | Closes when | Status |
 |---|---|---|---|---|
-| [ ] | **P25** Worker pool and the queue port | auto | Several engagements process concurrently while one engagement still serialises |  |
+| [x] | **P25** Worker pool and the queue port | auto | Several engagements process concurrently while one engagement still serialises | 2026-09-04 |
 | [ ] | **P26** Orchestrator agent and triage | human | A proposed plan that violates any plan assertion is rejected and the recipe is used instead |  |
 | [ ] | **P27** The governance chain | auto | No path from the drop folder to the tree skips fixtures, review or a shadow run - remove any one gate and the path breaks |  |
 | [ ] | **C9 - Many engagements, governed change** | integration | A nightly sweep over several engagements completes, and a skill ships through the full governance chain |  |

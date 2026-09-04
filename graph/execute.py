@@ -24,6 +24,11 @@ repair iteration is a new key - the guard's feedback is part of the input - so t
 lookup that makes resume safe is what makes "byte-identical input" a fact rather than an
 opinion.
 
+**A pass is where a run becomes running.** The lock being acquired, a job being enqueued
+or a decision being recorded allocates nothing; the run stays queued (or waiting, or
+quarantined) with its position visible until a worker actually takes it up, which is the
+first thing `execute` records. Running means a worker holds it, as the blueprint says.
+
 **Blocking is an ending, not a pause.** A run that needs a person checkpoints and exits -
 no process, no lock, no context window held, and the wall clock stops. That is what makes
 the "four hours excluding time waiting on a human" budget an honest number rather than a
@@ -244,6 +249,7 @@ class StepExecutor:
         # gave it - nothing executes that has not been through them, and a resume is an
         # execution.
         check_plan(plan)
+        self._take_up(run_id)
 
         report = ExecutionReport(run_id=run_id, plan_hash=plan.plan_hash)
         available: dict[str, ContentRef] = dict(run_inputs or {})
@@ -277,6 +283,14 @@ class StepExecutor:
                 report.blocked_on = step_id
 
         return self._close_pass(run_id, report)
+
+    def _take_up(self, run_id: str) -> None:
+        """A pass is the moment a worker holds the run, so it is the moment the run is
+        *running*. Before this - lock acquired, job enqueued, decision recorded - nothing
+        is allocated, and the record says queued, waiting or quarantined accordingly."""
+        state = self.store.run(run_id).state
+        if state in (RunState.QUEUED, RunState.WAITING, RunState.QUARANTINED):
+            self.store.transition(run_id, RunState.RUNNING, reason="a worker holds it")
 
     # -- one step, and the loop around it
 

@@ -11,8 +11,9 @@ against a version that has since changed is refused *with the decision that chan
 Two reviewers cannot silently overwrite each other; the second sees the first.
 
 A recorded decision re-enqueues the waiting run at its frontier. The run had checkpointed
-and exited; once nothing is left open on it, it goes back to running and a resume job is
-submitted, and the executor satisfies every completed step from the ledger.
+and exited; once nothing is left open on it, a resume job is submitted. The run stays
+waiting - nothing is allocated yet - until a worker takes the job up, and that pass is
+what moves it to running and satisfies every completed step from the ledger.
 """
 
 from __future__ import annotations
@@ -218,14 +219,14 @@ class ReviewSurface:
     # -- the run
 
     def _maybe_resume(self, run_id: str) -> str | None:
-        """Once nothing on the run is waiting on a person, the run goes back to running
-        and a resume job is submitted. The executor picks it up at the frontier."""
+        """Once nothing on the run is waiting on a person, a resume job is submitted.
+        The executor picks it up at the frontier, and that pass is what moves the run
+        back to running; the surface allocates nothing."""
         run = self.store.run(run_id)
         if run.state is not RunState.WAITING:
             return None
         if any(i.state == "open" for i in self.store.review_items(run_id)):
             return None
-        self.store.transition(run_id, RunState.RUNNING, reason="every review item decided")
         job_id = (
             self.queue.submit(RESUME_JOB, {"run_id": run_id}, engagement_id=run.engagement_id)
             if self.queue is not None

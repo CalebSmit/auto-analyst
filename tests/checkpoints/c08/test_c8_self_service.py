@@ -159,6 +159,8 @@ def test_a_new_engagement_is_set_up_without_code_and_its_run_is_observable_from_
 
     # ---- the run ends; nothing refused it and nothing was delivered ----
     delivery = ports.get_delivery()
+    assert store.run(run_id).state is RunState.QUEUED, "holds the lock; nothing allocated"
+    store.transition(run_id, RunState.RUNNING, reason="a worker holds it")  # this test is one
     closed = close_out(store, run_id, RunState.HALTED, Outcome.BLOCKED, delivery, bus=bus)
     assert closed.manifest["scorecard"]["verdict"] == "blocked"
     assert closed.manifest["scorecard"]["criteria_version"] == "run_criteria@1.0.0"

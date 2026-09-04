@@ -371,3 +371,37 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - task added: Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
 - task added: Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
 - task added: Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)
+
+## 2026-09-04 - P25 Worker pool and the queue port
+
+**Why:** Building the pool surfaced three disagreements between the code and the blueprint, each resolved toward the blueprint. (1) The blueprint's run states say queued is 'nothing is allocated; position visible' and running is 'a worker holds it', but the Engagement Lock moved a run to running when it granted the lock and the Review Surface did the same when the last item was decided - before any worker existed. Both transitions now live in the executor's pass, the one place a worker actually takes a run up; the lock grants and the surface re-enqueues, and a run waiting for a free worker shows as queued with a position. The RUNSTATE rows were reworded to say the pool's second cause of queued (every worker busy). Tests in p15, p16, c06 and c08 that acted as the worker now say so and take the run up themselves. (2) The Job Queue Port could not answer 'how far back' - position() and depth() were added to the Protocol so the queued state can be honest and backpressure is a reported fact; both adapters implement them and the P03 conformance suite covers them. (3) The pool needed a home: workers/pool.py, added to the blueprint's repo listing. Also: PROCESS.WORKER_LOST for a run whose worker died (owner system; resume is replay); the in-process adapter is now a bounded thread pool sized by the Compute Target that never runs two jobs of one engagement together; the Redis + RQ adapter runs the P03 suite and the P25 pool over an in-memory fake unless --redis names a server, and the session summary says which. The four pilot tasks carried here from P24 are untouched - they need real files, a real taxonomy, an analyst and the work model-builder repo, none of which exist on this machine - and they stay open on the record rather than being ticked by closure.
+
+- check added: python -m uv run ruff check .
+- check added: python -m uv run mypy workers ports intake ops registries graph review
+
+## 2026-09-04 - P24 Admin console, preflight, config audit
+
+**Why:** These four tasks need real engagement files, Chartwell's own chart of accounts, an analyst's review of real add-backs and the work model-builder repo. None exists on this machine, and a closed phase renders every task it lists as done, so P24 has shown them ticked since it closed and P25 would too. They move to P28, the handoff, where the work material exists and where Caleb's sign-off is what marks them done. gate amend gained --drop-task for exactly this: a task a phase cannot do moves, on the record, rather than sitting ticked.
+
+- task dropped: Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)
+- task dropped: Publish Chartwell's own chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, and rebuild fixtures/skills/line-item-tagging from it
+- task dropped: Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified
+- task dropped: Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/
+
+## 2026-09-04 - P25 Worker pool and the queue port
+
+**Why:** These four tasks need real engagement files, Chartwell's own chart of accounts, an analyst's review of real add-backs and the work model-builder repo. None exists on this machine, and a closed phase renders every task it lists as done, so P24 has shown them ticked since it closed and P25 would too. They move to P28, the handoff, where the work material exists and where Caleb's sign-off is what marks them done. gate amend gained --drop-task for exactly this: a task a phase cannot do moves, on the record, rather than sitting ticked.
+
+- task dropped: Confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18/P24)
+- task dropped: Publish Chartwell's chart-of-accounts conventions as a new taxonomy version, measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
+- task dropped: Have an analyst confirm real-engagement add-backs and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
+- task dropped: Read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas (deferred from P24)
+
+## 2026-09-04 - P28 Docker, portability, handoff packet
+
+**Why:** These four tasks need real engagement files, Chartwell's own chart of accounts, an analyst's review of real add-backs and the work model-builder repo. None exists on this machine, and a closed phase renders every task it lists as done, so P24 has shown them ticked since it closed and P25 would too. They move to P28, the handoff, where the work material exists and where Caleb's sign-off is what marks them done. gate amend gained --drop-task for exactly this: a task a phase cannot do moves, on the record, rather than sitting ticked.
+
+- task added: On the work machine: confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18 through P25)
+- task added: On the work machine: publish Chartwell's chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
+- task added: On the work machine: have an analyst confirm real-engagement add-backs are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
+- task added: On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)

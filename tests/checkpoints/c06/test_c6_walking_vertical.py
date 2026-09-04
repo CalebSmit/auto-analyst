@@ -227,7 +227,8 @@ def test_the_walking_vertical(world: dict[str, Any]) -> None:
     (launched,) = w["intake"].sweep(launch).launched
     run_id = launched.run_id
     assert launched.lock.acquired and launched.sources == 3 and launched.gaps == ()
-    assert store.run(run_id).state is RunState.RUNNING
+    assert store.run(run_id).state is RunState.QUEUED, "the lock grants; nothing is allocated yet"
+    store.transition(run_id, RunState.RUNNING, reason="a worker holds it")  # this test is one
 
     # -- readers: every file into the parse store, classified and timed
     parse_store = SourceParseStore(store)

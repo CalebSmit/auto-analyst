@@ -18,7 +18,7 @@ import asyncio
 import json
 from collections.abc import AsyncIterator, Callable
 from datetime import datetime
-from typing import Any
+from typing import Any, Protocol
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -39,6 +39,15 @@ KEEPALIVE_S = 1.0
 TERMINAL_TYPES = frozenset({"run.manifest.written"})
 
 
+class QueueView(Protocol):
+    """What the console asks the worker pool: where a run stands, and how full the
+    pool is. A Protocol so `ops/` never imports `workers/`; the pool satisfies it."""
+
+    def placement(self, run_id: str) -> Any | None: ...
+    def placements(self) -> list[Any]: ...
+    def pressure(self) -> Any: ...
+
+
 class Console:
     """Everything the dashboard shows, computed from the record on request."""
 
@@ -51,9 +60,11 @@ class Console:
         clock: Callable[[], datetime] | None = None,
         scope_of: Callable[[str], str | None] | None = None,
         human_baseline_override_rate: float | None = None,
+        queue: QueueView | None = None,
     ) -> None:
         self.store = store
         self.bus = bus
+        self.queue = queue
         constraints = constraints or ConstraintRegistry.load()
         self.scorecard = RunScorecard(store, bus, constraints)
         self.meter = CostMeter(store)
@@ -84,6 +95,7 @@ class Console:
                     "open_review_items": sum(
                         1 for i in self.store.review_items(run.run_id) if i.state == "open"
                     ),
+                    "queue": self._placement(run.run_id),
                 }
             )
         return rows
@@ -114,7 +126,23 @@ class Console:
                 for s in self.store.steps(run_id)
             ],
             "trace": self.replay(run_id).as_dict(),
+            "queue": self._placement(run_id),
         }
+
+    def queue_view(self) -> dict[str, Any]:
+        """The pool: how full it is, and every run that is waiting with its position.
+        Without a pool attached the console can only say so."""
+        if self.queue is None:
+            return {"pressure": None, "waiting": [], "attached": False}
+        waiting = [p.as_dict() for p in self.queue.placements() if p.waiting_on]
+        waiting.sort(key=lambda p: (p["waiting_on"], p["position"]))
+        return {"pressure": self.queue.pressure().as_dict(), "waiting": waiting, "attached": True}
+
+    def _placement(self, run_id: str) -> dict[str, Any] | None:
+        if self.queue is None:
+            return None
+        placed = self.queue.placement(run_id)
+        return placed.as_dict() if placed is not None else None
 
     def events(self, run_id: str, since: int = 0) -> tuple[EventRecord, ...]:
         return self.bus.stream(run_id, since)
@@ -229,6 +257,10 @@ def create_app(console: Console) -> FastAPI:
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
+
+    @app.get("/api/queue")
+    def queue() -> dict[str, Any]:
+        return console.queue_view()
 
     @app.get("/api/guards")
     def guards() -> list[dict[str, Any]]:
@@ -387,7 +419,7 @@ const $=id=>document.getElementById(id);let source=null;
 async function j(u){const r=await fetch(u);return r.json()}
 function esc(s){return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 async function refresh(){
- const runs=await j('/api/runs');$('runs').innerHTML=runs.map(r=>`<div class="row"><a href="#" onclick="open_('${r.run_id}');return false">${r.run_id}</a><span>${r.engagement_id}</span><span class="${r.state==='halted'?'failed':r.state==='delivered'?'passed':'active'}">${r.state}</span></div>`).join('')||'<i>no runs</i>';
+ const runs=await j('/api/runs');$('runs').innerHTML=runs.map(r=>`<div class="row"><a href="#" onclick="open_('${r.run_id}');return false">${r.run_id}</a><span>${r.engagement_id}</span><span class="${r.state==='halted'?'failed':r.state==='delivered'?'passed':'active'}">${r.state}${r.queue&&r.queue.waiting_on?' · #'+r.queue.position+' behind the '+r.queue.waiting_on:''}</span></div>`).join('')||'<i>no runs</i>';
  const inbox=await j('/api/review');$('inbox').innerHTML=inbox.map(i=>`<div class="row"><span>${esc(i.item_id)}</span><span>${esc(i.owner||'unassigned')}</span><span>${esc(i.due_at||'')}</span></div>`).join('')||'<i>nothing waiting</i>';
  const alerts=await j('/api/alerts');$('alerts').innerHTML=alerts.map(a=>`<div class="row failed"><span>${esc(a.kind)}</span><span>${esc(a.run_id)}/${esc(a.subject)}</span><span>${esc(a.code)}</span></div>`).join('')||'<i>none</i>';
 }
