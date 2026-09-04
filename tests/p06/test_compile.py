@@ -21,11 +21,12 @@ from tests.p06.conftest import skill_step, two_step_recipe
 def test_the_monthly_refresh_compiles_to_what_the_blueprint_shows(
     monthly: Recipe, context: PlanContext
 ) -> None:
-    """`8 steps · 5 skill invocations` and `DAG valid · 4 loop regions declared`."""
+    """`8 steps · 5 skill invocations` and `DAG valid · 5 loop regions declared` - the
+    fifth is EBITDA's self-verification, which the blueprint says applies always."""
     plan = compile_recipe(monthly, context)
     assert len(plan) == 8
     assert len(plan.steps_where(kind="skill")) == 5
-    assert len(plan.loops) == 4
+    assert len(plan.loops) == 5
     assert plan.plan_hash.startswith("sha256:")
 
 

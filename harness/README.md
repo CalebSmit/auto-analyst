@@ -146,5 +146,16 @@ ref against the input, each category against the taxonomy through the gated
 `chart_of_accounts_lookup`, each cited precedent against the store through the gated
 `precedent_lookup` - and sets `review_required` from rules a model cannot relax (below
 the bar, a departure from the default flags or from a cited precedent, `unmapped`).
+`ebitda_normalization.py` (P20) is two procedures. The first pass sends the tagged lines,
+the periods and the benchmark's provenance - no value - and gets back candidates; the
+amount of each candidate-period is the line's own figure, re-derived through the gated
+`recompute` before it is a schedule item, the officer-compensation test runs against the
+profile's benchmark and cites it, and `review_required` is forced for anything material,
+owner-related, fact-dependent, recurring-yet-called-non-recurring, or untied. The
+verification pass (`VERIFIERS`, `verifier_for`) is a separate invocation of the same
+skill, admitted as an iteration of the plan's `self_verification:ebitda` region: it sees
+amounts, citations and excerpts and never the first pass's rationale, and an unsupported
+item goes to a person.
+
 Nothing under this folder imports `tools/`; a procedure reaches a tool by name through
 `BoundTools`, and the P10 boundary test says so.

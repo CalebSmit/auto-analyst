@@ -101,7 +101,11 @@ def test_every_declared_reference_exists_on_disk(tree: SkillTree) -> None:
 # The skills a phase has written a procedure for. Everything else is a skeleton until
 # its phase lands, and a skeleton that claimed otherwise would be dispatchable with no
 # procedure to run.
-WRITTEN = {"timing-normalization": "P18", "line-item-tagging": "P19"}
+WRITTEN = {
+    "timing-normalization": "P18",
+    "line-item-tagging": "P19",
+    "ebitda-normalization": "P20",
+}
 
 
 def test_every_skill_is_a_skeleton_and_says_so_until_its_phase_writes_it(tree: SkillTree) -> None:

@@ -1,0 +1,96 @@
+{
+ "schema_version": "skills/ebitda-normalization-verification-proposal@1.0.0",
+ "produced_by": "ebitda-normalization@0.1.0",
+ "verdicts": [
+  {
+   "candidate_id": "ADD-officer-salary-FY2023",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-officer-salary-FY2024",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-officer-salary-FY2025",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-officer-bonus-FY2023",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-officer-bonus-FY2024",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-officer-bonus-FY2025",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-related-rent-FY2023",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-related-rent-FY2024",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-related-rent-FY2025",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-settlement",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-owner-vehicle-FY2023",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-owner-vehicle-FY2024",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-owner-vehicle-FY2025",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-charitable-FY2023",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-charitable-FY2024",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-charitable-FY2025",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  },
+  {
+   "candidate_id": "ADD-q3-project",
+   "supported": false,
+   "reason": "'special project' does not say the project will not recur; the excerpt shows one line in one year and nothing about its nature"
+  },
+  {
+   "candidate_id": "ADD-repairs",
+   "supported": true,
+   "reason": "the cited row carries the description and the amount stated"
+  }
+ ]
+}

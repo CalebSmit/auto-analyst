@@ -1969,7 +1969,7 @@ const CONSOLE_SCRIPT = [
  {t:18,node:'payload_scan',  lvl:'g', type:'guard.payload.pass', msg:'0 unmasked identifiers in outbound payload · 412 of 412 substituted', set:{guard:{payload_scan:'pass'},step:{mask:'done'}}},
  {t:19,node:'scope_resolver',via:['skill_tree','skill_index','constraint_registry'],  lvl:'i', type:'scope.resolved',     msg:'valuation/esop/repeat \u2192 12 skills from 5 layers \u00b7 3 overlays \u00b7 precedent scope: this client first'},
  {t:20,node:'run_plan',via:['orchestrator','job_recipes'],  lvl:'i', type:'plan.written',       msg:'8 steps \u00b7 5 skill invocations \u00b7 recipe: monthly-refresh v3'},
- {t:21,node:'graph_compiler',via:['contract_registry','t_registry','checkpoint_store'],  lvl:'i', type:'graph.compiled',     msg:'DAG valid · 14 assertions passed · 4 loop regions declared · plan_hash 7c1e…8b'},
+ {t:21,node:'graph_compiler',via:['contract_registry','t_registry','checkpoint_store'],  lvl:'i', type:'graph.compiled',     msg:'DAG valid · 14 assertions passed · 5 loop regions declared · plan_hash 7c1e…8b'},
  {t:22,node:'sk_timing',via:['step_executor','dispatcher','context_builder','period_detector','llm_port'],  lvl:'i', type:'skill.dispatched',   msg:'timing-normalization · tier mid · SKILL.md + 1 reference loaded', set:{step:{timing:'active'}}},
  {t:29,node:'t_timing',via:['policy_gate','guarded_runtime'],  lvl:'i', type:'tool.invoked',       msg:'timing_normalizer · 36 periods → 1 historical table'},
  {t:31,node:'schema_gate',  lvl:'g', type:'guard.schema.pass',  msg:'timing-normalization output valid', set:{guard:{schema_gate:'pass'}}},
@@ -2081,7 +2081,7 @@ const ERRCODES = [
  ['SKILL.*','SCHEMA_INVALID \u00b7 NO_PROVENANCE \u00b7 FABRICATED_SOURCE \u00b7 UNKNOWN_SOURCE \u00b7 UNKNOWN_LINE_ITEM \u00b7 UNKNOWN_PRECEDENT','model'],
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
- ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED','model / config'],
+ ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED \u00b7 VERIFICATION_PASS','model / config'],
  ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED \u00b7 ENGAGEMENT_LOCKED \u00b7 PRECEDENT_NO_DECISION','process / system']
 ];
 

@@ -1,0 +1,99 @@
+{
+ "schema_version": "skills/ebitda-normalization-proposal@1.0.0",
+ "produced_by": "ebitda-normalization@0.1.0",
+ "candidates": [
+  {
+   "candidate_id": "ADD-officer-salary",
+   "line_item_ref": "li_d0a9422231",
+   "category": "owner_related",
+   "periods": [
+    "FY2023",
+    "FY2024",
+    "FY2025"
+   ],
+   "officer_compensation": true,
+   "rationale": "officer pay, tagged officer_compensation; tested against the benchmark",
+   "confidence": 0.95
+  },
+  {
+   "candidate_id": "ADD-officer-bonus",
+   "line_item_ref": "li_c660aa828b",
+   "category": "owner_related",
+   "periods": [
+    "FY2023",
+    "FY2024",
+    "FY2025"
+   ],
+   "officer_compensation": true,
+   "rationale": "officer bonus, part of owner pay",
+   "confidence": 0.94
+  },
+  {
+   "candidate_id": "ADD-related-rent",
+   "line_item_ref": "li_c2b4ba1291",
+   "category": "related_party",
+   "periods": [
+    "FY2023",
+    "FY2024",
+    "FY2025"
+   ],
+   "needs_fact": "market rent for the facility",
+   "rationale": "rent paid to an entity sharing the owner's name; adjustment is to market",
+   "confidence": 0.88
+  },
+  {
+   "candidate_id": "ADD-settlement",
+   "line_item_ref": "li_c0b62e5948",
+   "category": "non_recurring",
+   "periods": [
+    "FY2024"
+   ],
+   "rationale": "a settlement line present in one period only",
+   "confidence": 0.9
+  },
+  {
+   "candidate_id": "ADD-owner-vehicle",
+   "line_item_ref": "li_383482e5e5",
+   "category": "discretionary",
+   "periods": [
+    "FY2023",
+    "FY2024",
+    "FY2025"
+   ],
+   "rationale": "the description names the owner's vehicle; personal use run through the business",
+   "confidence": 0.86
+  },
+  {
+   "candidate_id": "ADD-charitable",
+   "line_item_ref": "li_055dee5d9a",
+   "category": "discretionary",
+   "periods": [
+    "FY2023",
+    "FY2024",
+    "FY2025"
+   ],
+   "rationale": "charitable giving is the owner's choice, not an operating cost",
+   "confidence": 0.9
+  },
+  {
+   "candidate_id": "ADD-q3-project",
+   "line_item_ref": "li_8333b98d8e",
+   "category": "non_recurring",
+   "periods": [
+    "FY2025"
+   ],
+   "rationale": "a special project line present in one period only",
+   "confidence": 0.92
+  },
+  {
+   "candidate_id": "ADD-repairs",
+   "line_item_ref": "li_617aedaa3a",
+   "category": "non_recurring",
+   "periods": [
+    "FY2024"
+   ],
+   "rationale": "repairs may include a one-off job",
+   "confidence": 0.55
+  }
+ ]
+}

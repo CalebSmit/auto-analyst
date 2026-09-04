@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/ebitda-normalization-verification-proposal@1.0.0",
+  "title": "EBITDA normalization verification verdicts",
+  "description": "What the self-verification pass returns: for every candidate on the schedule, whether the cited rows and excerpts support it as the add-back it claims to be, and why not when they do not. The verifier is a separate invocation that sees the schedule's amounts, citations and excerpts and never the first pass's rationale or confidence. A verdict is a boolean and a reason; there is no number in it.",
+  "x-skill": "ebitda-normalization",
+  "x-proposal": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "produced_by", "verdicts"],
+  "properties": {
+    "schema_version": { "const": "skills/ebitda-normalization-verification-proposal@1.0.0" },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^ebitda[-]normalization@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "verdicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "supported", "reason"],
+        "properties": {
+          "candidate_id": { "type": "string", "minLength": 1 },
+          "supported": { "type": "boolean" },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 400 }
+        }
+      }
+    }
+  }
+}

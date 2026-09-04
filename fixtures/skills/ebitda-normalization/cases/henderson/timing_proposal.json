@@ -1,0 +1,420 @@
+{
+ "schema_version": "skills/timing-normalization-proposal@1.0.0",
+ "produced_by": "timing-normalization@0.1.0",
+ "periods": [
+  {
+   "label": "FY2023",
+   "type": "FY",
+   "end": "2023-12-31",
+   "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+   "block": "IS!B2:B19"
+  },
+  {
+   "label": "FY2024",
+   "type": "FY",
+   "end": "2024-12-31",
+   "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+   "block": "IS!B2:B19"
+  },
+  {
+   "label": "FY2025",
+   "type": "FY",
+   "end": "2025-12-31",
+   "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+   "block": "IS!B2:B19"
+  }
+ ],
+ "line_items": [
+  {
+   "canonical_label": "Revenue",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B2",
+     "label": "Revenue"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Cost of sales",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B3",
+     "label": "Cost of sales"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Officer salary",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B4",
+     "label": "Officer salary"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B4",
+     "label": "Officer salary"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B4",
+     "label": "Officer salary"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Officer bonus",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B5",
+     "label": "Officer bonus"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B5",
+     "label": "Officer bonus"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B5",
+     "label": "Officer bonus"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Wages",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B6",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B6",
+     "label": "Wages"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B6",
+     "label": "Wages"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Payroll taxes",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B7",
+     "label": "Payroll taxes"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B7",
+     "label": "Payroll taxes"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B7",
+     "label": "Payroll taxes"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Rent - facilities",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B8",
+     "label": "Rent - facilities"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B8",
+     "label": "Rent - facilities"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B8",
+     "label": "Rent - facilities"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Rent - Henderson Properties LLC",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B9",
+     "label": "Rent - Henderson Properties LLC"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B9",
+     "label": "Rent - Henderson Properties LLC"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B9",
+     "label": "Rent - Henderson Properties LLC"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Repairs and maintenance",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B10",
+     "label": "Repairs and maintenance"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B10",
+     "label": "Repairs and maintenance"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B10",
+     "label": "Repairs and maintenance"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Utilities",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B11",
+     "label": "Utilities"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B11",
+     "label": "Utilities"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B11",
+     "label": "Utilities"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Insurance",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B12",
+     "label": "Insurance"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B12",
+     "label": "Insurance"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B12",
+     "label": "Insurance"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Professional fees",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B13",
+     "label": "Professional fees"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B13",
+     "label": "Professional fees"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B13",
+     "label": "Professional fees"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Legal settlement",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B14",
+     "label": "Legal settlement"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Auto expense - owner vehicle",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B14",
+     "label": "Auto expense - owner vehicle"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B15",
+     "label": "Auto expense - owner vehicle"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B14",
+     "label": "Auto expense - owner vehicle"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Charitable contributions",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B15",
+     "label": "Charitable contributions"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B16",
+     "label": "Charitable contributions"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B15",
+     "label": "Charitable contributions"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Bad debt write-off",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B16",
+     "label": "Bad debt write-off"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Q3 special project",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B16",
+     "label": "Q3 special project"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Depreciation",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B17",
+     "label": "Depreciation"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B17",
+     "label": "Depreciation"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B17",
+     "label": "Depreciation"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Travel",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B18",
+     "label": "Travel"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B18",
+     "label": "Travel"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B18",
+     "label": "Travel"
+    }
+   ]
+  },
+  {
+   "canonical_label": "Office supplies",
+   "kind": "exact",
+   "sources": [
+    {
+     "source_id": "sha256:8654fbef58a91b85b153a10d94ebf47a8a47cc3ced0efc5396ab09d6c69732b7",
+     "locator": "IS!B19",
+     "label": "Office supplies"
+    },
+    {
+     "source_id": "sha256:cc0eb799d6875076958850b9e43ceb1349492e1cf2f41442fc7131e5ccd960aa",
+     "locator": "IS!B19",
+     "label": "Office supplies"
+    },
+    {
+     "source_id": "sha256:043deb9d5b1a3044bb787043cd01c0820812b32bf4cddb49349b3109ee7f58b1",
+     "locator": "IS!B19",
+     "label": "Office supplies"
+    }
+   ]
+  }
+ ],
+ "unmatched": []
+}

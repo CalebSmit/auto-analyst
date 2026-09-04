@@ -37,13 +37,13 @@ def test_each_declared_region_becomes_a_back_edge(
     monthly: Recipe, context: PlanContext
 ) -> None:
     plan = compile_recipe(monthly, context)
-    assert len(plan.back_edges()) == len(plan.loops) == 4
+    assert len(plan.back_edges()) == len(plan.loops) == 5
     assert {(e.src, e.dst) for e in plan.back_edges()} == {
         ("tagging", "tagging"),
         ("ebitda", "ebitda"),
         ("ebitda", "tagging"),
         ("qc", "qc"),
-    }
+    }, "two regions share the ebitda self-edge: self-verification and guard repair"
 
 
 def test_a_region_spanning_two_steps_returns_from_the_deepest_one(
@@ -65,7 +65,11 @@ def test_a_step_can_sit_in_two_regions_at_once(
     output fails its schema check. Both are true of the same step, which is why the
     compiled Step carries `loops` rather than the blueprint's single `loop`."""
     plan = compile_recipe(monthly, context)
-    assert plan.step("ebitda").loops == ("guard_repair:ebitda", "conflict_resolution:tagging")
+    assert plan.step("ebitda").loops == (
+        "self_verification:ebitda",
+        "guard_repair:ebitda",
+        "conflict_resolution:tagging",
+    )
     assert plan.step("tagging").loops == (
         "self_verification:tagging",
         "conflict_resolution:tagging",

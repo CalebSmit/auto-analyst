@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/ebitda-normalization-proposal@1.0.0",
+  "title": "EBITDA normalization proposal",
+  "description": "What the first pass returns: add-back candidates, each naming a tagged line, the periods it applies to, a category from the add-back taxonomy, a one-line rationale and a confidence. No amount anywhere - the amount of a candidate is the line's figure in that period, taken from the normalized historicals and re-derived by the recompute tool before it becomes output. `needs_fact` is how a candidate says it depends on something not in the documents; it is reviewed, never assumed.",
+  "x-skill": "ebitda-normalization",
+  "x-proposal": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "produced_by", "candidates"],
+  "properties": {
+    "schema_version": { "const": "skills/ebitda-normalization-proposal@1.0.0" },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^ebitda[-]normalization@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["candidate_id", "line_item_ref", "category", "periods", "rationale", "confidence"],
+        "properties": {
+          "candidate_id": { "type": "string", "minLength": 1, "pattern": "^ADD-[A-Za-z0-9_-]+$" },
+          "line_item_ref": { "type": "string", "minLength": 1 },
+          "category": {
+            "enum": ["non_recurring", "discretionary", "owner_related", "related_party", "accounting_normalization"]
+          },
+          "periods": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 },
+            "description": "Period labels from the historical table in which this line is an add-back. One schedule item per period."
+          },
+          "rationale": { "type": "string", "minLength": 1, "maxLength": 400 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "officer_compensation": {
+            "type": "boolean",
+            "description": "The line is officer or owner pay. The procedure runs the officer-compensation test against the engagement's benchmark and cites it."
+          },
+          "needs_fact": {
+            "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 300 }],
+            "description": "A fact the add-back depends on that is not in the documents - a market rent, a settlement's terms. Stated, so a person supplies it; never assumed."
+          },
+          "precedent_ref": {
+            "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }]
+          }
+        }
+      }
+    },
+    "notes": { "type": "string", "maxLength": 2000 }
+  }
+}

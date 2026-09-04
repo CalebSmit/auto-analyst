@@ -1,0 +1,92 @@
+[
+ {
+  "label": "Officer salary",
+  "period": "FY2023",
+  "category": "owner_related"
+ },
+ {
+  "label": "Officer salary",
+  "period": "FY2024",
+  "category": "owner_related"
+ },
+ {
+  "label": "Officer salary",
+  "period": "FY2025",
+  "category": "owner_related"
+ },
+ {
+  "label": "Officer bonus",
+  "period": "FY2023",
+  "category": "owner_related"
+ },
+ {
+  "label": "Officer bonus",
+  "period": "FY2024",
+  "category": "owner_related"
+ },
+ {
+  "label": "Officer bonus",
+  "period": "FY2025",
+  "category": "owner_related"
+ },
+ {
+  "label": "Rent - Henderson Properties LLC",
+  "period": "FY2023",
+  "category": "related_party"
+ },
+ {
+  "label": "Rent - Henderson Properties LLC",
+  "period": "FY2024",
+  "category": "related_party"
+ },
+ {
+  "label": "Rent - Henderson Properties LLC",
+  "period": "FY2025",
+  "category": "related_party"
+ },
+ {
+  "label": "Legal settlement",
+  "period": "FY2024",
+  "category": "non_recurring"
+ },
+ {
+  "label": "Auto expense - owner vehicle",
+  "period": "FY2023",
+  "category": "discretionary"
+ },
+ {
+  "label": "Auto expense - owner vehicle",
+  "period": "FY2024",
+  "category": "discretionary"
+ },
+ {
+  "label": "Auto expense - owner vehicle",
+  "period": "FY2025",
+  "category": "discretionary"
+ },
+ {
+  "label": "Charitable contributions",
+  "period": "FY2023",
+  "category": "discretionary"
+ },
+ {
+  "label": "Charitable contributions",
+  "period": "FY2024",
+  "category": "discretionary"
+ },
+ {
+  "label": "Charitable contributions",
+  "period": "FY2025",
+  "category": "discretionary"
+ },
+ {
+  "label": "Bad debt write-off",
+  "period": "FY2023",
+  "category": "non_recurring"
+ },
+ {
+  "label": "Q3 special project",
+  "period": "FY2025",
+  "category": "non_recurring"
+ }
+]

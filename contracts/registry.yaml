@@ -93,6 +93,21 @@ contracts:
     version: 1.0.0
     file: skills/ebitda-normalization.schema.json
     kind: skill_output
+  - id: skills/ebitda-normalization-proposal
+    version: 1.0.0
+    file: skills/ebitda-normalization-proposal.schema.json
+    kind: skill_proposal
+    note: >-
+      What the first pass returns for ebitda-normalization: candidates naming a tagged
+      line, its periods and a category, with no amount anywhere. The amount is the
+      line's own figure, re-derived by recompute before it becomes output.
+  - id: skills/ebitda-normalization-verification-proposal
+    version: 1.0.0
+    file: skills/ebitda-normalization-verification-proposal.schema.json
+    kind: skill_proposal
+    note: >-
+      What the self-verification pass returns: a verdict per candidate, from a separate
+      invocation that never saw the first pass's rationale.
   - id: skills/dcf-build
     version: 1.0.0
     file: skills/dcf-build.schema.json

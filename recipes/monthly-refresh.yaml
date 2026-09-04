@@ -105,9 +105,11 @@ steps:
     on_failure: halt
     timeout_s: 300
 
-# Four declared regions, one per in-run loop the constraint registry knows about. Each
-# names a ceiling the compiler checks against constraints.yaml; the compiler then refuses
-# any cycle in the graph that is not exactly one of these.
+# Five declared regions over the four in-run loops the constraint registry knows about -
+# self-verification is declared twice, on tagging and on EBITDA, because the blueprint
+# says it applies to every EBITDA output. Each names a ceiling the compiler checks
+# against constraints.yaml; the compiler then refuses any cycle in the graph that is not
+# exactly one of these.
 loops:
   - loop: self_verification
     head: tagging
@@ -116,6 +118,16 @@ loops:
     why: >-
       Pass two is a separate invocation that sees the source excerpt and the proposal,
       never the first pass's reasoning.
+
+  - loop: self_verification
+    head: ebitda
+    members: [ebitda]
+    max_iterations: 1
+    why: >-
+      Every EBITDA output, always. The verifier sees the schedule, the cited rows and
+      the excerpts - amounts and citations - and never the first pass's rationale or
+      confidence. A model asked to check its own work in the same conversation
+      reliably ratifies it.
 
   - loop: guard_repair
     head: ebitda

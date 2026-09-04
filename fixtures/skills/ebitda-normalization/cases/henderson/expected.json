@@ -1,0 +1,9 @@
+{
+ "gold": 18,
+ "recalled": 17,
+ "schedule_items": 18,
+ "material_threshold": 20000,
+ "recurring_trap": "ADD-repairs",
+ "verifier_disagrees": "ADD-q3-project",
+ "missed": "Bad debt write-off"
+}

@@ -73,8 +73,34 @@ def _tagging_example(decision: DecisionRecord) -> dict[str, Any]:
     }
 
 
+def _addback_example(decision: DecisionRecord) -> dict[str, Any]:
+    """What an add-back decision teaches: the line's description, the add-back
+    category a person approved, and the reason. Never the amount - an amount is an
+    engagement's, and an example that carried one would be a figure with no source."""
+    merged = dict(decision.proposal)
+    if decision.decision is DecisionKind.CORRECTED:
+        merged.update(decision.answer)
+    missing = [k for k in ("description", "category") if not str(merged.get(k, "")).strip()]
+    if missing:
+        raise WritebackRefused(
+            diagnose(
+                PRECEDENT_NO_DECISION,
+                f"{decision.item_id}: the decision carries no {', '.join(missing)}; "
+                f"there is no example in it",
+                locator=decision.item_id,
+            )
+        )
+    rationale = decision.rationale.strip() or str(merged.get("rationale", "")).strip()
+    return {
+        "description": str(merged["description"]),
+        "category": str(merged["category"]),
+        "rationale": rationale,
+    }
+
+
 EXAMPLE_SHAPES: dict[str, Callable[[DecisionRecord], dict[str, Any]]] = {
     TAGGING: _tagging_example,
+    "ebitda-normalization": _addback_example,
 }
 MASKED_FIELDS = ("description", "rationale")
 

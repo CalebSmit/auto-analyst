@@ -158,6 +158,7 @@ UNKNOWN_TAXONOMY = "SCOPE.UNKNOWN_TAXONOMY"
 UNKNOWN_LINE_ITEM = "SKILL.UNKNOWN_LINE_ITEM"
 UNKNOWN_PRECEDENT = "SKILL.UNKNOWN_PRECEDENT"
 PRECEDENT_NO_DECISION = "PROCESS.PRECEDENT_NO_DECISION"
+VERIFICATION_PASS = "LOOP.VERIFICATION_PASS"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -283,6 +284,14 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    VERIFICATION_PASS: (
+        "process",
+        "Not a failure. The self-verification pass was admitted as an iteration of its "
+        "declared region: a separate invocation that sees the schedule, the cited rows "
+        "and the excerpts, never the first pass's rationale. It is on the loop ledger so "
+        "the iteration counts against the run's ceiling like any other and so a plan "
+        "that skipped it would be visible as a missing iteration.",
     ),
     LOOP_EXHAUSTED: (
         "model",

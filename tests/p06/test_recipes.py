@@ -33,10 +33,10 @@ def test_the_monthly_refresh_is_the_one_the_blueprint_runs(monthly: Recipe) -> N
     assert monthly.version == 3
 
 
-def test_four_loop_regions_are_declared(monthly: Recipe) -> None:
-    """`DAG valid · 4 loop regions declared`, and one per in-run loop the constraint
-    registry knows about."""
-    assert len(monthly.loops) == 4
+def test_five_loop_regions_are_declared(monthly: Recipe) -> None:
+    """`DAG valid · 5 loop regions declared`: every in-run loop the constraint registry
+    knows about, with self-verification declared twice - on tagging and on EBITDA."""
+    assert len(monthly.loops) == 5
     assert {loop.loop for loop in monthly.loops} == {
         "self_verification",
         "guard_repair",

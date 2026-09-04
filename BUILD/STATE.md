@@ -22,6 +22,8 @@ Tasks:
 - [ ] The self-verification pass as a separate invocation that never sees the first pass's reasoning
 - [ ] Materiality routing: above the threshold goes to review regardless of confidence
 - [ ] engagement_profile consumed for the owner-compensation baseline (the F1 contract)
+- [ ] The self-verification pass as a second procedure and a declared region on the EBITDA step: recipes/monthly-refresh.yaml self_verification:ebitda, harness/procedures VERIFIERS, LOOP.VERIFICATION_PASS
+- [ ] Two proposal contracts: skills/ebitda-normalization-proposal@1.0.0 (candidates, no amount) and skills/ebitda-normalization-verification-proposal@1.0.0 (verdicts, no number)
 
 Then:
 

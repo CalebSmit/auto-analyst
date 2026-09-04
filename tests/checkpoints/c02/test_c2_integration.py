@@ -193,7 +193,7 @@ def test_a_recipe_compiles() -> None:
     plan = plan_for()
     assert len(plan) == 8
     assert len(plan.steps_where(kind="skill")) == 5
-    assert len(plan.loops) == 4
+    assert len(plan.loops) == 5
     assert plan.order[0] == "intake"
     assert plan.order[-1] == "release"
 

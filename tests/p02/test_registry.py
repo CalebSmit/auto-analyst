@@ -21,8 +21,9 @@ VERSIONED_ID = re.compile(
 
 
 def test_every_registered_schema_is_itself_a_valid_schema(contracts: ContractRegistry) -> None:
-    # config_document (P16), timing proposal (P18), tagging proposal (P19)
-    assert len(contracts.self_check()) == 21
+    # config_document (P16), timing proposal (P18), tagging proposal (P19), the EBITDA
+    # proposal and its verification proposal (P20)
+    assert len(contracts.self_check()) == 23
 
 
 def test_every_id_carries_a_version(contracts: ContractRegistry) -> None:
