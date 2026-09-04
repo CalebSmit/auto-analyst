@@ -1,0 +1,65 @@
+# App plus Postgres, one command up.
+#
+#     podman compose up --build          (or: docker compose / nerdctl compose)
+#
+# Nothing here is Docker Desktop's. No `desktop.` extension, no named pipe, no host
+# gateway, no bind-mounted docker socket - the file is plain OCI compose, so podman,
+# nerdctl, Rancher Desktop and Docker Engine all run it. HANDOFF.md names which one was
+# actually used.
+#
+# The app service holds no credential. Everything comes from .env, which is gitignored
+# and never leaves the machine it is on.
+
+name: automated-analyst
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: automated-analyst:0.1.0
+    env_file:
+      - .env
+    environment:
+      # Postgres inside the compose network. The run store is one URL away from SQLite,
+      # which is the claim tools/postgres.py and the parameterised store suite exist to
+      # keep honest.
+      AA_DB_URL: postgresql+psycopg://analyst:analyst@db:5432/analyst
+      AA_TEST_PG_URL: postgresql+psycopg://analyst:analyst@db:5432/analyst_test
+      AA_MODE: local
+    volumes:
+      # Client material and run artifacts live outside the image, always.
+      - ./inbox:/data/inbox
+      - ./outbox:/data/outbox
+      - analyst-runs:/data/runs
+      - analyst-intake:/data/skills-intake
+    depends_on:
+      db:
+        condition: service_healthy
+    # The suite against Postgres, which is what "it works on this machine" has to mean.
+    command: ["python", "-m", "pytest", "-q", "--postgres"]
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: analyst
+      POSTGRES_PASSWORD: analyst
+      POSTGRES_DB: analyst
+      # Both databases: one the app writes, one the conformance suite drops and recreates.
+      POSTGRES_MULTIPLE: analyst_test
+    volumes:
+      - analyst-db:/var/lib/postgresql/data
+      - ./tools/postgres-init.sh:/docker-entrypoint-initdb.d/10-test-db.sh:ro
+    healthcheck:
+      # `pg_isready` answers before Postgres is actually accepting writes on first boot,
+      # so the check asks it to run a statement.
+      test: ["CMD-SHELL", "psql -U analyst -d analyst -c 'select 1' || exit 1"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  analyst-db:
+  analyst-runs:
+  analyst-intake:

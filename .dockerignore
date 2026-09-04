@@ -1,0 +1,37 @@
+# What must not reach a layer.
+#
+# The first two entries are the ones that matter: a credential or a client file baked
+# into an image is in every copy of that image forever, and an image is a thing people
+# push to registries.
+
+.env
+.env.*
+!.env.example
+
+# client material and run artifacts
+inbox/
+outbox/
+runs/
+artifacts/
+vault/
+*.db
+*.sqlite3
+templates/*.xlsx
+skills-intake/
+
+# local machine state
+.venv/
+.git/
+.github/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+docs/.blueprint-mirror
+
+# editor and os
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

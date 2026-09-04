@@ -60,6 +60,18 @@ uv run pytest -q
 Python 3.12. No API key is needed before phase 11 — the fake LLM adapter replays recorded
 fixtures, so the early phases cost nothing to run.
 
+Or in a container, with no host Python at all:
+
+```
+podman build -t automated-analyst:0.1.0 .     # docker / nerdctl take the same commands
+podman run --rm --env-file .env automated-analyst:0.1.0
+podman compose up --build                     # app plus Postgres
+```
+
+Nothing here is Docker Desktop's, which is not licensed at the firm and was never a
+dependency. [`HANDOFF.md`](HANDOFF.md) is the packet: what changes on the work machine
+(`.env`, and nothing else), what the three work repos plug into, and what is still owed.
+
 ## The architecture
 
 The design is settled and lives in one self-contained HTML file:
@@ -82,4 +94,8 @@ SQLite, no cloud, no credentials beyond one API key. That is deliberate — the 
 so the move to ShareFile intake, Box delivery and the firm's own Anthropic account is a
 `.env` change and three adapter classes, not a rewrite.
 
-The handoff packet lands in P28.
+The handoff packet is [`HANDOFF.md`](HANDOFF.md). Two adapters are registered as port
+contracts with no implementation here — ShareFile on storage, Box on delivery — so
+selecting one before the firm's connector is wired in refuses with
+`SCOPE.ADAPTER_NOT_WIRED` rather than falling back to the local folder. Each module's
+docstring is the contract the connector has to satisfy.

@@ -162,6 +162,7 @@ VERIFICATION_PASS = "LOOP.VERIFICATION_PASS"
 TEMPLATE_INPUTS_MISSING = "CONFIG.TEMPLATE_INPUTS_MISSING"
 CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 BELOW_GATE = "SKILL.BELOW_GATE"
+ADAPTER_NOT_WIRED = "SCOPE.ADAPTER_NOT_WIRED"
 GATE_SKIPPED = "SKILL.GATE_SKIPPED"
 CLIENT_DATA_IN_DRAFT = "SKILL.CLIENT_DATA_IN_DRAFT"
 SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
@@ -367,6 +368,15 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    ADAPTER_NOT_WIRED: (
+        "config",
+        "An adapter was selected whose implementation is not in this repo: it is a port "
+        "contract waiting for one of the firm's existing connectors. It refuses rather "
+        "than returning something, because a run reading from - or writing to - "
+        "somewhere nobody chose is the failure the ports exist to prevent. Either wire "
+        "the connector in behind the contract, or select an adapter that is built. "
+        "HANDOFF.md says which are which.",
     ),
     GATE_SKIPPED: (
         "process",

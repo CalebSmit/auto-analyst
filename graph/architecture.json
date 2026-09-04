@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:4feb300e7f5d7ccd64a308896f2a684bb7c3f7535b9a2f2227e19df537dc26d9",
+  "source_digest": "sha256:c8890a47b03bd111bbc409bfbc6e268409ea6d23c999cb768dba8bf5a0bcd4a2",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -1478,7 +1478,7 @@
       "exec": "code",
       "now": true,
       "desc": "One Docker image, driven by config. No managed-service primitive is depended on anywhere in the code.",
-      "impl": "Local process, Docker, or any container host — Azure Container Apps, ECS, Cloud Run, on-prem. The deployment choice is an environment, not an architecture.",
+      "impl": "Local process, Docker, or any container host — Azure Container Apps, ECS, Cloud Run, on-prem. The deployment choice is an environment, not an architecture. One two-stage Dockerfile, built from <span class=\"mono\">uv.lock</span> with <span class=\"mono\">--frozen</span> so the image holds the versions the suite passed against; non-root; every path that touches client data a volume, so nothing of a client's survives in a layer. <span class=\"mono\">compose.yaml</span> brings the app up with Postgres in one command and is plain OCI — no Docker Desktop extension, named pipe, host gateway or mounted socket — so podman, nerdctl, Rancher Desktop and Docker Engine all run it. A test walks every shipped package for a managed-service primitive and finds none.",
       "full": "The project context is explicit that no work-sanctioned cloud exists yet. The only responsible response is to make that decision reversible, and containers plus ports is the cheapest way to do it."
     }
   ],

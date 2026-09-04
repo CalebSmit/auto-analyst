@@ -28,6 +28,7 @@ __all__ = [
     "PORTS",
     "PortSpec",
     "adapters",
+    "contracts",
     "get_compute",
     "get_delivery",
     "get_llm",
@@ -35,6 +36,7 @@ __all__ = [
     "get_secrets",
     "get_storage",
     "get_port",
+    "ready",
     "reset",
 ]
 
@@ -52,6 +54,10 @@ class PortSpec:
     env_var: str
     default: str
     adapters: dict[str, str]
+    contracts: frozenset[str] = frozenset()
+    """Adapters that are declared and refuse: a port contract written for one of the
+    firm's existing connectors, registered so selecting it is a loud refusal rather than
+    an unknown name or a silent fallback. `ready()` is the rest."""
 
 
 PORTS: dict[str, PortSpec] = {
@@ -59,13 +65,21 @@ PORTS: dict[str, PortSpec] = {
         name="storage",
         env_var="AA_STORAGE_ADAPTER",
         default="local_folder",
-        adapters={"local_folder": "ports.storage.local_folder"},
+        adapters={
+            "local_folder": "ports.storage.local_folder",
+            "sharefile": "ports.storage.sharefile",
+        },
+        contracts=frozenset({"sharefile"}),
     ),
     "delivery": PortSpec(
         name="delivery",
         env_var="AA_DELIVERY_ADAPTER",
         default="local_folder",
-        adapters={"local_folder": "ports.delivery.local_folder"},
+        adapters={
+            "local_folder": "ports.delivery.local_folder",
+            "box": "ports.delivery.box",
+        },
+        contracts=frozenset({"box"}),
     ),
     "secrets": PortSpec(
         name="secrets",
@@ -105,8 +119,24 @@ _built: dict[tuple[str, str], Any] = {}
 
 
 def adapters(port: str) -> tuple[str, ...]:
-    """Every adapter name registered for a port."""
+    """Every adapter name registered for a port, contracts included."""
     return tuple(sorted(_spec(port).adapters))
+
+
+def ready(port: str) -> tuple[str, ...]:
+    """The adapters that can actually be built.
+
+    The difference is the handoff: a contract is registered so that choosing it is a
+    refusal somebody can read, but it has no implementation to conform to anything yet.
+    The conformance suite runs over these.
+    """
+    spec = _spec(port)
+    return tuple(sorted(set(spec.adapters) - spec.contracts))
+
+
+def contracts(port: str) -> tuple[str, ...]:
+    """The adapters that are contracts waiting for one of the firm's connectors."""
+    return tuple(sorted(_spec(port).contracts))
 
 
 def selected(port: str) -> str:

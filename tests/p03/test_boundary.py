@@ -22,10 +22,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 # Where the rule applies. tests/ is exempt: the conformance suite has to construct the
 # adapters it tests, and the P03 tests are the one place that is legitimate.
-SCANNED = [
-    "harness", "graph", "privacy", "guards", "ops", "tools", "registries", "skills",
-    "review", "intake",
-]
+# Derived rather than listed. A hand-written list is a list somebody has to remember to
+# add to, and seven packages built after this phase were not on it - which meant the one
+# test the whole ports arrangement rests on had stopped covering most of the repo.
+SCANNED = sorted(
+    p.name
+    for p in ROOT.iterdir()
+    if p.is_dir() and (p / "__init__.py").is_file() and p.name not in {"ports", "tests"}
+)
 
 ADAPTER_MODULES = {
     module for spec in ports.PORTS.values() for module in spec.adapters.values()
@@ -89,10 +93,18 @@ def test_every_registered_adapter_module_exists_and_builds() -> None:
     boundary test scan for something that cannot be imported."""
     import importlib
 
+    from registries.errors import RegistryError
+
     for port, spec in ports.PORTS.items():
         for adapter, module_path in spec.adapters.items():
             module = importlib.import_module(module_path)
             assert hasattr(module, "build"), f"{module_path} has no build()"
+            if adapter in spec.contracts:
+                # A contract for one of the firm's connectors. It is registered so that
+                # choosing it refuses in words; building it is the refusal.
+                with pytest.raises(RegistryError):
+                    module.build()
+                continue
             assert module.build().name == adapter, f"{port}/{adapter} misnames itself"
 
 

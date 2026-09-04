@@ -1196,7 +1196,7 @@ const NODES = [
 
 {id:'compute_target',runtime:'resource',label:'Compute Target',plain:'Runs as a container. Anywhere that runs containers works.',group:'port',exec:'code',now:true,
  desc:'One Docker image, driven by config. No managed-service primitive is depended on anywhere in the code.',
- impl:'Local process, Docker, or any container host — Azure Container Apps, ECS, Cloud Run, on-prem. The deployment choice is an environment, not an architecture.',
+ impl:'Local process, Docker, or any container host — Azure Container Apps, ECS, Cloud Run, on-prem. The deployment choice is an environment, not an architecture. One two-stage Dockerfile, built from <span class="mono">uv.lock</span> with <span class="mono">--frozen</span> so the image holds the versions the suite passed against; non-root; every path that touches client data a volume, so nothing of a client\'s survives in a layer. <span class="mono">compose.yaml</span> brings the app up with Postgres in one command and is plain OCI — no Docker Desktop extension, named pipe, host gateway or mounted socket — so podman, nerdctl, Rancher Desktop and Docker Engine all run it. A test walks every shipped package for a managed-service primitive and finds none.',
  full:'The project context is explicit that no work-sanctioned cloud exists yet. The only responsible response is to make that decision reversible, and containers plus ports is the cheapest way to do it.'},
 ];
 
@@ -2075,7 +2075,7 @@ const SCORECARD = [
 /* The diagnostic namespace. Every code carries an owner and a what_now. */
 const ERRCODES = [
  ['INTAKE.*','UNREADABLE_FILE \u00b7 UNKNOWN_TYPE \u00b7 NO_ENGAGEMENT \u00b7 WATCH_OVERLAP \u00b7 INJECTION_DETECTED','client-data / config'],
- ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID \u00b7 UNKNOWN_TOOL \u00b7 PRECEDENT_OUT_OF_SCOPE \u00b7 UNKNOWN_CONTRACT \u00b7 CONTRACT_INDEX_INVALID \u00b7 UNKNOWN_CONSTRAINTS \u00b7 UNKNOWN_ADAPTER \u00b7 MODEL_PIN_UNAVAILABLE \u00b7 MISSING_CREDENTIAL \u00b7 UNKNOWN_CRITERIA \u00b7 UNKNOWN_TAXONOMY','config'],
+ ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID \u00b7 UNKNOWN_TOOL \u00b7 PRECEDENT_OUT_OF_SCOPE \u00b7 UNKNOWN_CONTRACT \u00b7 CONTRACT_INDEX_INVALID \u00b7 UNKNOWN_CONSTRAINTS \u00b7 UNKNOWN_ADAPTER \u00b7 MODEL_PIN_UNAVAILABLE \u00b7 MISSING_CREDENTIAL \u00b7 UNKNOWN_CRITERIA \u00b7 UNKNOWN_TAXONOMY \u00b7 ADAPTER_NOT_WIRED','config'],
  ['PRIVACY.*','UNMASKED_IDENTIFIER \u00b7 UNMASKED_PRECEDENT \u00b7 TOKEN_CROSS_ENGAGEMENT \u00b7 VAULT_UNAVAILABLE','system'],
  ['POLICY.*','TOOL_NOT_DECLARED \u00b7 ARG_OUT_OF_SCOPE \u00b7 BUDGET_EXCEEDED \u00b7 CAP_EXCEEDED \u00b7 OVERLAY_LOOSENS \u00b7 MULTI_TURN_STEP','policy'],
  ['SKILL.*','SCHEMA_INVALID \u00b7 NO_PROVENANCE \u00b7 FABRICATED_SOURCE \u00b7 UNKNOWN_SOURCE \u00b7 UNKNOWN_LINE_ITEM \u00b7 UNKNOWN_PRECEDENT \u00b7 BELOW_GATE \u00b7 GATE_SKIPPED \u00b7 CLIENT_DATA_IN_DRAFT \u00b7 SHADOW_INSUFFICIENT','model / process / client-data'],
@@ -4286,7 +4286,9 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">governance/</span>    record.py, candidate.py, drop.py, conformance.py, adapt.py, sandbox.py, board.py, shadow.py, registry.py, chain.py', 'eleven stages; remove one and the path breaks'),
    R_('  <span class="t2">orchestrate/</span>   orchestrator.py, plan.py, triage.py, manifest.py', 'a proposed plan is compiled and asserted like any other'),
    R_('  <span class="t2">workers/</span>       pool.py', 'several engagements at once; one run at a time within each'),
-   R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
+   R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard'),
+   R_('  <span class="t2">Dockerfile</span>     compose.yaml, .dockerignore', 'one image, any OCI runtime; no Docker Desktop'),
+   R_('  <span class="t2">HANDOFF.md</span>     what changes on the work machine, and what does not', '.env, and nothing else')
   ].join('');
 
   const KEY =

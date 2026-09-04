@@ -33,6 +33,11 @@ REDIS_URL_VAR = "AA_TEST_REDIS_URL"
 DEFAULT_REDIS_URL = "redis://localhost:6379/15"
 REDIS: dict[str, Any] = {"requested": False, "fake": 0, "real": 0, "url": "", "error": ""}
 
+# The container run. Opt in with --container on a machine that has an OCI runtime; the
+# summary says which one, or says the image has never been built here.
+RUNTIMES = ("podman", "docker", "nerdctl", "finch")
+CONTAINER: dict[str, Any] = {"requested": False, "ran": 0, "not_run": 0, "runtime": ""}
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
@@ -56,6 +61,24 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             f"{REDIS_URL_VAR}, default {DEFAULT_REDIS_URL}"
         ),
     )
+
+
+    parser.addoption(
+        "--container",
+        action="store_true",
+        default=False,
+        help=(
+            "Build the image and run the suite inside it. Needs an OCI runtime - podman, "
+            "docker, nerdctl or finch - and no step depends on Docker Desktop."
+        ),
+    )
+
+
+def container_runtime_name() -> str:
+    """The first OCI runtime on PATH, or empty. Any of them runs this image."""
+    import shutil
+
+    return next((r for r in RUNTIMES if shutil.which(r)), "")
 
 
 def postgres_url() -> str:
@@ -83,6 +106,7 @@ def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pyte
         for fixture_id, guard, built_by in pending:
             write(f"  {fixture_id}: waits for {guard} ({built_by})", yellow=True)
     _redis_summary(terminalreporter)
+    _container_summary(terminalreporter)
     if not POSTGRES["not_run"] and not POSTGRES["ran"] and not POSTGRES["error"]:
         return  # this invocation did not include the store conformance suite
 
@@ -161,3 +185,64 @@ def _redis_summary(terminalreporter: Any) -> None:
             f"start a server and re-run with --redis ({REDIS_URL_VAR} overrides the URL).",
             yellow=True,
         )
+
+
+@pytest.fixture
+def container_runtime(request: pytest.FixtureRequest) -> str:
+    """The runtime to build with, or a skip that is counted and reported.
+
+    Asking for --container with no runtime installed is a failure rather than a skip: a
+    run that was asked to prove the image builds and quietly proved nothing is worse
+    than a red one.
+    """
+    if not request.config.getoption("--container"):
+        CONTAINER["not_run"] += 1
+        pytest.skip(
+            "the container run is opt-in; re-run with --container (reported in the summary)"
+        )
+    runtime = container_runtime_name()
+    if not runtime:
+        pytest.fail(
+            "--container was given but no OCI runtime is on PATH (looked for "
+            f"{', '.join(RUNTIMES)}). Docker Desktop is not required - podman, nerdctl "
+            "or Docker Engine all run this image."
+        )
+    CONTAINER["requested"] = True
+    CONTAINER["runtime"] = runtime
+    CONTAINER["ran"] += 1
+    return runtime
+
+
+def _container_summary(terminalreporter: Any) -> None:
+    """Say whether the image was built, every time, whichever way it went."""
+    write = terminalreporter.write_line
+    if CONTAINER["ran"]:
+        write("")
+        write(
+            f"CONTAINER RAN - the image was built with {CONTAINER['runtime']} and the "
+            f"suite ran inside it.",
+            green=True,
+        )
+        return
+    if not CONTAINER["not_run"]:
+        return  # this invocation did not include the portability suite
+    write("")
+    write(
+        f"CONTAINER NOT BUILT - {CONTAINER['not_run']} test(s) did not build the image.",
+        yellow=True,
+        bold=True,
+    )
+    write(
+        "  The Dockerfile and compose file are checked statically, which is not the same "
+        "as knowing they build. 'It is portable' is a claim about a machine nobody has "
+        "run it on until somebody does.",
+        yellow=True,
+    )
+    found = container_runtime_name()
+    write(
+        f"  To run it: re-run with --container ({found} is on PATH)."
+        if found
+        else "  No OCI runtime is installed here. Install podman, nerdctl or Docker "
+        "Engine - Docker Desktop is not required - then re-run with --container.",
+        yellow=True,
+    )

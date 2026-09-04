@@ -46,7 +46,10 @@ PROTOCOLS: dict[str, Any] = {
 }
 
 ALL_ADAPTERS = [
-    (port, adapter) for port in sorted(ports.PORTS) for adapter in ports.adapters(port)
+    (port, adapter) for port in sorted(ports.PORTS) for adapter in ports.ready(port)
+]
+CONTRACT_ADAPTERS = [
+    (port, adapter) for port in sorted(ports.PORTS) for adapter in ports.contracts(port)
 ]
 
 
@@ -57,6 +60,23 @@ ALL_ADAPTERS = [
 def test_every_adapter_satisfies_its_protocol(port: str, adapter: str) -> None:
     instance = ports.get_port(port, adapter)
     assert isinstance(instance, PROTOCOLS[port]), f"{port}/{adapter} does not satisfy the Protocol"
+
+
+@pytest.mark.parametrize(("port", "adapter"), CONTRACT_ADAPTERS)
+def test_a_contract_adapter_is_registered_and_refuses(port: str, adapter: str) -> None:
+    """Two adapters are contracts waiting for one of the firm's existing connectors.
+
+    They are registered rather than left out so that `AA_STORAGE_ADAPTER=sharefile` is a
+    choice the system understands and refuses in words - an unknown name would be a
+    different error, and a silent fallback to the local folder would be a run reading
+    from somewhere nobody chose, which is the failure the ports exist to prevent.
+    """
+    with pytest.raises(RegistryError) as refused:
+        ports.get_port(port, adapter)
+    d = refused.value.diagnostic
+    assert d.code in ("SCOPE.MISSING_CREDENTIAL", "SCOPE.ADAPTER_NOT_WIRED")
+    assert d.owner == "config" and d.what_now
+    assert adapter in ports.adapters(port) and adapter not in ports.ready(port)
 
 
 @pytest.mark.parametrize(("port", "adapter"), ALL_ADAPTERS)
@@ -100,7 +120,7 @@ def test_an_unknown_adapter_is_refused_not_defaulted(port: str) -> None:
 # ============================================================ storage
 
 
-STORAGE = ports.adapters("storage")
+STORAGE = ports.ready("storage")
 
 
 @pytest.fixture(params=STORAGE)
@@ -154,7 +174,7 @@ def test_a_file_ref_is_port_relative() -> None:
 # ============================================================ delivery
 
 
-@pytest.fixture(params=ports.adapters("delivery"))
+@pytest.fixture(params=ports.ready("delivery"))
 def delivery(request: pytest.FixtureRequest, outbox: Path) -> Any:
     return ports.get_port("delivery", request.param)
 
@@ -199,7 +219,7 @@ def test_delivery_cannot_be_walked_out_of(delivery: Any) -> None:
 # ============================================================ secrets
 
 
-@pytest.fixture(params=ports.adapters("secrets"))
+@pytest.fixture(params=ports.ready("secrets"))
 def secrets(request: pytest.FixtureRequest, tmp_path: Path) -> Any:
     env_file = tmp_path / ".env"
     env_file.write_text(
@@ -260,7 +280,7 @@ def test_a_secret_does_not_leak_through_repr_or_an_f_string() -> None:
 # ============================================================ queue
 
 
-@pytest.fixture(params=ports.adapters("queue"))
+@pytest.fixture(params=ports.ready("queue"))
 def queue(request: pytest.FixtureRequest) -> Any:
     return ports.get_port("queue", request.param)
 
@@ -463,7 +483,7 @@ def test_a_pin_renders_as_the_manifest_records_it() -> None:
 # ============================================================ compute
 
 
-@pytest.fixture(params=ports.adapters("compute"))
+@pytest.fixture(params=ports.ready("compute"))
 def compute(request: pytest.FixtureRequest) -> Any:
     return ports.get_port("compute", request.param)
 
