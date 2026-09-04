@@ -99,6 +99,79 @@ Not blocking anything today. Each would change what I build next.
 
 ---
 
+## 5. New information, and what it changes
+
+**2026-09-04, from Caleb:** work will *probably* use **Microsoft Azure** for cloud
+hosting, and **Power Automate** is available. Nothing is confirmed, so the blueprint has
+not moved: the design of record does not change on a maybe.
+
+### What Azure changes in the code: nothing
+
+Five of the six ports already name an Azure service in the blueprint's own cloud column.
+Each is an adapter beside the ones that exist, written the way `sharefile` and `box`
+were - a module under `ports/`, registered, with the contract in its docstring.
+
+| Port | Today | On Azure | Work |
+|---|---|---|---|
+| Storage (in) | watched folder | Blob, or ShareFile unchanged | one adapter |
+| Delivery (out) | output folder | Blob or SharePoint, or Box unchanged | one adapter |
+| Secrets | `.env` | Key Vault | one adapter |
+| Job queue | in-process, Redis + RQ | Service Bus | one adapter |
+| Compute | local process | Container Apps | config, plus the image that exists |
+| State store | SQLite | Azure Database for PostgreSQL | **one URL** |
+
+The state store is the one that costs nothing at all: the run store is a repository behind
+`AA_DB_URL`, and the conformance suite already runs against both backends.
+
+### The one gap Azure opens
+
+The blueprint's LLM row names **Bedrock and Vertex** as the cloud options. It does not
+name Azure, because reaching Claude on Azure means **Microsoft Foundry**, which the
+blueprint predates. That matters more than a missing table cell:
+
+> **A model pin names a model, not a platform.** `claude-opus-5 @ effort=high` is folded
+> into every plan hash and written into every manifest. If the same pin can be served by
+> the Anthropic API on one run and Foundry on another, two runs can share a plan hash,
+> reach different infrastructure and legitimately disagree - which is exactly the failure
+> the precedent-snapshot fix was made to close.
+
+**Question for you:** if Claude comes through Foundry, the pin should carry the platform.
+That is a contract change (`run_manifest`), a compile change (the hash), and an adapter.
+Say the word and it is scoped; until then nothing is assumed.
+
+### Where Power Automate may go, and where it must not
+
+It is genuinely useful at the edges, and genuinely dangerous inside the boundary. The line
+is not a preference - each item below is an invariant with a test behind it.
+
+**Fine, and probably worth doing:**
+
+- notify a reviewer that a run is waiting, and chase an overdue one;
+- move a client file into the watched folder when it lands in SharePoint or an inbox;
+- carry an approval *request* to a person, and a link back to the review surface;
+- post a run's outcome into a Teams channel, from the event stream.
+
+**Never, and the reason:**
+
+| Not this | Because |
+|---|---|
+| Write to the run store or the vault | The event table is append-only and the vault is the only thing that can re-identify. A flow with the connection string routes around both. |
+| Close a review item or record a decision | Only a `Decision` with a named `decided_by` moves an item, and every precedent guarantee rests on that column. |
+| Approve a skill, or write into `skills/` | `governance/registry.py` is the only writer, and it refuses without the whole chain. |
+| Put a file in a client folder | One release, one inbound edge, through the idempotency ledger. A second writer makes "delivered exactly once" false. |
+| Re-run, retry or resume anything | The graph owns every loop, with an integer ceiling the compiler checks. |
+
+The safe shape: **Power Automate sits outside and talks through a surface** - the admin or
+ops API, or a watched folder - never through the database, the outbox or the file system.
+Given a connection string it becomes a second, ungoverned writer, and every guarantee in
+the Assurance tab becomes conditional on nobody having built a convenient flow.
+
+**Question for you:** is Power Automate expected to *drive* any of this, or to sit beside
+it and notify? The answer changes nothing about the pipeline and quite a lot about what I
+build next.
+
+---
+
 ## Settled
 
 *Answered items move here with a date and where the answer is recorded, rather than being
