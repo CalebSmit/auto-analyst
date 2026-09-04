@@ -24,6 +24,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 from ops.analytics import Analytics
+from ops.blobs import ContentRef, ContentStore
 from ops.console.trace import Trace, TraceReducer
 from ops.cost import CostMeter
 from ops.drift import DriftMonitor
@@ -61,10 +62,12 @@ class Console:
         scope_of: Callable[[str], str | None] | None = None,
         human_baseline_override_rate: float | None = None,
         queue: QueueView | None = None,
+        blobs: ContentStore | None = None,
     ) -> None:
         self.store = store
         self.bus = bus
         self.queue = queue
+        self.blobs = blobs
         constraints = constraints or ConstraintRegistry.load()
         self.scorecard = RunScorecard(store, bus, constraints)
         self.meter = CostMeter(store)
@@ -203,6 +206,24 @@ class Console:
     def alerts(self, engagement_id: str | None = None) -> list[dict[str, Any]]:
         return [a.as_dict() for a in self.stall.scan(engagement_id)]
 
+    def run_plan(self, run_id: str) -> dict[str, Any] | None:
+        """The Run Plan artifact, read back from the content store.
+
+        The plan is written down before execution begins, so this answers "what is it
+        about to do" as well as "what did it do". None when no plan was recorded, or when
+        the console was built without a content store to read it from - the console holds
+        nothing itself, here as everywhere.
+        """
+        if self.blobs is None:
+            return None
+        found = [a for a in self.store.artifacts(run_id) if a.name == "run_plan"]
+        if not found:
+            return None
+        ref = ContentRef(
+            content_hash=found[-1].content_hash, media_type="application/json", name="run_plan"
+        )
+        return json.loads(self.blobs.get(ref).decode("utf-8"))  # type: ignore[no-any-return]
+
     def artifacts(self, run_id: str) -> list[dict[str, Any]]:
         return [
             {"name": a.name, "content_hash": a.content_hash, "written_at": a.written_at}
@@ -257,6 +278,14 @@ def create_app(console: Console) -> FastAPI:
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
         )
+
+    @app.get("/api/runs/{run_id}/plan")
+    def run_plan(run_id: str) -> dict[str, Any]:
+        _known(console, run_id)
+        plan = console.run_plan(run_id)
+        if plan is None:
+            raise HTTPException(status_code=404, detail=f"no run plan recorded for {run_id!r}")
+        return plan
 
     @app.get("/api/queue")
     def queue() -> dict[str, Any]:

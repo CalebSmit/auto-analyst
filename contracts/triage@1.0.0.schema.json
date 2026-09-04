@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/triage@1.0.0",
+  "title": "Triage assessment",
+  "description": "The low-confidence fallback's whole output: an assessment in prose, a category, and either the name of a skill or a reason to escalate. There is no numeric property anywhere in this schema and no field a figure could enter through, so 'triage guessed a number' is not a failure mode available to it - the cases that reach here are unusual entity structures, hybrid instruments and incoherent client data, which are exactly the cases where a made-up figure would be most plausible and most damaging. It cannot start work either: naming a skill is a suggestion recorded for a person, never a dispatch.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "category",
+    "assessment"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "triage@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^triage@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "category": {
+      "enum": [
+        "no_matching_skill",
+        "unclear_scope",
+        "unusual_structure",
+        "incoherent_sources",
+        "missing_document"
+      ],
+      "description": "What kind of not-fitting this is. Categorical so that the same situation is named the same way twice and the analytics can count them."
+    },
+    "assessment": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "description": "What the orchestrator was looking at and why nothing routed, in prose a person reads. It states a problem; it never states a value."
+    },
+    "suggested_skill": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ],
+      "description": "A name from the Skill Index, if one now looks right. Checked against the index before it is recorded: a name that did not resolve into this engagement's scope is dropped and the assessment escalates instead, because a suggestion nobody can act on is worse than none."
+    },
+    "escalation_reason": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      ],
+      "description": "Why this needs a person. Becomes the subject of the review item."
+    }
+  }
+}

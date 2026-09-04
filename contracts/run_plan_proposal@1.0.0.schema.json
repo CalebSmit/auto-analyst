@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/run_plan_proposal@1.0.0",
+  "title": "Run plan proposal",
+  "description": "What the Orchestrator returns: an ordered list of skill invocations and the edges between them, and nothing else. No property anywhere in this schema is numeric - not a value, not a confidence, not a timeout, not a loop ceiling. A plan is data about which skills run in what order; every number that governs a run comes from the constraint registry, the recipe defaults and the resolved scope, so a proposal cannot ask for another iteration, a longer timeout, a different model or a looser guard. Nor does it name an output contract: the code pins that from the skill. The proposal is turned into a recipe and put through the same compiler and the same plan assertions as a named one, and is used only if it survives both.",
+  "x-proposal": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "produced_by",
+    "match",
+    "rationale",
+    "steps"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "run_plan_proposal@1.0.0"
+    },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^orchestrator@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "match": {
+      "enum": [
+        "recipe",
+        "composed",
+        "none"
+      ],
+      "description": "Categorical rather than a confidence score, deliberately. 'recipe' says a named recipe is the shape of this job; 'composed' says none is and these steps are; 'none' says the orchestrator cannot route this job, which is the case Triage exists for. A number here would invite a threshold nobody agreed, and a threshold is a policy decision rather than a model's."
+    },
+    "recipe": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ],
+      "description": "The named recipe this plan is, when match is 'recipe'. The recipe is loaded from disk by name and its own steps are used; the proposal's steps are then a statement of what it believes that recipe does, which the compiler will disagree with if it is wrong."
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "description": "Why this shape, in prose, for the person reading the run plan before it runs. Recorded in the run plan artifact; it decides nothing."
+    },
+    "escalation_reason": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      ],
+      "description": "Why nothing fits, when match is 'none'. Routed to Triage and from there to a person."
+    },
+    "steps": {
+      "type": "array",
+      "description": "The ordered list. Order is the topology the compiler derives from 'needs'; this array's order is not itself meaningful, which is why a step may name any other step it depends on.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "needs",
+          "on_failure"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "maxLength": 40
+          },
+          "kind": {
+            "enum": [
+              "skill",
+              "tool",
+              "guard",
+              "human",
+              "io"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "skill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ],
+            "description": "A name from the Skill Index and nothing else. Not a version: the resolved scope decides which version this engagement has, and a proposal naming one would be choosing a version it cannot see."
+          },
+          "needs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          },
+          "run_inputs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "description": "What this step takes from outside the plan, by the names the job manifest listed. Anything else is refused by the compiler: nothing enters a plan undeclared."
+          },
+          "on_failure": {
+            "enum": [
+              "halt",
+              "quarantine",
+              "review"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

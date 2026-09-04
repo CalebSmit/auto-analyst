@@ -65,6 +65,34 @@ contracts:
       it. Configuration writes the engagement record (invariant 23), so the gap was a
       missing contract rather than a missing design. P24 checks it at activation.
 
+  - id: run_plan_proposal
+    version: 1.0.0
+    file: run_plan_proposal@1.0.0.schema.json
+    kind: proposal
+    note: >-
+      What the Orchestrator may return (P26). No numeric property anywhere: a plan is
+      which skills run in what order, and every number that governs a run - timeouts,
+      retries, iteration ceilings, model pins - comes from the constraint registry and
+      the resolved scope instead, so a proposal cannot ask for another go.
+
+  - id: run_plan
+    version: 1.0.0
+    file: run_plan@1.0.0.schema.json
+    kind: artifact
+    note: >-
+      The plan written down before any of it runs (P26): steps, loop regions, order and
+      plan_hash, and whether it came from a recipe or a proposal. A refused proposal
+      leaves its diagnostic here beside the recipe that ran instead.
+
+  - id: triage
+    version: 1.0.0
+    file: triage@1.0.0.schema.json
+    kind: assessment
+    note: >-
+      The low-confidence fallback's output (P26). Assessment, category, and either a
+      skill name or an escalation. No numeric property anywhere, so there is no shape in
+      it for a figure.
+
   - id: workpaper
     version: 1.0.0
     file: workpaper.schema.json

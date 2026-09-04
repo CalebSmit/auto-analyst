@@ -43,6 +43,7 @@ __all__ = [
     "ContentStore",
     "LocalContentStore",
     "content_hash",
+    "put_json",
 ]
 
 
@@ -88,6 +89,19 @@ class ContentStore(Protocol):
     def put(self, data: bytes, media_type: str = ..., name: str = ...) -> ContentRef: ...
     def get(self, ref: ContentRef) -> bytes: ...
     def has(self, ref: ContentRef) -> bool: ...
+
+
+def put_json(store: ContentStore, value: Any, name: str = "") -> ContentRef:
+    """Canonical JSON into any content store: sorted keys, no incidental whitespace.
+
+    Here rather than on the Protocol because `put` is the whole interface a store has to
+    implement - a convenience one implementation happens to offer is not a capability
+    every implementation must have. Canonical because the hash is an identity: two
+    structurally identical results that hashed differently because a dict iterated in
+    another order would make a resumed run pay for work it had already done.
+    """
+    body = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return store.put(body, media_type="application/json", name=name)
 
 
 class LocalContentStore:
@@ -147,14 +161,9 @@ class LocalContentStore:
     # -- convenience for the common case
 
     def put_json(self, value: Any, name: str = "") -> ContentRef:
-        """Canonical JSON: sorted keys, no incidental whitespace.
-
-        Canonical because the hash is an identity. Two structurally identical results
-        that hashed differently because a dict happened to iterate in another order would
-        make a resumed run pay for work it had already done.
-        """
-        body = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
-        return self.put(body, media_type="application/json", name=name)
+        """Canonical JSON: the module-level `put_json`, for a caller that has this store
+        concretely rather than through the Protocol."""
+        return put_json(self, value, name)
 
     def get_json(self, ref: ContentRef) -> Any:
         return json.loads(self.get(ref).decode("utf-8"))

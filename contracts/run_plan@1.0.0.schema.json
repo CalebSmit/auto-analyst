@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/run_plan@1.0.0",
+  "title": "Run plan",
+  "description": "The plan, written down before any of it runs: an explicit ordered list of steps with their inputs, the loop regions in force with their ceilings, and the plan hash the whole thing compiled to. Persisted as a run artifact before execution begins and shown on the Ops Console, so 'what is it doing?' is a question with an answer somebody can read before it finishes rather than after. It says where it came from - a named recipe or an orchestrator proposal - and, when a proposal was refused, the diagnostic that refused it and the recipe used instead. It is the compiler's output rather than its input: nothing here is executed directly.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "engagement_id",
+    "source",
+    "recipe",
+    "plan_hash",
+    "order",
+    "steps",
+    "loops"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "run_plan@1.0.0"
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "engagement_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "enum": [
+        "recipe",
+        "proposal"
+      ],
+      "description": "Which produced the steps below. A proposal that was refused leaves 'recipe' here and its diagnostic in 'refusal': the record says what was proposed, what was wrong with it, and what ran instead."
+    },
+    "recipe": {
+      "type": "string",
+      "minLength": 1,
+      "description": "name@vN, as the run manifest records it."
+    },
+    "plan_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "The orchestrator's prose, when the steps came from a proposal. Empty for a named recipe, which explains itself in its own file."
+    },
+    "proposal_ref": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      ],
+      "description": "The content hash of exactly what the model returned, refused or not."
+    },
+    "request_hash": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        }
+      ],
+      "description": "The content hash of the call that produced it, so the proposal can be replayed."
+    },
+    "order": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "description": "The execution order the compiler derived. Every step appears exactly once and after everything it needs."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "inputs",
+          "on_failure",
+          "timeout_s",
+          "retries",
+          "max_turns"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "skill",
+              "tool",
+              "guard",
+              "human",
+              "io"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "skill": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "name@version, pinned by the resolved scope rather than by whatever named the step."
+          },
+          "model_pin": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "output_schema": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "producer"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "producer": {
+                  "type": "string",
+                  "description": "The step that produces it, or the run boundary for something that arrived from outside the plan."
+                },
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "loops": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "on_failure": {
+            "enum": [
+              "halt",
+              "quarantine",
+              "review"
+            ]
+          },
+          "timeout_s": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "retries": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "max_turns": {
+            "const": 1
+          }
+        }
+      }
+    },
+    "loops": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "loop",
+          "head",
+          "members",
+          "max_iterations"
+        ],
+        "properties": {
+          "loop": {
+            "type": "string"
+          },
+          "head": {
+            "type": "string"
+          },
+          "members": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_iterations": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "From the constraint registry, never from whatever proposed the step. No agent decides for itself whether to try again."
+          },
+          "why": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "refusal": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code",
+            "detail"
+          ],
+          "properties": {
+            "code": {
+              "type": "string"
+            },
+            "detail": {
+              "type": "string"
+            },
+            "locator": {
+              "type": "string"
+            },
+            "what_now": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "description": "Present when an orchestrator proposal did not survive the compiler or the plan assertions. The plan that ran is the fallback recipe; this says why."
+    }
+  }
+}

@@ -737,12 +737,12 @@ const NODES = [
 
 {id:'orchestrator',runtime:'step',label:'Orchestrator Agent',plain:'Reads what arrived, decides which skills to run and in what order.',group:'orch',exec:'llm',tier:'mid',
  desc:'Takes the masked document summary, the classification, and the engagement profile; returns an ordered plan. If a Job Recipe matches, it validates and adapts that instead of composing from scratch.',
- impl:'One model call with structured output. Mid tier: this is routing over a closed set with good signal, not deep reasoning. Its context holds the Skill Index and the job manifest — never a SKILL.md body.',
+ impl:'One model call with structured output, through the same door every model call goes through — scanned, budgeted, pinned and metered. Mid tier: this is routing over a closed set with good signal, not deep reasoning. Its context holds the Skill Index and the job manifest — never a SKILL.md body, and <span class="mono">orchestrate/orchestrator.py</span> imports nothing that could reach one. <span class="mono">run_plan_proposal@1.0.0</span> has no numeric property anywhere: not a figure, not a confidence, not a timeout, not an iteration ceiling. “No confident match” is categorical (<span class="mono">match: none</span>, which routes to Triage) rather than a score under a threshold nobody agreed.',
  full:'Dispatch is directed, with no path back to itself: no skill returns here to start a fresh request, so there is no cycle a build has to bound. As the library grows past roughly fifteen skills, the natural next step is a domain-scoped sub-orchestrator — one for statement prep, one for valuation — before this node\'s branching gets hard to reason about.'},
 
 {id:'run_plan',runtime:'step',label:'Run Plan',plain:'The plan, written down before any of it runs.',group:'orch',exec:'code',now:true,
  desc:'An explicit ordered list of skill invocations with their inputs, persisted before execution begins and shown live on the Ops Console. It is the input to the Graph Compiler, not something executed directly.',
- impl:'A JSON artifact in the run store. The dispatcher executes it step by step; deviations require a new plan version, which is recorded.',
+ impl:'A JSON artifact (<span class="mono">run_plan@1.0.0</span>) in the content store, recorded on the run before execution begins and read back by the console at <span class="mono">/api/runs/{id}/plan</span>. A proposal becomes a <span class="mono">Recipe</span> and goes through the same compiler and the same plan assertions as a named one — there is no second compiler and no path that skips either — and if it is refused, the named recipe runs and the diagnostic is recorded beside it. The dispatcher executes the compiled plan step by step; deviations require a new plan version, which is recorded.',
  full:'The alternative — an agent improvising its next step each turn — is far harder to review, to test, and to explain to a reviewer after the fact. Writing the plan first turns “what is it doing?” into a question with an answer you can read before it finishes.'},
 
 {id:'dispatcher',runtime:'step',label:'Skill Dispatcher',plain:'Loads one skill into a clean context and runs it.',group:'orch',exec:'code',now:true,
@@ -757,7 +757,7 @@ const NODES = [
 
 {id:'triage',runtime:'step',label:'Triage & Escalation',plain:'When nothing fits, it routes to a person instead of guessing.',group:'orch',exec:'llm',tier:'high',
  desc:'The low-confidence fallback. Classifies the problem, gathers context, and either names a skill or writes an escalation. Its output schema has no figures field, so it cannot emit a number.',
- impl:'One model call, high tier. Structured output limited to {assessment, suggested_skill?, escalation_reason?}. There is no shape in that schema for a value, so “it guessed a number” is not a failure mode available to it.',
+ impl:'One model call, high tier. Structured output limited to <span class="mono">triage@1.0.0</span>: assessment, category, and either a suggested skill or an escalation reason. No property in that schema is numeric and every object is closed, so “it guessed a number” is not a failure mode available to it. A suggested skill is checked against the Skill Index and recorded for a person; the module imports no dispatcher and has no method that starts work.',
  full:'High tier deliberately. The cases that reach here — unusual entity structures, hybrid instruments, incoherent client data — are exactly the ones where a classification mistake costs the most, so this is not the place to economise on model quality.'},
 
 {id:'graph_compiler',runtime:'step',label:'Run Graph Compiler',plain:'Turns the plan into a typed graph and checks it before a single step runs.',group:'orch',exec:'code',now:true,
@@ -4283,6 +4283,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, scorecard.py, criteria/, stall.py, drift.py, analytics.py, console/', 'the record, and the verdict computed from it'),
    R_('  <span class="t2">admin/</span>         preflight.py, console.py, app.py', 'ten checks, then what an admin may and may not change'),
+   R_('  <span class="t2">orchestrate/</span>   orchestrator.py, plan.py, triage.py, manifest.py', 'a proposed plan is compiled and asserted like any other'),
    R_('  <span class="t2">workers/</span>       pool.py', 'several engagements at once; one run at a time within each'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');
