@@ -16,6 +16,11 @@ Then, situationally:
   once.
 - **[`BUILD/AMENDMENTS.md`](BUILD/AMENDMENTS.md)** — read it when the plan looks wrong.
   It probably changed for a reason, and the reason is there.
+- **[`BUILD/OPEN.md`](BUILD/OPEN.md)** — everything waiting on a person: approvals,
+  decisions that are not the code's to make, evidence only the work machine can produce,
+  and the questions being held. Read it before asking Caleb anything, and before
+  assuming something was forgotten. An answered item moves to **Settled** with a date
+  rather than being deleted.
 - **[`BUILD/phases/PNN.md`](BUILD/phases/)** — the current phase in full: tasks, exit
   criteria, verification.
 

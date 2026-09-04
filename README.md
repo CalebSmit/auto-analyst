@@ -21,6 +21,7 @@ state lives in the repo, not in anybody's head or in a chat log:
 | [`BUILD/LEDGER.md`](BUILD/LEDGER.md) | Dead ends, so they are walked once. |
 | [`BUILD/AMENDMENTS.md`](BUILD/AMENDMENTS.md) | Every plan change, and why. |
 | [`CLAUDE.md`](CLAUDE.md) | The rules a session works under. |
+| [`BUILD/OPEN.md`](BUILD/OPEN.md) | What is waiting on a person: approvals, decisions, evidence owed. |
 | [`CHANGING.md`](CHANGING.md) | **How to change it without breaking it.** Read before the first edit. |
 | [`HANDOFF.md`](HANDOFF.md) | What changes on the work machine, and what does not. |
 
