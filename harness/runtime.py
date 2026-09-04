@@ -218,6 +218,17 @@ class BoundTools:
         satisfy. A procedure passes it back; it cannot pass another."""
         return self._run.engagement_id
 
+    @property
+    def scope_path(self) -> str:
+        """The run's resolved scope path, for the `precedent_scope_declared` predicate.
+        A procedure passes it back; it cannot pass a wider one."""
+        return self._run.scope_path
+
+    def pinned(self, tool: str) -> str | None:
+        """The version this run pinned for a tool - the taxonomy the chart-of-accounts
+        lookup must read. A procedure asks for exactly this, or the gate refuses it."""
+        return self._run.versions.get(tool)
+
     def __getitem__(self, name: str) -> Callable[..., ToolResult]:
         # A name outside the allowlist is not hidden - it is looked up, proposed, and
         # denied on the record. The skill learns it was refused; nobody learns it later.

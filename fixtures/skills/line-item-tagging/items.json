@@ -1,0 +1,4935 @@
+[
+ {
+  "line_item_ref": "li_e04eb29020",
+  "description": "Sales",
+  "source_labels": [
+   "Sales",
+   "Sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_c9b5f6bdcb",
+  "description": "Sales - product",
+  "source_labels": [
+   "Sales - product"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_da499abb8e",
+  "description": "Product sales",
+  "source_labels": [
+   "Product sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_5e807fad02",
+  "description": "Sales revenue",
+  "source_labels": [
+   "Sales revenue",
+   "Sales revenue"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_371f7e4223",
+  "description": "Revenue",
+  "source_labels": [
+   "Revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_027bc95a8c",
+  "description": "Service revenue",
+  "source_labels": [
+   "Service revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a0b2a43535",
+  "description": "Service income",
+  "source_labels": [
+   "Service income",
+   "Service income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fb80dfbb27",
+  "description": "Fees earned",
+  "source_labels": [
+   "Fees earned"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8c76682d63",
+  "description": "Contract revenue",
+  "source_labels": [
+   "Contract revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4b2beb9b44",
+  "description": "Sales - parts",
+  "source_labels": [
+   "Sales - parts",
+   "Sales - parts"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_25a785f56e",
+  "description": "Parts sales",
+  "source_labels": [
+   "Parts sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_1cd35af801",
+  "description": "Sales - service",
+  "source_labels": [
+   "Sales - service"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a4499dc3f4",
+  "description": "Installation revenue",
+  "source_labels": [
+   "Installation revenue",
+   "Installation revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_664685104a",
+  "description": "Sales returns and allowances",
+  "source_labels": [
+   "Sales returns and allowances"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_b937e527f7",
+  "description": "Returns & allowances",
+  "source_labels": [
+   "Returns & allowances"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c43e77bfcf",
+  "description": "Sales discounts",
+  "source_labels": [
+   "Sales discounts",
+   "Sales discounts"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_1dc9e1f6a5",
+  "description": "Customer rebates",
+  "source_labels": [
+   "Customer rebates"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_bddda57e2d",
+  "description": "Cost of goods sold",
+  "source_labels": [
+   "Cost of goods sold"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_07381122ef",
+  "description": "COGS",
+  "source_labels": [
+   "COGS",
+   "COGS"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_5f89a626da",
+  "description": "Cost of sales",
+  "source_labels": [
+   "Cost of sales"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_bb9e8148da",
+  "description": "Cost of goods sold - materials",
+  "source_labels": [
+   "Cost of goods sold - materials"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_ec4b47d831",
+  "description": "Direct materials",
+  "source_labels": [
+   "Direct materials",
+   "Direct materials"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_db26521fce",
+  "description": "Materials - direct",
+  "source_labels": [
+   "Materials - direct"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ade855c3e7",
+  "description": "Raw material purchases",
+  "source_labels": [
+   "Raw material purchases"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_712733298e",
+  "description": "Purchases - materials",
+  "source_labels": [
+   "Purchases - materials",
+   "Purchases - materials"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_532bf3243c",
+  "description": "Direct labor",
+  "source_labels": [
+   "Direct labor"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c6dfbfee28",
+  "description": "Direct labour",
+  "source_labels": [
+   "Direct labour"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_3a02ff4cc3",
+  "description": "Shop labor",
+  "source_labels": [
+   "Shop labor",
+   "Shop labor"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_c489d59840",
+  "description": "Production wages",
+  "source_labels": [
+   "Production wages"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_3a3866616b",
+  "description": "Subcontractors",
+  "source_labels": [
+   "Subcontractors"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c3630257f3",
+  "description": "Subcontract labor",
+  "source_labels": [
+   "Subcontract labor",
+   "Subcontract labor"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9774c89aad",
+  "description": "Outside services - production",
+  "source_labels": [
+   "Outside services - production"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_79edfcfff2",
+  "description": "Freight in",
+  "source_labels": [
+   "Freight in"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4220e28dbc",
+  "description": "Officer salaries",
+  "source_labels": [
+   "Officer salaries",
+   "Officer salaries"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_220fbacb49",
+  "description": "Officers' compensation",
+  "source_labels": [
+   "Officers' compensation"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_80e537d060",
+  "description": "Officer compensation",
+  "source_labels": [
+   "Officer compensation"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c4c381752b",
+  "description": "Salaries - officers",
+  "source_labels": [
+   "Salaries - officers",
+   "Salaries - officers"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_5c361e5768",
+  "description": "Owner salary",
+  "source_labels": [
+   "Owner salary"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_f1a6ef394a",
+  "description": "Shareholder salary",
+  "source_labels": [
+   "Shareholder salary"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c80401853b",
+  "description": "Salaries and wages",
+  "source_labels": [
+   "Salaries and wages",
+   "Salaries and wages"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_678db3bc7b",
+  "description": "Wages",
+  "source_labels": [
+   "Wages"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_df7c7da258",
+  "description": "Salaries - office",
+  "source_labels": [
+   "Salaries - office"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_61f7a66e8f",
+  "description": "Salaries & wages - admin",
+  "source_labels": [
+   "Salaries & wages - admin",
+   "Salaries & wages - admin"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fc42232820",
+  "description": "Hourly wages",
+  "source_labels": [
+   "Hourly wages"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_9eebbf7926",
+  "description": "Payroll - staff",
+  "source_labels": [
+   "Payroll - staff"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0564798a1c",
+  "description": "Commissions",
+  "source_labels": [
+   "Commissions",
+   "Commissions"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9bda69c7f1",
+  "description": "Sales commissions",
+  "source_labels": [
+   "Sales commissions"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_351e1a7b84",
+  "description": "Bonuses",
+  "source_labels": [
+   "Bonuses"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_d998262a26",
+  "description": "Overtime",
+  "source_labels": [
+   "Overtime",
+   "Overtime"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_c1b73b1f5f",
+  "description": "Payroll taxes",
+  "source_labels": [
+   "Payroll taxes"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_5cfd99355a",
+  "description": "Payroll tax expense",
+  "source_labels": [
+   "Payroll tax expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_fc50e66041",
+  "description": "FICA expense",
+  "source_labels": [
+   "FICA expense",
+   "FICA expense"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9f0f3a19a4",
+  "description": "Employer payroll taxes",
+  "source_labels": [
+   "Employer payroll taxes"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_09d9a4ba91",
+  "description": "FUTA/SUTA",
+  "source_labels": [
+   "FUTA/SUTA"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_f8403ca95d",
+  "description": "Health insurance - employees",
+  "source_labels": [
+   "Health insurance - employees",
+   "Health insurance - employees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b681f7d1a2",
+  "description": "Employee benefits",
+  "source_labels": [
+   "Employee benefits"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_b0c3885d8c",
+  "description": "401(k) match",
+  "source_labels": [
+   "401(k) match"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_942535e171",
+  "description": "Retirement plan contribution",
+  "source_labels": [
+   "Retirement plan contribution",
+   "Retirement plan contribution"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_8004b7d6d1",
+  "description": "Workers comp insurance",
+  "source_labels": [
+   "Workers comp insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_4d18b83a78",
+  "description": "ESOP contribution",
+  "source_labels": [
+   "ESOP contribution"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c6897efa50",
+  "description": "Rent expense",
+  "source_labels": [
+   "Rent expense",
+   "Rent expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_0e9fd1596c",
+  "description": "Rent",
+  "source_labels": [
+   "Rent"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_61f43fe751",
+  "description": "Building rent",
+  "source_labels": [
+   "Building rent"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_61ea9332cf",
+  "description": "Office lease",
+  "source_labels": [
+   "Office lease",
+   "Office lease"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fd29c83362",
+  "description": "Occupancy",
+  "source_labels": [
+   "Occupancy"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_7b602f7c72",
+  "description": "CAM charges",
+  "source_labels": [
+   "CAM charges"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_abe2c417d1",
+  "description": "Utilities",
+  "source_labels": [
+   "Utilities",
+   "Utilities"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_44b3c5003d",
+  "description": "Electric",
+  "source_labels": [
+   "Electric"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8057335483",
+  "description": "Gas & electric",
+  "source_labels": [
+   "Gas & electric"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_5053890b88",
+  "description": "Water and sewer",
+  "source_labels": [
+   "Water and sewer",
+   "Water and sewer"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_7339725159",
+  "description": "Telephone",
+  "source_labels": [
+   "Telephone"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_277415a7cb",
+  "description": "Internet & telephone",
+  "source_labels": [
+   "Internet & telephone"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_617aedaa3a",
+  "description": "Repairs and maintenance",
+  "source_labels": [
+   "Repairs and maintenance",
+   "Repairs and maintenance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_753e3bf7db",
+  "description": "Repairs & Maint.",
+  "source_labels": [
+   "Repairs & Maint."
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_474699f2ca",
+  "description": "R&M",
+  "source_labels": [
+   "R&M"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a48c27551d",
+  "description": "Building maintenance",
+  "source_labels": [
+   "Building maintenance",
+   "Building maintenance"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_ee5c9a8f3d",
+  "description": "Equipment repairs",
+  "source_labels": [
+   "Equipment repairs"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_2d23c6c37a",
+  "description": "Janitorial",
+  "source_labels": [
+   "Janitorial"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_64e8937abc",
+  "description": "Insurance",
+  "source_labels": [
+   "Insurance",
+   "Insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e4b9d68baf",
+  "description": "Insurance - general liability",
+  "source_labels": [
+   "Insurance - general liability"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_45e5d54206",
+  "description": "Property insurance",
+  "source_labels": [
+   "Property insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_9dddc25ac7",
+  "description": "Auto insurance",
+  "source_labels": [
+   "Auto insurance",
+   "Auto insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_6ec5f23daf",
+  "description": "Umbrella policy",
+  "source_labels": [
+   "Umbrella policy"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_6ea5ba5485",
+  "description": "Insurance expense",
+  "source_labels": [
+   "Insurance expense"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_9952a7860e",
+  "description": "Professional fees",
+  "source_labels": [
+   "Professional fees",
+   "Professional fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9aea673c33",
+  "description": "Legal fees",
+  "source_labels": [
+   "Legal fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ebce3134ed",
+  "description": "Accounting fees",
+  "source_labels": [
+   "Accounting fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_b8403cd05f",
+  "description": "Audit fees",
+  "source_labels": [
+   "Audit fees",
+   "Audit fees"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_1ddab7dfa3",
+  "description": "Consulting fees",
+  "source_labels": [
+   "Consulting fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ac77b80603",
+  "description": "Tax preparation",
+  "source_labels": [
+   "Tax preparation"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_d27a4a1080",
+  "description": "Advertising",
+  "source_labels": [
+   "Advertising",
+   "Advertising"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e2a530e251",
+  "description": "Marketing",
+  "source_labels": [
+   "Marketing"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_247aadb7ce",
+  "description": "Advertising & promotion",
+  "source_labels": [
+   "Advertising & promotion"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_087c9c16e8",
+  "description": "Trade shows",
+  "source_labels": [
+   "Trade shows",
+   "Trade shows"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_627c2e8177",
+  "description": "Website expense",
+  "source_labels": [
+   "Website expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_0209442e11",
+  "description": "Travel",
+  "source_labels": [
+   "Travel"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_867cb42ec1",
+  "description": "Travel & entertainment",
+  "source_labels": [
+   "Travel & entertainment",
+   "Travel & entertainment"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_61f265f620",
+  "description": "Meals and entertainment",
+  "source_labels": [
+   "Meals and entertainment"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c1fb4bfa83",
+  "description": "Lodging",
+  "source_labels": [
+   "Lodging"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_f5f7f5485f",
+  "description": "Mileage reimbursement",
+  "source_labels": [
+   "Mileage reimbursement",
+   "Mileage reimbursement"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b3a348ecfc",
+  "description": "Office supplies",
+  "source_labels": [
+   "Office supplies"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_0e7323ffcb",
+  "description": "Office expense",
+  "source_labels": [
+   "Office expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_61a9ed08e9",
+  "description": "Postage",
+  "source_labels": [
+   "Postage",
+   "Postage"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_aae5570e24",
+  "description": "Printing",
+  "source_labels": [
+   "Printing"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_85571244d9",
+  "description": "Software subscriptions",
+  "source_labels": [
+   "Software subscriptions"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_6b6dafc7b1",
+  "description": "Dues and subscriptions",
+  "source_labels": [
+   "Dues and subscriptions",
+   "Dues and subscriptions"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_bd1f5b7acc",
+  "description": "Vehicle expense",
+  "source_labels": [
+   "Vehicle expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_e832245de4",
+  "description": "Auto expense",
+  "source_labels": [
+   "Auto expense"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_acbe4bfc77",
+  "description": "Fuel",
+  "source_labels": [
+   "Fuel",
+   "Fuel"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_1d9de0d6a9",
+  "description": "Truck expense",
+  "source_labels": [
+   "Truck expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_bd868c0952",
+  "description": "Bad debt expense",
+  "source_labels": [
+   "Bad debt expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_5a31bdaeaa",
+  "description": "Bad debts",
+  "source_labels": [
+   "Bad debts",
+   "Bad debts"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fb38c5377d",
+  "description": "Uncollectible accounts",
+  "source_labels": [
+   "Uncollectible accounts"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_2ca6e59e99",
+  "description": "Write-off of receivables",
+  "source_labels": [
+   "Write-off of receivables"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0302672983",
+  "description": "Depreciation",
+  "source_labels": [
+   "Depreciation",
+   "Depreciation"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_8805e5d804",
+  "description": "Depreciation expense",
+  "source_labels": [
+   "Depreciation expense"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_1a064fbb22",
+  "description": "Depreciation - equipment",
+  "source_labels": [
+   "Depreciation - equipment"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_15d63f0f1b",
+  "description": "Amortization",
+  "source_labels": [
+   "Amortization",
+   "Amortization"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_71ee6d35e5",
+  "description": "Amortization expense",
+  "source_labels": [
+   "Amortization expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_7c5313c52a",
+  "description": "Amortization - intangibles",
+  "source_labels": [
+   "Amortization - intangibles"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_87ea18c185",
+  "description": "Miscellaneous expense",
+  "source_labels": [
+   "Miscellaneous expense",
+   "Miscellaneous expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e43588e5f9",
+  "description": "Bank charges",
+  "source_labels": [
+   "Bank charges"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_727c6d5b65",
+  "description": "Licenses and permits",
+  "source_labels": [
+   "Licenses and permits"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c2fb788c7d",
+  "description": "Training",
+  "source_labels": [
+   "Training",
+   "Training"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_df773a2e30",
+  "description": "Bank service charges",
+  "source_labels": [
+   "Bank service charges"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_0bd8ed8ec5",
+  "description": "Interest expense",
+  "source_labels": [
+   "Interest expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_830b6b4681",
+  "description": "Interest - loans",
+  "source_labels": [
+   "Interest - loans",
+   "Interest - loans"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f92ad50537",
+  "description": "Finance charges",
+  "source_labels": [
+   "Finance charges"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_11df8be513",
+  "description": "Loan interest",
+  "source_labels": [
+   "Loan interest"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_e3ef503e43",
+  "description": "Interest income",
+  "source_labels": [
+   "Interest income",
+   "Interest income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_77693c509b",
+  "description": "Dividend income",
+  "source_labels": [
+   "Dividend income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_dd3cd0d5d6",
+  "description": "Investment income",
+  "source_labels": [
+   "Investment income"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_089edf37ca",
+  "description": "Interest earned",
+  "source_labels": [
+   "Interest earned",
+   "Interest earned"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_ba5d768138",
+  "description": "Gain on sale of equipment",
+  "source_labels": [
+   "Gain on sale of equipment"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_a249a278bb",
+  "description": "Loss on disposal of assets",
+  "source_labels": [
+   "Loss on disposal of assets"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_75d2354c2a",
+  "description": "Gain (loss) on sale",
+  "source_labels": [
+   "Gain (loss) on sale",
+   "Gain (loss) on sale"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_1625ad0339",
+  "description": "Gain on disposition",
+  "source_labels": [
+   "Gain on disposition"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_b2a392e17f",
+  "description": "Other income",
+  "source_labels": [
+   "Other income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_86e24943cb",
+  "description": "Rental income",
+  "source_labels": [
+   "Rental income",
+   "Rental income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_0aefc0d23e",
+  "description": "PPP loan forgiveness",
+  "source_labels": [
+   "PPP loan forgiveness"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_153bea4650",
+  "description": "Settlement income",
+  "source_labels": [
+   "Settlement income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_ad4431d4d0",
+  "description": "Non-operating income",
+  "source_labels": [
+   "Non-operating income",
+   "Non-operating income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f5d715d0b0",
+  "description": "Income tax expense",
+  "source_labels": [
+   "Income tax expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_d52c07b2fa",
+  "description": "State income tax",
+  "source_labels": [
+   "State income tax"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4f354384c9",
+  "description": "Franchise tax",
+  "source_labels": [
+   "Franchise tax",
+   "Franchise tax"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_563e082475",
+  "description": "Provision for income taxes",
+  "source_labels": [
+   "Provision for income taxes"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ab0fcec08e",
+  "description": "Cash",
+  "source_labels": [
+   "Cash"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_46ded5b090",
+  "description": "Cash - operating",
+  "source_labels": [
+   "Cash - operating",
+   "Cash - operating"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_63c811f55d",
+  "description": "Checking account",
+  "source_labels": [
+   "Checking account"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_286d4726e1",
+  "description": "Savings",
+  "source_labels": [
+   "Savings"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_202d9e2a6f",
+  "description": "Money market",
+  "source_labels": [
+   "Money market",
+   "Money market"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e6eb9cbfff",
+  "description": "Petty cash",
+  "source_labels": [
+   "Petty cash"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_189f747eca",
+  "description": "Accounts receivable",
+  "source_labels": [
+   "Accounts receivable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_8160ccef0d",
+  "description": "A/R",
+  "source_labels": [
+   "A/R",
+   "A/R"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_382de75b43",
+  "description": "Trade receivables",
+  "source_labels": [
+   "Trade receivables"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_2e01200557",
+  "description": "Accounts receivable - trade",
+  "source_labels": [
+   "Accounts receivable - trade"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_507622197d",
+  "description": "Receivables",
+  "source_labels": [
+   "Receivables",
+   "Receivables"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b7250f867f",
+  "description": "Allowance for doubtful accounts",
+  "source_labels": [
+   "Allowance for doubtful accounts"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_5c71188a7b",
+  "description": "Reserve for bad debts",
+  "source_labels": [
+   "Reserve for bad debts"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_3237a58d39",
+  "description": "Allowance - A/R",
+  "source_labels": [
+   "Allowance - A/R",
+   "Allowance - A/R"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b11a85b296",
+  "description": "Inventory",
+  "source_labels": [
+   "Inventory"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_315d0350a5",
+  "description": "Raw materials inventory",
+  "source_labels": [
+   "Raw materials inventory"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_dd0fd09680",
+  "description": "Work in process",
+  "source_labels": [
+   "Work in process",
+   "Work in process"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_32e4caaf63",
+  "description": "WIP",
+  "source_labels": [
+   "WIP"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_201dc839cc",
+  "description": "Finished goods",
+  "source_labels": [
+   "Finished goods"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_895253b9ad",
+  "description": "Inventory - parts",
+  "source_labels": [
+   "Inventory - parts",
+   "Inventory - parts"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_8341e1415f",
+  "description": "Prepaid expenses",
+  "source_labels": [
+   "Prepaid expenses"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_66c93a306c",
+  "description": "Prepaid insurance",
+  "source_labels": [
+   "Prepaid insurance"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_63963a16e0",
+  "description": "Prepaids",
+  "source_labels": [
+   "Prepaids",
+   "Prepaids"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_17642a16f4",
+  "description": "Retainers",
+  "source_labels": [
+   "Retainers"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_59d14f9467",
+  "description": "Other current assets",
+  "source_labels": [
+   "Other current assets"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_11943f5512",
+  "description": "Employee advances",
+  "source_labels": [
+   "Employee advances",
+   "Employee advances"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_a6c76377bb",
+  "description": "Contract assets",
+  "source_labels": [
+   "Contract assets"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_e3df1e0ab4",
+  "description": "Unbilled revenue",
+  "source_labels": [
+   "Unbilled revenue"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_063aebe7c1",
+  "description": "Due from shareholder",
+  "source_labels": [
+   "Due from shareholder",
+   "Due from shareholder"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_7c245cebd2",
+  "description": "Due from officer",
+  "source_labels": [
+   "Due from officer"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_447fc0fde7",
+  "description": "Loan to owner",
+  "source_labels": [
+   "Loan to owner"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_1109c27a25",
+  "description": "Due from affiliate",
+  "source_labels": [
+   "Due from affiliate",
+   "Due from affiliate"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_c3aba359cc",
+  "description": "Due from related party",
+  "source_labels": [
+   "Due from related party"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_6a0632fdb7",
+  "description": "Investments",
+  "source_labels": [
+   "Investments"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c5c0ecc57f",
+  "description": "Marketable securities",
+  "source_labels": [
+   "Marketable securities",
+   "Marketable securities"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_bb0009270c",
+  "description": "Brokerage account",
+  "source_labels": [
+   "Brokerage account"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_5ac8139016",
+  "description": "Cash surrender value of life insurance",
+  "source_labels": [
+   "Cash surrender value of life insurance"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_2e111e5906",
+  "description": "CSV - life insurance",
+  "source_labels": [
+   "CSV - life insurance",
+   "CSV - life insurance"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e6a8cf4130",
+  "description": "Machinery and equipment",
+  "source_labels": [
+   "Machinery and equipment"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_1c09f5a7f4",
+  "description": "Equipment",
+  "source_labels": [
+   "Equipment"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c9b87872c1",
+  "description": "Vehicles",
+  "source_labels": [
+   "Vehicles",
+   "Vehicles"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_ed08c7ecda",
+  "description": "Furniture and fixtures",
+  "source_labels": [
+   "Furniture and fixtures"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_a861d05f98",
+  "description": "Buildings",
+  "source_labels": [
+   "Buildings"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_90eae63487",
+  "description": "Land",
+  "source_labels": [
+   "Land",
+   "Land"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_33dd7f27ac",
+  "description": "Leasehold improvements",
+  "source_labels": [
+   "Leasehold improvements"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8b0757afb0",
+  "description": "Computer equipment",
+  "source_labels": [
+   "Computer equipment"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_de684e38a6",
+  "description": "Accumulated depreciation",
+  "source_labels": [
+   "Accumulated depreciation",
+   "Accumulated depreciation"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_50effded1a",
+  "description": "Accum. depr.",
+  "source_labels": [
+   "Accum. depr."
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_84be79d387",
+  "description": "Less: accumulated depreciation",
+  "source_labels": [
+   "Less: accumulated depreciation"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_173087c399",
+  "description": "A/D - equipment",
+  "source_labels": [
+   "A/D - equipment",
+   "A/D - equipment"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_47b2d9943b",
+  "description": "Goodwill",
+  "source_labels": [
+   "Goodwill"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_7787ed290f",
+  "description": "Intangible assets",
+  "source_labels": [
+   "Intangible assets"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_6e92c4d7a9",
+  "description": "Customer list",
+  "source_labels": [
+   "Customer list",
+   "Customer list"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9cca72a552",
+  "description": "Trademarks",
+  "source_labels": [
+   "Trademarks"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_d627bb8139",
+  "description": "Non-compete agreement",
+  "source_labels": [
+   "Non-compete agreement"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a5aa3db983",
+  "description": "Accumulated amortization",
+  "source_labels": [
+   "Accumulated amortization",
+   "Accumulated amortization"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_3dd0657003",
+  "description": "Right-of-use asset",
+  "source_labels": [
+   "Right-of-use asset"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_2f65b4ac61",
+  "description": "ROU asset",
+  "source_labels": [
+   "ROU asset"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_83c2fc0200",
+  "description": "Operating lease asset",
+  "source_labels": [
+   "Operating lease asset",
+   "Operating lease asset"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e7b0be70d8",
+  "description": "Other assets",
+  "source_labels": [
+   "Other assets"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_070f8dac62",
+  "description": "Deferred tax asset",
+  "source_labels": [
+   "Deferred tax asset"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_d6c33ed8f5",
+  "description": "Long-term deposits",
+  "source_labels": [
+   "Long-term deposits",
+   "Long-term deposits"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_8acf900a08",
+  "description": "Accounts payable",
+  "source_labels": [
+   "Accounts payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c35106fd39",
+  "description": "A/P",
+  "source_labels": [
+   "A/P"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_93bcf0ba1d",
+  "description": "Trade payables",
+  "source_labels": [
+   "Trade payables",
+   "Trade payables"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_4f8f3840e7",
+  "description": "Accounts payable - trade",
+  "source_labels": [
+   "Accounts payable - trade"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8264391619",
+  "description": "Payables",
+  "source_labels": [
+   "Payables"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_316244d030",
+  "description": "Accrued liabilities",
+  "source_labels": [
+   "Accrued liabilities",
+   "Accrued liabilities"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f819114770",
+  "description": "Accrued expenses",
+  "source_labels": [
+   "Accrued expenses"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_6125ed3fb2",
+  "description": "Accrued payroll",
+  "source_labels": [
+   "Accrued payroll"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_619e1540d6",
+  "description": "Accrued vacation",
+  "source_labels": [
+   "Accrued vacation",
+   "Accrued vacation"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_5478312d14",
+  "description": "Wages payable",
+  "source_labels": [
+   "Wages payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_aecbc37302",
+  "description": "Sales tax payable",
+  "source_labels": [
+   "Sales tax payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0a44da97cd",
+  "description": "Payroll taxes payable",
+  "source_labels": [
+   "Payroll taxes payable",
+   "Payroll taxes payable"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_5fa85cfc2f",
+  "description": "Deferred revenue",
+  "source_labels": [
+   "Deferred revenue"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_06d379c57f",
+  "description": "Customer deposits",
+  "source_labels": [
+   "Customer deposits"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_fb7cfc4fa7",
+  "description": "Unearned revenue",
+  "source_labels": [
+   "Unearned revenue",
+   "Unearned revenue"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_5952cecdc1",
+  "description": "Billings in excess of costs",
+  "source_labels": [
+   "Billings in excess of costs"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_fc20394e6e",
+  "description": "Contract liabilities",
+  "source_labels": [
+   "Contract liabilities"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_1472a423a5",
+  "description": "Other current liabilities",
+  "source_labels": [
+   "Other current liabilities",
+   "Other current liabilities"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_2d0d765ea3",
+  "description": "Warranty reserve",
+  "source_labels": [
+   "Warranty reserve"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_9d13ae7b3d",
+  "description": "Line of credit",
+  "source_labels": [
+   "Line of credit"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a7f32380cf",
+  "description": "LOC",
+  "source_labels": [
+   "LOC",
+   "LOC"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_6e98b48425",
+  "description": "Revolver",
+  "source_labels": [
+   "Revolver"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_81268bad51",
+  "description": "Revolving credit facility",
+  "source_labels": [
+   "Revolving credit facility"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_e3ff6d2f6b",
+  "description": "Current portion of long-term debt",
+  "source_labels": [
+   "Current portion of long-term debt",
+   "Current portion of long-term debt"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_443e2d1e43",
+  "description": "Current maturities of LTD",
+  "source_labels": [
+   "Current maturities of LTD"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_cbe415a924",
+  "description": "CPLTD",
+  "source_labels": [
+   "CPLTD"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_d416d7381a",
+  "description": "Notes payable - current",
+  "source_labels": [
+   "Notes payable - current",
+   "Notes payable - current"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_0a373f240a",
+  "description": "Lease liability",
+  "source_labels": [
+   "Lease liability"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_4f9caa575e",
+  "description": "Operating lease liability",
+  "source_labels": [
+   "Operating lease liability"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_8d48fb2f29",
+  "description": "Finance lease obligation",
+  "source_labels": [
+   "Finance lease obligation",
+   "Finance lease obligation"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e7f162d62d",
+  "description": "Notes payable",
+  "source_labels": [
+   "Notes payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_233fc37d86",
+  "description": "Term loan",
+  "source_labels": [
+   "Term loan"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_8c8c489951",
+  "description": "Mortgage payable",
+  "source_labels": [
+   "Mortgage payable",
+   "Mortgage payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f52f429dfe",
+  "description": "Equipment loan",
+  "source_labels": [
+   "Equipment loan"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_04d99194ed",
+  "description": "SBA loan",
+  "source_labels": [
+   "SBA loan"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_630da62826",
+  "description": "Long-term debt",
+  "source_labels": [
+   "Long-term debt",
+   "Long-term debt"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_52a31c1b04",
+  "description": "Bank loan",
+  "source_labels": [
+   "Bank loan"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_1876876bd8",
+  "description": "Due to shareholder",
+  "source_labels": [
+   "Due to shareholder"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_17d2632ad1",
+  "description": "Shareholder loan",
+  "source_labels": [
+   "Shareholder loan",
+   "Shareholder loan"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_994bcba807",
+  "description": "Loan from owner",
+  "source_labels": [
+   "Loan from owner"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_61deeae8ea",
+  "description": "Due to officer",
+  "source_labels": [
+   "Due to officer"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_8726c9559e",
+  "description": "Due to affiliate",
+  "source_labels": [
+   "Due to affiliate",
+   "Due to affiliate"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_873b93ae18",
+  "description": "Deferred tax liability",
+  "source_labels": [
+   "Deferred tax liability"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_59f4530b3e",
+  "description": "Deferred compensation",
+  "source_labels": [
+   "Deferred compensation"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_5992a911a6",
+  "description": "Other long-term liabilities",
+  "source_labels": [
+   "Other long-term liabilities",
+   "Other long-term liabilities"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_494be70af2",
+  "description": "Common stock",
+  "source_labels": [
+   "Common stock"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_573968947a",
+  "description": "Paid-in capital",
+  "source_labels": [
+   "Paid-in capital"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_aefba7afd3",
+  "description": "Retained earnings",
+  "source_labels": [
+   "Retained earnings",
+   "Retained earnings"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fc52371b09",
+  "description": "Members' equity",
+  "source_labels": [
+   "Members' equity"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_426fee8d74",
+  "description": "Partners' capital",
+  "source_labels": [
+   "Partners' capital"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c460ca0d9a",
+  "description": "Treasury stock",
+  "source_labels": [
+   "Treasury stock",
+   "Treasury stock"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_136a94de1e",
+  "description": "Distributions",
+  "source_labels": [
+   "Distributions"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_baefc799b2",
+  "description": "Dividends paid",
+  "source_labels": [
+   "Dividends paid"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c9df21b60c",
+  "description": "Owner draws",
+  "source_labels": [
+   "Owner draws",
+   "Owner draws"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_4df043a6d9",
+  "description": "Salaries - officers and staff",
+  "source_labels": [
+   "Salaries - officers and staff"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_261a61c412",
+  "description": "Salaries and wages - all",
+  "source_labels": [
+   "Salaries and wages - all"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_f23b3ef45d",
+  "description": "Depreciation and amortization",
+  "source_labels": [
+   "Depreciation and amortization",
+   "Depreciation and amortization"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_4d9ceeb535",
+  "description": "Depreciation & amortization",
+  "source_labels": [
+   "Depreciation & amortization"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_a810aca6a6",
+  "description": "Rent and utilities",
+  "source_labels": [
+   "Rent and utilities"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0059d29458",
+  "description": "Taxes and licenses",
+  "source_labels": [
+   "Taxes and licenses",
+   "Taxes and licenses"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_98c2724477",
+  "description": "Taxes & licenses",
+  "source_labels": [
+   "Taxes & licenses"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ac0a799b0b",
+  "description": "Accrued interest",
+  "source_labels": [
+   "Accrued interest"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_028dae314e",
+  "description": "Accrued interest payable",
+  "source_labels": [
+   "Accrued interest payable",
+   "Accrued interest payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_0a006e7158",
+  "description": "Interest receivable",
+  "source_labels": [
+   "Interest receivable"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c1137aee5b",
+  "description": "Note receivable - customer",
+  "source_labels": [
+   "Note receivable - customer"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0c5a1ae94d",
+  "description": "Security deposit",
+  "source_labels": [
+   "Security deposit",
+   "Security deposit"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b5fbf54401",
+  "description": "Utility deposit",
+  "source_labels": [
+   "Utility deposit"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_1a43240c9a",
+  "description": "Lease deposit",
+  "source_labels": [
+   "Lease deposit"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a841c24b61",
+  "description": "Deposits held from customers",
+  "source_labels": [
+   "Deposits held from customers",
+   "Deposits held from customers"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f44fdbefd1",
+  "description": "Customer deposits held",
+  "source_labels": [
+   "Customer deposits held"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_9d288bc198",
+  "description": "Note receivable - officer",
+  "source_labels": [
+   "Note receivable - officer"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_93a292175a",
+  "description": "Officer loan receivable",
+  "source_labels": [
+   "Officer loan receivable",
+   "Officer loan receivable"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fe2b11d89f",
+  "description": "Notes payable - bank",
+  "source_labels": [
+   "Notes payable - bank"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_efb6a93b84",
+  "description": "Note payable",
+  "source_labels": [
+   "Note payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_fdc953d98c",
+  "description": "Income taxes payable",
+  "source_labels": [
+   "Income taxes payable",
+   "Income taxes payable"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_a5371c49b5",
+  "description": "Restricted cash - bonding",
+  "source_labels": [
+   "Restricted cash - bonding"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_56dc71fc28",
+  "description": "Distributions to members",
+  "source_labels": [
+   "Distributions to members"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_d4a4492b20",
+  "description": "Shareholder distributions",
+  "source_labels": [
+   "Shareholder distributions",
+   "Shareholder distributions"
+  ],
+  "statement_hint": "BS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_a1cb1972c2",
+  "description": "Other income - service contracts",
+  "source_labels": [
+   "Other income - service contracts"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_828408e40d",
+  "description": "Interest",
+  "source_labels": [
+   "Interest"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_9c32429c29",
+  "description": "Misc",
+  "source_labels": [
+   "Misc",
+   "Misc"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_d9298a10d1",
+  "description": "Other",
+  "source_labels": [
+   "Other"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c3211e4cc7",
+  "description": "Adjustment",
+  "source_labels": [
+   "Adjustment"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_dd3e11e4df",
+  "description": "Reclass",
+  "source_labels": [
+   "Reclass",
+   "Reclass"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_5df4ba1dc4",
+  "description": "Account 6",
+  "source_labels": [
+   "Account 6"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_a1dcbd2066",
+  "description": "Adj",
+  "source_labels": [
+   "Adj"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_8b71bcf017",
+  "description": "Suspense",
+  "source_labels": [
+   "Suspense",
+   "Suspense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fa2b7cb7a3",
+  "description": "Clearing",
+  "source_labels": [
+   "Clearing"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_847268061a",
+  "description": "Total operating expenses",
+  "source_labels": [
+   "Total operating expenses"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4a391e749e",
+  "description": "Gross profit",
+  "source_labels": [
+   "Gross profit",
+   "Gross profit"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_fff8b618dd",
+  "description": "Net income",
+  "source_labels": [
+   "Net income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_675557ff27",
+  "description": "6626 - Sales",
+  "source_labels": [
+   "6626 - Sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8a6f9ccf83",
+  "description": "6663 - Sales - product",
+  "source_labels": [
+   "6663 - Sales - product"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_2aab6ed19f",
+  "description": "6700 - Product sales",
+  "source_labels": [
+   "6700 - Product sales",
+   "Product sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f0be59cf49",
+  "description": "6737 - Sales revenue",
+  "source_labels": [
+   "6737 - Sales revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8ac50e79ef",
+  "description": "6774 - Revenue",
+  "source_labels": [
+   "6774 - Revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4aa5be4aa2",
+  "description": "6811 - Service revenue",
+  "source_labels": [
+   "6811 - Service revenue",
+   "Service revenue"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_14e4c3fe6e",
+  "description": "6848 - Service income",
+  "source_labels": [
+   "6848 - Service income"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_97392b59f3",
+  "description": "6885 - Fees earned",
+  "source_labels": [
+   "6885 - Fees earned"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_c8d76a5908",
+  "description": "6122 - Contract revenue",
+  "source_labels": [
+   "6122 - Contract revenue",
+   "Contract revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_d91b8cbba0",
+  "description": "6159 - Sales - parts",
+  "source_labels": [
+   "6159 - Sales - parts"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_a255f62f41",
+  "description": "6196 - Parts sales",
+  "source_labels": [
+   "6196 - Parts sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0167814340",
+  "description": "6233 - Sales - service",
+  "source_labels": [
+   "6233 - Sales - service",
+   "Sales - service"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_1843b32638",
+  "description": "6270 - Installation revenue",
+  "source_labels": [
+   "6270 - Installation revenue"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_e095e8296d",
+  "description": "6307 - Sales returns and allowances",
+  "source_labels": [
+   "6307 - Sales returns and allowances"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_2b3d915518",
+  "description": "6344 - Returns & allowances",
+  "source_labels": [
+   "6344 - Returns & allowances",
+   "Returns & allowances"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_adbb5ae5d1",
+  "description": "6381 - Sales discounts",
+  "source_labels": [
+   "6381 - Sales discounts"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8bbacbc984",
+  "description": "6418 - Customer rebates",
+  "source_labels": [
+   "6418 - Customer rebates"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_cb380b32ec",
+  "description": "6455 - Cost of goods sold",
+  "source_labels": [
+   "6455 - Cost of goods sold",
+   "Cost of goods sold"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_15a6adb390",
+  "description": "6492 - COGS",
+  "source_labels": [
+   "6492 - COGS"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_7c6ad67463",
+  "description": "6529 - Cost of sales",
+  "source_labels": [
+   "6529 - Cost of sales"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_f795df35a1",
+  "description": "6566 - Cost of goods sold - materials",
+  "source_labels": [
+   "6566 - Cost of goods sold - materials",
+   "Cost of goods sold - materials"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b1b32428a4",
+  "description": "6603 - Direct materials",
+  "source_labels": [
+   "6603 - Direct materials"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_04fdcb9a16",
+  "description": "6640 - Materials - direct",
+  "source_labels": [
+   "6640 - Materials - direct"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_9516e40d1b",
+  "description": "6677 - Raw material purchases",
+  "source_labels": [
+   "6677 - Raw material purchases",
+   "Raw material purchases"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_abeefaab57",
+  "description": "6714 - Purchases - materials",
+  "source_labels": [
+   "6714 - Purchases - materials"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_82664d8372",
+  "description": "6751 - Direct labor",
+  "source_labels": [
+   "6751 - Direct labor"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_2c773fc93a",
+  "description": "6788 - Direct labour",
+  "source_labels": [
+   "6788 - Direct labour",
+   "Direct labour"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9a8f1e9447",
+  "description": "6825 - Shop labor",
+  "source_labels": [
+   "6825 - Shop labor"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_01ca2a0a54",
+  "description": "6862 - Production wages",
+  "source_labels": [
+   "6862 - Production wages"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_a67349892c",
+  "description": "6899 - Subcontractors",
+  "source_labels": [
+   "6899 - Subcontractors",
+   "Subcontractors"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f7216fbbde",
+  "description": "6136 - Subcontract labor",
+  "source_labels": [
+   "6136 - Subcontract labor"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c0df3d4c2e",
+  "description": "6173 - Outside services - production",
+  "source_labels": [
+   "6173 - Outside services - production"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_09580dbf4c",
+  "description": "6210 - Freight in",
+  "source_labels": [
+   "6210 - Freight in",
+   "Freight in"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_305250f016",
+  "description": "6247 - Officer salaries",
+  "source_labels": [
+   "6247 - Officer salaries"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_115531e315",
+  "description": "6284 - Officers' compensation",
+  "source_labels": [
+   "6284 - Officers' compensation"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_eb61a66096",
+  "description": "6321 - Officer compensation",
+  "source_labels": [
+   "6321 - Officer compensation",
+   "Officer compensation"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_631e1d628a",
+  "description": "6358 - Salaries - officers",
+  "source_labels": [
+   "6358 - Salaries - officers"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ccd34c16ca",
+  "description": "6395 - Owner salary",
+  "source_labels": [
+   "6395 - Owner salary"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_002dc528f2",
+  "description": "6432 - Shareholder salary",
+  "source_labels": [
+   "6432 - Shareholder salary",
+   "Shareholder salary"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_8fea88139b",
+  "description": "6469 - Salaries and wages",
+  "source_labels": [
+   "6469 - Salaries and wages"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_03f8cbc257",
+  "description": "6506 - Wages",
+  "source_labels": [
+   "6506 - Wages"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_1ed81b9df3",
+  "description": "6543 - Salaries - office",
+  "source_labels": [
+   "6543 - Salaries - office",
+   "Salaries - office"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e44a133a1b",
+  "description": "6580 - Salaries & wages - admin",
+  "source_labels": [
+   "6580 - Salaries & wages - admin"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_80a9732a18",
+  "description": "6617 - Hourly wages",
+  "source_labels": [
+   "6617 - Hourly wages"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_33f6e27b3a",
+  "description": "6654 - Payroll - staff",
+  "source_labels": [
+   "6654 - Payroll - staff",
+   "Payroll - staff"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_b9fd24e45f",
+  "description": "6691 - Commissions",
+  "source_labels": [
+   "6691 - Commissions"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_ee40e9c6c6",
+  "description": "6728 - Sales commissions",
+  "source_labels": [
+   "6728 - Sales commissions"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4804dbdd5b",
+  "description": "6765 - Bonuses",
+  "source_labels": [
+   "6765 - Bonuses",
+   "Bonuses"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_a102e8275f",
+  "description": "6802 - Overtime",
+  "source_labels": [
+   "6802 - Overtime"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_03970eb285",
+  "description": "6839 - Payroll taxes",
+  "source_labels": [
+   "6839 - Payroll taxes"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_782770243c",
+  "description": "6876 - Payroll tax expense",
+  "source_labels": [
+   "6876 - Payroll tax expense",
+   "Payroll tax expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_cf5ffe0256",
+  "description": "6113 - FICA expense",
+  "source_labels": [
+   "6113 - FICA expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_2cddbfdea4",
+  "description": "6150 - Employer payroll taxes",
+  "source_labels": [
+   "6150 - Employer payroll taxes"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_847e54bd8b",
+  "description": "6187 - FUTA/SUTA",
+  "source_labels": [
+   "6187 - FUTA/SUTA",
+   "FUTA/SUTA"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_98ba625adb",
+  "description": "6224 - Health insurance - employees",
+  "source_labels": [
+   "6224 - Health insurance - employees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_9567b82be1",
+  "description": "6261 - Employee benefits",
+  "source_labels": [
+   "6261 - Employee benefits"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_3b52f53d0b",
+  "description": "6298 - 401(k) match",
+  "source_labels": [
+   "6298 - 401(k) match",
+   "401(k) match"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_9d903056c7",
+  "description": "6335 - Retirement plan contribution",
+  "source_labels": [
+   "6335 - Retirement plan contribution"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_f73e93bfdf",
+  "description": "6372 - Workers comp insurance",
+  "source_labels": [
+   "6372 - Workers comp insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_30290ccc90",
+  "description": "6409 - ESOP contribution",
+  "source_labels": [
+   "6409 - ESOP contribution",
+   "ESOP contribution"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_724277c290",
+  "description": "6446 - Rent expense",
+  "source_labels": [
+   "6446 - Rent expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_404ba514a4",
+  "description": "6483 - Rent",
+  "source_labels": [
+   "6483 - Rent"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_0cbb36b01f",
+  "description": "6520 - Building rent",
+  "source_labels": [
+   "6520 - Building rent",
+   "Building rent"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f500500741",
+  "description": "6557 - Office lease",
+  "source_labels": [
+   "6557 - Office lease"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_8c0062eaf3",
+  "description": "6594 - Occupancy",
+  "source_labels": [
+   "6594 - Occupancy"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_601a919618",
+  "description": "6631 - CAM charges",
+  "source_labels": [
+   "6631 - CAM charges",
+   "CAM charges"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_015b8dac5a",
+  "description": "6668 - Utilities",
+  "source_labels": [
+   "6668 - Utilities"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_5df42233c7",
+  "description": "6705 - Electric",
+  "source_labels": [
+   "6705 - Electric"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_ab2281986b",
+  "description": "6742 - Gas & electric",
+  "source_labels": [
+   "6742 - Gas & electric",
+   "Gas & electric"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_699e551d82",
+  "description": "6779 - Water and sewer",
+  "source_labels": [
+   "6779 - Water and sewer"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_f182d770cb",
+  "description": "6816 - Telephone",
+  "source_labels": [
+   "6816 - Telephone"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_8627572989",
+  "description": "6853 - Internet & telephone",
+  "source_labels": [
+   "6853 - Internet & telephone",
+   "Internet & telephone"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_bafc2b9f32",
+  "description": "6890 - Repairs and maintenance",
+  "source_labels": [
+   "6890 - Repairs and maintenance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_b7cbcfbf2c",
+  "description": "6127 - Repairs & Maint.",
+  "source_labels": [
+   "6127 - Repairs & Maint."
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_4830cf2873",
+  "description": "6164 - R&M",
+  "source_labels": [
+   "6164 - R&M",
+   "R&M"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_1b3bcb5290",
+  "description": "6201 - Building maintenance",
+  "source_labels": [
+   "6201 - Building maintenance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_7286c93b77",
+  "description": "6238 - Equipment repairs",
+  "source_labels": [
+   "6238 - Equipment repairs"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_d6bf19b21c",
+  "description": "6275 - Janitorial",
+  "source_labels": [
+   "6275 - Janitorial",
+   "Janitorial"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_0f98c95b2a",
+  "description": "6312 - Insurance",
+  "source_labels": [
+   "6312 - Insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_fe52218a03",
+  "description": "6349 - Insurance - general liability",
+  "source_labels": [
+   "6349 - Insurance - general liability"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_b56fa8fc52",
+  "description": "6386 - Property insurance",
+  "source_labels": [
+   "6386 - Property insurance",
+   "Property insurance"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_93c8e8a922",
+  "description": "6423 - Auto insurance",
+  "source_labels": [
+   "6423 - Auto insurance"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_1a73bf373b",
+  "description": "6460 - Umbrella policy",
+  "source_labels": [
+   "6460 - Umbrella policy"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_04d86409eb",
+  "description": "6497 - Insurance expense",
+  "source_labels": [
+   "6497 - Insurance expense",
+   "Insurance expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_3ec2585b96",
+  "description": "6534 - Professional fees",
+  "source_labels": [
+   "6534 - Professional fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_f2d39d8fe8",
+  "description": "6571 - Legal fees",
+  "source_labels": [
+   "6571 - Legal fees"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_ca9df7ddd1",
+  "description": "6608 - Accounting fees",
+  "source_labels": [
+   "6608 - Accounting fees",
+   "Accounting fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_e6878bdfd8",
+  "description": "6645 - Audit fees",
+  "source_labels": [
+   "6645 - Audit fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_80d41ca6b9",
+  "description": "6682 - Consulting fees",
+  "source_labels": [
+   "6682 - Consulting fees"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_52be08567a",
+  "description": "6719 - Tax preparation",
+  "source_labels": [
+   "6719 - Tax preparation",
+   "Tax preparation"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_165c2d69c6",
+  "description": "6756 - Advertising",
+  "source_labels": [
+   "6756 - Advertising"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_a012367c60",
+  "description": "6793 - Marketing",
+  "source_labels": [
+   "6793 - Marketing"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_6fbc42dd15",
+  "description": "6830 - Advertising & promotion",
+  "source_labels": [
+   "6830 - Advertising & promotion",
+   "Advertising & promotion"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_845cdce19f",
+  "description": "6867 - Trade shows",
+  "source_labels": [
+   "6867 - Trade shows"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c6428c3124",
+  "description": "6104 - Website expense",
+  "source_labels": [
+   "6104 - Website expense"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_07b6f70527",
+  "description": "6141 - Travel",
+  "source_labels": [
+   "6141 - Travel",
+   "Travel"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_495d89bf8f",
+  "description": "6178 - Travel & entertainment",
+  "source_labels": [
+   "6178 - Travel & entertainment"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_c924aece8a",
+  "description": "6215 - Meals and entertainment",
+  "source_labels": [
+   "6215 - Meals and entertainment"
+  ],
+  "statement_hint": null,
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ },
+ {
+  "line_item_ref": "li_9d60196a37",
+  "description": "6252 - Lodging",
+  "source_labels": [
+   "6252 - Lodging",
+   "Lodging"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023"
+  ]
+ },
+ {
+  "line_item_ref": "li_f467441d99",
+  "description": "6289 - Mileage reimbursement",
+  "source_labels": [
+   "6289 - Mileage reimbursement"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024"
+  ]
+ },
+ {
+  "line_item_ref": "li_f5df55319d",
+  "description": "6326 - Office supplies",
+  "source_labels": [
+   "6326 - Office supplies"
+  ],
+  "statement_hint": "IS",
+  "periods": [
+   "FY2023",
+   "FY2024",
+   "FY2025"
+  ]
+ }
+]

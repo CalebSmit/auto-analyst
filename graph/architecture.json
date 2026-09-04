@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:5a2d83997a62936011a36f89238bbefcdf75bdd6871556d3730962b0c62dc6aa",
+  "source_digest": "sha256:1ca00e6876a88bc69ad21f62d2c1ad499abef4218ae7a5a2cc5456c96fafc3fd",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -747,7 +747,7 @@
       "group": "data",
       "exec": "code",
       "desc": "Approved and corrected classifications from past engagements, retrieved as few-shot examples. Masked, and <b>scoped</b>: a query is built from the engagement's resolved scope, so a Corporate Finance decision is never available to an ESOP valuation. For a returning client, that client's own prior decisions are retrieved first.",
-      "impl": "Embedding index over masked line-item descriptions with their approved category and rationale. Written to only by the Precedent Write-back node, downstream of a human decision.",
+      "impl": "A ranked index over masked line-item descriptions with their approved category, flags and rationale: deterministic token overlap through P24 (the build is local and keyless), an embedding port after. The ranker only orders rows the scope already admitted. Written to only by the Precedent Write-back node, downstream of a human decision - enforced by the API, by the store re-reading the decision, and by a foreign key and BEFORE INSERT trigger on the table itself.",
       "full": "This is the loop that makes review worth doing. Without it an analyst corrects the same mis-tag forever; with it the correction is the signal and the review burden falls over time. Nothing enters without a human having approved it — and nothing leaves outside the scope it was learned in, which is the substantive difference between a repeat client and a new one."
     },
     {

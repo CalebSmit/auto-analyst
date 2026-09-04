@@ -27,6 +27,7 @@ batch. For a returning client, that client's own prior decisions are placed firs
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 from dataclasses import dataclass
@@ -53,6 +54,9 @@ FOUNDATIONS_DIR = REPO_ROOT / "foundations"
 # The framing between sections of the assembled context. Fixed, and part of the bytes
 # that are hashed: the hash covers what the model was shown, framing included.
 FRAME = "\n=== {kind}: {name} ({digest}) ===\n"
+PRECEDENTS_PER_CALL = 24
+"""The most examples one call is shown. The blueprint's cost model tags twenty items per
+call; one example each plus a few from the scope is the whole budget."""
 
 __all__ = [
     "AssembledContext",
@@ -106,6 +110,10 @@ class PrecedentQuery:
     overlay. Never wider than the scope resolved."""
     skill: str
     limit: int = 8
+    terms: tuple[str, ...] = ()
+    """Masked line-item descriptions the step is about, for ranking within the scope.
+    Ranking only: a term cannot widen where the store looks, because the scope fields
+    above are what the store's WHERE clause is built from and the terms are not."""
 
     @property
     def scope_path(self) -> str:
@@ -146,6 +154,9 @@ class ContextRequest:
     """On a repair pass, the guard's structured failure. The changed input that makes an
     iteration count as one."""
     tool_results: tuple[ContentRef, ...] = ()
+    precedent_terms: tuple[str, ...] = ()
+    """Masked descriptions the precedent query ranks by. From the dispatcher, after the
+    masker; a value the masker has not seen does not belong here."""
 
 
 @dataclass(frozen=True)
@@ -307,7 +318,8 @@ class ContextBuilder:
         there is no field here a caller could widen it through.
         """
         scope = request.scope.scope
-        return PrecedentQuery(
+        terms = tuple(t for t in request.precedent_terms if t.strip())
+        query = PrecedentQuery(
             engagement_id=request.engagement_id,
             client_id=request.client_id,
             practice=scope.practice,
@@ -316,6 +328,12 @@ class ContextBuilder:
             precedent_scope=resolved.precedent_scope or request.scope.precedent_scope,
             skill=resolved.skill.key,
         )
+        if terms:
+            # Room for one example per item, within a ceiling; never fewer than the
+            # default, so a short batch still sees the scope's best examples.
+            limit = min(PRECEDENTS_PER_CALL, max(query.limit, len(terms)))
+            query = dataclasses.replace(query, terms=terms, limit=limit)
+        return query
 
     def _checked(
         self, precedents: tuple[Precedent, ...], query: PrecedentQuery

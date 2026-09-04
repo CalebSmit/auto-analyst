@@ -81,6 +81,14 @@ contracts:
     version: 1.0.0
     file: skills/line-item-tagging.schema.json
     kind: skill_output
+  - id: skills/line-item-tagging-proposal
+    version: 1.0.0
+    file: skills/line-item-tagging-proposal.schema.json
+    kind: skill_proposal
+    note: >-
+      What the model returns for line-item-tagging: a category, two flags, a confidence
+      and a rationale per item, and the precedent it followed. No figure anywhere; the
+      procedure checks every ref, category and precedent id before it becomes output.
   - id: skills/ebitda-normalization
     version: 1.0.0
     file: skills/ebitda-normalization.schema.json

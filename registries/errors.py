@@ -154,6 +154,10 @@ RATIONALE_REQUIRED = "PROCESS.RATIONALE_REQUIRED"
 WATCH_OVERLAP = "INTAKE.WATCH_OVERLAP"
 ENGAGEMENT_LOCKED = "PROCESS.ENGAGEMENT_LOCKED"
 INJECTION_DETECTED = "INTAKE.INJECTION_DETECTED"
+UNKNOWN_TAXONOMY = "SCOPE.UNKNOWN_TAXONOMY"
+UNKNOWN_LINE_ITEM = "SKILL.UNKNOWN_LINE_ITEM"
+UNKNOWN_PRECEDENT = "SKILL.UNKNOWN_PRECEDENT"
+PRECEDENT_NO_DECISION = "PROCESS.PRECEDENT_NO_DECISION"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -476,6 +480,35 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "locator that does not exist in the Source Parse Store. The hash is well-formed "
         "and the document is not here. A figure that cannot be traced to a file the run "
         "actually read is not evidence of anything.",
+    ),
+    UNKNOWN_TAXONOMY: (
+        "config",
+        "The run pinned a chart-of-accounts taxonomy version that is not on disk, or the "
+        "file at that version is malformed. Nothing tags against a taxonomy it cannot "
+        "read. Add the version under taxonomy/ or pin one that exists; never edit a "
+        "listed version in place, because recorded runs cite it.",
+    ),
+    UNKNOWN_LINE_ITEM: (
+        "model",
+        "A tagging proposal names a line_item_ref that is not in the normalized table "
+        "the step was given, or names one twice. The model was shown every ref; a tag "
+        "on a line that does not exist is not a tag. The step is refused; on a repair "
+        "pass the proposal has to account for exactly the refs it was given.",
+    ),
+    UNKNOWN_PRECEDENT: (
+        "model",
+        "A tagging proposal cited a precedent id the store does not hold within this "
+        "engagement's scope. A model cannot invent a precedent, and one from outside "
+        "the scope was never shown to it. The citation is dropped and the item goes to "
+        "a person; the tag itself may still be right.",
+    ),
+    PRECEDENT_NO_DECISION: (
+        "system",
+        "Something asked the Precedent Store to record an example with no human "
+        "decision behind it: no decision at that id, a rejection or an escalation, or a "
+        "decision naming nobody. The store has exactly one writer and it is downstream "
+        "of a person. Nothing was written; find the caller, because this is a bypass "
+        "attempt rather than a data problem.",
     ),
     UNMASK_RESIDUAL: (
         "system",

@@ -1,0 +1,409 @@
+# The firm chart-of-accounts taxonomy, version 1.0.0.
+#
+# The canonical category list the tagging skills work against, with the two inclusion
+# flags each category carries by default. Data rather than prompt text, so the people who
+# own the convention can review and version it without touching a skill. The version a
+# run used is pinned in its manifest and checked by the Policy Gate on every lookup.
+#
+# Every category declares:
+#   statement         IS or BS - which statement the line belongs to
+#   section           where on that statement it sits
+#   excluded_from_al  default: is the line taken OUT of the operating assets & liabilities
+#                     base (non-operating, valued or adjusted separately)? Always false on
+#                     an income statement line - the flag is a balance-sheet question.
+#   include_in_nwc    default: does the line count toward net working capital? Always
+#                     false on an income statement line.
+#   cues              words that usually mean this category. A hint for a reader of the
+#                     file, not a rule: the tagging skill reads descriptions, not cues,
+#                     and a proposal that disagrees with a cue is not wrong for that.
+#
+# A proposal whose flags differ from the category's defaults is allowed - edge cases are
+# real - and always goes to a person, because a departure from the firm rule is a
+# judgment call. `unmapped` is the one category a proposal may pair with
+# `uncategorisable: true`; it means "a person assigns this", never "probably other".
+#
+# Synthetic defaults. Chartwell's own conventions replace these at the P24 pilot, under
+# a new version; this file stays listed for as long as any recorded run cites it.
+
+version: 1.0.0
+title: Chartwell chart-of-accounts taxonomy
+effective: 2026-09-01
+
+rules:
+  al_exclusion: >-
+    Excluded from A/L marks a balance-sheet line that is removed from the operating
+    asset and liability base and dealt with separately: excess cash, investments and
+    notes not needed in operations, amounts due to or from owners and related parties,
+    interest-bearing debt, and equity. Operating assets and liabilities stay in.
+  nwc_inclusion: >-
+    Include in NWC marks the operating current items that make up net working capital:
+    receivables, inventory, prepaids and other operating current assets on one side;
+    payables, accrued liabilities, deferred revenue and other operating current
+    liabilities on the other. Cash and interest-bearing debt are never NWC, whatever
+    their maturity.
+  income_statement: >-
+    An income statement line carries both flags false. The flags describe the balance
+    sheet; a revenue or expense line has no A/L or NWC treatment to record.
+  departures: >-
+    A tag may depart from a category's default flags when the description warrants it.
+    Every departure is reviewed by a person; none is auto-accepted.
+
+categories:
+  # ------------------------------------------------------------- income statement
+  - id: revenue
+    label: Revenue
+    statement: IS
+    section: revenue
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [sales, revenue, fees earned, service income, contract revenue]
+  - id: contra_revenue
+    label: Returns, allowances and discounts
+    statement: IS
+    section: revenue
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [returns, allowances, discounts, rebates]
+  - id: cost_of_sales
+    label: Cost of sales
+    statement: IS
+    section: cost_of_sales
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [cost of goods, cogs, cost of sales, direct materials, materials, direct labor, labor, labour, production, purchases, subcontract, subcontractors, outside services, freight in]
+  - id: officer_compensation
+    label: Officer compensation
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [officer, officers, owner salary, owner comp, shareholder salary, president salary]
+  - id: salaries_wages
+    label: Salaries and wages
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [salaries, salary, wages, payroll, hourly, overtime, commissions, sales commissions, bonus, bonuses]
+  - id: payroll_taxes
+    label: Payroll taxes
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [payroll tax, payroll taxes, fica, futa, suta, employer tax, employer payroll taxes]
+  - id: employee_benefits
+    label: Employee benefits
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [health insurance, benefits, 401k, 401(k), retirement plan, workers comp, esop contribution]
+  - id: rent
+    label: Rent and occupancy
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [rent, lease, office lease, occupancy, cam charges]
+  - id: utilities
+    label: Utilities
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [utilities, electric, gas, water, telephone, internet]
+  - id: repairs_maintenance
+    label: Repairs and maintenance
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [repairs, maintenance, r&m, janitorial, service contracts]
+  - id: insurance
+    label: Insurance
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [insurance, liability, property insurance, auto insurance, umbrella]
+  - id: professional_fees
+    label: Professional fees
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [legal, accounting, audit, consulting, professional fees, tax prep, tax preparation]
+  - id: advertising_marketing
+    label: Advertising and marketing
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [advertising, marketing, promotion, trade show, trade shows, website]
+  - id: travel_entertainment
+    label: Travel and entertainment
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [travel, meals, entertainment, lodging, mileage]
+  - id: office_supplies
+    label: Office and supplies
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [office, supplies, postage, printing, software subscriptions, dues]
+  - id: vehicle_expense
+    label: Vehicle expense
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [vehicle, auto expense, fuel, truck]
+  - id: bad_debt
+    label: Bad debt expense
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [bad debt, uncollectible, write-off]
+  - id: depreciation
+    label: Depreciation
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [depreciation]
+  - id: amortization
+    label: Amortization
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [amortization]
+  - id: other_operating_expense
+    label: Other operating expense
+    statement: IS
+    section: operating_expenses
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [miscellaneous, other expense, bank charges, licenses, permits, training]
+  - id: interest_expense
+    label: Interest expense
+    statement: IS
+    section: other_income_expense
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [interest, interest expense, finance charges, loan interest]
+  - id: interest_income
+    label: Interest and dividend income
+    statement: IS
+    section: other_income_expense
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [interest income, dividend income, investment income]
+  - id: gain_loss_on_disposal
+    label: Gain or loss on disposal
+    statement: IS
+    section: other_income_expense
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [gain on sale, loss on sale, disposal, gain on disposition]
+  - id: other_income_expense
+    label: Other non-operating income or expense
+    statement: IS
+    section: other_income_expense
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [other income, rental income, ppp forgiveness, settlement, non-operating]
+  - id: income_tax
+    label: Income tax
+    statement: IS
+    section: taxes
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [income tax, state tax, franchise tax, provision for taxes]
+
+  # ------------------------------------------------------------- balance sheet
+  - id: cash
+    label: Cash and equivalents
+    statement: BS
+    section: current_assets
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [cash, checking, savings, money market, petty cash]
+  - id: accounts_receivable
+    label: Accounts receivable
+    statement: BS
+    section: current_assets
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [accounts receivable, a/r, trade receivables, receivables]
+  - id: allowance_doubtful
+    label: Allowance for doubtful accounts
+    statement: BS
+    section: current_assets
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [allowance, doubtful accounts, reserve for bad debt]
+  - id: inventory
+    label: Inventory
+    statement: BS
+    section: current_assets
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [inventory, raw materials, work in process, wip, finished goods]
+  - id: prepaid_expenses
+    label: Prepaid expenses
+    statement: BS
+    section: current_assets
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [prepaid, deposits, retainers]
+  - id: other_current_assets
+    label: Other current assets
+    statement: BS
+    section: current_assets
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [other current, employee advances, contract assets, unbilled, interest receivable, note receivable]
+  - id: related_party_receivable
+    label: Due from owners and related parties
+    statement: BS
+    section: current_assets
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [due from shareholder, due from officer, due from related, loan to owner, affiliate receivable, due from affiliate, officer loan, note receivable officer]
+  - id: investments
+    label: Investments and marketable securities
+    statement: BS
+    section: noncurrent_assets
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [investments, marketable securities, brokerage, cash surrender value, csv]
+  - id: ppe
+    label: Property, plant and equipment
+    statement: BS
+    section: noncurrent_assets
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [equipment, machinery, vehicles, furniture, fixtures, buildings, land, leasehold improvements, computers]
+  - id: accumulated_depreciation
+    label: Accumulated depreciation
+    statement: BS
+    section: noncurrent_assets
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [accumulated depreciation, accum depr, a/d]
+  - id: intangibles
+    label: Intangible assets and goodwill
+    statement: BS
+    section: noncurrent_assets
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [goodwill, intangible, customer list, trademark, trademarks, non-compete, accumulated amortization]
+  - id: right_of_use_asset
+    label: Right-of-use asset
+    statement: BS
+    section: noncurrent_assets
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [right of use, rou asset, operating lease asset]
+  - id: other_noncurrent_assets
+    label: Other non-current assets
+    statement: BS
+    section: noncurrent_assets
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [security deposit, utility deposit, lease deposit, long-term deposit, other assets, deferred tax asset]
+  - id: accounts_payable
+    label: Accounts payable
+    statement: BS
+    section: current_liabilities
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [accounts payable, a/p, trade payables, payables]
+  - id: accrued_liabilities
+    label: Accrued liabilities
+    statement: BS
+    section: current_liabilities
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [accrued, accrued payroll, accrued expenses, accrued vacation, wages payable, sales tax payable, payroll taxes payable]
+  - id: deferred_revenue
+    label: Deferred revenue and customer deposits
+    statement: BS
+    section: current_liabilities
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [deferred revenue, customer deposits, unearned, billings in excess, contract liabilities]
+  - id: other_current_liabilities
+    label: Other current liabilities
+    statement: BS
+    section: current_liabilities
+    excluded_from_al: false
+    include_in_nwc: true
+    cues: [other current liabilities, income taxes payable, warranty reserve]
+  - id: line_of_credit
+    label: Line of credit
+    statement: BS
+    section: current_liabilities
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [line of credit, loc, revolver, revolving]
+  - id: current_debt
+    label: Current portion of long-term debt
+    statement: BS
+    section: current_liabilities
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [current portion, current maturities, cpltd, notes payable current]
+  - id: lease_liability
+    label: Lease liability
+    statement: BS
+    section: liabilities
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [lease liability, operating lease liability, finance lease]
+  - id: long_term_debt
+    label: Long-term debt
+    statement: BS
+    section: noncurrent_liabilities
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [notes payable, term loan, mortgage, equipment loan, sba loan, long-term debt, bank loan]
+  - id: related_party_payable
+    label: Due to owners and related parties
+    statement: BS
+    section: noncurrent_liabilities
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [due to shareholder, due to officer, shareholder loan, loan from owner, due to related, affiliate payable, due to affiliate]
+  - id: other_noncurrent_liabilities
+    label: Other non-current liabilities
+    statement: BS
+    section: noncurrent_liabilities
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: [deferred tax liability, deferred compensation, other long-term liabilities]
+  - id: equity
+    label: Equity
+    statement: BS
+    section: equity
+    excluded_from_al: true
+    include_in_nwc: false
+    cues: [common stock, capital stock, paid-in capital, retained earnings, members equity, partners capital, treasury stock, distributions, dividends, draws]
+
+  # ------------------------------------------------------------- the honest answer
+  - id: unmapped
+    label: Does not map - a person assigns
+    statement: NA
+    section: unmapped
+    excluded_from_al: false
+    include_in_nwc: false
+    cues: []
+    note: >-
+      The only category that may carry `uncategorisable: true`. For a description too
+      sparse or too odd to place; never for "probably other". Always reviewed.

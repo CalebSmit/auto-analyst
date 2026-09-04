@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/line-item-tagging-proposal@1.0.0",
+  "title": "Line-item tagging proposal",
+  "description": "What the model returns: one tag per line item it was given - a category id from the pinned taxonomy, the two inclusion flags, a confidence and a one-line rationale - and, where it leaned on one, the id of a precedent it was shown. No figure, no amount, no total: the model never sees a value and this schema has nowhere to put one. `confidence` is the only numeric property, and it is the model's own uncertainty, which the Confidence Router reads. Everything the proposal claims is checked by the procedure before it becomes output: the refs against the input, the categories against the taxonomy, the precedent ids against the store, in scope.",
+  "x-skill": "line-item-tagging",
+  "x-proposal": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "produced_by", "items"],
+  "properties": {
+    "schema_version": { "const": "skills/line-item-tagging-proposal@1.0.0" },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^line[-]item[-]tagging@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "line_item_ref",
+          "category",
+          "excluded_from_al",
+          "include_in_nwc",
+          "confidence",
+          "rationale"
+        ],
+        "properties": {
+          "line_item_ref": { "type": "string", "minLength": 1 },
+          "category": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "A category id from the pinned taxonomy, exactly as listed in the payload. `unmapped` when the description does not map."
+          },
+          "excluded_from_al": { "type": "boolean" },
+          "include_in_nwc": { "type": "boolean" },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How sure the model is of the category and both flags together. Below the engagement's bar it goes to a person."
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 400,
+            "description": "One line: what in the description decided it. Never an amount."
+          },
+          "precedent_ref": {
+            "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }],
+            "description": "The id of a precedent shown in the context that this tag follows, or null. An id the store does not hold in this scope is dropped and the item is reviewed."
+          },
+          "uncategorisable": {
+            "type": "boolean",
+            "description": "The description is too sparse or too odd to place. Pairs with category `unmapped` and nothing else. Set this rather than guessing."
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Anything about the batch as a whole a reviewer should know."
+    }
+  }
+}

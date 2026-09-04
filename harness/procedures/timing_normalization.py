@@ -47,6 +47,10 @@ class TimingNormalization:
     name = "timing-normalization"
     proposal_contract = PROPOSAL_CONTRACT
 
+    def terms(self, inputs: TimingInputs) -> tuple[str, ...]:
+        """Alignment retrieves no precedents; there is nothing to rank by."""
+        return ()
+
     def escalate(self, inputs: TimingInputs) -> str | None:
         """A file flagged ambiguous on scale or period type stops here, before the model."""
         for f in inputs.files:

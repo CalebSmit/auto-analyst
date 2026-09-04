@@ -1,0 +1,3333 @@
+[
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_e04eb29020",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_c9b5f6bdcb",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_da499abb8e",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_5e807fad02",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_371f7e4223",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_027bc95a8c",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_a0b2a43535",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'service income' in the description"
+   },
+   {
+    "line_item_ref": "li_fb80dfbb27",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'fees earned' in the description"
+   },
+   {
+    "line_item_ref": "li_8c76682d63",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'contract revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_4b2beb9b44",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_25a785f56e",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_1cd35af801",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_a4499dc3f4",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_664685104a",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'returns' in the description"
+   },
+   {
+    "line_item_ref": "li_b937e527f7",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.76,
+    "rationale": "'returns' in the description"
+   },
+   {
+    "line_item_ref": "li_c43e77bfcf",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.68,
+    "rationale": "'discounts' in the description"
+   },
+   {
+    "line_item_ref": "li_1dc9e1f6a5",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rebates' in the description"
+   },
+   {
+    "line_item_ref": "li_bddda57e2d",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cost of goods' in the description"
+   },
+   {
+    "line_item_ref": "li_07381122ef",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cogs' in the description"
+   },
+   {
+    "line_item_ref": "li_5f89a626da",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cost of sales' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_bb9e8148da",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cost of goods' in the description"
+   },
+   {
+    "line_item_ref": "li_ec4b47d831",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'direct materials' in the description"
+   },
+   {
+    "line_item_ref": "li_db26521fce",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'direct materials' in the description"
+   },
+   {
+    "line_item_ref": "li_ade855c3e7",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.8,
+    "rationale": "'raw materials' in the description"
+   },
+   {
+    "line_item_ref": "li_712733298e",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'materials' in the description"
+   },
+   {
+    "line_item_ref": "li_532bf3243c",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'direct labor' in the description"
+   },
+   {
+    "line_item_ref": "li_c6dfbfee28",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'labour' in the description"
+   },
+   {
+    "line_item_ref": "li_3a02ff4cc3",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.93,
+    "rationale": "'labor' in the description"
+   },
+   {
+    "line_item_ref": "li_c489d59840",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'production' in the description"
+   },
+   {
+    "line_item_ref": "li_3a3866616b",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'subcontractors' in the description"
+   },
+   {
+    "line_item_ref": "li_c3630257f3",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'labor' in the description"
+   },
+   {
+    "line_item_ref": "li_9774c89aad",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'outside services' in the description"
+   },
+   {
+    "line_item_ref": "li_79edfcfff2",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'freight in' in the description"
+   },
+   {
+    "line_item_ref": "li_4220e28dbc",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_220fbacb49",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_80e537d060",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.93,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_c4c381752b",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_5c361e5768",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'owner salary' in the description"
+   },
+   {
+    "line_item_ref": "li_f1a6ef394a",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'shareholder salary' in the description"
+   },
+   {
+    "line_item_ref": "li_c80401853b",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'salaries' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_678db3bc7b",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'wages' in the description"
+   },
+   {
+    "line_item_ref": "li_df7c7da258",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.68,
+    "rationale": "'office' in the description"
+   },
+   {
+    "line_item_ref": "li_61f7a66e8f",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'salaries' in the description"
+   },
+   {
+    "line_item_ref": "li_fc42232820",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'wages' in the description"
+   },
+   {
+    "line_item_ref": "li_9eebbf7926",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'payroll' in the description"
+   },
+   {
+    "line_item_ref": "li_0564798a1c",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'commissions' in the description"
+   },
+   {
+    "line_item_ref": "li_9bda69c7f1",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales commissions' in the description"
+   },
+   {
+    "line_item_ref": "li_351e1a7b84",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'bonuses' in the description"
+   },
+   {
+    "line_item_ref": "li_d998262a26",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'overtime' in the description"
+   },
+   {
+    "line_item_ref": "li_c1b73b1f5f",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'payroll taxes' in the description"
+   },
+   {
+    "line_item_ref": "li_5cfd99355a",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'payroll tax' in the description"
+   },
+   {
+    "line_item_ref": "li_fc50e66041",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.93,
+    "rationale": "'fica' in the description"
+   },
+   {
+    "line_item_ref": "li_9f0f3a19a4",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'employer payroll taxes' in the description"
+   },
+   {
+    "line_item_ref": "li_09d9a4ba91",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'futa' in the description"
+   },
+   {
+    "line_item_ref": "li_f8403ca95d",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'health insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_b681f7d1a2",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.93,
+    "rationale": "'benefits' in the description"
+   },
+   {
+    "line_item_ref": "li_b0c3885d8c",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'401(k)' in the description"
+   },
+   {
+    "line_item_ref": "li_942535e171",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'retirement plan' in the description"
+   },
+   {
+    "line_item_ref": "li_8004b7d6d1",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'workers comp' in the description"
+   },
+   {
+    "line_item_ref": "li_4d18b83a78",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'esop contribution' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_c6897efa50",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rent' in the description"
+   },
+   {
+    "line_item_ref": "li_0e9fd1596c",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rent' in the description"
+   },
+   {
+    "line_item_ref": "li_61f43fe751",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'rent' in the description"
+   },
+   {
+    "line_item_ref": "li_61ea9332cf",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'office lease' in the description"
+   },
+   {
+    "line_item_ref": "li_fd29c83362",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'occupancy' in the description"
+   },
+   {
+    "line_item_ref": "li_7b602f7c72",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cam charges' in the description"
+   },
+   {
+    "line_item_ref": "li_abe2c417d1",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'utilities' in the description"
+   },
+   {
+    "line_item_ref": "li_44b3c5003d",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'electric' in the description"
+   },
+   {
+    "line_item_ref": "li_8057335483",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'electric' in the description"
+   },
+   {
+    "line_item_ref": "li_5053890b88",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'water' in the description"
+   },
+   {
+    "line_item_ref": "li_7339725159",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'telephone' in the description"
+   },
+   {
+    "line_item_ref": "li_277415a7cb",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'telephone' in the description"
+   },
+   {
+    "line_item_ref": "li_617aedaa3a",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'repairs' in the description"
+   },
+   {
+    "line_item_ref": "li_753e3bf7db",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'repairs' in the description"
+   },
+   {
+    "line_item_ref": "li_474699f2ca",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'r&m' in the description"
+   },
+   {
+    "line_item_ref": "li_a48c27551d",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.62,
+    "rationale": "'buildings' in the description"
+   },
+   {
+    "line_item_ref": "li_ee5c9a8f3d",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'repairs' in the description"
+   },
+   {
+    "line_item_ref": "li_2d23c6c37a",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'janitorial' in the description"
+   },
+   {
+    "line_item_ref": "li_64e8937abc",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_e4b9d68baf",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'insurance' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_45e5d54206",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'property insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_9dddc25ac7",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'auto insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_6ec5f23daf",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'umbrella' in the description"
+   },
+   {
+    "line_item_ref": "li_6ea5ba5485",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_9952a7860e",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'professional fees' in the description"
+   },
+   {
+    "line_item_ref": "li_9aea673c33",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'legal' in the description"
+   },
+   {
+    "line_item_ref": "li_ebce3134ed",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'accounting' in the description"
+   },
+   {
+    "line_item_ref": "li_b8403cd05f",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'audit' in the description"
+   },
+   {
+    "line_item_ref": "li_1ddab7dfa3",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'consulting' in the description"
+   },
+   {
+    "line_item_ref": "li_ac77b80603",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'tax preparation' in the description"
+   },
+   {
+    "line_item_ref": "li_d27a4a1080",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'advertising' in the description"
+   },
+   {
+    "line_item_ref": "li_e2a530e251",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'marketing' in the description"
+   },
+   {
+    "line_item_ref": "li_247aadb7ce",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'advertising' in the description"
+   },
+   {
+    "line_item_ref": "li_087c9c16e8",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'trade show' in the description"
+   },
+   {
+    "line_item_ref": "li_627c2e8177",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'website' in the description"
+   },
+   {
+    "line_item_ref": "li_0209442e11",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'travel' in the description"
+   },
+   {
+    "line_item_ref": "li_867cb42ec1",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'travel' in the description"
+   },
+   {
+    "line_item_ref": "li_61f265f620",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'meals' in the description"
+   },
+   {
+    "line_item_ref": "li_c1fb4bfa83",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'lodging' in the description"
+   },
+   {
+    "line_item_ref": "li_f5f7f5485f",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'mileage' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_b3a348ecfc",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'office' in the description"
+   },
+   {
+    "line_item_ref": "li_0e7323ffcb",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'office' in the description"
+   },
+   {
+    "line_item_ref": "li_61a9ed08e9",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'postage' in the description"
+   },
+   {
+    "line_item_ref": "li_aae5570e24",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'printing' in the description"
+   },
+   {
+    "line_item_ref": "li_85571244d9",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'software subscriptions' in the description"
+   },
+   {
+    "line_item_ref": "li_6b6dafc7b1",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'dues' in the description"
+   },
+   {
+    "line_item_ref": "li_bd1f5b7acc",
+    "category": "vehicle_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'vehicle' in the description"
+   },
+   {
+    "line_item_ref": "li_e832245de4",
+    "category": "vehicle_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'auto expense' in the description"
+   },
+   {
+    "line_item_ref": "li_acbe4bfc77",
+    "category": "vehicle_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'fuel' in the description"
+   },
+   {
+    "line_item_ref": "li_1d9de0d6a9",
+    "category": "vehicle_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'truck' in the description"
+   },
+   {
+    "line_item_ref": "li_bd868c0952",
+    "category": "bad_debt",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'bad debt' in the description"
+   },
+   {
+    "line_item_ref": "li_5a31bdaeaa",
+    "category": "bad_debt",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'bad debt' in the description"
+   },
+   {
+    "line_item_ref": "li_fb38c5377d",
+    "category": "bad_debt",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'uncollectible' in the description"
+   },
+   {
+    "line_item_ref": "li_2ca6e59e99",
+    "category": "bad_debt",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'write-off' in the description"
+   },
+   {
+    "line_item_ref": "li_0302672983",
+    "category": "depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'depreciation' in the description"
+   },
+   {
+    "line_item_ref": "li_8805e5d804",
+    "category": "depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'depreciation' in the description"
+   },
+   {
+    "line_item_ref": "li_1a064fbb22",
+    "category": "depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'depreciation' in the description"
+   },
+   {
+    "line_item_ref": "li_15d63f0f1b",
+    "category": "amortization",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'amortization' in the description"
+   },
+   {
+    "line_item_ref": "li_71ee6d35e5",
+    "category": "amortization",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'amortization' in the description"
+   },
+   {
+    "line_item_ref": "li_7c5313c52a",
+    "category": "amortization",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.62,
+    "rationale": "'amortization' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_87ea18c185",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'miscellaneous' in the description"
+   },
+   {
+    "line_item_ref": "li_e43588e5f9",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'bank charges' in the description"
+   },
+   {
+    "line_item_ref": "li_727c6d5b65",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'licenses' in the description"
+   },
+   {
+    "line_item_ref": "li_c2fb788c7d",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'training' in the description"
+   },
+   {
+    "line_item_ref": "li_df773a2e30",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'bank charges' in the description"
+   },
+   {
+    "line_item_ref": "li_0bd8ed8ec5",
+    "category": "interest_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'interest expense' in the description"
+   },
+   {
+    "line_item_ref": "li_830b6b4681",
+    "category": "interest_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'loan interest' in the description"
+   },
+   {
+    "line_item_ref": "li_f92ad50537",
+    "category": "interest_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'finance charges' in the description"
+   },
+   {
+    "line_item_ref": "li_11df8be513",
+    "category": "interest_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'loan interest' in the description"
+   },
+   {
+    "line_item_ref": "li_e3ef503e43",
+    "category": "interest_income",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'interest income' in the description"
+   },
+   {
+    "line_item_ref": "li_77693c509b",
+    "category": "interest_income",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'dividend income' in the description"
+   },
+   {
+    "line_item_ref": "li_dd3cd0d5d6",
+    "category": "interest_income",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'investment income' in the description"
+   },
+   {
+    "line_item_ref": "li_089edf37ca",
+    "category": "interest_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'interest' in the description"
+   },
+   {
+    "line_item_ref": "li_ba5d768138",
+    "category": "gain_loss_on_disposal",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'gain on sale' in the description"
+   },
+   {
+    "line_item_ref": "li_a249a278bb",
+    "category": "gain_loss_on_disposal",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'disposal' in the description"
+   },
+   {
+    "line_item_ref": "li_75d2354c2a",
+    "category": "gain_loss_on_disposal",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'loss on sale' in the description"
+   },
+   {
+    "line_item_ref": "li_1625ad0339",
+    "category": "gain_loss_on_disposal",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'gain on disposition' in the description"
+   },
+   {
+    "line_item_ref": "li_b2a392e17f",
+    "category": "other_income_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'other income' in the description"
+   },
+   {
+    "line_item_ref": "li_86e24943cb",
+    "category": "other_income_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rental income' in the description"
+   },
+   {
+    "line_item_ref": "li_0aefc0d23e",
+    "category": "other_income_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'ppp forgiveness' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_153bea4650",
+    "category": "other_income_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'settlement' in the description"
+   },
+   {
+    "line_item_ref": "li_ad4431d4d0",
+    "category": "other_income_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'non-operating' in the description"
+   },
+   {
+    "line_item_ref": "li_f5d715d0b0",
+    "category": "income_tax",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'income tax' in the description"
+   },
+   {
+    "line_item_ref": "li_d52c07b2fa",
+    "category": "income_tax",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'income tax' in the description"
+   },
+   {
+    "line_item_ref": "li_4f354384c9",
+    "category": "income_tax",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'franchise tax' in the description"
+   },
+   {
+    "line_item_ref": "li_563e082475",
+    "category": "income_tax",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'provision for taxes' in the description"
+   },
+   {
+    "line_item_ref": "li_ab0fcec08e",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cash' in the description"
+   },
+   {
+    "line_item_ref": "li_46ded5b090",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'cash' in the description"
+   },
+   {
+    "line_item_ref": "li_63c811f55d",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'checking' in the description"
+   },
+   {
+    "line_item_ref": "li_286d4726e1",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'savings' in the description"
+   },
+   {
+    "line_item_ref": "li_202d9e2a6f",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'money market' in the description"
+   },
+   {
+    "line_item_ref": "li_e6eb9cbfff",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'petty cash' in the description"
+   },
+   {
+    "line_item_ref": "li_189f747eca",
+    "category": "accounts_receivable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accounts receivable' in the description"
+   },
+   {
+    "line_item_ref": "li_8160ccef0d",
+    "category": "accounts_receivable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'a/r' in the description"
+   },
+   {
+    "line_item_ref": "li_382de75b43",
+    "category": "accounts_receivable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'trade receivables' in the description"
+   },
+   {
+    "line_item_ref": "li_2e01200557",
+    "category": "accounts_receivable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accounts receivable' in the description"
+   },
+   {
+    "line_item_ref": "li_507622197d",
+    "category": "accounts_receivable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'receivables' in the description"
+   },
+   {
+    "line_item_ref": "li_b7250f867f",
+    "category": "allowance_doubtful",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'doubtful accounts' in the description"
+   },
+   {
+    "line_item_ref": "li_5c71188a7b",
+    "category": "allowance_doubtful",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'reserve for bad debt' in the description"
+   },
+   {
+    "line_item_ref": "li_3237a58d39",
+    "category": "accounts_receivable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.8,
+    "rationale": "'a/r' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_b11a85b296",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'inventory' in the description"
+   },
+   {
+    "line_item_ref": "li_315d0350a5",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'raw materials' in the description"
+   },
+   {
+    "line_item_ref": "li_dd0fd09680",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'work in process' in the description"
+   },
+   {
+    "line_item_ref": "li_32e4caaf63",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.87,
+    "rationale": "'wip' in the description"
+   },
+   {
+    "line_item_ref": "li_201dc839cc",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'finished goods' in the description"
+   },
+   {
+    "line_item_ref": "li_895253b9ad",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'inventory' in the description"
+   },
+   {
+    "line_item_ref": "li_8341e1415f",
+    "category": "prepaid_expenses",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'prepaid' in the description"
+   },
+   {
+    "line_item_ref": "li_66c93a306c",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.62,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_63963a16e0",
+    "category": "prepaid_expenses",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'prepaid' in the description"
+   },
+   {
+    "line_item_ref": "li_17642a16f4",
+    "category": "prepaid_expenses",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'retainers' in the description"
+   },
+   {
+    "line_item_ref": "li_59d14f9467",
+    "category": "other_current_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.82,
+    "rationale": "'other current' in the description"
+   },
+   {
+    "line_item_ref": "li_11943f5512",
+    "category": "other_current_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'employee advances' in the description"
+   },
+   {
+    "line_item_ref": "li_a6c76377bb",
+    "category": "other_current_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'contract assets' in the description"
+   },
+   {
+    "line_item_ref": "li_e3df1e0ab4",
+    "category": "other_current_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.72,
+    "rationale": "'unbilled' in the description"
+   },
+   {
+    "line_item_ref": "li_063aebe7c1",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due from shareholder' in the description"
+   },
+   {
+    "line_item_ref": "li_7c245cebd2",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due from officer' in the description"
+   },
+   {
+    "line_item_ref": "li_447fc0fde7",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'loan to owner' in the description"
+   },
+   {
+    "line_item_ref": "li_1109c27a25",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due from affiliate' in the description"
+   },
+   {
+    "line_item_ref": "li_c3aba359cc",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due from related' in the description"
+   },
+   {
+    "line_item_ref": "li_6a0632fdb7",
+    "category": "investments",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'investments' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_c5c0ecc57f",
+    "category": "investments",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'marketable securities' in the description"
+   },
+   {
+    "line_item_ref": "li_bb0009270c",
+    "category": "investments",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'brokerage' in the description"
+   },
+   {
+    "line_item_ref": "li_5ac8139016",
+    "category": "investments",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cash surrender value' in the description"
+   },
+   {
+    "line_item_ref": "li_2e111e5906",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.62,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_e6a8cf4130",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'equipment' in the description"
+   },
+   {
+    "line_item_ref": "li_1c09f5a7f4",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'equipment' in the description"
+   },
+   {
+    "line_item_ref": "li_c9b87872c1",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'vehicles' in the description"
+   },
+   {
+    "line_item_ref": "li_ed08c7ecda",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'furniture' in the description"
+   },
+   {
+    "line_item_ref": "li_a861d05f98",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'buildings' in the description"
+   },
+   {
+    "line_item_ref": "li_90eae63487",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'land' in the description"
+   },
+   {
+    "line_item_ref": "li_33dd7f27ac",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'leasehold improvements' in the description"
+   },
+   {
+    "line_item_ref": "li_8b0757afb0",
+    "category": "ppe",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'equipment' in the description"
+   },
+   {
+    "line_item_ref": "li_de684e38a6",
+    "category": "accumulated_depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'accumulated depreciation' in the description"
+   },
+   {
+    "line_item_ref": "li_50effded1a",
+    "category": "accumulated_depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'accum depr' in the description"
+   },
+   {
+    "line_item_ref": "li_84be79d387",
+    "category": "accumulated_depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'accumulated depreciation' in the description"
+   },
+   {
+    "line_item_ref": "li_173087c399",
+    "category": "accumulated_depreciation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'a/d' in the description"
+   },
+   {
+    "line_item_ref": "li_47b2d9943b",
+    "category": "intangibles",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'goodwill' in the description"
+   },
+   {
+    "line_item_ref": "li_7787ed290f",
+    "category": "intangibles",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'intangible' in the description"
+   },
+   {
+    "line_item_ref": "li_6e92c4d7a9",
+    "category": "intangibles",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'customer list' in the description"
+   },
+   {
+    "line_item_ref": "li_9cca72a552",
+    "category": "intangibles",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'trademark' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_d627bb8139",
+    "category": "intangibles",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'non-compete' in the description"
+   },
+   {
+    "line_item_ref": "li_a5aa3db983",
+    "category": "intangibles",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'accumulated amortization' in the description"
+   },
+   {
+    "line_item_ref": "li_3dd0657003",
+    "category": "right_of_use_asset",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'right of use' in the description"
+   },
+   {
+    "line_item_ref": "li_2f65b4ac61",
+    "category": "right_of_use_asset",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rou asset' in the description"
+   },
+   {
+    "line_item_ref": "li_83c2fc0200",
+    "category": "right_of_use_asset",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'operating lease asset' in the description"
+   },
+   {
+    "line_item_ref": "li_e7b0be70d8",
+    "category": "other_noncurrent_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'other assets' in the description"
+   },
+   {
+    "line_item_ref": "li_070f8dac62",
+    "category": "other_noncurrent_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'deferred tax asset' in the description"
+   },
+   {
+    "line_item_ref": "li_d6c33ed8f5",
+    "category": "other_noncurrent_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'long-term deposit' in the description"
+   },
+   {
+    "line_item_ref": "li_8acf900a08",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accounts payable' in the description"
+   },
+   {
+    "line_item_ref": "li_c35106fd39",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'a/p' in the description"
+   },
+   {
+    "line_item_ref": "li_93bcf0ba1d",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'trade payables' in the description"
+   },
+   {
+    "line_item_ref": "li_4f8f3840e7",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accounts payable' in the description"
+   },
+   {
+    "line_item_ref": "li_8264391619",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'payables' in the description"
+   },
+   {
+    "line_item_ref": "li_316244d030",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.72,
+    "rationale": "'accrued' in the description"
+   },
+   {
+    "line_item_ref": "li_f819114770",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accrued expenses' in the description"
+   },
+   {
+    "line_item_ref": "li_6125ed3fb2",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accrued payroll' in the description"
+   },
+   {
+    "line_item_ref": "li_619e1540d6",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'accrued vacation' in the description"
+   },
+   {
+    "line_item_ref": "li_5478312d14",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'wages payable' in the description"
+   },
+   {
+    "line_item_ref": "li_aecbc37302",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'sales tax payable' in the description"
+   },
+   {
+    "line_item_ref": "li_0a44da97cd",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.82,
+    "rationale": "'payroll taxes payable' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_5fa85cfc2f",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'deferred revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_06d379c57f",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'customer deposits' in the description"
+   },
+   {
+    "line_item_ref": "li_fb7cfc4fa7",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.78,
+    "rationale": "'unearned' in the description"
+   },
+   {
+    "line_item_ref": "li_5952cecdc1",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'billings in excess' in the description"
+   },
+   {
+    "line_item_ref": "li_fc20394e6e",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'contract liabilities' in the description"
+   },
+   {
+    "line_item_ref": "li_1472a423a5",
+    "category": "other_current_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'other current liabilities' in the description"
+   },
+   {
+    "line_item_ref": "li_2d0d765ea3",
+    "category": "other_current_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'warranty reserve' in the description"
+   },
+   {
+    "line_item_ref": "li_9d13ae7b3d",
+    "category": "line_of_credit",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'line of credit' in the description"
+   },
+   {
+    "line_item_ref": "li_a7f32380cf",
+    "category": "line_of_credit",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'loc' in the description"
+   },
+   {
+    "line_item_ref": "li_6e98b48425",
+    "category": "line_of_credit",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revolver' in the description"
+   },
+   {
+    "line_item_ref": "li_81268bad51",
+    "category": "line_of_credit",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revolving' in the description"
+   },
+   {
+    "line_item_ref": "li_e3ff6d2f6b",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.82,
+    "rationale": "'long-term debt' in the description"
+   },
+   {
+    "line_item_ref": "li_443e2d1e43",
+    "category": "current_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'current maturities' in the description"
+   },
+   {
+    "line_item_ref": "li_cbe415a924",
+    "category": "current_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cpltd' in the description"
+   },
+   {
+    "line_item_ref": "li_d416d7381a",
+    "category": "current_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'notes payable current' in the description"
+   },
+   {
+    "line_item_ref": "li_0a373f240a",
+    "category": "lease_liability",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'lease liability' in the description"
+   },
+   {
+    "line_item_ref": "li_4f9caa575e",
+    "category": "lease_liability",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'operating lease liability' in the description"
+   },
+   {
+    "line_item_ref": "li_8d48fb2f29",
+    "category": "lease_liability",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'finance lease' in the description"
+   },
+   {
+    "line_item_ref": "li_e7f162d62d",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'notes payable' in the description"
+   },
+   {
+    "line_item_ref": "li_233fc37d86",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'term loan' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_8c8c489951",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.68,
+    "rationale": "'payables' in the description"
+   },
+   {
+    "line_item_ref": "li_f52f429dfe",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'equipment loan' in the description"
+   },
+   {
+    "line_item_ref": "li_04d99194ed",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sba loan' in the description"
+   },
+   {
+    "line_item_ref": "li_630da62826",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'long-term debt' in the description"
+   },
+   {
+    "line_item_ref": "li_52a31c1b04",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'bank loan' in the description"
+   },
+   {
+    "line_item_ref": "li_1876876bd8",
+    "category": "related_party_payable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due to shareholder' in the description"
+   },
+   {
+    "line_item_ref": "li_17d2632ad1",
+    "category": "related_party_payable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'shareholder loan' in the description"
+   },
+   {
+    "line_item_ref": "li_994bcba807",
+    "category": "related_party_payable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'loan from owner' in the description"
+   },
+   {
+    "line_item_ref": "li_61deeae8ea",
+    "category": "related_party_payable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due to officer' in the description"
+   },
+   {
+    "line_item_ref": "li_8726c9559e",
+    "category": "related_party_payable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'due to affiliate' in the description"
+   },
+   {
+    "line_item_ref": "li_873b93ae18",
+    "category": "other_noncurrent_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'deferred tax liability' in the description"
+   },
+   {
+    "line_item_ref": "li_59f4530b3e",
+    "category": "other_noncurrent_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'deferred compensation' in the description"
+   },
+   {
+    "line_item_ref": "li_5992a911a6",
+    "category": "other_noncurrent_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'other long-term liabilities' in the description"
+   },
+   {
+    "line_item_ref": "li_494be70af2",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'common stock' in the description"
+   },
+   {
+    "line_item_ref": "li_573968947a",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'paid-in capital' in the description"
+   },
+   {
+    "line_item_ref": "li_aefba7afd3",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'retained earnings' in the description"
+   },
+   {
+    "line_item_ref": "li_fc52371b09",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'members equity' in the description"
+   },
+   {
+    "line_item_ref": "li_426fee8d74",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'partners capital' in the description"
+   },
+   {
+    "line_item_ref": "li_c460ca0d9a",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'treasury stock' in the description"
+   },
+   {
+    "line_item_ref": "li_136a94de1e",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'distributions' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_baefc799b2",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'dividends' in the description"
+   },
+   {
+    "line_item_ref": "li_c9df21b60c",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'draws' in the description"
+   },
+   {
+    "line_item_ref": "li_4df043a6d9",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_261a61c412",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'salaries' in the description"
+   },
+   {
+    "line_item_ref": "li_f23b3ef45d",
+    "category": "amortization",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.68,
+    "rationale": "'amortization' in the description"
+   },
+   {
+    "line_item_ref": "li_4d9ceeb535",
+    "category": "amortization",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.68,
+    "rationale": "'amortization' in the description"
+   },
+   {
+    "line_item_ref": "li_a810aca6a6",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.68,
+    "rationale": "'rent' in the description"
+   },
+   {
+    "line_item_ref": "li_0059d29458",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'licenses' in the description"
+   },
+   {
+    "line_item_ref": "li_98c2724477",
+    "category": "other_operating_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'licenses' in the description"
+   },
+   {
+    "line_item_ref": "li_ac0a799b0b",
+    "category": "accrued_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.72,
+    "rationale": "'accrued' in the description"
+   },
+   {
+    "line_item_ref": "li_028dae314e",
+    "category": "accounts_payable",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.68,
+    "rationale": "'payables' in the description"
+   },
+   {
+    "line_item_ref": "li_0a006e7158",
+    "category": "other_current_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'interest receivable' in the description"
+   },
+   {
+    "line_item_ref": "li_c1137aee5b",
+    "category": "other_current_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'note receivable' in the description"
+   },
+   {
+    "line_item_ref": "li_0c5a1ae94d",
+    "category": "other_noncurrent_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'security deposit' in the description"
+   },
+   {
+    "line_item_ref": "li_b5fbf54401",
+    "category": "other_noncurrent_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'utility deposit' in the description"
+   },
+   {
+    "line_item_ref": "li_1a43240c9a",
+    "category": "other_noncurrent_assets",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'lease deposit' in the description"
+   },
+   {
+    "line_item_ref": "li_a841c24b61",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'customer deposits' in the description"
+   },
+   {
+    "line_item_ref": "li_f44fdbefd1",
+    "category": "deferred_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'customer deposits' in the description"
+   },
+   {
+    "line_item_ref": "li_9d288bc198",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'note receivable officer' in the description"
+   },
+   {
+    "line_item_ref": "li_93a292175a",
+    "category": "related_party_receivable",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.82,
+    "rationale": "'officer loan' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_fe2b11d89f",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'notes payable' in the description"
+   },
+   {
+    "line_item_ref": "li_efb6a93b84",
+    "category": "long_term_debt",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'notes payable' in the description"
+   },
+   {
+    "line_item_ref": "li_fdc953d98c",
+    "category": "other_current_liabilities",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.97,
+    "rationale": "'income taxes payable' in the description"
+   },
+   {
+    "line_item_ref": "li_a5371c49b5",
+    "category": "cash",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'cash' in the description"
+   },
+   {
+    "line_item_ref": "li_56dc71fc28",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'distributions' in the description"
+   },
+   {
+    "line_item_ref": "li_d4a4492b20",
+    "category": "equity",
+    "excluded_from_al": true,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'distributions' in the description"
+   },
+   {
+    "line_item_ref": "li_a1cb1972c2",
+    "category": "other_income_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.8,
+    "rationale": "'other income' in the description"
+   },
+   {
+    "line_item_ref": "li_828408e40d",
+    "category": "interest_expense",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'interest' in the description"
+   },
+   {
+    "line_item_ref": "li_9c32429c29",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_d9298a10d1",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_c3211e4cc7",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_dd3e11e4df",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_5df4ba1dc4",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_a1dcbd2066",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_8b71bcf017",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_fa2b7cb7a3",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_847268061a",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_4a391e749e",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_fff8b618dd",
+    "category": "unmapped",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.3,
+    "rationale": "no taxonomy cue in the description; too sparse to place",
+    "uncategorisable": true
+   },
+   {
+    "line_item_ref": "li_675557ff27",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_8a6f9ccf83",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_2aab6ed19f",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_f0be59cf49",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_8ac50e79ef",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_4aa5be4aa2",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_14e4c3fe6e",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'service income' in the description"
+   },
+   {
+    "line_item_ref": "li_97392b59f3",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'fees earned' in the description"
+   },
+   {
+    "line_item_ref": "li_c8d76a5908",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'contract revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_d91b8cbba0",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_a255f62f41",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_0167814340",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales' in the description"
+   },
+   {
+    "line_item_ref": "li_1843b32638",
+    "category": "revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'revenue' in the description"
+   },
+   {
+    "line_item_ref": "li_e095e8296d",
+    "category": "allowance_doubtful",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.66,
+    "rationale": "'allowance' in the description"
+   },
+   {
+    "line_item_ref": "li_2b3d915518",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.76,
+    "rationale": "'returns' in the description"
+   },
+   {
+    "line_item_ref": "li_adbb5ae5d1",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'discounts' in the description"
+   },
+   {
+    "line_item_ref": "li_8bbacbc984",
+    "category": "contra_revenue",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rebates' in the description"
+   },
+   {
+    "line_item_ref": "li_cb380b32ec",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cost of goods' in the description"
+   },
+   {
+    "line_item_ref": "li_15a6adb390",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cogs' in the description"
+   },
+   {
+    "line_item_ref": "li_7c6ad67463",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cost of sales' in the description"
+   },
+   {
+    "line_item_ref": "li_f795df35a1",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cost of goods' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_b1b32428a4",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'direct materials' in the description"
+   },
+   {
+    "line_item_ref": "li_04fdcb9a16",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'direct materials' in the description"
+   },
+   {
+    "line_item_ref": "li_9516e40d1b",
+    "category": "inventory",
+    "excluded_from_al": false,
+    "include_in_nwc": true,
+    "confidence": 0.76,
+    "rationale": "'raw materials' in the description"
+   },
+   {
+    "line_item_ref": "li_abeefaab57",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'materials' in the description"
+   },
+   {
+    "line_item_ref": "li_82664d8372",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'direct labor' in the description"
+   },
+   {
+    "line_item_ref": "li_2c773fc93a",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'labour' in the description"
+   },
+   {
+    "line_item_ref": "li_9a8f1e9447",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'labor' in the description"
+   },
+   {
+    "line_item_ref": "li_01ca2a0a54",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'production' in the description"
+   },
+   {
+    "line_item_ref": "li_a67349892c",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.93,
+    "rationale": "'subcontractors' in the description"
+   },
+   {
+    "line_item_ref": "li_f7216fbbde",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'labor' in the description"
+   },
+   {
+    "line_item_ref": "li_c0df3d4c2e",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'outside services' in the description"
+   },
+   {
+    "line_item_ref": "li_09580dbf4c",
+    "category": "cost_of_sales",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'freight in' in the description"
+   },
+   {
+    "line_item_ref": "li_305250f016",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.68,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_115531e315",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_eb61a66096",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_631e1d628a",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.74,
+    "rationale": "'officer' in the description"
+   },
+   {
+    "line_item_ref": "li_ccd34c16ca",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'owner salary' in the description"
+   },
+   {
+    "line_item_ref": "li_002dc528f2",
+    "category": "officer_compensation",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'shareholder salary' in the description"
+   },
+   {
+    "line_item_ref": "li_8fea88139b",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'salaries' in the description"
+   },
+   {
+    "line_item_ref": "li_03f8cbc257",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'wages' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_1ed81b9df3",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.62,
+    "rationale": "'office' in the description"
+   },
+   {
+    "line_item_ref": "li_e44a133a1b",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'salaries' in the description"
+   },
+   {
+    "line_item_ref": "li_80a9732a18",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'wages' in the description"
+   },
+   {
+    "line_item_ref": "li_33f6e27b3a",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'payroll' in the description"
+   },
+   {
+    "line_item_ref": "li_b9fd24e45f",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'commissions' in the description"
+   },
+   {
+    "line_item_ref": "li_ee40e9c6c6",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'sales commissions' in the description"
+   },
+   {
+    "line_item_ref": "li_4804dbdd5b",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'bonuses' in the description"
+   },
+   {
+    "line_item_ref": "li_a102e8275f",
+    "category": "salaries_wages",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'overtime' in the description"
+   },
+   {
+    "line_item_ref": "li_03970eb285",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'payroll taxes' in the description"
+   },
+   {
+    "line_item_ref": "li_782770243c",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'payroll tax' in the description"
+   },
+   {
+    "line_item_ref": "li_cf5ffe0256",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'fica' in the description"
+   },
+   {
+    "line_item_ref": "li_2cddbfdea4",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'employer payroll taxes' in the description"
+   },
+   {
+    "line_item_ref": "li_847e54bd8b",
+    "category": "payroll_taxes",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.93,
+    "rationale": "'futa' in the description"
+   },
+   {
+    "line_item_ref": "li_98ba625adb",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'health insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_9567b82be1",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'benefits' in the description"
+   },
+   {
+    "line_item_ref": "li_3b52f53d0b",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'401(k)' in the description"
+   },
+   {
+    "line_item_ref": "li_9d903056c7",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'retirement plan' in the description"
+   },
+   {
+    "line_item_ref": "li_f73e93bfdf",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'workers comp' in the description"
+   },
+   {
+    "line_item_ref": "li_30290ccc90",
+    "category": "employee_benefits",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'esop contribution' in the description"
+   },
+   {
+    "line_item_ref": "li_724277c290",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'rent' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_404ba514a4",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'rent' in the description"
+   },
+   {
+    "line_item_ref": "li_0cbb36b01f",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'rent' in the description"
+   },
+   {
+    "line_item_ref": "li_f500500741",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'office lease' in the description"
+   },
+   {
+    "line_item_ref": "li_8c0062eaf3",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'occupancy' in the description"
+   },
+   {
+    "line_item_ref": "li_601a919618",
+    "category": "rent",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'cam charges' in the description"
+   },
+   {
+    "line_item_ref": "li_015b8dac5a",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'utilities' in the description"
+   },
+   {
+    "line_item_ref": "li_5df42233c7",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'electric' in the description"
+   },
+   {
+    "line_item_ref": "li_ab2281986b",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'electric' in the description"
+   },
+   {
+    "line_item_ref": "li_699e551d82",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'water' in the description"
+   },
+   {
+    "line_item_ref": "li_f182d770cb",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'telephone' in the description"
+   },
+   {
+    "line_item_ref": "li_8627572989",
+    "category": "utilities",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'telephone' in the description"
+   },
+   {
+    "line_item_ref": "li_bafc2b9f32",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'repairs' in the description"
+   },
+   {
+    "line_item_ref": "li_b7cbcfbf2c",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'repairs' in the description"
+   },
+   {
+    "line_item_ref": "li_4830cf2873",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'r&m' in the description"
+   },
+   {
+    "line_item_ref": "li_1b3bcb5290",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'maintenance' in the description"
+   },
+   {
+    "line_item_ref": "li_7286c93b77",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.72,
+    "rationale": "'repairs' in the description"
+   },
+   {
+    "line_item_ref": "li_d6bf19b21c",
+    "category": "repairs_maintenance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'janitorial' in the description"
+   },
+   {
+    "line_item_ref": "li_0f98c95b2a",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_fe52218a03",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_b56fa8fc52",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'property insurance' in the description"
+   }
+  ]
+ },
+ {
+  "schema_version": "skills/line-item-tagging-proposal@1.0.0",
+  "produced_by": "line-item-tagging@0.1.0",
+  "items": [
+   {
+    "line_item_ref": "li_93c8e8a922",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'auto insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_1a73bf373b",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'umbrella' in the description"
+   },
+   {
+    "line_item_ref": "li_04d86409eb",
+    "category": "insurance",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'insurance' in the description"
+   },
+   {
+    "line_item_ref": "li_3ec2585b96",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'professional fees' in the description"
+   },
+   {
+    "line_item_ref": "li_f2d39d8fe8",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'legal' in the description"
+   },
+   {
+    "line_item_ref": "li_ca9df7ddd1",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'accounting' in the description"
+   },
+   {
+    "line_item_ref": "li_e6878bdfd8",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'audit' in the description"
+   },
+   {
+    "line_item_ref": "li_80d41ca6b9",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'consulting' in the description"
+   },
+   {
+    "line_item_ref": "li_52be08567a",
+    "category": "professional_fees",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'tax preparation' in the description"
+   },
+   {
+    "line_item_ref": "li_165c2d69c6",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'advertising' in the description"
+   },
+   {
+    "line_item_ref": "li_a012367c60",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'marketing' in the description"
+   },
+   {
+    "line_item_ref": "li_6fbc42dd15",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'advertising' in the description"
+   },
+   {
+    "line_item_ref": "li_845cdce19f",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'trade show' in the description"
+   },
+   {
+    "line_item_ref": "li_c6428c3124",
+    "category": "advertising_marketing",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'website' in the description"
+   },
+   {
+    "line_item_ref": "li_07b6f70527",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'travel' in the description"
+   },
+   {
+    "line_item_ref": "li_495d89bf8f",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'travel' in the description"
+   },
+   {
+    "line_item_ref": "li_c924aece8a",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.87,
+    "rationale": "'meals' in the description"
+   },
+   {
+    "line_item_ref": "li_9d60196a37",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'lodging' in the description"
+   },
+   {
+    "line_item_ref": "li_f467441d99",
+    "category": "travel_entertainment",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'mileage' in the description"
+   },
+   {
+    "line_item_ref": "li_f5df55319d",
+    "category": "office_supplies",
+    "excluded_from_al": false,
+    "include_in_nwc": false,
+    "confidence": 0.97,
+    "rationale": "'office' in the description"
+   }
+  ]
+ }
+]

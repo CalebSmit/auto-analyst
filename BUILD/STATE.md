@@ -21,6 +21,8 @@ Tasks:
 - [ ] The skill: Category, Excluded from A/L, Include in NWC, with confidence and a one-line rationale per item
 - [ ] Scope-built precedent retrieval - a repeat client sees its own prior decisions first
 - [ ] Write-back gated on a decision id, with no other code path into the store
+- [ ] Proposal contract skills/line-item-tagging-proposal@1.0.0: one numeric field (the model's confidence), no figure anywhere; every ref, category and cited precedent in a proposal is verified by the procedure before it becomes output
+- [ ] registries/taxonomy.py loads taxonomy/coa-taxonomy@x.y.z.yaml; tools/coa.py and tools/precedent.py are the two gated reads the skill declares
 
 Then:
 

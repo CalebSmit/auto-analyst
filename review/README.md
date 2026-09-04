@@ -53,4 +53,6 @@ the executor picks it up at the frontier.
 Decisions carry the proposal the reviewer saw, the corrected value if any, the skill,
 the reason and the person. The table refuses updates and deletes at the ORM and at the
 database, like the event table. The override rate per skill is what the Drift Monitor
-reads; `precedent_candidates` is what P19 reads.
+reads; `precedent_candidates` - the accepted and corrected decisions, and only those - is
+what the Precedent Write-back (`precedent/writeback.py`) sweeps. Nothing else turns a
+decision into an example, and nothing turns anything else into one.

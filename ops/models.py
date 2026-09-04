@@ -36,6 +36,7 @@ from sqlalchemy import (
     CheckConstraint,
     Float,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     String,
@@ -67,6 +68,7 @@ __all__ = [
     "EngagementLockRow",
     "IntakeFile",
     "LockQueueRow",
+    "PrecedentRow",
     "Quarantine",
     "RosterRow",
     "UnclaimedFolder",
@@ -586,7 +588,7 @@ def _refuse_to_change_an_event(session: Session, flush_context: Any, instances: 
     Registered on Session rather than on one sessionmaker deliberately: the guarantee is
     about the event table, not about who opened the connection.
     """
-    frozen = (Event, Decision, ConfigChange)
+    frozen = (Event, Decision, ConfigChange, PrecedentRow)
     changed = [obj for obj in session.dirty if isinstance(obj, frozen) and session.is_modified(obj)]
     removed = [obj for obj in session.deleted if isinstance(obj, frozen)]
     if not changed and not removed:
@@ -820,3 +822,107 @@ sa_event.listen(
 sa_event.listen(
     ConfigChange.__table__, "after_create", _PG_TRIGGER_CONFIG.execute_if(dialect="postgresql")
 )
+
+
+# ------------------------------------------------------------ the precedent store
+
+
+class PrecedentRow(Base):
+    """One approved tagging decision, masked, reusable as an example.
+
+    The store has exactly one writer, and the table itself knows it: every row names the
+    decision it came from, the pair is a foreign key into the decision log, and a BEFORE
+    INSERT trigger refuses a row whose decision does not write precedent or names nobody.
+    A raw INSERT through a psql prompt fails the same way the API does.
+
+    Append-only like the decision it came from. A precedent that turns out wrong is
+    superseded by a later decision, never edited.
+    """
+
+    __tablename__ = "precedent"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["decision_run_id", "decision_item_id"],
+            ["decision.run_id", "decision.item_id"],
+            name="fk_precedent_decision",
+        ),
+        UniqueConstraint("decision_run_id", "decision_item_id", name="uq_precedent_decision"),
+        CheckConstraint("masked = 1 OR masked = true", name="precedent_is_masked"),
+        CheckConstraint("length(decided_by) > 0", name="precedent_has_a_person"),
+        Index("ix_precedent_scope", "practice", "segment", "client_id"),
+    )
+
+    precedent_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    decision_run_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    decision_item_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    engagement_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    client_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    practice: Mapped[str] = mapped_column(String(64), nullable=False)
+    segment: Mapped[str] = mapped_column(String(64), nullable=False)
+    disposition: Mapped[str] = mapped_column(String(64), nullable=False)
+    skill: Mapped[str] = mapped_column(String(64), nullable=False)
+    taxonomy_version: Mapped[str] = mapped_column(String(64), nullable=False)
+    decided_by: Mapped[str] = mapped_column(String(128), nullable=False)
+    decided_at: Mapped[str] = mapped_column(String(32), nullable=False)
+    decision: Mapped[str] = mapped_column(String(16), nullable=False)
+    written_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+    masked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    description: Mapped[str] = mapped_column(Text, nullable=False)
+    """The masked line-item description the decision was about."""
+    example: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    """What a model is shown: description, category, the two flags, the rationale."""
+
+
+_PRECEDENT_NO_DECISION = (
+    "PROCESS.PRECEDENT_NO_DECISION - a precedent needs a human decision behind it"
+)
+_PRECEDENT_APPEND_ONLY = "PROCESS.APPEND_ONLY_VIOLATION - the precedent store is append-only"
+_PRECEDENT_DECISION_EXISTS = (
+    "SELECT 1 FROM decision d WHERE d.run_id = NEW.decision_run_id "
+    "AND d.item_id = NEW.decision_item_id AND d.writes_precedent = {true} "
+    "AND length(d.decided_by) > 0"
+)
+
+_SQLITE_PRECEDENT_NEEDS_DECISION = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS precedent_needs_decision BEFORE INSERT ON "precedent" '
+    f"BEGIN SELECT RAISE(ABORT, '{_PRECEDENT_NO_DECISION}') "
+    f"WHERE NOT EXISTS ({_PRECEDENT_DECISION_EXISTS.format(true='1')}); END"
+)
+_SQLITE_NO_UPDATE_PRECEDENT = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS precedent_no_update BEFORE UPDATE ON "precedent" '
+    f"BEGIN SELECT RAISE(ABORT, '{_PRECEDENT_APPEND_ONLY}'); END"
+)
+_SQLITE_NO_DELETE_PRECEDENT = DDL(  # type: ignore[no-untyped-call]
+    'CREATE TRIGGER IF NOT EXISTS precedent_no_delete BEFORE DELETE ON "precedent" '
+    f"BEGIN SELECT RAISE(ABORT, '{_PRECEDENT_APPEND_ONLY}'); END"
+)
+_PG_FUNCTION_PRECEDENT_INSERT = DDL(  # type: ignore[no-untyped-call]
+    "CREATE OR REPLACE FUNCTION precedent_needs_decision() RETURNS trigger AS $pi$ "
+    f"BEGIN IF NOT EXISTS ({_PRECEDENT_DECISION_EXISTS.format(true='true')}) THEN "
+    f"RAISE EXCEPTION '{_PRECEDENT_NO_DECISION}'; END IF; RETURN NEW; END; "
+    "$pi$ LANGUAGE plpgsql"
+)
+_PG_TRIGGER_PRECEDENT_INSERT = DDL(  # type: ignore[no-untyped-call]
+    "DROP TRIGGER IF EXISTS precedent_needs_decision ON precedent; "
+    "CREATE TRIGGER precedent_needs_decision BEFORE INSERT ON precedent "
+    "FOR EACH ROW EXECUTE FUNCTION precedent_needs_decision()"
+)
+_PG_FUNCTION_PRECEDENT = DDL(  # type: ignore[no-untyped-call]
+    "CREATE OR REPLACE FUNCTION precedent_append_only() RETURNS trigger AS $pr$ "
+    f"BEGIN RAISE EXCEPTION '{_PRECEDENT_APPEND_ONLY}'; END; $pr$ LANGUAGE plpgsql"
+)
+_PG_TRIGGER_PRECEDENT = DDL(  # type: ignore[no-untyped-call]
+    "DROP TRIGGER IF EXISTS precedent_append_only ON precedent; "
+    "CREATE TRIGGER precedent_append_only BEFORE UPDATE OR DELETE ON precedent "
+    "FOR EACH ROW EXECUTE FUNCTION precedent_append_only()"
+)
+for _ddl, _dialect in (
+    (_SQLITE_PRECEDENT_NEEDS_DECISION, "sqlite"),
+    (_SQLITE_NO_UPDATE_PRECEDENT, "sqlite"),
+    (_SQLITE_NO_DELETE_PRECEDENT, "sqlite"),
+    (_PG_FUNCTION_PRECEDENT_INSERT, "postgresql"),
+    (_PG_TRIGGER_PRECEDENT_INSERT, "postgresql"),
+    (_PG_FUNCTION_PRECEDENT, "postgresql"),
+    (_PG_TRIGGER_PRECEDENT, "postgresql"),
+):
+    sa_event.listen(PrecedentRow.__table__, "after_create", _ddl.execute_if(dialect=_dialect))

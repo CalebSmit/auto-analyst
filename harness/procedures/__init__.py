@@ -9,10 +9,12 @@ procedures live here, one module per skill, found by the skill's name.
 from __future__ import annotations
 
 from harness.dispatch import Procedure
+from harness.procedures.line_item_tagging import LineItemTagging
 from harness.procedures.timing_normalization import TimingNormalization
 
 PROCEDURES: dict[str, type[Procedure]] = {
     "timing-normalization": TimingNormalization,
+    "line-item-tagging": LineItemTagging,
 }
 
 __all__ = ["PROCEDURES", "procedure_for"]

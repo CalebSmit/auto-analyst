@@ -135,5 +135,16 @@ checked against the output contract. Events from `dispatcher` bracket the call.
 
 The skill tree holds SKILL.md files and no Python (a P10 test), so what the code around a
 skill does lives here, one module per skill: what to send (labels and locators, never a
-value), how to read the answer, and how to turn it into the output through the tools.
-`timing_normalization.py` is the first; `PROCEDURES` maps skill names to them.
+value), what the precedent query should rank by (`terms`, masked by the dispatcher before
+the query sees them), how to read the answer, and how to turn it into the output through
+the tools. `PROCEDURES` maps skill names to them.
+
+`timing_normalization.py` (P18) sends labels and locators and hands the mapping to the
+timing tool, which does every sum. `line_item_tagging.py` (P19) sends the pinned taxonomy
+and the descriptions, then checks every claim in the proposal before it is output: each
+ref against the input, each category against the taxonomy through the gated
+`chart_of_accounts_lookup`, each cited precedent against the store through the gated
+`precedent_lookup` - and sets `review_required` from rules a model cannot relax (below
+the bar, a departure from the default flags or from a cited precedent, `unmapped`).
+Nothing under this folder imports `tools/`; a procedure reaches a tool by name through
+`BoundTools`, and the P10 boundary test says so.

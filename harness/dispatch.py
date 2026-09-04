@@ -59,6 +59,12 @@ class Procedure(Protocol):
         """A reason to stop before any model call, or None."""
         ...
 
+    def terms(self, inputs: Any) -> tuple[str, ...]:
+        """What the precedent query ranks by - the descriptions the step is about.
+        Masked by the dispatcher before the query sees them. Empty for a skill that
+        retrieves no precedents."""
+        ...
+
     def payload(self, inputs: Any) -> str:
         """The data the model sees - labels and locators, never a figure it could
         repeat. Masked by the dispatcher before it becomes a blob."""
@@ -145,6 +151,12 @@ class SkillDispatcher:
         payload_ref = self.blobs.put(
             masked.text.encode("utf-8"), media_type="text/plain", name="payload"
         )
+        # What the precedent query ranks by, masked the same way the payload was, so a
+        # description reaches the store's index only as the model would see it.
+        terms = tuple(
+            self.masker.mask(term, engagement_id, list(identifiers), run_id=run_id).text
+            for term in procedure.terms(inputs)
+        )
 
         # 3. The context, assembled and hashed by the one place that may.
         built = self.context.build(
@@ -156,6 +168,7 @@ class SkillDispatcher:
                 scope=scope,
                 engagement_profile=engagement_profile,
                 payload=payload_ref,
+                precedent_terms=terms,
             )
         )
         self._emit(
@@ -163,8 +176,13 @@ class SkillDispatcher:
             engagement_id,
             step.id,
             "skill.dispatched",
-            f"{caller} · tier {resolved.skill.tier} · {len(resolved.references)} reference(s)",
-            payload={"context_ref": built.context_ref, "skill": caller},
+            f"{caller} · tier {resolved.skill.tier} · {len(resolved.references)} reference(s)"
+            f" + {len(built.precedent_ids)} precedent(s)",
+            payload={
+                "context_ref": built.context_ref,
+                "skill": caller,
+                "precedents": list(built.precedent_ids),
+            },
         )
 
         # 4. One call. The skill's own text is the instruction; everything assembled is data.

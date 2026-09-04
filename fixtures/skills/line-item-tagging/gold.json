@@ -1,0 +1,2402 @@
+{
+ "li_e04eb29020": {
+  "description": "Sales",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c9b5f6bdcb": {
+  "description": "Sales - product",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_da499abb8e": {
+  "description": "Product sales",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5e807fad02": {
+  "description": "Sales revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_371f7e4223": {
+  "description": "Revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_027bc95a8c": {
+  "description": "Service revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a0b2a43535": {
+  "description": "Service income",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fb80dfbb27": {
+  "description": "Fees earned",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8c76682d63": {
+  "description": "Contract revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4b2beb9b44": {
+  "description": "Sales - parts",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_25a785f56e": {
+  "description": "Parts sales",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1cd35af801": {
+  "description": "Sales - service",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a4499dc3f4": {
+  "description": "Installation revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_664685104a": {
+  "description": "Sales returns and allowances",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b937e527f7": {
+  "description": "Returns & allowances",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c43e77bfcf": {
+  "description": "Sales discounts",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1dc9e1f6a5": {
+  "description": "Customer rebates",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_bddda57e2d": {
+  "description": "Cost of goods sold",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_07381122ef": {
+  "description": "COGS",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5f89a626da": {
+  "description": "Cost of sales",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_bb9e8148da": {
+  "description": "Cost of goods sold - materials",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ec4b47d831": {
+  "description": "Direct materials",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_db26521fce": {
+  "description": "Materials - direct",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ade855c3e7": {
+  "description": "Raw material purchases",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_712733298e": {
+  "description": "Purchases - materials",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_532bf3243c": {
+  "description": "Direct labor",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c6dfbfee28": {
+  "description": "Direct labour",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_3a02ff4cc3": {
+  "description": "Shop labor",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c489d59840": {
+  "description": "Production wages",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_3a3866616b": {
+  "description": "Subcontractors",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c3630257f3": {
+  "description": "Subcontract labor",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9774c89aad": {
+  "description": "Outside services - production",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_79edfcfff2": {
+  "description": "Freight in",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4220e28dbc": {
+  "description": "Officer salaries",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_220fbacb49": {
+  "description": "Officers' compensation",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_80e537d060": {
+  "description": "Officer compensation",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c4c381752b": {
+  "description": "Salaries - officers",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5c361e5768": {
+  "description": "Owner salary",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f1a6ef394a": {
+  "description": "Shareholder salary",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c80401853b": {
+  "description": "Salaries and wages",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_678db3bc7b": {
+  "description": "Wages",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_df7c7da258": {
+  "description": "Salaries - office",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_61f7a66e8f": {
+  "description": "Salaries & wages - admin",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fc42232820": {
+  "description": "Hourly wages",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9eebbf7926": {
+  "description": "Payroll - staff",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0564798a1c": {
+  "description": "Commissions",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9bda69c7f1": {
+  "description": "Sales commissions",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_351e1a7b84": {
+  "description": "Bonuses",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d998262a26": {
+  "description": "Overtime",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c1b73b1f5f": {
+  "description": "Payroll taxes",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5cfd99355a": {
+  "description": "Payroll tax expense",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fc50e66041": {
+  "description": "FICA expense",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9f0f3a19a4": {
+  "description": "Employer payroll taxes",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_09d9a4ba91": {
+  "description": "FUTA/SUTA",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f8403ca95d": {
+  "description": "Health insurance - employees",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b681f7d1a2": {
+  "description": "Employee benefits",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b0c3885d8c": {
+  "description": "401(k) match",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_942535e171": {
+  "description": "Retirement plan contribution",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8004b7d6d1": {
+  "description": "Workers comp insurance",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4d18b83a78": {
+  "description": "ESOP contribution",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c6897efa50": {
+  "description": "Rent expense",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0e9fd1596c": {
+  "description": "Rent",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_61f43fe751": {
+  "description": "Building rent",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_61ea9332cf": {
+  "description": "Office lease",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fd29c83362": {
+  "description": "Occupancy",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_7b602f7c72": {
+  "description": "CAM charges",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_abe2c417d1": {
+  "description": "Utilities",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_44b3c5003d": {
+  "description": "Electric",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8057335483": {
+  "description": "Gas & electric",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5053890b88": {
+  "description": "Water and sewer",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_7339725159": {
+  "description": "Telephone",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_277415a7cb": {
+  "description": "Internet & telephone",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_617aedaa3a": {
+  "description": "Repairs and maintenance",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_753e3bf7db": {
+  "description": "Repairs & Maint.",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_474699f2ca": {
+  "description": "R&M",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a48c27551d": {
+  "description": "Building maintenance",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ee5c9a8f3d": {
+  "description": "Equipment repairs",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2d23c6c37a": {
+  "description": "Janitorial",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_64e8937abc": {
+  "description": "Insurance",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e4b9d68baf": {
+  "description": "Insurance - general liability",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_45e5d54206": {
+  "description": "Property insurance",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9dddc25ac7": {
+  "description": "Auto insurance",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_6ec5f23daf": {
+  "description": "Umbrella policy",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_6ea5ba5485": {
+  "description": "Insurance expense",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9952a7860e": {
+  "description": "Professional fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9aea673c33": {
+  "description": "Legal fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ebce3134ed": {
+  "description": "Accounting fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b8403cd05f": {
+  "description": "Audit fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1ddab7dfa3": {
+  "description": "Consulting fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ac77b80603": {
+  "description": "Tax preparation",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d27a4a1080": {
+  "description": "Advertising",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e2a530e251": {
+  "description": "Marketing",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_247aadb7ce": {
+  "description": "Advertising & promotion",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_087c9c16e8": {
+  "description": "Trade shows",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_627c2e8177": {
+  "description": "Website expense",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0209442e11": {
+  "description": "Travel",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_867cb42ec1": {
+  "description": "Travel & entertainment",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_61f265f620": {
+  "description": "Meals and entertainment",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c1fb4bfa83": {
+  "description": "Lodging",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f5f7f5485f": {
+  "description": "Mileage reimbursement",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b3a348ecfc": {
+  "description": "Office supplies",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0e7323ffcb": {
+  "description": "Office expense",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_61a9ed08e9": {
+  "description": "Postage",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_aae5570e24": {
+  "description": "Printing",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_85571244d9": {
+  "description": "Software subscriptions",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_6b6dafc7b1": {
+  "description": "Dues and subscriptions",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_bd1f5b7acc": {
+  "description": "Vehicle expense",
+  "category": "vehicle_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e832245de4": {
+  "description": "Auto expense",
+  "category": "vehicle_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_acbe4bfc77": {
+  "description": "Fuel",
+  "category": "vehicle_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1d9de0d6a9": {
+  "description": "Truck expense",
+  "category": "vehicle_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_bd868c0952": {
+  "description": "Bad debt expense",
+  "category": "bad_debt",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5a31bdaeaa": {
+  "description": "Bad debts",
+  "category": "bad_debt",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fb38c5377d": {
+  "description": "Uncollectible accounts",
+  "category": "bad_debt",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2ca6e59e99": {
+  "description": "Write-off of receivables",
+  "category": "bad_debt",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0302672983": {
+  "description": "Depreciation",
+  "category": "depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8805e5d804": {
+  "description": "Depreciation expense",
+  "category": "depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1a064fbb22": {
+  "description": "Depreciation - equipment",
+  "category": "depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_15d63f0f1b": {
+  "description": "Amortization",
+  "category": "amortization",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_71ee6d35e5": {
+  "description": "Amortization expense",
+  "category": "amortization",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_7c5313c52a": {
+  "description": "Amortization - intangibles",
+  "category": "amortization",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_87ea18c185": {
+  "description": "Miscellaneous expense",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e43588e5f9": {
+  "description": "Bank charges",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_727c6d5b65": {
+  "description": "Licenses and permits",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c2fb788c7d": {
+  "description": "Training",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_df773a2e30": {
+  "description": "Bank service charges",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0bd8ed8ec5": {
+  "description": "Interest expense",
+  "category": "interest_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_830b6b4681": {
+  "description": "Interest - loans",
+  "category": "interest_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f92ad50537": {
+  "description": "Finance charges",
+  "category": "interest_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_11df8be513": {
+  "description": "Loan interest",
+  "category": "interest_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e3ef503e43": {
+  "description": "Interest income",
+  "category": "interest_income",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_77693c509b": {
+  "description": "Dividend income",
+  "category": "interest_income",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_dd3cd0d5d6": {
+  "description": "Investment income",
+  "category": "interest_income",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_089edf37ca": {
+  "description": "Interest earned",
+  "category": "interest_income",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ba5d768138": {
+  "description": "Gain on sale of equipment",
+  "category": "gain_loss_on_disposal",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a249a278bb": {
+  "description": "Loss on disposal of assets",
+  "category": "gain_loss_on_disposal",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_75d2354c2a": {
+  "description": "Gain (loss) on sale",
+  "category": "gain_loss_on_disposal",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1625ad0339": {
+  "description": "Gain on disposition",
+  "category": "gain_loss_on_disposal",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b2a392e17f": {
+  "description": "Other income",
+  "category": "other_income_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_86e24943cb": {
+  "description": "Rental income",
+  "category": "other_income_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0aefc0d23e": {
+  "description": "PPP loan forgiveness",
+  "category": "other_income_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_153bea4650": {
+  "description": "Settlement income",
+  "category": "other_income_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ad4431d4d0": {
+  "description": "Non-operating income",
+  "category": "other_income_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f5d715d0b0": {
+  "description": "Income tax expense",
+  "category": "income_tax",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d52c07b2fa": {
+  "description": "State income tax",
+  "category": "income_tax",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4f354384c9": {
+  "description": "Franchise tax",
+  "category": "income_tax",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_563e082475": {
+  "description": "Provision for income taxes",
+  "category": "income_tax",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ab0fcec08e": {
+  "description": "Cash",
+  "category": "cash",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_46ded5b090": {
+  "description": "Cash - operating",
+  "category": "cash",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_63c811f55d": {
+  "description": "Checking account",
+  "category": "cash",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_286d4726e1": {
+  "description": "Savings",
+  "category": "cash",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_202d9e2a6f": {
+  "description": "Money market",
+  "category": "cash",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_e6eb9cbfff": {
+  "description": "Petty cash",
+  "category": "cash",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_189f747eca": {
+  "description": "Accounts receivable",
+  "category": "accounts_receivable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_8160ccef0d": {
+  "description": "A/R",
+  "category": "accounts_receivable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_382de75b43": {
+  "description": "Trade receivables",
+  "category": "accounts_receivable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_2e01200557": {
+  "description": "Accounts receivable - trade",
+  "category": "accounts_receivable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_507622197d": {
+  "description": "Receivables",
+  "category": "accounts_receivable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_b7250f867f": {
+  "description": "Allowance for doubtful accounts",
+  "category": "allowance_doubtful",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_5c71188a7b": {
+  "description": "Reserve for bad debts",
+  "category": "allowance_doubtful",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_3237a58d39": {
+  "description": "Allowance - A/R",
+  "category": "allowance_doubtful",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_b11a85b296": {
+  "description": "Inventory",
+  "category": "inventory",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_315d0350a5": {
+  "description": "Raw materials inventory",
+  "category": "inventory",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_dd0fd09680": {
+  "description": "Work in process",
+  "category": "inventory",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_32e4caaf63": {
+  "description": "WIP",
+  "category": "inventory",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_201dc839cc": {
+  "description": "Finished goods",
+  "category": "inventory",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_895253b9ad": {
+  "description": "Inventory - parts",
+  "category": "inventory",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_8341e1415f": {
+  "description": "Prepaid expenses",
+  "category": "prepaid_expenses",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_66c93a306c": {
+  "description": "Prepaid insurance",
+  "category": "prepaid_expenses",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_63963a16e0": {
+  "description": "Prepaids",
+  "category": "prepaid_expenses",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_17642a16f4": {
+  "description": "Retainers",
+  "category": "prepaid_expenses",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_59d14f9467": {
+  "description": "Other current assets",
+  "category": "other_current_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_11943f5512": {
+  "description": "Employee advances",
+  "category": "other_current_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_a6c76377bb": {
+  "description": "Contract assets",
+  "category": "other_current_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_e3df1e0ab4": {
+  "description": "Unbilled revenue",
+  "category": "other_current_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_063aebe7c1": {
+  "description": "Due from shareholder",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_7c245cebd2": {
+  "description": "Due from officer",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_447fc0fde7": {
+  "description": "Loan to owner",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_1109c27a25": {
+  "description": "Due from affiliate",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_c3aba359cc": {
+  "description": "Due from related party",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_6a0632fdb7": {
+  "description": "Investments",
+  "category": "investments",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_c5c0ecc57f": {
+  "description": "Marketable securities",
+  "category": "investments",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_bb0009270c": {
+  "description": "Brokerage account",
+  "category": "investments",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_5ac8139016": {
+  "description": "Cash surrender value of life insurance",
+  "category": "investments",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_2e111e5906": {
+  "description": "CSV - life insurance",
+  "category": "investments",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_e6a8cf4130": {
+  "description": "Machinery and equipment",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1c09f5a7f4": {
+  "description": "Equipment",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c9b87872c1": {
+  "description": "Vehicles",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ed08c7ecda": {
+  "description": "Furniture and fixtures",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a861d05f98": {
+  "description": "Buildings",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_90eae63487": {
+  "description": "Land",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_33dd7f27ac": {
+  "description": "Leasehold improvements",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8b0757afb0": {
+  "description": "Computer equipment",
+  "category": "ppe",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_de684e38a6": {
+  "description": "Accumulated depreciation",
+  "category": "accumulated_depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_50effded1a": {
+  "description": "Accum. depr.",
+  "category": "accumulated_depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_84be79d387": {
+  "description": "Less: accumulated depreciation",
+  "category": "accumulated_depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_173087c399": {
+  "description": "A/D - equipment",
+  "category": "accumulated_depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_47b2d9943b": {
+  "description": "Goodwill",
+  "category": "intangibles",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_7787ed290f": {
+  "description": "Intangible assets",
+  "category": "intangibles",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_6e92c4d7a9": {
+  "description": "Customer list",
+  "category": "intangibles",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9cca72a552": {
+  "description": "Trademarks",
+  "category": "intangibles",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d627bb8139": {
+  "description": "Non-compete agreement",
+  "category": "intangibles",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a5aa3db983": {
+  "description": "Accumulated amortization",
+  "category": "intangibles",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_3dd0657003": {
+  "description": "Right-of-use asset",
+  "category": "right_of_use_asset",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2f65b4ac61": {
+  "description": "ROU asset",
+  "category": "right_of_use_asset",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_83c2fc0200": {
+  "description": "Operating lease asset",
+  "category": "right_of_use_asset",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e7b0be70d8": {
+  "description": "Other assets",
+  "category": "other_noncurrent_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_070f8dac62": {
+  "description": "Deferred tax asset",
+  "category": "other_noncurrent_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d6c33ed8f5": {
+  "description": "Long-term deposits",
+  "category": "other_noncurrent_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8acf900a08": {
+  "description": "Accounts payable",
+  "category": "accounts_payable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_c35106fd39": {
+  "description": "A/P",
+  "category": "accounts_payable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_93bcf0ba1d": {
+  "description": "Trade payables",
+  "category": "accounts_payable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_4f8f3840e7": {
+  "description": "Accounts payable - trade",
+  "category": "accounts_payable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_8264391619": {
+  "description": "Payables",
+  "category": "accounts_payable",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_316244d030": {
+  "description": "Accrued liabilities",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_f819114770": {
+  "description": "Accrued expenses",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_6125ed3fb2": {
+  "description": "Accrued payroll",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_619e1540d6": {
+  "description": "Accrued vacation",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_5478312d14": {
+  "description": "Wages payable",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_aecbc37302": {
+  "description": "Sales tax payable",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_0a44da97cd": {
+  "description": "Payroll taxes payable",
+  "category": "accrued_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_5fa85cfc2f": {
+  "description": "Deferred revenue",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_06d379c57f": {
+  "description": "Customer deposits",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_fb7cfc4fa7": {
+  "description": "Unearned revenue",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_5952cecdc1": {
+  "description": "Billings in excess of costs",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_fc20394e6e": {
+  "description": "Contract liabilities",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_1472a423a5": {
+  "description": "Other current liabilities",
+  "category": "other_current_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_2d0d765ea3": {
+  "description": "Warranty reserve",
+  "category": "other_current_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_9d13ae7b3d": {
+  "description": "Line of credit",
+  "category": "line_of_credit",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_a7f32380cf": {
+  "description": "LOC",
+  "category": "line_of_credit",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_6e98b48425": {
+  "description": "Revolver",
+  "category": "line_of_credit",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_81268bad51": {
+  "description": "Revolving credit facility",
+  "category": "line_of_credit",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_e3ff6d2f6b": {
+  "description": "Current portion of long-term debt",
+  "category": "current_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_443e2d1e43": {
+  "description": "Current maturities of LTD",
+  "category": "current_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_cbe415a924": {
+  "description": "CPLTD",
+  "category": "current_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_d416d7381a": {
+  "description": "Notes payable - current",
+  "category": "current_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_0a373f240a": {
+  "description": "Lease liability",
+  "category": "lease_liability",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4f9caa575e": {
+  "description": "Operating lease liability",
+  "category": "lease_liability",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8d48fb2f29": {
+  "description": "Finance lease obligation",
+  "category": "lease_liability",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e7f162d62d": {
+  "description": "Notes payable",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_233fc37d86": {
+  "description": "Term loan",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_8c8c489951": {
+  "description": "Mortgage payable",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_f52f429dfe": {
+  "description": "Equipment loan",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_04d99194ed": {
+  "description": "SBA loan",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_630da62826": {
+  "description": "Long-term debt",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_52a31c1b04": {
+  "description": "Bank loan",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_1876876bd8": {
+  "description": "Due to shareholder",
+  "category": "related_party_payable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_17d2632ad1": {
+  "description": "Shareholder loan",
+  "category": "related_party_payable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_994bcba807": {
+  "description": "Loan from owner",
+  "category": "related_party_payable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_61deeae8ea": {
+  "description": "Due to officer",
+  "category": "related_party_payable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_8726c9559e": {
+  "description": "Due to affiliate",
+  "category": "related_party_payable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_873b93ae18": {
+  "description": "Deferred tax liability",
+  "category": "other_noncurrent_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_59f4530b3e": {
+  "description": "Deferred compensation",
+  "category": "other_noncurrent_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5992a911a6": {
+  "description": "Other long-term liabilities",
+  "category": "other_noncurrent_liabilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_494be70af2": {
+  "description": "Common stock",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_573968947a": {
+  "description": "Paid-in capital",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_aefba7afd3": {
+  "description": "Retained earnings",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_fc52371b09": {
+  "description": "Members' equity",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_426fee8d74": {
+  "description": "Partners' capital",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_c460ca0d9a": {
+  "description": "Treasury stock",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_136a94de1e": {
+  "description": "Distributions",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_baefc799b2": {
+  "description": "Dividends paid",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_c9df21b60c": {
+  "description": "Owner draws",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_4df043a6d9": {
+  "description": "Salaries - officers and staff",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_261a61c412": {
+  "description": "Salaries and wages - all",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f23b3ef45d": {
+  "description": "Depreciation and amortization",
+  "category": "depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4d9ceeb535": {
+  "description": "Depreciation & amortization",
+  "category": "depreciation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a810aca6a6": {
+  "description": "Rent and utilities",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0059d29458": {
+  "description": "Taxes and licenses",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_98c2724477": {
+  "description": "Taxes & licenses",
+  "category": "other_operating_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ac0a799b0b": {
+  "description": "Accrued interest",
+  "category": "accrued_liabilities",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_028dae314e": {
+  "description": "Accrued interest payable",
+  "category": "accrued_liabilities",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_0a006e7158": {
+  "description": "Interest receivable",
+  "category": "other_current_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_c1137aee5b": {
+  "description": "Note receivable - customer",
+  "category": "other_current_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_0c5a1ae94d": {
+  "description": "Security deposit",
+  "category": "other_noncurrent_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b5fbf54401": {
+  "description": "Utility deposit",
+  "category": "other_noncurrent_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1a43240c9a": {
+  "description": "Lease deposit",
+  "category": "other_noncurrent_assets",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a841c24b61": {
+  "description": "Deposits held from customers",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_f44fdbefd1": {
+  "description": "Customer deposits held",
+  "category": "deferred_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": true
+ },
+ "li_9d288bc198": {
+  "description": "Note receivable - officer",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_93a292175a": {
+  "description": "Officer loan receivable",
+  "category": "related_party_receivable",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_fe2b11d89f": {
+  "description": "Notes payable - bank",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_efb6a93b84": {
+  "description": "Note payable",
+  "category": "long_term_debt",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_fdc953d98c": {
+  "description": "Income taxes payable",
+  "category": "other_current_liabilities",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_a5371c49b5": {
+  "description": "Restricted cash - bonding",
+  "category": "cash",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_56dc71fc28": {
+  "description": "Distributions to members",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_d4a4492b20": {
+  "description": "Shareholder distributions",
+  "category": "equity",
+  "excluded_from_al": true,
+  "include_in_nwc": false
+ },
+ "li_a1cb1972c2": {
+  "description": "Other income - service contracts",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_828408e40d": {
+  "description": "Interest",
+  "category": "interest_expense",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9c32429c29": {
+  "description": "Misc",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d9298a10d1": {
+  "description": "Other",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c3211e4cc7": {
+  "description": "Adjustment",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_dd3e11e4df": {
+  "description": "Reclass",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5df4ba1dc4": {
+  "description": "Account 6",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a1dcbd2066": {
+  "description": "Adj",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8b71bcf017": {
+  "description": "Suspense",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fa2b7cb7a3": {
+  "description": "Clearing",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_847268061a": {
+  "description": "Total operating expenses",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4a391e749e": {
+  "description": "Gross profit",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fff8b618dd": {
+  "description": "Net income",
+  "category": "unmapped",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_675557ff27": {
+  "description": "6626 - Sales",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8a6f9ccf83": {
+  "description": "6663 - Sales - product",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2aab6ed19f": {
+  "description": "6700 - Product sales",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f0be59cf49": {
+  "description": "6737 - Sales revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8ac50e79ef": {
+  "description": "6774 - Revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4aa5be4aa2": {
+  "description": "6811 - Service revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_14e4c3fe6e": {
+  "description": "6848 - Service income",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_97392b59f3": {
+  "description": "6885 - Fees earned",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c8d76a5908": {
+  "description": "6122 - Contract revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d91b8cbba0": {
+  "description": "6159 - Sales - parts",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a255f62f41": {
+  "description": "6196 - Parts sales",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0167814340": {
+  "description": "6233 - Sales - service",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1843b32638": {
+  "description": "6270 - Installation revenue",
+  "category": "revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e095e8296d": {
+  "description": "6307 - Sales returns and allowances",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2b3d915518": {
+  "description": "6344 - Returns & allowances",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_adbb5ae5d1": {
+  "description": "6381 - Sales discounts",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8bbacbc984": {
+  "description": "6418 - Customer rebates",
+  "category": "contra_revenue",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_cb380b32ec": {
+  "description": "6455 - Cost of goods sold",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_15a6adb390": {
+  "description": "6492 - COGS",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_7c6ad67463": {
+  "description": "6529 - Cost of sales",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f795df35a1": {
+  "description": "6566 - Cost of goods sold - materials",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b1b32428a4": {
+  "description": "6603 - Direct materials",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_04fdcb9a16": {
+  "description": "6640 - Materials - direct",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9516e40d1b": {
+  "description": "6677 - Raw material purchases",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_abeefaab57": {
+  "description": "6714 - Purchases - materials",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_82664d8372": {
+  "description": "6751 - Direct labor",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2c773fc93a": {
+  "description": "6788 - Direct labour",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9a8f1e9447": {
+  "description": "6825 - Shop labor",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_01ca2a0a54": {
+  "description": "6862 - Production wages",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a67349892c": {
+  "description": "6899 - Subcontractors",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f7216fbbde": {
+  "description": "6136 - Subcontract labor",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c0df3d4c2e": {
+  "description": "6173 - Outside services - production",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_09580dbf4c": {
+  "description": "6210 - Freight in",
+  "category": "cost_of_sales",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_305250f016": {
+  "description": "6247 - Officer salaries",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_115531e315": {
+  "description": "6284 - Officers' compensation",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_eb61a66096": {
+  "description": "6321 - Officer compensation",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_631e1d628a": {
+  "description": "6358 - Salaries - officers",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ccd34c16ca": {
+  "description": "6395 - Owner salary",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_002dc528f2": {
+  "description": "6432 - Shareholder salary",
+  "category": "officer_compensation",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8fea88139b": {
+  "description": "6469 - Salaries and wages",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_03f8cbc257": {
+  "description": "6506 - Wages",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1ed81b9df3": {
+  "description": "6543 - Salaries - office",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e44a133a1b": {
+  "description": "6580 - Salaries & wages - admin",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_80a9732a18": {
+  "description": "6617 - Hourly wages",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_33f6e27b3a": {
+  "description": "6654 - Payroll - staff",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b9fd24e45f": {
+  "description": "6691 - Commissions",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ee40e9c6c6": {
+  "description": "6728 - Sales commissions",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4804dbdd5b": {
+  "description": "6765 - Bonuses",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a102e8275f": {
+  "description": "6802 - Overtime",
+  "category": "salaries_wages",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_03970eb285": {
+  "description": "6839 - Payroll taxes",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_782770243c": {
+  "description": "6876 - Payroll tax expense",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_cf5ffe0256": {
+  "description": "6113 - FICA expense",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_2cddbfdea4": {
+  "description": "6150 - Employer payroll taxes",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_847e54bd8b": {
+  "description": "6187 - FUTA/SUTA",
+  "category": "payroll_taxes",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_98ba625adb": {
+  "description": "6224 - Health insurance - employees",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9567b82be1": {
+  "description": "6261 - Employee benefits",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_3b52f53d0b": {
+  "description": "6298 - 401(k) match",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9d903056c7": {
+  "description": "6335 - Retirement plan contribution",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f73e93bfdf": {
+  "description": "6372 - Workers comp insurance",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_30290ccc90": {
+  "description": "6409 - ESOP contribution",
+  "category": "employee_benefits",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_724277c290": {
+  "description": "6446 - Rent expense",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_404ba514a4": {
+  "description": "6483 - Rent",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0cbb36b01f": {
+  "description": "6520 - Building rent",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f500500741": {
+  "description": "6557 - Office lease",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8c0062eaf3": {
+  "description": "6594 - Occupancy",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_601a919618": {
+  "description": "6631 - CAM charges",
+  "category": "rent",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_015b8dac5a": {
+  "description": "6668 - Utilities",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_5df42233c7": {
+  "description": "6705 - Electric",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ab2281986b": {
+  "description": "6742 - Gas & electric",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_699e551d82": {
+  "description": "6779 - Water and sewer",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f182d770cb": {
+  "description": "6816 - Telephone",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_8627572989": {
+  "description": "6853 - Internet & telephone",
+  "category": "utilities",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_bafc2b9f32": {
+  "description": "6890 - Repairs and maintenance",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b7cbcfbf2c": {
+  "description": "6127 - Repairs & Maint.",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_4830cf2873": {
+  "description": "6164 - R&M",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1b3bcb5290": {
+  "description": "6201 - Building maintenance",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_7286c93b77": {
+  "description": "6238 - Equipment repairs",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_d6bf19b21c": {
+  "description": "6275 - Janitorial",
+  "category": "repairs_maintenance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_0f98c95b2a": {
+  "description": "6312 - Insurance",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_fe52218a03": {
+  "description": "6349 - Insurance - general liability",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_b56fa8fc52": {
+  "description": "6386 - Property insurance",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_93c8e8a922": {
+  "description": "6423 - Auto insurance",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_1a73bf373b": {
+  "description": "6460 - Umbrella policy",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_04d86409eb": {
+  "description": "6497 - Insurance expense",
+  "category": "insurance",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_3ec2585b96": {
+  "description": "6534 - Professional fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f2d39d8fe8": {
+  "description": "6571 - Legal fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_ca9df7ddd1": {
+  "description": "6608 - Accounting fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_e6878bdfd8": {
+  "description": "6645 - Audit fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_80d41ca6b9": {
+  "description": "6682 - Consulting fees",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_52be08567a": {
+  "description": "6719 - Tax preparation",
+  "category": "professional_fees",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_165c2d69c6": {
+  "description": "6756 - Advertising",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_a012367c60": {
+  "description": "6793 - Marketing",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_6fbc42dd15": {
+  "description": "6830 - Advertising & promotion",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_845cdce19f": {
+  "description": "6867 - Trade shows",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c6428c3124": {
+  "description": "6104 - Website expense",
+  "category": "advertising_marketing",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_07b6f70527": {
+  "description": "6141 - Travel",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_495d89bf8f": {
+  "description": "6178 - Travel & entertainment",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_c924aece8a": {
+  "description": "6215 - Meals and entertainment",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_9d60196a37": {
+  "description": "6252 - Lodging",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f467441d99": {
+  "description": "6289 - Mileage reimbursement",
+  "category": "travel_entertainment",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ },
+ "li_f5df55319d": {
+  "description": "6326 - Office supplies",
+  "category": "office_supplies",
+  "excluded_from_al": false,
+  "include_in_nwc": false
+ }
+}
