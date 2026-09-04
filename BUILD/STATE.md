@@ -5,28 +5,29 @@
 
 ## Where the build is
 
-- **25 of 28 phases closed**
+- **26 of 28 phases closed**
 - Last green checkpoint: **C8**
-- Current phase: **P26 - Orchestrator agent and triage** (gate: human)
+- Current phase: **P27 - The governance chain** (gate: auto)
 
 ## The next action
 
-Work P26. Its full definition is in [BUILD/phases/P26.md](phases/P26.md).
+Work P27. Its full definition is in [BUILD/phases/P27.md](phases/P27.md).
 
-> The model proposes a plan; it is still compiled, asserted and hashed before anything runs. This arrives last on purpose.
+> Skills are how this system changes, and ungoverned change is the main long-term risk. A dropped draft is a candidate, not a skill.
 
 Tasks:
 
-- [ ] Orchestrator working from the skill index (name and description only) and the job manifest
-- [ ] Structured output: a plan proposal, never a value
-- [ ] The proposal goes through the same compiler and the same plan assertions as a recipe
-- [ ] Triage for no confident match, with a schema containing no field for a figure
-- [ ] Fall back to the named recipe when the proposal fails assertions
+- [ ] Drop folder, conformance check against the skill contract, adaptation bench
+- [ ] Authoring sandbox and its test harness, reading masked payloads only
+- [ ] Submit, review board, shadow deployment with a sustained agreement threshold
+- [ ] The registry as the single writer to the live skills/ tree
+- [ ] The governance record
+- [ ] Open a re-review on the skill board from a DriftMonitor flag (the drift_re_review loop)
 
 Then:
 
-    python tools/gate.py check P26
-    python tools/gate.py close P26  --signoff "name: what you checked"
+    python tools/gate.py check P27
+    python tools/gate.py close P27
 
 ## Before you start
 
@@ -63,4 +64,5 @@ Then:
 - **P23** Ops console, scorecard, drift, stalls (2026-09-03)
 - **P24** Admin console, preflight, config audit (2026-09-04)
 - **P25** Worker pool and the queue port (2026-09-04)
+- **P26** Orchestrator agent and triage (2026-09-04) - Caleb: it all looks good
 

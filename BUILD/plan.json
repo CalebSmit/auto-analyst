@@ -865,7 +865,7 @@
       "title": "Orchestrator agent and triage",
       "block": "Block G - Scale, judgment and handoff",
       "gate": "human",
-      "status": "open",
+      "status": "done",
       "human_check": "You confirm the plans the orchestrator proposes on real engagements are the plans you would have chosen, across at least ten runs.",
       "intent": "The model proposes a plan; it is still compiled, asserted and hashed before anything runs. This arrives last on purpose.",
       "builds": [
@@ -891,7 +891,9 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy orchestrate workers ports intake ops registries graph review"
       ],
-      "notes": "Everything before this uses named recipes. Building the model-driven planner last means the verification spine is proven against a fixed plan first."
+      "notes": "Everything before this uses named recipes. Building the model-driven planner last means the verification spine is proven against a fixed plan first.",
+      "closed": "2026-09-04",
+      "signoff": "Caleb: it all looks good"
     },
     {
       "id": "P27",
