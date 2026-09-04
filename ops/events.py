@@ -230,6 +230,11 @@ class EventBus:
         """Add a reader. Readers never affect the run - see the class docstring."""
         self._subscribers.append(subscriber)
 
+    def unsubscribe(self, subscriber: Callable[[dict[str, Any]], None]) -> None:
+        """Remove a reader. A console client that went away is not an error."""
+        if subscriber in self._subscribers:
+            self._subscribers.remove(subscriber)
+
     def subscribers(self) -> Iterable[Callable[[dict[str, Any]], None]]:
         return tuple(self._subscribers)
 

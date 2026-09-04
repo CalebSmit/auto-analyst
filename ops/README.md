@@ -1,10 +1,36 @@
 # ops/
 
 **What belongs here.** The record and the surfaces over it: models.py, events.py,
-run_store.py, manifest.py, console/.
+run_store.py, manifest.py, cost.py, scorecard.py (with criteria/), stall.py, drift.py,
+analytics.py, console/.
 
 **What does not.** No business logic. If the console computes something, the scorecard
 should own it.
+
+## The verdict is computed, not claimed (P23)
+
+`scorecard.py` scores every run against `criteria/run_criteria@<version>.yaml` - the
+blueprint's ten rows as data, never edited in place - and the manifest (now
+`run_manifest@1.1.0`) records the verdict, the criteria version and every measurement.
+Five verdicts: `pass`, `pass_with_exceptions`, `halted`, `blocked`, `partial`.
+
+Two rules carry the weight. **Silence is never a pass**: a criterion the record cannot
+measure is `not_measured`, which keeps the verdict off `pass`. **The claim is checked**:
+`close_out` asks the scorecard to score the run as ending the way the caller says before
+it ends the run, and `PROCESS.OUTCOME_CONTRADICTED` refuses a pair the record does not
+support - `clean` has to be earned, a run a guard refused is `halted` not `blocked`.
+`close_out` itself still has no branch on state or outcome; the check lives in
+`RunScorecard.check_claim`.
+
+## Readers of the record
+
+`stall.py`, `drift.py`, `analytics.py` and `console/` read the store and the bus and
+hold nothing a run needs. The console's trace (`console/trace.py`) is one reducer over
+the event stream - live and replay are the same fold - and node state comes from the
+event's *type*, never its level. The stall detector raises `alert.*` events once per
+episode with a diagnostic code and an owner; it decides nothing about the run. The
+drift monitor flags a sustained move per skill and per scope and writes nothing; the
+governance chain (P27) opens the re-review.
 
 ## Three rules, and where each one is actually enforced
 

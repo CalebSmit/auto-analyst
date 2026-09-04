@@ -67,8 +67,19 @@ def _canonical(value: Any) -> bytes:
     return json.dumps(body, sort_keys=True, separators=(",", ":"), default=plain).encode("utf-8")
 
 
+def _summary(procedure: Any, output: dict[str, Any]) -> dict[str, Any]:
+    """A procedure may describe its output for the record - `summary(output)` - and
+    most do not. Labels and counts only; the scorecard reads it, nothing acts on it."""
+    describe = getattr(procedure, "summary", None)
+    if describe is None:
+        return {}
+    described: dict[str, Any] = describe(output)
+    return described
+
+
 class Procedure(Protocol):
-    """The mechanical half of one skill."""
+    """The mechanical half of one skill. A procedure may also offer `summary(output)`,
+    a dict of labels and counts describing what it produced, for the event record."""
 
     name: str
     proposal_contract: str
@@ -273,6 +284,10 @@ class SkillDispatcher:
                 "proposal_ref": proposal_ref.content_hash,
                 "request_hash": call.request_hash,
                 "skill": caller,
+                # What the skill says about its own output, for the scorecard and
+                # the console: labels and counts, never a figure (the payload scan
+                # has not seen this and no figure may travel in an event).
+                "summary": _summary(procedure, output),
             },
         )
         return Dispatched(

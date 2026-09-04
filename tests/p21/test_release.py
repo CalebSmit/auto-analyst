@@ -14,7 +14,7 @@ from openpyxl import load_workbook
 from deliver import DeliverableQC, ReleaseRefused, WorkpaperNarrative
 from deliver.workpaper import words
 from graph.compile import CompiledGraph
-from ops.manifest import assemble, close_out
+from ops.manifest import MANIFEST_CONTRACT, assemble, close_out
 from ops.models import Outcome, RunState
 from ops.run_store import SqlRunStore
 from registries.contracts import ContractRegistry
@@ -234,8 +234,15 @@ def test_the_manifest_lists_every_plan_step_with_never_started_ones_as_not_reach
     assert statuses["release"] == "not_reached"
     never = [s for s in manifest["steps"] if s["status"] == "not_reached"]
     assert never and all(s["step_key"] is None and s["attempts"] == 0 for s in never)
+    # A run still going has no verdict yet; the shape is validated as if it had ended.
     contracts.validate(
-        "run_manifest@1.0.0", {**manifest, "outcome": "halted", "ended_at": manifest["started_at"]}
+        MANIFEST_CONTRACT,
+        {
+            **manifest,
+            "outcome": "halted",
+            "ended_at": manifest["started_at"],
+            "scorecard": {**manifest["scorecard"], "verdict": "halted"},
+        },
     )
 
 
@@ -246,11 +253,13 @@ def test_close_out_writes_the_manifest_beside_the_deliverable(
     released = world["release"].release(
         world["run_id"], ENGAGEMENT, built.name, built.data, template_version=TEMPLATE_VERSION
     )
+    # Not `clean`: this run never normalized, tagged or tied anything out, and since
+    # P23 a criterion the record cannot measure keeps the verdict off `pass`.
     closed = close_out(
         store,
         world["run_id"],
         RunState.DELIVERED,
-        Outcome.CLEAN,
+        Outcome.RELEASED_WITH_REVIEW,
         world["delivery"],
         bus=bus,
         plan=plan,
@@ -258,6 +267,8 @@ def test_close_out_writes_the_manifest_beside_the_deliverable(
     folder = world["outbox"] / ENGAGEMENT / world["run_id"]
     assert (folder / "run_manifest.json").is_file() and (folder / built.name).is_file()
     body = json.loads((folder / "run_manifest.json").read_text(encoding="utf-8"))
+    assert body["scorecard"]["verdict"] == "pass_with_exceptions"
+    assert "deliverable_qc" not in body["scorecard"]["failed"]
     assert built.name in {a["name"] for a in body["artifacts"]}
     assert "run_manifest.json" in {a.name for a in store.artifacts(world["run_id"])}, (
         "the manifest is recorded after it is written; it cannot list itself"

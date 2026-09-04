@@ -7,7 +7,7 @@ did the system check, on what sources, and what stopped it. A record that only e
 when things went well is not a record.
 
 So `close_out` is the single door out of a run. It ends the run in the store, assembles
-the manifest from what the store holds, validates it against `run_manifest@1.0.0`, and
+the manifest from what the store holds, validates it against `run_manifest@1.1.0`, and
 writes it through the Delivery Port beside the deliverable. Every terminal state goes
 through here, which is enforced upstream: `SqlRunStore.transition` refuses a terminal
 target and tells the caller to use `end_run`, and `end_run` is what this wraps.
@@ -15,6 +15,11 @@ target and tells the caller to use `end_run`, and `end_run` is what this wraps.
 Assembled rather than maintained: it is written once, at the end, so it is a clean
 artifact rather than live mutable state that can be caught half-updated. Immutability
 comes from destination versioning, not from everyone remembering not to overwrite.
+
+Since P23 the manifest carries the Run Scorecard: a verdict computed from the record
+against a versioned criteria file, beside the outcome the caller claimed. The scorecard
+checks the claim *before* the run is ended, and refuses a contradiction - so `clean` in
+a manifest is something the record earned, not something a caller asserted.
 """
 
 from __future__ import annotations
@@ -26,10 +31,11 @@ from typing import Any
 from ops.events import EventBus
 from ops.models import Outcome, RunState, RunStoreError
 from ops.run_store import RunRecord, RunStore
+from ops.scorecard import RunScorecard, Scorecard
 from registries.contracts import ContractRegistry
 from registries.errors import MANIFEST_INCOMPLETE, ContractViolation, diagnose
 
-MANIFEST_CONTRACT = "run_manifest@1.0.0"
+MANIFEST_CONTRACT = "run_manifest@1.1.0"
 MANIFEST_NAME = "run_manifest.json"
 
 # What `versions` has to be able to name for a run to be reproducible. Exported so
@@ -50,7 +56,7 @@ __all__ = [
 
 
 class ManifestIncomplete(RunStoreError):
-    """The assembled manifest does not satisfy run_manifest@1.0.0."""
+    """The assembled manifest does not satisfy run_manifest@1.1.0."""
 
 
 @dataclass(frozen=True)
@@ -80,6 +86,7 @@ def assemble(
     run_id: str,
     bus: EventBus | None = None,
     plan: Any | None = None,
+    scorecard: Scorecard | None = None,
 ) -> dict[str, Any]:
     """Build the manifest from the run store. Reads only; writes nothing.
 
@@ -91,9 +98,13 @@ def assemble(
     they are, and the ones that never started as `not_reached` with no key - a step
     that never ran has no honest idempotency key, and inventing one would be the P14
     finding this closes.
+
+    `scorecard` is the verdict close-out already computed and checked; without one the
+    record is scored here, which on a run still going carries no verdict yet.
     """
     run = store.run(run_id)
     reader = bus or EventBus(store)
+    card = scorecard or RunScorecard(store, reader).score(run_id)
     recorded = store.steps(run_id)
     seen = {step.step_id for step in recorded}
     not_reached = [
@@ -170,6 +181,7 @@ def assemble(
             "input_tokens": run.input_tokens,
             "output_tokens": run.output_tokens,
         },
+        "scorecard": card.as_dict(),
     }
     if run.tieout_tolerance is not None:
         manifest["tieout_tolerance"] = run.tieout_tolerance
@@ -190,16 +202,21 @@ def close_out(
 ) -> ManifestResult:
     """End the run and write its manifest. The only way a run ends.
 
-    The order is: end the run, then assemble - so `ended_at` and `outcome` are in the
-    record rather than predicted. If the delivery write fails, that failure propagates:
-    the run is over either way, and a close-out that quietly produced no manifest would
-    be the one kind of silence this system is built to not have.
+    The order is: check the claim, end the run, then assemble - so a contradiction is
+    refused before anything is written, and `ended_at` and `outcome` are in the record
+    rather than predicted. If the delivery write fails, that failure propagates: the
+    run is over either way, and a close-out that quietly produced no manifest would be
+    the one kind of silence this system is built to not have.
     """
-    run = store.end_run(run_id, state, outcome, reason=reason)
     reader = bus or EventBus(store, contracts=contracts)
     registry = contracts or ContractRegistry.load()
+    scorer = RunScorecard(store, reader)
 
-    manifest = assemble(store, run_id, bus=reader, plan=plan)
+    card = scorer.check_claim(run_id, state, outcome)
+    run = store.end_run(run_id, state, outcome, reason=reason)
+    scorer.emit(card, run.engagement_id)
+
+    manifest = assemble(store, run_id, bus=reader, plan=plan, scorecard=card)
     _require_valid(registry, manifest)
 
     body = json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8")
@@ -220,6 +237,8 @@ def close_out(
             "version": written.version,
             "guard_events": len(manifest["guard_events"]),
             "steps": len(manifest["steps"]),
+            "verdict": manifest["scorecard"]["verdict"],
+            "criteria_version": manifest["scorecard"]["criteria_version"],
         },
     )
     return ManifestResult(

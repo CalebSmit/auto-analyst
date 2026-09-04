@@ -1130,7 +1130,7 @@ const NODES = [
 
 {id:'run_scorecard',runtime:'step',label:'Run Scorecard',plain:'The verdict: did this run actually work, and against what bar?',group:'ops',exec:'code',failClosed:true,now:true,
  desc:'Computes a per-run verdict against declared acceptance criteria \u2014 document and period coverage, provenance completeness, tie-out agreement, conflicts resolved, residual masking, numeric integrity, budget, review outstanding, deliverable QC. Emits <b>pass</b>, <b>pass with exceptions</b>, <b>halted</b>, <b>blocked</b> or <b>partial</b>, and names every criterion that failed.',
- impl:'Deterministic, computed from the event stream at end of run and written into the manifest. The criteria and their thresholds are versioned like any other contract, so \u201cwhat counted as working\u201d is answerable for a run from six months ago.',
+ impl:'Deterministic, computed from the event stream at end of run and written into the manifest (<span class="mono">run_manifest@1.1.0</span>: verdict, criteria version, every criterion\u2019s measurement). The criteria live in <span class="mono">ops/criteria/</span>, one file per version, never edited in place, so \u201cwhat counted as working\u201d is answerable for a run from six months ago. Close-out checks the outcome a caller claims against the verdict the record supports and refuses a contradiction: <span class="mono">clean</span> is earned, not asserted. A criterion the record cannot measure is reported as such and keeps the verdict off <span class="mono">pass</span> \u2014 silence is never a pass.',
  full:'Guards answer \u201cdid this particular check pass\u201d. Nobody was answering \u201cdid the run work\u201d, which left it a matter of opinion formed by scrolling a log. A run is not a boolean either \u2014 conflating <i>halted before producing anything</i> with <i>delivered but three figures needed a person</i> hides exactly the information a practice lead needs.'},
 
 {id:'analytics',runtime:'static',label:'Analytics Dashboard',plain:'Across all runs: is this working, and what should we fix?',group:'ops',exec:'code',now:true,
@@ -2075,14 +2075,14 @@ const SCORECARD = [
 /* The diagnostic namespace. Every code carries an owner and a what_now. */
 const ERRCODES = [
  ['INTAKE.*','UNREADABLE_FILE \u00b7 UNKNOWN_TYPE \u00b7 NO_ENGAGEMENT \u00b7 WATCH_OVERLAP \u00b7 INJECTION_DETECTED','client-data / config'],
- ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID \u00b7 UNKNOWN_TOOL \u00b7 PRECEDENT_OUT_OF_SCOPE \u00b7 UNKNOWN_CONTRACT \u00b7 CONTRACT_INDEX_INVALID \u00b7 UNKNOWN_CONSTRAINTS \u00b7 UNKNOWN_ADAPTER \u00b7 MODEL_PIN_UNAVAILABLE \u00b7 MISSING_CREDENTIAL \u00b7 UNKNOWN_TAXONOMY','config'],
+ ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID \u00b7 UNKNOWN_TOOL \u00b7 PRECEDENT_OUT_OF_SCOPE \u00b7 UNKNOWN_CONTRACT \u00b7 CONTRACT_INDEX_INVALID \u00b7 UNKNOWN_CONSTRAINTS \u00b7 UNKNOWN_ADAPTER \u00b7 MODEL_PIN_UNAVAILABLE \u00b7 MISSING_CREDENTIAL \u00b7 UNKNOWN_CRITERIA \u00b7 UNKNOWN_TAXONOMY','config'],
  ['PRIVACY.*','UNMASKED_IDENTIFIER \u00b7 UNMASKED_PRECEDENT \u00b7 TOKEN_CROSS_ENGAGEMENT \u00b7 VAULT_UNAVAILABLE','system'],
  ['POLICY.*','TOOL_NOT_DECLARED \u00b7 ARG_OUT_OF_SCOPE \u00b7 BUDGET_EXCEEDED \u00b7 CAP_EXCEEDED \u00b7 OVERLAY_LOOSENS \u00b7 MULTI_TURN_STEP','policy'],
  ['SKILL.*','SCHEMA_INVALID \u00b7 NO_PROVENANCE \u00b7 FABRICATED_SOURCE \u00b7 UNKNOWN_SOURCE \u00b7 UNKNOWN_LINE_ITEM \u00b7 UNKNOWN_PRECEDENT \u00b7 BELOW_GATE','model'],
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
  ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED \u00b7 VERIFICATION_PASS','model / config'],
- ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED \u00b7 ENGAGEMENT_LOCKED \u00b7 PRECEDENT_NO_DECISION','process / system'],
+ ['PROCESS.*','REVIEW_SLA_BREACH \u00b7 RUN_STALLED \u00b7 UNKNOWN_RUN \u00b7 ILLEGAL_TRANSITION \u00b7 APPEND_ONLY_VIOLATION \u00b7 MANIFEST_INCOMPLETE \u00b7 LATE_RESULT \u00b7 PLAN_REFUSED \u00b7 DIAGNOSTICS_INVALID \u00b7 STALE_DECISION \u00b7 RATIONALE_REQUIRED \u00b7 ENGAGEMENT_LOCKED \u00b7 PRECEDENT_NO_DECISION \u00b7 OUTCOME_CONTRADICTED','process / system'],
  ['CONFIG.*','TEMPLATE_INPUTS_MISSING \u00b7 CELL_ADDRESS_BINDING','config']
 ];
 
@@ -4281,7 +4281,7 @@ class <span class="hl">ProposedAction</span>:
    R_('    readers/           documents.py, workbook.py, classify.py, periods.py', 'pypdf, python-docx, openpyxl; one model call per workbook'),
    R_('  <span class="t2">review/</span>        policy.py, router.py, queue.py, surface.py, log.py', 'what a person sees'),
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
-   R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, console/'),
+   R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, scorecard.py, criteria/, stall.py, drift.py, analytics.py, console/', 'the record, and the verdict computed from it'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
   ].join('');
 

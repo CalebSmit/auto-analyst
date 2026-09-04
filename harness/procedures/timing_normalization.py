@@ -120,6 +120,18 @@ class TimingNormalization:
         output: dict[str, Any] = result.value["output"]
         return output
 
+    def summary(self, output: dict[str, Any]) -> dict[str, Any]:
+        """What the scorecard reads for period coverage: the periods the table spans
+        and every gap the skill reported. Labels and counts only, never a figure."""
+        return {
+            "periods": [str(p.get("label", p)) for p in output.get("periods", ())],
+            "period_gaps": [
+                {"period_label": g.get("period_label"), "why": g.get("why")}
+                for g in output.get("period_gaps", ())
+            ],
+            "unmatched": len(output.get("unmatched", ())),
+        }
+
 
 def _row_locator(block: str, ordinal: int) -> str:
     if "!" in block and ":" in block:

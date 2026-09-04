@@ -765,7 +765,7 @@
       "title": "Ops console, scorecard, drift, stalls",
       "block": "Block F - Assurance and operations",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Every run ends with a computed verdict against versioned criteria, so no run's outcome is a matter of opinion.",
       "builds": [
         "ops_console",
@@ -780,7 +780,9 @@
         "The run scorecard: coverage, provenance, tie-out, conflicts, masking, numeric integrity, budget, review outstanding, deliverable QC",
         "Versioned acceptance criteria, so 'what counted as working' is answerable for a run six months old",
         "Drift monitor over override rate, confidence distribution and guard failure rate",
-        "Stall detection against the review SLA"
+        "Stall detection against the review SLA",
+        "Criteria versioned as data under ops/criteria/, pinned by ops/scorecard.py, never edited in place",
+        "Skill summaries on skill.completed for the scorecard: periods and reported gaps from timing-normalization"
       ],
       "exit": [
         "Every run gets a scorecard with a computed verdict",
@@ -791,7 +793,8 @@
       "checks": [
         "python -m uv run pytest tests/p23 -q"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-03"
     },
     {
       "id": "P24",
@@ -814,7 +817,8 @@
         "Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)",
         "Publish Chartwell's own chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, and rebuild fixtures/skills/line-item-tagging from it",
         "Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified",
-        "Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/"
+        "Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/",
+        "Bump event@1.0.0 to 1.1.0 with CONFIG in the diagnostic_code pattern before preflight emits one"
       ],
       "exit": [
         "A failing preflight check blocks activation of that engagement rather than failing later in a run",
@@ -910,7 +914,8 @@
         "Authoring sandbox and its test harness, reading masked payloads only",
         "Submit, review board, shadow deployment with a sustained agreement threshold",
         "The registry as the single writer to the live skills/ tree",
-        "The governance record"
+        "The governance record",
+        "Open a re-review on the skill board from a DriftMonitor flag (the drift_re_review loop)"
       ],
       "exit": [
         "No path from the drop folder to the tree skips fixtures, review or a shadow run - remove any one gate and the path breaks",

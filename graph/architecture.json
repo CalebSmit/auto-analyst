@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:1ca00e6876a88bc69ad21f62d2c1ad499abef4218ae7a5a2cc5456c96fafc3fd",
+  "source_digest": "sha256:4f7ddd5c5e8cf2a52f840c89988f5e6324bc3e3e5b74558bc9794c706ee244bb",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -1323,7 +1323,7 @@
       "failClosed": true,
       "now": true,
       "desc": "Computes a per-run verdict against declared acceptance criteria — document and period coverage, provenance completeness, tie-out agreement, conflicts resolved, residual masking, numeric integrity, budget, review outstanding, deliverable QC. Emits <b>pass</b>, <b>pass with exceptions</b>, <b>halted</b>, <b>blocked</b> or <b>partial</b>, and names every criterion that failed.",
-      "impl": "Deterministic, computed from the event stream at end of run and written into the manifest. The criteria and their thresholds are versioned like any other contract, so “what counted as working” is answerable for a run from six months ago.",
+      "impl": "Deterministic, computed from the event stream at end of run and written into the manifest (<span class=\"mono\">run_manifest@1.1.0</span>: verdict, criteria version, every criterion’s measurement). The criteria live in <span class=\"mono\">ops/criteria/</span>, one file per version, never edited in place, so “what counted as working” is answerable for a run from six months ago. Close-out checks the outcome a caller claims against the verdict the record supports and refuses a contradiction: <span class=\"mono\">clean</span> is earned, not asserted. A criterion the record cannot measure is reported as such and keeps the verdict off <span class=\"mono\">pass</span> — silence is never a pass.",
       "full": "Guards answer “did this particular check pass”. Nobody was answering “did the run work”, which left it a matter of opinion formed by scrolling a log. A run is not a boolean either — conflating <i>halted before producing anything</i> with <i>delivered but three figures needed a person</i> hides exactly the information a practice lead needs."
     },
     {

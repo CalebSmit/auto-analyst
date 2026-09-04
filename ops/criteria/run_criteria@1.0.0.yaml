@@ -1,0 +1,85 @@
+# Run acceptance criteria, version 1.0.0.
+#
+# The bar every run is scored against by the Run Scorecard. Versioned like a contract:
+# the manifest records which version a run was judged by, so "what counted as working"
+# for a run from six months ago is this file at that version, not a memory.
+#
+# Never edit a published version in place. A changed bar is a new file beside this one
+# and a new pin in ops/scorecard.py; the old one stays for as long as any manifest
+# cites it.
+#
+# Each criterion names the guard events it reads where it reads any. The scorecard
+# measures each `id` from the record - the event stream, the review items, the run's
+# own counters - and a version naming an id it cannot measure is refused rather than
+# scored around.
+
+version: "1.0.0"
+
+verdicts:
+  pass: every criterion measured and met, nothing excepted
+  pass_with_exceptions: every measured criterion met, with named exceptions - a gap the run reported, an item a person corrected, a repair that took a loop, or a criterion the run never reached
+  halted: a guard refused and nothing partial escaped
+  blocked: the run ended waiting on a person who never answered
+  partial: the run delivered or was superseded with a criterion unmet - some of the work stands, not all of it
+
+criteria:
+  - id: document_coverage
+    label: Document coverage
+    bar: Every document in the declared set processed, or the gap reported
+    reads: sources, coverage_gaps, intake.read
+    max_failed: 0
+
+  - id: period_coverage
+    label: Period coverage
+    bar: No unexplained gap in the requested range
+    reads: skill.completed summary from timing-normalization
+    max_failed: 0
+
+  - id: provenance
+    label: Provenance
+    bar: 100% of figures carry source, locator and version
+    guards: [provenance, provenance_gate]
+    max_failed: 0
+
+  - id: tieout
+    label: Tie-out
+    bar: 100% of stated totals agree with recompute
+    guards: [tieout, tieout_gate]
+    max_failed: 0
+
+  - id: conflicts
+    label: Conflicts
+    bar: Every surfaced conflict resolved by a person or reported
+    guards: [reconcile]
+    resolved_by: [loop_exhausted, conflict]
+    max_failed: 0
+
+  - id: residual_masking
+    label: Residual masking
+    bar: Zero mask tokens in any artifact
+    guards: [payload_scan, unmask_verify]
+    max_failed: 0
+
+  - id: numeric_integrity
+    label: Numeric integrity
+    bar: Zero figures altered across a transform
+    guards: [numeric_lock]
+    max_failed: 0
+
+  - id: budget
+    label: Budget
+    bar: Within all four ceilings
+    reads: budget.ceiling_crossed, the run's spend against constraints.yaml per_run
+    max_failed: 0
+
+  - id: review_outstanding
+    label: Review outstanding
+    bar: Zero items unresolved at release
+    reads: review items, decisions
+    max_failed: 0
+
+  - id: deliverable_qc
+    label: Deliverable QC
+    bar: Opens, resolves, stamped, no residual tokens
+    guards: [deliverable_qc]
+    max_failed: 0

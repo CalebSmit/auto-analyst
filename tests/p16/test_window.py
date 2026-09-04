@@ -101,7 +101,11 @@ def test_a_reupload_becomes_version_two_and_supersedes_without_overwriting(
     clock.advance(minutes=31)
     (first,) = intake.sweep(LAUNCH).launched
     delivery = ports.get_delivery()
-    closed = close_out(store, first.run_id, RunState.DELIVERED, Outcome.CLEAN, delivery, bus=bus)
+    # Nothing read these sources - no reader ran - so the record cannot support `clean`;
+    # since P23 the outcome has to be one the scorecard computes.
+    closed = close_out(
+        store, first.run_id, RunState.DELIVERED, Outcome.RELEASED_WITH_REVIEW, delivery, bus=bus
+    )
     path = manifest_path(HEND, first.run_id)
     on_disk = delivery.root / path
     before = on_disk.read_bytes()
@@ -123,7 +127,9 @@ def test_a_reupload_becomes_version_two_and_supersedes_without_overwriting(
 
     run1 = store.run(first.run_id)
     assert run1.state is RunState.SUPERSEDED and run1.superseded_by == second.run_id
-    assert run1.outcome is Outcome.CLEAN and run1.ended_at is not None, "kept what it reached"
+    assert run1.outcome is Outcome.RELEASED_WITH_REVIEW and run1.ended_at is not None, (
+        "kept what it reached"
+    )
     assert [a.path for a in store.artifacts(first.run_id)] == [path]
     assert on_disk.read_bytes() == before, "the manifest was not overwritten"
     assert manifest_path(HEND, second.run_id) != path

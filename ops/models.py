@@ -20,7 +20,7 @@ type; Postgres does. Storing datetimes would mean the two backends round-trip di
 and the manifest would not be byte-identical across them - which is the exact class of
 divergence the Postgres run exists to catch, so it is not worth introducing one on
 purpose. Fixed-width UTC text also sorts correctly, and it is already the shape both
-event@1.0.0 and run_manifest@1.0.0 ask for.
+event@1.0.0 and run_manifest@1.1.0 ask for.
 """
 
 from __future__ import annotations
@@ -146,7 +146,7 @@ TRANSITIONS: dict[RunState, frozenset[RunState]] = {
 
 
 class Outcome(StrEnum):
-    """What the run amounted to. Mirrors run_manifest@1.0.0 exactly.
+    """What the run amounted to. Mirrors run_manifest@1.1.0 exactly.
 
     Four values rather than pass/fail because "halted before producing anything" and
     "delivered but three figures needed a person" are not the same event.

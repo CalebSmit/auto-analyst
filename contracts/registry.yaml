@@ -34,6 +34,17 @@ contracts:
     version: 1.0.0
     file: run_manifest.schema.json
     kind: manifest
+    note: >-
+      Superseded by 1.1.0 at P23. Listed for as long as any manifest cites it.
+
+  - id: run_manifest
+    version: 1.1.0
+    file: run_manifest@1.1.0.schema.json
+    kind: manifest
+    note: >-
+      Adds the Run Scorecard (P23): the verdict, the criteria version it was judged by,
+      and every criterion's measurement. Required, so a manifest without a computed
+      verdict is refused - no run's outcome is a matter of opinion.
 
   - id: engagement_profile
     version: 1.0.0

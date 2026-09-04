@@ -68,19 +68,31 @@ def halted_run(store: SqlRunStore, bus: EventBus, run_id: str = "run_halt") -> s
             # A step is completed by committing its result, which is the only way to
             # say so - see the one-door note on finish_step.
             store.commit_step(
-                run_id, step_id, key, "sha256:" + "e" * 64,
+                run_id,
+                step_id,
+                key,
+                "sha256:" + "e" * 64,
                 store.begin_attempt(run_id, step_id),
             )
         elif status is not StepStatus.NOT_REACHED:
             store.finish_step(run_id, step_id, status)
 
     bus.emit_guard(
-        run_id=run_id, engagement_id=ENGAGEMENT, node_id="schema_gate",
-        guard="schema", passed=True, checked=27,
+        run_id=run_id,
+        engagement_id=ENGAGEMENT,
+        node_id="schema_gate",
+        guard="schema",
+        passed=True,
+        checked=27,
     )
     bus.emit_guard(
-        run_id=run_id, engagement_id=ENGAGEMENT, node_id="tieout_gate",
-        guard="tieout", passed=False, checked=412, failed=2,
+        run_id=run_id,
+        engagement_id=ENGAGEMENT,
+        node_id="tieout_gate",
+        guard="tieout",
+        passed=False,
+        checked=412,
+        failed=2,
         diagnostic_code="GUARD.TIEOUT_MISMATCH",
     )
     store.record_model_call(run_id, 0.41, input_tokens=18_400, output_tokens=2_100)
@@ -100,8 +112,14 @@ def test_a_halted_run_writes_a_complete_manifest(
     run_id = halted_run(store, bus)
 
     result = close_out(
-        store, run_id, RunState.HALTED, Outcome.HALTED, delivery,
-        bus=bus, contracts=contracts, reason="tie-out mismatch after two repair attempts",
+        store,
+        run_id,
+        RunState.HALTED,
+        Outcome.HALTED,
+        delivery,
+        bus=bus,
+        contracts=contracts,
+        reason="tie-out mismatch after two repair attempts",
     )
 
     contracts.validate(MANIFEST_CONTRACT, result.manifest)
@@ -129,13 +147,18 @@ def test_the_halted_manifest_shows_where_the_run_stopped(
     never ran would read like a run that finished early on purpose."""
     bus = EventBus(store, contracts=contracts)
     run_id = halted_run(store, bus)
-    result = close_out(store, run_id, RunState.HALTED, Outcome.HALTED, delivery,
-                       bus=bus, contracts=contracts)
+    result = close_out(
+        store, run_id, RunState.HALTED, Outcome.HALTED, delivery, bus=bus, contracts=contracts
+    )
 
     by_status = {step["step_id"]: step["status"] for step in result.manifest["steps"]}
     assert by_status == {
-        "s1": "completed", "s2": "completed", "s3": "failed",
-        "s4": "not_reached", "s5": "not_reached", "s6": "not_reached",
+        "s1": "completed",
+        "s2": "completed",
+        "s3": "failed",
+        "s4": "not_reached",
+        "s5": "not_reached",
+        "s6": "not_reached",
     }
     assert len(result.manifest["steps"]) == 6
 
@@ -145,8 +168,9 @@ def test_the_halted_manifest_carries_the_guard_that_passed_as_well_as_the_one_th
 ) -> None:
     bus = EventBus(store, contracts=contracts)
     run_id = halted_run(store, bus)
-    result = close_out(store, run_id, RunState.HALTED, Outcome.HALTED, delivery,
-                       bus=bus, contracts=contracts)
+    result = close_out(
+        store, run_id, RunState.HALTED, Outcome.HALTED, delivery, bus=bus, contracts=contracts
+    )
 
     guards = {g["guard"]: g for g in result.manifest["guard_events"]}
     assert guards["schema"]["result"] == "pass"
@@ -161,8 +185,9 @@ def test_the_manifest_lands_through_the_delivery_port_beside_the_run(
 ) -> None:
     bus = EventBus(store, contracts=contracts)
     run_id = halted_run(store, bus)
-    result = close_out(store, run_id, RunState.HALTED, Outcome.HALTED, delivery,
-                       bus=bus, contracts=contracts)
+    result = close_out(
+        store, run_id, RunState.HALTED, Outcome.HALTED, delivery, bus=bus, contracts=contracts
+    )
 
     assert result.path == manifest_path(ENGAGEMENT, run_id)
     on_disk = delivery.root / ENGAGEMENT / run_id / MANIFEST_NAME
@@ -177,8 +202,9 @@ def test_closing_out_records_the_manifest_and_says_so(
 ) -> None:
     bus = EventBus(store, contracts=contracts)
     run_id = halted_run(store, bus)
-    close_out(store, run_id, RunState.HALTED, Outcome.HALTED, delivery,
-              bus=bus, contracts=contracts)
+    close_out(
+        store, run_id, RunState.HALTED, Outcome.HALTED, delivery, bus=bus, contracts=contracts
+    )
 
     assert [a.name for a in store.artifacts(run_id)] == [MANIFEST_NAME]
     written = [e for e in store.events(run_id) if e.type == "run.manifest.written"]
@@ -190,14 +216,34 @@ def test_closing_out_records_the_manifest_and_says_so(
 # ---------------------------------------------- every way a run can finish
 
 
+def blocked_run(store: SqlRunStore, bus: EventBus, run_id: str = "run_block") -> str:
+    """A run nothing refused: one step done, a question open, nobody answered."""
+    started(store, run_id=run_id)
+    store.record_source(run_id, SOURCE)
+    store.transition(run_id, RunState.RUNNING)
+    store.record_step(run_id, "s1", f"sha256:{1:064x}", "io")
+    store.commit_step(
+        run_id, "s1", f"sha256:{1:064x}", "sha256:" + "e" * 64, store.begin_attempt(run_id, "s1")
+    )
+    bus.emit_guard(
+        run_id=run_id,
+        engagement_id=ENGAGEMENT,
+        node_id="schema_gate",
+        guard="schema",
+        passed=True,
+        checked=3,
+    )
+    store.open_review_item(run_id, "item_1", "below_threshold", "Which category?")
+    return run_id
+
+
 @pytest.mark.parametrize(
-    ("state", "outcome"),
+    ("state", "outcome", "shape"),
     [
-        (RunState.DELIVERED, Outcome.CLEAN),
-        (RunState.DELIVERED, Outcome.RELEASED_WITH_REVIEW),
-        (RunState.HALTED, Outcome.HALTED),
-        (RunState.HALTED, Outcome.BLOCKED),
-        (RunState.SUPERSEDED, Outcome.BLOCKED),
+        (RunState.DELIVERED, Outcome.RELEASED_WITH_REVIEW, halted_run),
+        (RunState.HALTED, Outcome.HALTED, halted_run),
+        (RunState.HALTED, Outcome.BLOCKED, blocked_run),
+        (RunState.SUPERSEDED, Outcome.BLOCKED, halted_run),
     ],
 )
 def test_a_manifest_is_written_however_the_run_ends(
@@ -206,11 +252,14 @@ def test_a_manifest_is_written_however_the_run_ends(
     delivery: Any,
     state: RunState,
     outcome: Outcome,
+    shape: Any,
 ) -> None:
     """Written unconditionally: the criterion says halted, and the way to be sure of
-    halted is to have no branch to get it wrong in."""
+    halted is to have no branch to get it wrong in. Since P23 the record has to support
+    the outcome claimed - a run a guard refused is halted, not blocked, and `clean` is
+    the one outcome the halted shape cannot carry (see the next test)."""
     bus = EventBus(store, contracts=contracts)
-    run_id = halted_run(store, bus, run_id=f"run_{state}_{outcome}")
+    run_id = shape(store, bus, run_id=f"run_{state}_{outcome}")
 
     result = close_out(store, run_id, state, outcome, delivery, bus=bus, contracts=contracts)
 
@@ -218,6 +267,47 @@ def test_a_manifest_is_written_however_the_run_ends(
     assert result.manifest["outcome"] == str(outcome)
     assert store.run(run_id).state is state
     assert (delivery.root / ENGAGEMENT / run_id / MANIFEST_NAME).is_file()
+
+
+def test_a_clean_outcome_has_to_be_earned_by_the_record(
+    store: SqlRunStore, contracts: ContractRegistry, delivery: Any
+) -> None:
+    """Since P23 the outcome is checked against the scorecard before the run is ended.
+    A run with a failed tie-out and an open review item cannot be closed out `clean`,
+    and the refusal leaves the run running and writes nothing."""
+    from ops.scorecard import OutcomeContradicted
+
+    bus = EventBus(store, contracts=contracts)
+    run_id = halted_run(store, bus, run_id="run_claims_clean")
+
+    with pytest.raises(OutcomeContradicted) as refused:
+        close_out(
+            store,
+            run_id,
+            RunState.DELIVERED,
+            Outcome.CLEAN,
+            delivery,
+            bus=bus,
+            contracts=contracts,
+        )
+
+    assert refused.value.diagnostic.code == "PROCESS.OUTCOME_CONTRADICTED"
+    assert "tieout" in refused.value.diagnostic.detail
+    assert store.run(run_id).state is RunState.RUNNING
+    assert not (delivery.root / ENGAGEMENT / run_id / MANIFEST_NAME).exists()
+
+    # The same run, with the claim the record supports, closes out and says why.
+    result = close_out(
+        store,
+        run_id,
+        RunState.DELIVERED,
+        Outcome.RELEASED_WITH_REVIEW,
+        delivery,
+        bus=bus,
+        contracts=contracts,
+    )
+    assert result.manifest["scorecard"]["verdict"] == "partial"
+    assert "tieout" in result.manifest["scorecard"]["failed"]
 
 
 def test_a_human_decision_reaches_the_manifest(
@@ -228,11 +318,22 @@ def test_a_human_decision_reaches_the_manifest(
     bus = EventBus(store, contracts=contracts)
     run_id = halted_run(store, bus)
     store.record_decision(
-        run_id, "item_1", "C. Smit", DecisionKind.CORRECTED,
-        rationale="Client confirmed the accrual reversal", writes_precedent=True,
+        run_id,
+        "item_1",
+        "C. Smit",
+        DecisionKind.CORRECTED,
+        rationale="Client confirmed the accrual reversal",
+        writes_precedent=True,
     )
-    result = close_out(store, run_id, RunState.DELIVERED, Outcome.RELEASED_WITH_REVIEW,
-                       delivery, bus=bus, contracts=contracts)
+    result = close_out(
+        store,
+        run_id,
+        RunState.DELIVERED,
+        Outcome.RELEASED_WITH_REVIEW,
+        delivery,
+        bus=bus,
+        contracts=contracts,
+    )
 
     assert result.manifest["human_decisions"] == [
         {
@@ -259,17 +360,17 @@ def test_a_run_that_cannot_name_its_versions_is_not_closed_out_quietly(
     started(store, run_id="run_thin", versions=thin)
     store.transition("run_thin", RunState.RUNNING)
 
+    # Nothing refused this run, so the record supports `blocked`, not `halted`.
     with pytest.raises(ManifestIncomplete) as raised:
-        close_out(store, "run_thin", RunState.HALTED, Outcome.HALTED, delivery,
-                  contracts=contracts)
+        close_out(
+            store, "run_thin", RunState.HALTED, Outcome.BLOCKED, delivery, contracts=contracts
+        )
     assert raised.value.diagnostic.code == "PROCESS.MANIFEST_INCOMPLETE"
     assert "model_pin" in str(raised.value)
     assert not (delivery.root / ENGAGEMENT / "run_thin" / MANIFEST_NAME).exists()
 
 
-def test_assemble_reads_and_writes_nothing(
-    store: SqlRunStore, contracts: ContractRegistry
-) -> None:
+def test_assemble_reads_and_writes_nothing(store: SqlRunStore, contracts: ContractRegistry) -> None:
     bus = EventBus(store, contracts=contracts)
     run_id = halted_run(store, bus)
     before = len(store.events(run_id))
@@ -298,11 +399,7 @@ def test_the_write_path_has_no_branch_on_outcome() -> None:
         if isinstance(node, ast.FunctionDef) and node.name == "close_out"
     )
     conditionals = [
-        ast.unparse(node.test)
-        for node in ast.walk(close)
-        if isinstance(node, ast.If | ast.IfExp)
+        ast.unparse(node.test) for node in ast.walk(close) if isinstance(node, ast.If | ast.IfExp)
     ]
-    offenders = [
-        test for test in conditionals if "outcome" in test or "state" in test
-    ]
+    offenders = [test for test in conditionals if "outcome" in test or "state" in test]
     assert not offenders, f"close_out branches on how the run ended: {offenders}"

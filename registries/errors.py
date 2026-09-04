@@ -162,8 +162,23 @@ VERIFICATION_PASS = "LOOP.VERIFICATION_PASS"
 TEMPLATE_INPUTS_MISSING = "CONFIG.TEMPLATE_INPUTS_MISSING"
 CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 BELOW_GATE = "SKILL.BELOW_GATE"
+UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
+OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
+    UNKNOWN_CRITERIA: (
+        "config",
+        "The run criteria version named is not a file under ops/criteria/, or names a "
+        "criterion the scorecard cannot measure. Pin a version that exists; a run scored "
+        "against 'whatever is newest' cannot say what bar it was judged by.",
+    ),
+    OUTCOME_CONTRADICTED: (
+        "system",
+        "Close-out claimed an outcome the record does not support: the scorecard "
+        "computed a different verdict from the events, the review items and the guard "
+        "results. Close the run out with the outcome the verdict supports, or fix what "
+        "the record shows. Nothing is written until the claim and the computation agree.",
+    ),
     UNKNOWN_CONTRACT: (
         "config",
         "Pin an id and version that contracts/registry.yaml lists, or register the "
@@ -594,7 +609,7 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
     MANIFEST_INCOMPLETE: (
         "system",
         "The manifest assembled from the run store does not satisfy "
-        "run_manifest@1.0.0. This is a defect in the writer or a gap in what the run "
+        "run_manifest@1.1.0. This is a defect in the writer or a gap in what the run "
         "recorded; the run is not closed out until a valid manifest exists, because a "
         "run with no defensible record is worse than a run that visibly failed.",
     ),

@@ -11,18 +11,89 @@ because it has no other input: there is no estimate here to disagree with.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from ops.run_store import RunRecord, RunStore
 from ports.llm import (
     CACHE_READ_MULTIPLIER,
     CACHE_WRITE_MULTIPLIER,
     RATES_USD_PER_MTOK,
+    TIER_MODELS,
     ModelPin,
     Usage,
 )
 from registries.errors import MODEL_PIN_UNAVAILABLE, RegistryError, diagnose
 
-__all__ = ["Charge", "CostMeter", "Spend", "price"]
+__all__ = ["Breakdown", "Charge", "CostMeter", "EngagementSpend", "Line", "Spend", "price"]
+
+TIER_OF: dict[str, str] = {model: tier for tier, model in TIER_MODELS.items()}
+
+
+@dataclass(frozen=True)
+class Line:
+    """Spend along one axis: a skill, a model, a tier, a run."""
+
+    key: str
+    usd: float
+    calls: int
+    input_tokens: int
+    output_tokens: int
+
+    @property
+    def tokens(self) -> int:
+        return self.input_tokens + self.output_tokens
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "key": self.key,
+            "usd": round(self.usd, 6),
+            "calls": self.calls,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+        }
+
+
+@dataclass(frozen=True)
+class Breakdown:
+    """One run's spend by skill, by model and by tier, from `model.answered` events.
+
+    Tier choices on the map are cost decisions, and this is where they get checked
+    against reality: "does the classifier need to be mid tier" is a question with a
+    number attached once a run has been metered.
+    """
+
+    run_id: str
+    by_skill: tuple[Line, ...]
+    by_model: tuple[Line, ...]
+    by_tier: tuple[Line, ...]
+    total_usd: float
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "run_id": self.run_id,
+            "total_usd": round(self.total_usd, 6),
+            "by_skill": [line.as_dict() for line in self.by_skill],
+            "by_model": [line.as_dict() for line in self.by_model],
+            "by_tier": [line.as_dict() for line in self.by_tier],
+        }
+
+
+@dataclass(frozen=True)
+class EngagementSpend:
+    engagement_id: str
+    runs: tuple[Line, ...]
+    by_skill: tuple[Line, ...]
+    by_tier: tuple[Line, ...]
+    total_usd: float
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "engagement_id": self.engagement_id,
+            "total_usd": round(self.total_usd, 6),
+            "runs": [line.as_dict() for line in self.runs],
+            "by_skill": [line.as_dict() for line in self.by_skill],
+            "by_tier": [line.as_dict() for line in self.by_tier],
+        }
 
 
 @dataclass(frozen=True)
@@ -106,11 +177,78 @@ class CostMeter:
         run = self.store.run(run_id)
         return _spend_of(run, self._loop_iterations(run_id))
 
+    def breakdown(self, run_id: str) -> Breakdown:
+        """By skill, by model, by tier - from every `model.answered` event on the run.
+        The step's skill comes from the step table; the model from the event; the tier
+        from the pin table, so a model no tier resolves to is reported as `unpinned`."""
+        skill_of = {s.step_id: s.skill or "(no skill)" for s in self.store.steps(run_id)}
+        by_skill: dict[str, list[float | int]] = {}
+        by_model: dict[str, list[float | int]] = {}
+        by_tier: dict[str, list[float | int]] = {}
+
+        def add(bucket: dict[str, list[float | int]], key: str, e: Any) -> None:
+            row = bucket.setdefault(key, [0.0, 0, 0, 0])
+            row[0] += float(e.cost_usd or 0.0)
+            row[1] += 1
+            row[2] += int(e.payload.get("input_tokens", 0))
+            row[3] += int(e.payload.get("output_tokens", 0))
+
+        total = 0.0
+        for e in self.store.events(run_id):
+            if e.type != "model.answered":
+                continue
+            model = str(e.payload.get("model", "unknown"))
+            add(by_skill, skill_of.get(e.step_id or "", "(no step)"), e)
+            add(by_model, model, e)
+            add(by_tier, TIER_OF.get(model, "unpinned"), e)
+            total += float(e.cost_usd or 0.0)
+        return Breakdown(
+            run_id=run_id,
+            by_skill=_lines(by_skill),
+            by_model=_lines(by_model),
+            by_tier=_lines(by_tier),
+            total_usd=round(total, 6),
+        )
+
+    def rollup(self, engagement_id: str) -> EngagementSpend:
+        """Every run on the engagement, and the same axes summed across them."""
+        runs: list[Line] = []
+        by_skill: dict[str, list[float | int]] = {}
+        by_tier: dict[str, list[float | int]] = {}
+        total = 0.0
+        for run in self.store.runs(engagement_id):
+            b = self.breakdown(run.run_id)
+            runs.append(
+                Line(run.run_id, b.total_usd, run.model_calls, run.input_tokens, run.output_tokens)
+            )
+            for bucket, lines in ((by_skill, b.by_skill), (by_tier, b.by_tier)):
+                for line in lines:
+                    row = bucket.setdefault(line.key, [0.0, 0, 0, 0])
+                    row[0] += line.usd
+                    row[1] += line.calls
+                    row[2] += line.input_tokens
+                    row[3] += line.output_tokens
+            total += b.total_usd
+        return EngagementSpend(
+            engagement_id=engagement_id,
+            runs=tuple(runs),
+            by_skill=_lines(by_skill),
+            by_tier=_lines(by_tier),
+            total_usd=round(total, 6),
+        )
+
     def _loop_iterations(self, run_id: str) -> int:
         """Every iteration of every loop, as the event stream recorded them. The Loop
         Controller (P14) emits them; counting from the record rather than a counter means
         the governor and the manifest cannot disagree."""
         return sum(1 for e in self.store.events(run_id) if e.level == "loop")
+
+
+def _lines(bucket: dict[str, list[float | int]]) -> tuple[Line, ...]:
+    return tuple(
+        Line(key, round(float(row[0]), 6), int(row[1]), int(row[2]), int(row[3]))
+        for key, row in sorted(bucket.items(), key=lambda kv: (-kv[1][0], kv[0]))
+    )
 
 
 def _spend_of(run: RunRecord, loop_iterations: int) -> Spend:

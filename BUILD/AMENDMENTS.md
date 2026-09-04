@@ -332,3 +332,27 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - task added: evals/gates.yaml as the named numeric form of the blueprint's gate table, with owed gates marked by the control that measures them
 - task added: The dispatcher records inputs and proposal blobs per skill step; the Replay Harness restores a step from them
 - exit criterion added: A gate the offline harness cannot measure is reported as owed - on the scorecard, in coverage and on the registration record - never as passed
+
+## 2026-09-03 - P23 Ops console, scorecard, drift, stalls
+
+**Why:** Finding: the manifest contract had no field for the scorecard's verdict or the criteria version the blueprint's run_scorecard -> run_manifest edge records. Bumped to run_manifest@1.1.0 (1.0.0 stays listed) with a required scorecard block; the four-valued outcome stays as the run's state fact and the five-valued verdict sits beside it, checked against it at close-out (PROCESS.OUTCOME_CONTRADICTED). Two consequences for existing tests: a delivered run whose record leaves criteria unmeasured cannot be closed out clean, and a run nothing refused is blocked, not halted.
+
+- task added: Criteria versioned as data under ops/criteria/, pinned by ops/scorecard.py, never edited in place
+
+## 2026-09-03 - P23 Ops console, scorecard, drift, stalls
+
+**Why:** Finding: period coverage cannot be measured from the record as the nodes emitted it - no event carried the periods a run normalized. The dispatcher now records a procedure's summary(output) on skill.completed (labels and counts, never a figure), and timing-normalization supplies one.
+
+- task added: Skill summaries on skill.completed for the scorecard: periods and reported gaps from timing-normalization
+
+## 2026-09-03 - P24 Admin console, preflight, config audit
+
+**Why:** Finding from P23: event@1.0.0 and run_manifest@1.0.0 both pattern diagnostic_code without the CONFIG family P21 added, so a CONFIG.* code on an event fails validation. run_manifest@1.1.0 carries the fix; the event contract needs the same bump before preflight or config audit can emit a CONFIG code.
+
+- task added: Bump event@1.0.0 to 1.1.0 with CONFIG in the diagnostic_code pattern before preflight emits one
+
+## 2026-09-03 - P27 The governance chain
+
+**Why:** Finding from P23: the drift monitor computes and reports flags but the cross-run loop it feeds (sustained drift -> skill board re-review) belongs to the governance chain. The monitor writes nothing; P27 opens the re-review from DriftMonitor.report().
+
+- task added: Open a re-review on the skill board from a DriftMonitor flag (the drift_re_review loop)
