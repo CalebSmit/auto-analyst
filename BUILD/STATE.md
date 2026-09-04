@@ -6,14 +6,26 @@
 ## Where the build is
 
 - **21 of 28 phases closed**
-- Last green checkpoint: **C6**
+- Last green checkpoint: **C7**
 - Current phase: **P22 - Eval and replay harnesses** (gate: auto)
 
 ## The next action
 
-**C7 is due and has not passed.** Nothing else starts until it does.
+Work P22. Its full definition is in [BUILD/phases/P22.md](phases/P22.md).
 
-    python tools/gate.py checkpoint C7
+> Fixtures only cover cases somebody thought of. Replay answers the question fixtures cannot: would this candidate have changed anything real?
+
+Tasks:
+
+- [ ] Golden fixtures per skill plus the adversarial fixtures per guard
+- [ ] The per-skill acceptance gates from the blueprint's gate table
+- [ ] Replay: re-run a candidate over the masked inputs of past engagements and diff against what was delivered
+- [ ] gate eval <skill> as a first-class command
+
+Then:
+
+    python tools/gate.py check P22
+    python tools/gate.py close P22
 
 ## Before you start
 

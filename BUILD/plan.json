@@ -1021,11 +1021,12 @@
       "id": "C7",
       "title": "A deliverable an analyst would accept",
       "after": "P21",
-      "status": "open",
+      "status": "done",
       "proves": "Three real skills on real files produce an .xlsx that opens clean, with every figure sourced and recomputed",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c07 -q"
-      ]
+      ],
+      "closed": "2026-09-03"
     },
     {
       "id": "C8",
