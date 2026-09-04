@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:a0e9562019f3b4986a9b7d2055beb8009c6f34159e50ed73283fb61eabd39f58",
+  "source_digest": "sha256:4feb300e7f5d7ccd64a308896f2a684bb7c3f7535b9a2f2227e19df537dc26d9",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -1133,7 +1133,7 @@
       "exec": "code",
       "now": true,
       "desc": "The one folder a person touches. Drafts written anywhere — in Claude, in a text editor, in a colleague's notes — land here exactly as they are. Nothing is demanded of them: no frontmatter, no schema, no scope, no fixtures.",
-      "impl": "<code>skills-intake/_drop/</code>, watched. Anything dropped is copied, hashed and moved into triage within seconds; the original is left untouched so nobody loses work by contributing.",
+      "impl": "<code>skills-intake/_drop/</code>, watched, under <span class=\"mono\">AA_SKILLS_INTAKE_ROOT</span> and never inside the repo — a draft is untrusted content and the scan that catches a pasted trial balance runs after the drop. Anything dropped is copied and hashed into triage; the original is left untouched, so nobody loses work by contributing, and the same bytes are the same candidate however often they arrive.",
       "full": "Making the front door frictionless is deliberate. If conforming to the contract were a prerequisite for contributing, people would stop contributing and start working around the system — which is worse than a messy inbox. The rigour is applied after the drop, not demanded before it."
     },
     {
@@ -1147,7 +1147,7 @@
       "failClosed": true,
       "now": true,
       "desc": "Two scans and a diff. Scans for prompt injection and for anything that looks like real client data, then diffs the draft against the Skill Contract and emits a gap report: missing frontmatter, undeclared or non-existent tools, no output schema, no escalation rules, no fixtures.",
-      "impl": "Deterministic Python, run inside the governance scope with no engagement credentials — so the client-data check is pattern-based rather than vault-based. It errs toward flagging and a person clears it.",
+      "impl": "Deterministic Python, run inside the governance scope with no engagement credentials — so the client-data check is pattern-based rather than vault-based, and the patterns live in <span class=\"mono\">governance/conformance.py</span> rather than being imported from <span class=\"mono\">privacy/</span>, which would give governance a reason to reach the masking layer. A hit holds the draft in triage with <span class=\"mono\">SKILL.CLIENT_DATA_IN_DRAFT</span> or <span class=\"mono\">INTAKE.INJECTION_DETECTED</span> and it reaches nothing. The gap report separates what the bench may fill from what only a person can supply. It errs toward flagging and a person clears it.",
       "full": "A rough draft is a document from outside the system and gets the same treatment as a client document: assume nothing, scan first. Someone drafting a skill will paste a real trial balance in as an example sooner or later, and that must not quietly become a file in the repo. The gap report is what makes adaptation tractable — it turns “make this fit” into a checklist instead of a judgment about where to begin."
     },
     {
@@ -1240,7 +1240,7 @@
       "group": "gov",
       "exec": "code",
       "desc": "Executes a candidate version on real runs in parallel with the registered version, compares outputs, and reports the disagreement rate — without the candidate ever touching a deliverable.",
-      "impl": "Candidate output is written to the run store and has no path to the Delivery Port. Promotion requires an agreement threshold sustained over a stated number of real runs, not a single good day.",
+      "impl": "Candidate output is written to the run store and the governance record and has no path to the Delivery Port — <span class=\"mono\">governance/shadow.py</span> imports neither. Promotion requires three things and all of them: the stated number of distinct real runs, the disagreement rate inside the threshold over every observation, and inside it over the most recent window of that size, so a candidate that was fine for eighteen runs and has disagreed since does not promote on its average. Both halves of the gate are data: <span class=\"mono\">evals/gates.yaml</span> carries the rate and the run count.",
       "full": "Fixtures tell you a skill works on the cases someone thought of. Shadow running tells you what it does on the cases nobody thought of, at no risk to a client, which is the only honest way to gain confidence before a version handles work on its own."
     },
     {
@@ -1251,7 +1251,7 @@
       "group": "gov",
       "exec": "code",
       "desc": "Registers an approved skill at a specific version and publishes it into the Skill Index. Versions are immutable; a change is a new version and a new review.",
-      "impl": "The single write path into the Skill Index. A SKILL.md sitting in a folder is not live — registration is a separate, recorded act.",
+      "impl": "The single write path into the Skill Index, and the only module in the repo that writes into <span class=\"mono\">skills/</span> — asserted over the syntax tree of every package. A SKILL.md sitting in a folder is not live: registration is a separate, recorded act, refused unless the whole chain has evidence behind it (<span class=\"mono\">SKILL.GATE_SKIPPED</span>) and the scorecard cleared every gate (<span class=\"mono\">SKILL.BELOW_GATE</span>). <span class=\"mono\">unregistered()</span> reports any skill in the tree with no row behind it rather than assuming there is none.",
       "full": "Approval is a decision; registration is a deployment. Keeping them as two events means “someone approved this” and “this is running on client work” can never be the same moment by accident. This is the only edge from this column into the live system, and it carries a definition — never data, and never a client file."
     },
     {
@@ -1262,7 +1262,7 @@
       "group": "gov",
       "exec": "code",
       "desc": "Append-only record of submissions, transcripts, decisions, reviewers and registered versions.",
-      "impl": "Append-only store in a governance scope, separate from any engagement folder.",
+      "impl": "Append-only JSONL in a governance scope, separate from any engagement folder and outside the repo. Every entry carries the hash of the one before it, so an edit or a deletion made outside the module leaves a break that <span class=\"mono\">verify()</span> finds and names — the run store gets that guarantee from database triggers, and a file gets it from the chain. A candidate&rsquo;s position in the chain is folded from this record, so nothing advances because an object in memory said it had.",
       "full": "Answers the question a firm should always be able to answer about an automated system: what does it do, who decided it could, and when."
     },
     {

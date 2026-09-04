@@ -48,6 +48,10 @@ class Gate:
     op: str
     threshold: float
     blueprint: str = ""
+    runs: int = 0
+    """How many real runs the gate has to hold over. Only a shadow-measured gate has
+    one: an offline metric is computed once over a fixture set, and a threshold that has
+    to be sustained is a different kind of claim."""
     measured_by: str = "eval_harness"
     note: str = ""
 
@@ -171,6 +175,7 @@ class EvalHarness:
                 op=str(g["op"]),
                 threshold=float(g["threshold"]),
                 blueprint=str(g.get("blueprint", "")),
+                runs=int(g.get("runs", 0)),
                 measured_by=str(g.get("measured_by", "eval_harness")),
                 note=str(g.get("note", "")),
             )

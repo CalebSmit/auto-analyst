@@ -162,6 +162,9 @@ VERIFICATION_PASS = "LOOP.VERIFICATION_PASS"
 TEMPLATE_INPUTS_MISSING = "CONFIG.TEMPLATE_INPUTS_MISSING"
 CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 BELOW_GATE = "SKILL.BELOW_GATE"
+GATE_SKIPPED = "SKILL.GATE_SKIPPED"
+CLIENT_DATA_IN_DRAFT = "SKILL.CLIENT_DATA_IN_DRAFT"
+SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 WORKER_LOST = "PROCESS.WORKER_LOST"
@@ -364,6 +367,27 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    GATE_SKIPPED: (
+        "process",
+        "A candidate skill reached a stage of the governance chain with no record that "
+        "an earlier one happened. The chain is linear so that removing any one gate "
+        "breaks the path rather than routing around it. Run the missing stage and let it "
+        "record its own evidence; there is no method that marks a stage done.",
+    ),
+    CLIENT_DATA_IN_DRAFT: (
+        "client-data",
+        "A dropped draft carries something shaped like real client data - an account "
+        "number, an identifier, a pasted statement. The draft is held in triage and "
+        "goes no further. Take the real data out of the example and drop it again; a "
+        "skill is a procedure, and its examples are synthetic.",
+    ),
+    SHADOW_INSUFFICIENT: (
+        "process",
+        "The candidate has not held its agreement threshold over the stated number of "
+        "real runs, so it cannot be promoted. Either it disagrees with the registered "
+        "version too often, or it has not yet run beside it enough times. Neither is "
+        "fixed by approving it again: let it keep shadowing.",
     ),
     BELOW_GATE: (
         "model",

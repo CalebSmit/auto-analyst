@@ -900,7 +900,7 @@
       "title": "The governance chain",
       "block": "Block G - Scale, judgment and handoff",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Skills are how this system changes, and ungoverned change is the main long-term risk. A dropped draft is a candidate, not a skill.",
       "builds": [
         "skill_drop",
@@ -929,9 +929,12 @@
         "Promotion requires a sustained agreement threshold, not one good day"
       ],
       "checks": [
-        "python -m uv run pytest tests/p27 -q"
+        "python -m uv run pytest tests/p27 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy governance evals orchestrate workers ports intake ops registries graph review"
       ],
-      "notes": "The adaptation bench can produce a conforming skill. It cannot produce fixtures - those are evidence the skill works, and evidence cannot be authored by the thing it vouches for."
+      "notes": "The adaptation bench can produce a conforming skill. It cannot produce fixtures - those are evidence the skill works, and evidence cannot be authored by the thing it vouches for.",
+      "closed": "2026-09-04"
     },
     {
       "id": "P28",
@@ -1061,11 +1064,12 @@
       "id": "C9",
       "title": "Many engagements, governed change",
       "after": "P27",
-      "status": "open",
+      "status": "done",
       "proves": "A nightly sweep over several engagements completes, and a skill ships through the full governance chain",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c09 -q"
-      ]
+      ],
+      "closed": "2026-09-04"
     },
     {
       "id": "C10",

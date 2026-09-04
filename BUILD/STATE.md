@@ -5,29 +5,32 @@
 
 ## Where the build is
 
-- **26 of 28 phases closed**
-- Last green checkpoint: **C8**
-- Current phase: **P27 - The governance chain** (gate: auto)
+- **27 of 28 phases closed**
+- Last green checkpoint: **C9**
+- Current phase: **P28 - Docker, portability, handoff packet** (gate: human)
 
 ## The next action
 
-Work P27. Its full definition is in [BUILD/phases/P27.md](phases/P27.md).
+Work P28. Its full definition is in [BUILD/phases/P28.md](phases/P28.md).
 
-> Skills are how this system changes, and ungoverned change is the main long-term risk. A dropped draft is a candidate, not a skill.
+> One image, any host. The portability requirement in its most concrete form - and the packet that makes the move to the work machine boring.
 
 Tasks:
 
-- [ ] Drop folder, conformance check against the skill contract, adaptation bench
-- [ ] Authoring sandbox and its test harness, reading masked payloads only
-- [ ] Submit, review board, shadow deployment with a sustained agreement threshold
-- [ ] The registry as the single writer to the live skills/ tree
-- [ ] The governance record
-- [ ] Open a re-review on the skill board from a DriftMonitor flag (the drift_re_review loop)
+- [ ] Dockerfile and compose: app plus Postgres, one command up
+- [ ] The whole suite green inside the container
+- [ ] HANDOFF.md: what changes on the work machine and what does not
+- [ ] Adapter stubs named for the existing ShareFile and Box connectors, with their port contracts written
+- [ ] The work Anthropic key as a .env change and nothing else
+- [ ] On the work machine: confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18 through P25)
+- [ ] On the work machine: publish Chartwell's chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
+- [ ] On the work machine: have an analyst confirm real-engagement add-backs are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
+- [ ] On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)
 
 Then:
 
-    python tools/gate.py check P27
-    python tools/gate.py close P27
+    python tools/gate.py check P28
+    python tools/gate.py close P28  --signoff "name: what you checked"
 
 ## Before you start
 
@@ -65,4 +68,5 @@ Then:
 - **P24** Admin console, preflight, config audit (2026-09-04)
 - **P25** Worker pool and the queue port (2026-09-04)
 - **P26** Orchestrator agent and triage (2026-09-04) - Caleb: it all looks good
+- **P27** The governance chain (2026-09-04)
 

@@ -254,5 +254,6 @@ def test_every_directory_the_build_created_is_on_the_blueprints_repo_listing(
         "admin/",
         "workers/",
         "orchestrate/",
+        "governance/",
     ):
         assert directory in blueprint_repo_listing, f"{directory} is not on the repo listing"

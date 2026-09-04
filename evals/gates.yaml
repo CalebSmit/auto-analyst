@@ -44,9 +44,14 @@ skills:
       - metric: shadow_disagreement
         op: "<"
         threshold: 0.08
+        runs: 20
         blueprint: shadow disagreement below 8% over 20 real runs
         measured_by: shadow_run
-        note: needs real runs; the offline harness reports it as owed
+        note: >-
+          Needs real runs; the offline harness reports it as owed. `runs` is the second
+          half of the gate and the whole of "sustained rather than one good day": the
+          Shadow Deployment (P27) requires the rate to hold over all observations and
+          over the most recent 20 of them before a candidate may be promoted.
 
   ebitda-normalization:
     status: shipped

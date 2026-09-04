@@ -1049,12 +1049,12 @@ const NODES = [
 /* ═══ BAND 11 · SKILL GOVERNANCE (isolated column) ═══════════════ */
 {id:'skill_drop',runtime:'static',label:'Skill Drop Folder',plain:'Anyone can drop a rough skill here. No format required.',group:'gov',exec:'code',now:true,
  desc:'The one folder a person touches. Drafts written anywhere \u2014 in Claude, in a text editor, in a colleague\'s notes \u2014 land here exactly as they are. Nothing is demanded of them: no frontmatter, no schema, no scope, no fixtures.',
- impl:'<code>skills-intake/_drop/</code>, watched. Anything dropped is copied, hashed and moved into triage within seconds; the original is left untouched so nobody loses work by contributing.',
+ impl:'<code>skills-intake/_drop/</code>, watched, under <span class="mono">AA_SKILLS_INTAKE_ROOT</span> and never inside the repo — a draft is untrusted content and the scan that catches a pasted trial balance runs after the drop. Anything dropped is copied and hashed into triage; the original is left untouched, so nobody loses work by contributing, and the same bytes are the same candidate however often they arrive.',
  full:'Making the front door frictionless is deliberate. If conforming to the contract were a prerequisite for contributing, people would stop contributing and start working around the system \u2014 which is worse than a messy inbox. The rigour is applied after the drop, not demanded before it.'},
 
 {id:'skill_conformance',runtime:'static',label:'Conformance Check',plain:'Scans the draft, then reports exactly what is missing.',group:'gov',exec:'code',isGuard:true,failClosed:true,now:true,
  desc:'Two scans and a diff. Scans for prompt injection and for anything that looks like real client data, then diffs the draft against the Skill Contract and emits a gap report: missing frontmatter, undeclared or non-existent tools, no output schema, no escalation rules, no fixtures.',
- impl:'Deterministic Python, run inside the governance scope with no engagement credentials \u2014 so the client-data check is pattern-based rather than vault-based. It errs toward flagging and a person clears it.',
+ impl:'Deterministic Python, run inside the governance scope with no engagement credentials \u2014 so the client-data check is pattern-based rather than vault-based, and the patterns live in <span class="mono">governance/conformance.py</span> rather than being imported from <span class="mono">privacy/</span>, which would give governance a reason to reach the masking layer. A hit holds the draft in triage with <span class="mono">SKILL.CLIENT_DATA_IN_DRAFT</span> or <span class="mono">INTAKE.INJECTION_DETECTED</span> and it reaches nothing. The gap report separates what the bench may fill from what only a person can supply. It errs toward flagging and a person clears it.',
  full:'A rough draft is a document from outside the system and gets the same treatment as a client document: assume nothing, scan first. Someone drafting a skill will paste a real trial balance in as an example sooner or later, and that must not quietly become a file in the repo. The gap report is what makes adaptation tractable \u2014 it turns \u201cmake this fit\u201d into a checklist instead of a judgment about where to begin.'},
 
 {id:'skill_adapt',runtime:'static',label:'Adaptation Bench',plain:'Where a rough draft is fitted to the contract and given a scope.',group:'gov',exec:'hybrid',tier:'high',now:true,
@@ -1094,17 +1094,17 @@ const NODES = [
 
 {id:'shadow_run',runtime:'static',label:'Shadow Deployment',plain:'A new version runs alongside the live one before it replaces it.',group:'gov',exec:'code',
  desc:'Executes a candidate version on real runs in parallel with the registered version, compares outputs, and reports the disagreement rate — without the candidate ever touching a deliverable.',
- impl:'Candidate output is written to the run store and has no path to the Delivery Port. Promotion requires an agreement threshold sustained over a stated number of real runs, not a single good day.',
+ impl:'Candidate output is written to the run store and the governance record and has no path to the Delivery Port — <span class="mono">governance/shadow.py</span> imports neither. Promotion requires three things and all of them: the stated number of distinct real runs, the disagreement rate inside the threshold over every observation, and inside it over the most recent window of that size, so a candidate that was fine for eighteen runs and has disagreed since does not promote on its average. Both halves of the gate are data: <span class="mono">evals/gates.yaml</span> carries the rate and the run count.',
  full:'Fixtures tell you a skill works on the cases someone thought of. Shadow running tells you what it does on the cases nobody thought of, at no risk to a client, which is the only honest way to gain confidence before a version handles work on its own.'},
 
 {id:'skill_registry',runtime:'static',label:'Skill Registry & Versioning',plain:'The only way a skill becomes live. Approval alone is not enough.',group:'gov',exec:'code',
  desc:'Registers an approved skill at a specific version and publishes it into the Skill Index. Versions are immutable; a change is a new version and a new review.',
- impl:'The single write path into the Skill Index. A SKILL.md sitting in a folder is not live — registration is a separate, recorded act.',
+ impl:'The single write path into the Skill Index, and the only module in the repo that writes into <span class="mono">skills/</span> — asserted over the syntax tree of every package. A SKILL.md sitting in a folder is not live: registration is a separate, recorded act, refused unless the whole chain has evidence behind it (<span class="mono">SKILL.GATE_SKIPPED</span>) and the scorecard cleared every gate (<span class="mono">SKILL.BELOW_GATE</span>). <span class="mono">unregistered()</span> reports any skill in the tree with no row behind it rather than assuming there is none.',
  full:'Approval is a decision; registration is a deployment. Keeping them as two events means “someone approved this” and “this is running on client work” can never be the same moment by accident. This is the only edge from this column into the live system, and it carries a definition — never data, and never a client file.'},
 
 {id:'governance_log',runtime:'static',label:'Governance Record',plain:'Every skill submitted, every decision, permanently.',group:'gov',exec:'code',
  desc:'Append-only record of submissions, transcripts, decisions, reviewers and registered versions.',
- impl:'Append-only store in a governance scope, separate from any engagement folder.',
+ impl:'Append-only JSONL in a governance scope, separate from any engagement folder and outside the repo. Every entry carries the hash of the one before it, so an edit or a deletion made outside the module leaves a break that <span class="mono">verify()</span> finds and names — the run store gets that guarantee from database triggers, and a file gets it from the chain. A candidate&rsquo;s position in the chain is folded from this record, so nothing advances because an object in memory said it had.',
  full:'Answers the question a firm should always be able to answer about an automated system: what does it do, who decided it could, and when.'},
 
 /* ═══ BAND 12 · CONTROL PLANE (right column) ═════════════════════ */
@@ -2078,7 +2078,7 @@ const ERRCODES = [
  ['SCOPE.*','UNRESOLVED \u00b7 UNKNOWN_PRACTICE \u00b7 UNKNOWN_SEGMENT \u00b7 UNKNOWN_DISPOSITION \u00b7 UNKNOWN_REVIEW_LEVEL \u00b7 AMBIGUOUS_SKILL \u00b7 SKILL_INVALID \u00b7 RECIPE_INVALID \u00b7 UNKNOWN_TOOL \u00b7 PRECEDENT_OUT_OF_SCOPE \u00b7 UNKNOWN_CONTRACT \u00b7 CONTRACT_INDEX_INVALID \u00b7 UNKNOWN_CONSTRAINTS \u00b7 UNKNOWN_ADAPTER \u00b7 MODEL_PIN_UNAVAILABLE \u00b7 MISSING_CREDENTIAL \u00b7 UNKNOWN_CRITERIA \u00b7 UNKNOWN_TAXONOMY','config'],
  ['PRIVACY.*','UNMASKED_IDENTIFIER \u00b7 UNMASKED_PRECEDENT \u00b7 TOKEN_CROSS_ENGAGEMENT \u00b7 VAULT_UNAVAILABLE','system'],
  ['POLICY.*','TOOL_NOT_DECLARED \u00b7 ARG_OUT_OF_SCOPE \u00b7 BUDGET_EXCEEDED \u00b7 CAP_EXCEEDED \u00b7 OVERLAY_LOOSENS \u00b7 MULTI_TURN_STEP','policy'],
- ['SKILL.*','SCHEMA_INVALID \u00b7 NO_PROVENANCE \u00b7 FABRICATED_SOURCE \u00b7 UNKNOWN_SOURCE \u00b7 UNKNOWN_LINE_ITEM \u00b7 UNKNOWN_PRECEDENT \u00b7 BELOW_GATE','model'],
+ ['SKILL.*','SCHEMA_INVALID \u00b7 NO_PROVENANCE \u00b7 FABRICATED_SOURCE \u00b7 UNKNOWN_SOURCE \u00b7 UNKNOWN_LINE_ITEM \u00b7 UNKNOWN_PRECEDENT \u00b7 BELOW_GATE \u00b7 GATE_SKIPPED \u00b7 CLIENT_DATA_IN_DRAFT \u00b7 SHADOW_INSUFFICIENT','model / process / client-data'],
  ['GUARD.*','TIEOUT_MISMATCH \u00b7 RECONCILE_CONFLICT \u00b7 NUMERIC_DRIFT \u00b7 UNMASK_RESIDUAL','client-data / model'],
  ['DELIVER.*','QC_FAILED \u00b7 TEMPLATE_MISSING \u00b7 WRITE_FAILED','system'],
  ['LOOP.*','EXHAUSTED \u00b7 INPUT_UNCHANGED \u00b7 UNDECLARED_CYCLE \u00b7 CEILING_EXCEEDED \u00b7 VERIFICATION_PASS','model / config'],
@@ -4283,6 +4283,7 @@ class <span class="hl">ProposedAction</span>:
    R_('  <span class="t2">ports/</span>         storage/ delivery/ secrets/ queue/ llm/ compute/', 'six, per the Delivery tab'),
    R_('  <span class="t2">ops/</span>           models.py, events.py, run_store.py, blobs.py, cost.py, manifest.py, scorecard.py, criteria/, stall.py, drift.py, analytics.py, console/', 'the record, and the verdict computed from it'),
    R_('  <span class="t2">admin/</span>         preflight.py, console.py, app.py', 'ten checks, then what an admin may and may not change'),
+   R_('  <span class="t2">governance/</span>    record.py, candidate.py, drop.py, conformance.py, adapt.py, sandbox.py, board.py, shadow.py, registry.py, chain.py', 'eleven stages; remove one and the path breaks'),
    R_('  <span class="t2">orchestrate/</span>   orchestrator.py, plan.py, triage.py, manifest.py', 'a proposed plan is compiled and asserted like any other'),
    R_('  <span class="t2">workers/</span>       pool.py', 'several engagements at once; one run at a time within each'),
    R_('  <span class="t2">fixtures/</span>      per skill, per scope, plus adversarial fixtures per guard')
