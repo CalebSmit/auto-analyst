@@ -39,6 +39,7 @@ FAMILIES = (
     "DELIVER",
     "LOOP",
     "PROCESS",
+    "CONFIG",
 )
 
 OWNERS: tuple[str, ...] = get_args(Owner)

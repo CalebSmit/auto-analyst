@@ -125,7 +125,9 @@ def test_a_guard_failure_carries_both_values_and_the_delta() -> None:
     assert failure.diagnostic.delta == "1324.0"
 
 
-def test_the_families_are_the_blueprints_nine() -> None:
+def test_the_families_are_the_blueprints_ten() -> None:
+    """Nine from the start; CONFIG arrived with P21, when the Template Registry's
+    registration diagnostic needed a family whose owner is the practice, not IT."""
     assert FAMILIES == (
         "INTAKE",
         "SCOPE",
@@ -136,6 +138,7 @@ def test_the_families_are_the_blueprints_nine() -> None:
         "DELIVER",
         "LOOP",
         "PROCESS",
+        "CONFIG",
     )
 
 

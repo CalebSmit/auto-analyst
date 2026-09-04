@@ -159,6 +159,8 @@ UNKNOWN_LINE_ITEM = "SKILL.UNKNOWN_LINE_ITEM"
 UNKNOWN_PRECEDENT = "SKILL.UNKNOWN_PRECEDENT"
 PRECEDENT_NO_DECISION = "PROCESS.PRECEDENT_NO_DECISION"
 VERIFICATION_PASS = "LOOP.VERIFICATION_PASS"
+TEMPLATE_INPUTS_MISSING = "CONFIG.TEMPLATE_INPUTS_MISSING"
+CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     UNKNOWN_CONTRACT: (
@@ -284,6 +286,21 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    TEMPLATE_INPUTS_MISSING: (
+        "config",
+        "The bound workbook does not declare every named range the mapping requires. "
+        "Either add the named ranges to the template, or map them to existing ranges in "
+        "the binding. Registration refuses the template until it does, so the gap is "
+        "found at binding rather than delivered as empty cells. Blocks activation of "
+        "any engagement bound to this template, not a run.",
+    ),
+    CELL_ADDRESS_BINDING: (
+        "config",
+        "A template binding or a mapping destination is a cell address rather than a "
+        "named range. B44 is not a contract: one inserted row would shift every "
+        "mapping below it and produce a plausibly wrong deliverable. Define a named "
+        "range in the workbook for the input and bind to that name.",
     ),
     VERIFICATION_PASS: (
         "process",

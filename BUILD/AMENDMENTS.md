@@ -310,3 +310,17 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** P20 deferral. The EBITDA add-back gold list is authored on the synthetic Henderson case; the human check for P20 asks for add-backs on a real engagement, which the pilot is the first place to have.
 
 - task added: Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified
+
+## 2026-09-03 - P21 Model builder, template registry, release
+
+**Why:** P21 findings, resolved in favour of the blueprint. (1) The note said to read the model builder repo from work before writing the Template Writer; that repo is not on this machine and was not read. The writer here binds by named range through openpyxl's defined names and refuses a cell address, which is the blueprint's requirement; anything the work repo already solves better is reconciled at the P24 pilot, recorded there. (2) CONFIG is a new diagnostic family: the task named CONFIG.TEMPLATE_INPUTS_MISSING and the blueprint's preflight example uses it, but the ERRCODES table had no CONFIG row. Added the row with TEMPLATE_INPUTS_MISSING and CELL_ADDRESS_BINDING, both owner config. (3) The templates on disk are synthetic, built by tools/synthesize_templates.py from templates/inputs/<file>@<version>.yaml, which is the mapping schema the registry asserts against - 43 required inputs on the ESOP model so the blueprint's 41-of-43 example is a real test. The master is never opened for writing; the registry pins its bytes by hash and refuses one that changed. (4) The workpaper narrative is rendered by code from locked structured data through P24 rather than by a style-only model pass: the build is keyless, and the numeric lock over the prose is the guarantee either way. Rendered from flags, never from free-text rationale, so no number the lock has not seen reaches the prose. (5) The manifest lists never-started steps as not_reached with a null key and zero attempts - run_manifest@1.0.0 now allows exactly that shape, in place, since no recorded run cites the old one. The template pin goes in versions.template_version, the field the contract already had. (6) The release event and the ledger row are one transaction: the bus gained draft(), which builds and validates an event without storing it, and the run store persists it with the ledger row. A first cut left the persistence in draft() and wrote every release event twice; the transaction test caught it.
+
+- task added: The idempotency ledger table and record_release in the run store; EventBus.draft for an event persisted inside another transaction
+- task added: Synthetic templates under templates/ from templates/inputs/ schemas via tools/synthesize_templates.py; the Template Registry pins masters by hash
+- exit criterion added: The release event and the ledger row are written in one transaction, proven by a ledger failure leaving no release event behind
+
+## 2026-09-03 - P24 Admin console, preflight, config audit
+
+**Why:** P21 deferral. The Template Writer was built against synthetic templates; the work model builder repo the P21 note names was not available here.
+
+- task added: Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/skills/model-load-proposal@1.0.0",
+  "title": "Model load proposal",
+  "description": "What the model returns: a routing of validated upstream figures to the pinned template's named inputs, and the two lists of what could not be routed. No value anywhere - a binding names a figure by its ref and a destination by its name, and the Model Builder resolves the figure and the Template Writer performs the write. A destination that is a cell address is refused by the pattern; one the template does not declare is refused by the procedure.",
+  "x-skill": "model-load",
+  "x-proposal": true,
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "produced_by", "bindings", "unmapped_template_inputs", "unrouted_upstream_figures"],
+  "properties": {
+    "schema_version": { "const": "skills/model-load-proposal@1.0.0" },
+    "produced_by": {
+      "type": "string",
+      "pattern": "^model[-]load@[0-9]+[.][0-9]+[.][0-9]+$"
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["named_range", "figure_ref"],
+        "properties": {
+          "named_range": {
+            "type": "string",
+            "pattern": "^(?![A-Za-z]{1,3}[0-9]+$)[A-Za-z_][A-Za-z0-9_.]*$"
+          },
+          "figure_ref": { "type": "string", "minLength": 1 },
+          "why": { "type": "string", "maxLength": 300 }
+        }
+      }
+    },
+    "unmapped_template_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["named_range", "why"],
+        "properties": {
+          "named_range": { "type": "string", "minLength": 1 },
+          "why": { "type": "string", "minLength": 1, "maxLength": 300 }
+        }
+      }
+    },
+    "unrouted_upstream_figures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["figure_ref", "why"],
+        "properties": {
+          "figure_ref": { "type": "string", "minLength": 1 },
+          "why": { "type": "string", "minLength": 1, "maxLength": 300 }
+        }
+      }
+    },
+    "notes": { "type": "string", "maxLength": 2000 }
+  }
+}

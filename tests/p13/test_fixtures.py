@@ -29,10 +29,16 @@ from tests.p13.conftest import ENGAGEMENT, FIXTURES, TOLERANCE, case
 from tools.recompute import recompute
 
 BUILT = {
-    "payload_scan", "unmask_verify", "tieout", "numeric_lock", "provenance", "budget_governor",
+    "payload_scan",
+    "unmask_verify",
+    "tieout",
+    "numeric_lock",
+    "provenance",
+    "budget_governor",
     "loop_controller",  # P14
     "engagement_lock",  # P16
     "untrusted_boundary",  # P17
+    "deliverable_qc",  # P21
 }
 
 
@@ -53,8 +59,9 @@ def test_the_table_has_ten_and_they_are_the_blueprints(fixture_table: dict[str, 
         }
 
 
-def test_nine_guards_are_built_and_one_is_owed(fixture_table: dict[str, Any]) -> None:
-    """Said in a test so the number is checked, not remembered."""
+def test_all_ten_guards_are_built_and_none_is_owed(fixture_table: dict[str, Any]) -> None:
+    """Said in a test so the number is checked, not remembered. Nine were built by P17;
+    the Deliverable QC Gate, the tenth, landed with P21."""
     guards = {row["guard"] for row in fixture_table["fixtures"]}
     assert guards & BUILT == BUILT
     owed = {
@@ -62,7 +69,7 @@ def test_nine_guards_are_built_and_one_is_owed(fixture_table: dict[str, Any]) ->
         for row in fixture_table["fixtures"]
         if row["guard"] not in BUILT
     }
-    assert owed == {"deliverable_qc": "P21"}
+    assert owed == {}
 
 
 # --------------------------------------------------------- running them all
@@ -190,8 +197,13 @@ def _fire(
                 run_id=launch["run_id"],
                 engagement_id=body["engagement_id"],
                 plan_hash="sha256:" + "7c" * 32,
-                versions={"model_pin": "x", "skills": [], "contracts": "1.0.0",
-                          "constraints": "1.0.0", "taxonomy": "coa@1.0.0"},
+                versions={
+                    "model_pin": "x",
+                    "skills": [],
+                    "contracts": "1.0.0",
+                    "constraints": "1.0.0",
+                    "taxonomy": "coa@1.0.0",
+                },
             )
             results.append(lock.acquire(body["engagement_id"], launch["run_id"]))
         assert results[0].acquired, "the first launch takes the lock"
@@ -210,6 +222,30 @@ def _fire(
             if PayloadScan().check(text, IdentifierList.of(ENGAGEMENT, [])).passed
             else "PRIVACY.UNMASKED_IDENTIFIER"
         )
+
+    elif guard == "deliverable_qc":
+        from io import BytesIO
+
+        from openpyxl import Workbook
+
+        from deliver.qc import DeliverableQC
+
+        wb = Workbook()
+        first = wb.active
+        for defect in body["defects"]:
+            sheet, coordinate = defect["cell"].split("!")
+            ws = wb[sheet] if sheet in wb.sheetnames else wb.create_sheet(sheet)
+            if "external_link" in defect:
+                ws[coordinate] = f"='{defect['external_link']}"
+            else:
+                ws[coordinate] = defect["value"]
+        if first.title not in {d["cell"].split("!")[0] for d in body["defects"]}:
+            wb.remove(first)
+        out = BytesIO()
+        wb.save(out)
+        result = DeliverableQC().check(out.getvalue())
+        fired["deliverable_qc"] = result.code
+        fired["numeric_lock"] = None
     return fired
 
 

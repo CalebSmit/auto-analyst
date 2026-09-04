@@ -11,12 +11,14 @@ from __future__ import annotations
 from harness.dispatch import Procedure
 from harness.procedures.ebitda_normalization import EbitdaNormalization, EbitdaVerification
 from harness.procedures.line_item_tagging import LineItemTagging
+from harness.procedures.model_load import ModelLoad
 from harness.procedures.timing_normalization import TimingNormalization
 
 PROCEDURES: dict[str, type[Procedure]] = {
     "timing-normalization": TimingNormalization,
     "line-item-tagging": LineItemTagging,
     "ebitda-normalization": EbitdaNormalization,
+    "model-load": ModelLoad,
 }
 
 # The self-verification pass, where a skill has one: a separate invocation of the same

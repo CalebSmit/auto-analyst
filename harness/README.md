@@ -157,5 +157,12 @@ skill, admitted as an iteration of the plan's `self_verification:ebitda` region:
 amounts, citations and excerpts and never the first pass's rationale, and an unsupported
 item goes to a person.
 
+`model_load.py` (P21) sends the pinned template's declared inputs and a catalogue of
+figure refs - names, lines, periods, no value - and gets back a routing; every
+destination is checked against the template through the gated `template_schema_lookup`,
+every ref against the catalogue, and every required input is bound or listed. The Model
+Builder (`deliver/builder.py`) resolves the figures and the Template Writer
+(`tools/write_template.py`) performs every write.
+
 Nothing under this folder imports `tools/`; a procedure reaches a tool by name through
 `BoundTools`, and the P10 boundary test says so.

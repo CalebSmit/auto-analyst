@@ -87,11 +87,13 @@
           "skill": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] },
           "status": { "enum": ["completed", "failed", "skipped", "quarantined", "not_reached"] },
           "step_key": {
-            "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$",
-            "description": "The idempotency key. A retry, a resume and a manual re-run are the same operation because of this field."
+            "oneOf": [
+              { "type": "null" },
+              { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+            ],
+            "description": "The idempotency key. A retry, a resume and a manual re-run are the same operation because of this field. Null only on a step that never started: a step that never ran has no honest key, and the manifest does not invent one."
           },
-          "attempts": { "type": "integer", "minimum": 1 },
+          "attempts": { "type": "integer", "minimum": 0 },
           "loop": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
         }
       }

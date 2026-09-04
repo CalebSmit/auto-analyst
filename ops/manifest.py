@@ -75,15 +75,40 @@ def check_versions(versions: dict[str, Any]) -> tuple[str, ...]:
     return tuple(name for name in REQUIRED_VERSIONS if not versions.get(name))
 
 
-def assemble(store: RunStore, run_id: str, bus: EventBus | None = None) -> dict[str, Any]:
+def assemble(
+    store: RunStore,
+    run_id: str,
+    bus: EventBus | None = None,
+    plan: Any | None = None,
+) -> dict[str, Any]:
     """Build the manifest from the run store. Reads only; writes nothing.
 
     `guard_events` comes from the event stream rather than from a table of its own,
     which is what makes "every guard result, passes included" a property of the record
     instead of a second thing to remember to write.
+
+    With `plan`, every step of the compiled plan is listed: the ones the store holds as
+    they are, and the ones that never started as `not_reached` with no key - a step
+    that never ran has no honest idempotency key, and inventing one would be the P14
+    finding this closes.
     """
     run = store.run(run_id)
     reader = bus or EventBus(store)
+    recorded = store.steps(run_id)
+    seen = {step.step_id for step in recorded}
+    not_reached = [
+        {
+            "step_id": step.id,
+            "kind": step.kind,
+            "skill": step.skill,
+            "status": "not_reached",
+            "step_key": None,
+            "attempts": 0,
+            "loop": None,
+        }
+        for step in ((plan.step(i) for i in plan.order) if plan is not None else ())
+        if step.id not in seen
+    ]
 
     manifest: dict[str, Any] = {
         "schema_version": MANIFEST_CONTRACT,
@@ -105,8 +130,9 @@ def assemble(store: RunStore, run_id: str, bus: EventBus | None = None) -> dict[
                 "attempts": step.attempts,
                 "loop": step.loop,
             }
-            for step in store.steps(run_id)
-        ],
+            for step in recorded
+        ]
+        + not_reached,
         "guard_events": [
             {
                 "guard": result.guard,
@@ -160,6 +186,7 @@ def close_out(
     bus: EventBus | None = None,
     contracts: ContractRegistry | None = None,
     reason: str | None = None,
+    plan: Any | None = None,
 ) -> ManifestResult:
     """End the run and write its manifest. The only way a run ends.
 
@@ -172,7 +199,7 @@ def close_out(
     reader = bus or EventBus(store, contracts=contracts)
     registry = contracts or ContractRegistry.load()
 
-    manifest = assemble(store, run_id, bus=reader)
+    manifest = assemble(store, run_id, bus=reader, plan=plan)
     _require_valid(registry, manifest)
 
     body = json.dumps(manifest, indent=2, sort_keys=True).encode("utf-8")

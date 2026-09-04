@@ -44,6 +44,14 @@ contracts:
       it. Configuration writes the engagement record (invariant 23), so the gap was a
       missing contract rather than a missing design. P24 checks it at activation.
 
+  - id: workpaper
+    version: 1.0.0
+    file: workpaper.schema.json
+    kind: artifact
+    note: >-
+      The narrative: four lists of sentences and nothing else. No numeric field, so a
+      figure enters the prose only by being rendered from a locked value, and the lock
+      checks the prose before release.
   - id: config_document
     version: 1.0.0
     file: config_document.schema.json
@@ -124,6 +132,14 @@ contracts:
     version: 1.0.0
     file: skills/model-load.schema.json
     kind: skill_output
+  - id: skills/model-load-proposal
+    version: 1.0.0
+    file: skills/model-load-proposal.schema.json
+    kind: skill_proposal
+    note: >-
+      What the model returns for model-load: a routing of figure refs to named inputs,
+      with no value anywhere. The Model Builder resolves the figures; the Template
+      Writer performs every write.
   - id: skills/dol-adequate-consideration
     version: 1.0.0
     file: skills/dol-adequate-consideration.schema.json

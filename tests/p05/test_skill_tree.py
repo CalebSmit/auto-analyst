@@ -105,6 +105,7 @@ WRITTEN = {
     "timing-normalization": "P18",
     "line-item-tagging": "P19",
     "ebitda-normalization": "P20",
+    "model-load": "P21",
 }
 
 

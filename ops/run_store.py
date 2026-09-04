@@ -44,6 +44,7 @@ from ops.models import (
     Ledger,
     Outcome,
     Quarantine,
+    ReleaseLedgerRow,
     ReviewItem,
     Run,
     RunState,
@@ -74,6 +75,7 @@ __all__ = [
     "LateResult",
     "LedgerEntry",
     "QuarantineRecord",
+    "ReleaseRecord",
     "LateResult",
     "LedgerEntry",
     "ReviewItemRecord",
@@ -182,6 +184,19 @@ class ArtifactRecord:
     content_hash: str
     written_at: str
     path: str | None = None
+
+
+@dataclass(frozen=True)
+class ReleaseRecord:
+    """One row of the idempotency ledger: what was released, where, under which event."""
+
+    run_id: str
+    content_hash: str
+    name: str
+    path: str
+    version: int
+    event_id: str
+    released_at: str
 
 
 @dataclass(frozen=True)
@@ -308,6 +323,19 @@ class RunStore(Protocol):
     # the event stream: append and read, and nothing else
     def append_event(self, event: dict[str, Any]) -> int: ...
     def events(self, run_id: str, since_seq: int = 0) -> tuple[EventRecord, ...]: ...
+
+    # the idempotency ledger: one row per released artifact, with its event
+    def record_release(
+        self,
+        run_id: str,
+        content_hash: str,
+        path: str,
+        version: int,
+        name: str,
+        event: dict[str, Any],
+    ) -> ReleaseRecord: ...
+    def release_for(self, run_id: str, content_hash: str) -> ReleaseRecord | None: ...
+    def releases(self, run_id: str) -> tuple[ReleaseRecord, ...]: ...
 
     # artifacts, review, decisions
     def record_artifact(
@@ -767,6 +795,68 @@ class SqlRunStore:
             )
             return tuple(_as_event(row) for row in rows)
 
+    # -- the idempotency ledger: written with the release event, in one transaction
+
+    def record_release(
+        self,
+        run_id: str,
+        content_hash: str,
+        path: str,
+        version: int,
+        name: str,
+        event: dict[str, Any],
+    ) -> ReleaseRecord:
+        """The ledger row and the release event, together or not at all. A second row
+        for the same (run, hash) is refused by the unique key, which is the guarantee
+        the release gate relies on rather than a check it remembers to make."""
+        with self._session() as session:
+            session.add(
+                Event(
+                    event_id=event["event_id"],
+                    ts=event["ts"],
+                    run_id=event["run_id"],
+                    engagement_id=event["engagement_id"],
+                    node_id=event["node_id"],
+                    step_id=event.get("step_id"),
+                    type=event["type"],
+                    level=event["level"],
+                    message=event["message"],
+                    payload=dict(event.get("payload") or {}),
+                    diagnostic_code=event.get("diagnostic_code"),
+                    cost_usd=event.get("cost_usd"),
+                )
+            )
+            row = ReleaseLedgerRow(
+                run_id=run_id,
+                content_hash=content_hash,
+                name=name,
+                path=path,
+                version=version,
+                event_id=event["event_id"],
+            )
+            session.add(row)
+            session.flush()
+            return _as_release(row)
+
+    def release_for(self, run_id: str, content_hash: str) -> ReleaseRecord | None:
+        with self._session() as session:
+            row = session.scalars(
+                select(ReleaseLedgerRow).where(
+                    ReleaseLedgerRow.run_id == run_id,
+                    ReleaseLedgerRow.content_hash == content_hash,
+                )
+            ).one_or_none()
+            return None if row is None else _as_release(row)
+
+    def releases(self, run_id: str) -> tuple[ReleaseRecord, ...]:
+        with self._session() as session:
+            rows = session.scalars(
+                select(ReleaseLedgerRow)
+                .where(ReleaseLedgerRow.run_id == run_id)
+                .order_by(ReleaseLedgerRow.id)
+            )
+            return tuple(_as_release(row) for row in rows)
+
     # -- artifacts, review, decisions
 
     def record_artifact(
@@ -1140,4 +1230,16 @@ def _as_review_item(row: ReviewItem) -> ReviewItemRecord:
         version=row.version,
         owner=row.owner,
         due_at=row.due_at,
+    )
+
+
+def _as_release(row: ReleaseLedgerRow) -> ReleaseRecord:
+    return ReleaseRecord(
+        run_id=row.run_id,
+        content_hash=row.content_hash,
+        name=row.name,
+        path=row.path,
+        version=row.version,
+        event_id=row.event_id,
+        released_at=row.released_at,
     )

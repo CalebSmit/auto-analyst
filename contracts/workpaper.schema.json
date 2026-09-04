@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/workpaper@1.0.0",
+  "title": "Workpaper narrative",
+  "description": "The prose summary of a run: what was processed, what was adjusted, what remains open, what a reviewer should look at first. Four lists of sentences and nothing else. There is no numeric field, no total and no conclusion: a figure enters the prose only by being rendered from a locked value, and the numeric lock checks the prose against the locked set before release. Written upstream of the Deliverable QC Gate, so nothing here escapes verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "engagement_id", "run_id", "processed", "adjusted", "open_items", "look_first"],
+  "properties": {
+    "schema_version": { "const": "workpaper@1.0.0" },
+    "engagement_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "processed": { "$ref": "#/$defs/sentences" },
+    "adjusted": { "$ref": "#/$defs/sentences" },
+    "open_items": { "$ref": "#/$defs/sentences" },
+    "look_first": { "$ref": "#/$defs/sentences" }
+  },
+  "$defs": {
+    "sentences": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 600 }
+    }
+  }
+}

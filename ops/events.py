@@ -101,6 +101,50 @@ class EventBus:
         cost_usd: float | None = None,
     ) -> dict[str, Any]:
         """Record one event. Returns what was emitted, whether or not it was stored."""
+        event = self.draft(
+            run_id=run_id,
+            engagement_id=engagement_id,
+            node_id=node_id,
+            type=type,
+            message=message,
+            level=level,
+            step_id=step_id,
+            payload=payload,
+            diagnostic_code=diagnostic_code,
+            cost_usd=cost_usd,
+        )
+
+        try:
+            self._store.append_event(event)
+        except Exception as failure:  # noqa: BLE001 - the whole point is to not re-raise
+            self.dropped += 1
+            if self._on_drop is not None:
+                self._on_drop(event, failure)
+
+        for subscriber in tuple(self._subscribers):
+            try:
+                subscriber(event)
+            except Exception:  # noqa: BLE001 - a reader must not be able to fail a run
+                self._subscribers.remove(subscriber)
+        return event
+
+    def draft(
+        self,
+        *,
+        run_id: str,
+        engagement_id: str,
+        node_id: str,
+        type: str,
+        message: str,
+        level: str | None = None,
+        step_id: str | None = None,
+        payload: dict[str, Any] | None = None,
+        diagnostic_code: str | None = None,
+        cost_usd: float | None = None,
+    ) -> dict[str, Any]:
+        """Build and validate an event without storing it. For the one caller that has
+        to persist an event inside its own transaction - the release gate, whose ledger
+        row and release event are written together or not at all."""
         event: dict[str, Any] = {
             "event_id": f"evt_{uuid4().hex[:20]}",
             "ts": now_iso(),
@@ -119,19 +163,6 @@ class EventBus:
             event["cost_usd"] = cost_usd
 
         self._validate(event)
-
-        try:
-            self._store.append_event(event)
-        except Exception as failure:  # noqa: BLE001 - the whole point is to not re-raise
-            self.dropped += 1
-            if self._on_drop is not None:
-                self._on_drop(event, failure)
-
-        for subscriber in tuple(self._subscribers):
-            try:
-                subscriber(event)
-            except Exception:  # noqa: BLE001 - a reader must not be able to fail a run
-                self._subscribers.remove(subscriber)
         return event
 
     def emit_guard(

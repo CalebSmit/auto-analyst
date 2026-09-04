@@ -70,6 +70,7 @@ __all__ = [
     "LockQueueRow",
     "PrecedentRow",
     "Quarantine",
+    "ReleaseLedgerRow",
     "RosterRow",
     "UnclaimedFolder",
     "ReviewItem",
@@ -916,6 +917,27 @@ _PG_TRIGGER_PRECEDENT = DDL(  # type: ignore[no-untyped-call]
     "CREATE TRIGGER precedent_append_only BEFORE UPDATE OR DELETE ON precedent "
     "FOR EACH ROW EXECUTE FUNCTION precedent_append_only()"
 )
+
+
+class ReleaseLedgerRow(Base):
+    """The Idempotency Ledger: run id, artifact hash and destination at the moment of
+    release. Written in the same transaction as the release event. The unique key is
+    the whole mechanism - a repeat release finds its row and returns the original
+    location rather than writing a second file."""
+
+    __tablename__ = "release_ledger"
+    __table_args__ = (UniqueConstraint("run_id", "content_hash", name="uq_release_key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("run.run_id"), nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(71), nullable=False)
+    name: Mapped[str] = mapped_column(String(256), nullable=False)
+    path: Mapped[str] = mapped_column(Text, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    event_id: Mapped[str] = mapped_column(String(40), nullable=False)
+    released_at: Mapped[str] = mapped_column(String(32), nullable=False, default=now_iso)
+
+
 for _ddl, _dialect in (
     (_SQLITE_PRECEDENT_NEEDS_DECISION, "sqlite"),
     (_SQLITE_NO_UPDATE_PRECEDENT, "sqlite"),

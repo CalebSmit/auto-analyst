@@ -690,7 +690,7 @@
       "title": "Model builder, template registry, release",
       "block": "Block E - Real skills and their surfaces",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "openpyxl into a copy of a pinned template, bound by named range and never by cell address. One node releases client work, with one inbound edge.",
       "builds": [
         "sk_model",
@@ -711,18 +711,22 @@
         "Deliverable QC: opens, resolves, stamped, no residual tokens, no broken external link, no #REF!",
         "The single release gate and the idempotency ledger record inside the release transaction",
         "Workpaper narrative, written after the numbers are locked, with no schema field a figure can enter through",
-        "Manifest lists every plan step, with never-started ones as not_reached and no invented key (P14 finding)"
+        "Manifest lists every plan step, with never-started ones as not_reached and no invented key (P14 finding)",
+        "The idempotency ledger table and record_release in the run store; EventBus.draft for an event persisted inside another transaction",
+        "Synthetic templates under templates/ from templates/inputs/ schemas via tools/synthesize_templates.py; the Template Registry pins masters by hash"
       ],
       "exit": [
         "A binding to a cell address is rejected at registration",
         "A template declaring 41 of 43 required inputs fails registration naming the two missing ranges",
         "A produced .xlsx opens with no #REF!, no broken link and no residual mask token",
-        "A replayed release does not deliver a second time"
+        "A replayed release does not deliver a second time",
+        "The release event and the ledger row are written in one transaction, proven by a ledger failure leaving no release event behind"
       ],
       "checks": [
         "python -m uv run pytest tests/p21 -q"
       ],
-      "notes": "Read the model builder repo from work before writing the Template Writer - it may already solve the named-range binding, and it is the one existing repo that overlaps this phase."
+      "notes": "Read the model builder repo from work before writing the Template Writer - it may already solve the named-range binding, and it is the one existing repo that overlaps this phase.",
+      "closed": "2026-09-03"
     },
     {
       "id": "P22",
@@ -805,7 +809,8 @@
         "Enforcement of what an admin can and cannot change, backed by invariant 23",
         "Confirm the timing-normalization alignment on a real engagement's files, and tailor the normalized table to the firm's Excel models (the half of P18's sign-off deferred from the synthetic case)",
         "Publish Chartwell's own chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, and rebuild fixtures/skills/line-item-tagging from it",
-        "Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified"
+        "Have an analyst confirm the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization from what they identified",
+        "Read the work model builder repo and reconcile its named-range binding with tools/write_template.py; register Chartwell's real templates under new versions with their input schemas under templates/inputs/"
       ],
       "exit": [
         "A failing preflight check blocks activation of that engagement rather than failing later in a run",
