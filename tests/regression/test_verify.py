@@ -61,22 +61,32 @@ def test_the_typed_package_list_is_every_package_that_ships() -> None:
 
 
 def test_verify_runs_and_reports_what_it_did_not_run() -> None:
-    """The honesty the whole apparatus rests on: a green verdict says what it covered.
+    """The honesty the whole apparatus rests on: a verdict says what it covered.
 
     `--fast` so this stays a test of the reporting rather than a second full suite inside
     the first one.
+
+    Two outcomes are legitimate and this accepts both. Green is the ordinary one. Red for
+    stale state is correct when the tree is mid-edit, because the `state` step runs `gate
+    render` and reports what it rewrote - asserting a clean exit here would make the test
+    depend on when somebody happened to run it, which is exactly the flake this apparatus
+    exists to catch. What is not negotiable is that the report says which happened.
     """
     result = subprocess.run(  # noqa: S603
         [sys.executable, str(ROOT / "tools" / "verify.py"), "--fast"],
         cwd=ROOT, capture_output=True, text=True, check=False, timeout=900,
     )
-    assert result.returncode == 0, result.stdout[-3000:] + result.stderr[-2000:]
     out = result.stdout
     for step in ("surfaces", "lint", "types", "blueprint", "state"):
         assert step in out, step
-    assert "GREEN" in out
     assert "the suite did not run" in out
     assert "did not run: postgres, redis, container" in out
+
+    if result.returncode == 0:
+        assert "GREEN" in out
+    else:
+        assert "state was stale" in out, out[-3000:]
+        assert "STATE WAS STALE" in out
 
 
 def test_the_change_protocol_is_written_down() -> None:

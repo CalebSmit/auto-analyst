@@ -17,6 +17,11 @@ they need something this machine may not have, and the summary says in words whi
 them did not happen. A green verdict here means "green on what ran", and the report says
 what that was.
 
+**One step writes.** `state` runs `gate render`, which rewrites `BUILD/PLAN.md`,
+`BUILD/STATE.md` and the phase files from the plan. That is idempotent, and anything it
+changes was already owed - but it means this command is not read-only, and stale state is
+reported as red rather than as a green run with a failing exit code.
+
     python tools/verify.py                  # everything that can run here
     python tools/verify.py --fast           # skip the suite: lint, types, surfaces, freshness
     python tools/verify.py --repeat 2       # run the suite twice; a flake fails the run

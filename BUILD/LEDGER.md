@@ -77,3 +77,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Time anything sub-second with time.perf_counter() (QueryPerformanceCounter, microsecond resolution). And prove concurrency with a barrier the parties must reach together, not with sleeps and clocks - a serial pool times out at the barrier, which is a fact rather than a measurement.
 
+
+## 2026-09-05 - Chaining 'git commit' after a piped test command with &&
+
+**Phase:** P28
+
+**Why it failed:** The pipeline's exit status is the last command's, not pytest's: 'pytest ... | tail -3' exits 0 even when the suite is red, so the && ran and a failing test was committed. The failure was real - a test that asserted verify exits clean, which is false while the tree is mid-edit and the state check correctly reports stale generated files.
+
+**Rule:** Never chain a state-changing command behind a piped test run. Capture the exit code first (PIPESTATUS, or run the suite unpiped), or run the commit as its own step after reading the result. And a test that shells out to a tool must not assume the working tree is clean - assert on what the report says, not on the exit code alone.
+
