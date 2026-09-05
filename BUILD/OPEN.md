@@ -139,6 +139,49 @@ blueprint predates. That matters more than a missing table cell:
 That is a contract change (`run_manifest`), a compile change (the hash), and an adapter.
 Say the word and it is scoped; until then nothing is assumed.
 
+### Foundry or the Anthropic API directly
+
+Asked 2026-09-05. Not urgent - nothing before phase 3 needs it - but it decides whether
+the model-pin work above happens at all.
+
+**What this build actually asks of the API.** Very little, which is the good news. One
+request, one response, a system prompt and a single user message, `stop_sequences`,
+`metadata`, and the usage numbers back. No tools, no PDF input, no streaming, no batches.
+But **every call** sets two things: `thinking: {"type": "adaptive"}` and
+`output_config: {"effort": ...}` from the pin. Those two are the ones that differ.
+
+| What the build uses | Anthropic API | Microsoft Foundry |
+|---|---|---|
+| Messages, one turn | GA | GA |
+| Prompt caching | GA | GA |
+| **Adaptive thinking** | GA | **beta** |
+| **Effort, from the model pin** | GA | **beta** |
+| Token counting | GA | beta |
+| `inference_geo` (data residency control) | **GA** | **not supported** |
+| Message Batches (not used yet; a nightly sweep could) | GA | not supported |
+
+Three things worth weighing beyond the table:
+
+1. **The firm's Anthropic account is already sanctioned for client data.** The blueprint
+   says so, and the only open question there is the narrower one about individual
+   engagement letters. Foundry is a new procurement and a new risk review; the direct API
+   is a path that already exists.
+2. **Data residency runs the opposite way to the intuition.** If keeping data in a stated
+   region is the reason to go to Azure, note that the first-party API has a residency
+   control and Foundry does not. What Foundry gives instead is a *network* story: traffic
+   stays inside the tenant, private endpoints, no egress to a third-party endpoint. If IT's
+   objection is egress rather than residency, that is the real argument for it.
+3. **New models and features land first-party first.** This build pins a model and folds
+   the pin into every plan hash, so a platform that gets a model later means the firm's
+   runs lag - and a pin that is unavailable fails the run at startup by design.
+
+**My recommendation: start on the Anthropic API directly, and keep Foundry as an adapter
+if network policy demands it.** Everything this build uses is GA there, the account is
+already approved, and the LLM port means the choice stays reversible for the cost of one
+module. If IT rules out egress, the Foundry adapter is a day's work plus the pin change -
+and at that point the pin must name the platform, because two providers behind one pin is
+two runs that share a plan hash and can legitimately disagree.
+
 ### Where Power Automate may go, and where it must not
 
 It is genuinely useful at the edges, and genuinely dangerous inside the boundary. The line
@@ -166,9 +209,9 @@ ops API, or a watched folder - never through the database, the outbox or the fil
 Given a connection string it becomes a second, ungoverned writer, and every guarantee in
 the Assurance tab becomes conditional on nobody having built a convenient flow.
 
-**Question for you:** is Power Automate expected to *drive* any of this, or to sit beside
-it and notify? The answer changes nothing about the pipeline and quite a lot about what I
-build next.
+**Answered, 2026-09-05:** Power Automate sits **outside**. It notifies and moves files;
+it does not drive the pipeline. Nothing about the pipeline changes, and no flow is ever
+given a database connection string or write access to the outbox.
 
 ---
 
@@ -181,3 +224,4 @@ deleted - a decision nobody can find later is one that gets made again.*
 |---|---|---|
 | 2026-09-04 | P26 signed off | `BUILD/plan.json`, and the closed-phase list in STATE.md |
 | 2026-09-04 | Prove the container on this machine before tailoring at work | This file, §1 |
+| 2026-09-05 | Power Automate sits outside the boundary: notify and move files, never drive | This file, §5 |
