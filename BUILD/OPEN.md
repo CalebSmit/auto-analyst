@@ -58,7 +58,9 @@ Three of those have a direct consequence in the code today:
 ## 3. Evidence only the work machine can produce
 
 These are tasks on P28. They are not code waiting to be written; each is evidence
-somebody has to gather, and the phase cannot honestly close without them.
+somebody has to gather, and none of it can be gathered here. P28 closes on the proof
+this machine could give; these stay owed against the work machine, and P30 onward
+does not wait for them.
 
 | | What is owed | Deferred from |
 |---|---|---|
@@ -66,6 +68,7 @@ somebody has to gather, and the phase cannot honestly close without them.
 | **The firm's chart of accounts** | Publish Chartwell's conventions as a new taxonomy version - never edit `coa-taxonomy@1.0.0` in place - measure the two-analyst baseline on 200 real line items, and rebuild `fixtures/skills/line-item-tagging`. | P19, through P24 |
 | **Real add-backs** | An analyst confirms the add-backs proposed on a real engagement are defensible and that nothing material was auto-accepted; rebuild `fixtures/skills/ebitda-normalization`. | P20, through P24 |
 | **The model builder** | Read the work repo, reconcile its named-range binding with `tools/write_template.py`, and register the real templates with their input schemas. | P24 |
+| **The work-machine clone** | Clone the repo there, run the suite in the container, and confirm nothing but `.env` had to change. Proven here on podman 6.1.1; unproven there. | P28 |
 
 Two more, smaller:
 

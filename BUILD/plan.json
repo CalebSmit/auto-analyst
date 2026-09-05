@@ -941,8 +941,8 @@
       "title": "Docker, portability, handoff packet",
       "block": "Block G - Scale, judgment and handoff",
       "gate": "human",
-      "status": "open",
-      "human_check": "You clone the repo onto the work machine, run the suite in the container, and confirm nothing but .env had to change.",
+      "status": "done",
+      "human_check": "You confirm the container proof done here is enough to call v1 portable: the image built from a clean clone on an OCI runtime that is not Docker Desktop, and the whole suite green inside it. The clone onto the work machine is a task deferred to the work machine, not a condition of this phase.",
       "intent": "One image, any host. The portability requirement in its most concrete form - and the packet that makes the move to the work machine boring.",
       "builds": [
         "compute_target"
@@ -962,7 +962,8 @@
         "CHANGING.md: the protocol for changing the system after v1",
         "A CI workflow that runs the Postgres, Redis and container halves a laptop cannot",
         "With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)",
-        "Prove it on a runtime that is not Docker Desktop and name it in HANDOFF.md"
+        "Prove it on a runtime that is not Docker Desktop and name it in HANDOFF.md",
+        "On the work machine: clone the repo, run the suite in the container, and confirm nothing but .env had to change"
       ],
       "exit": [
         "No managed-service primitive is depended on anywhere in the codebase",
@@ -978,7 +979,9 @@
         "python -m uv run mypy governance evals orchestrate workers ports intake ops registries graph review admin deliver precedent",
         "python -m uv run pytest tests/regression -q"
       ],
-      "notes": "The three work repos - model builder, ShareFile connector, Box connector - are named here as adapters to write, not as dependencies to satisfy."
+      "notes": "The three work repos - model builder, ShareFile connector, Box connector - are named here as adapters to write, not as dependencies to satisfy.",
+      "closed": "2026-09-05",
+      "signoff": "Caleb: podman 6.1.1 here, image built from a clean clone, 1711 passed / 78 skipped inside it. Nothing but .env changes. Work-machine clone still to do."
     },
     {
       "id": "P29",

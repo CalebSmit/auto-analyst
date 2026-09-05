@@ -177,15 +177,37 @@ def test_the_handoff_says_which_runtime_was_actually_used() -> None:
     assert "Docker Desktop" in block, "say what it was not, since that is the constraint"
 
 
-def test_what_is_still_owed_is_the_phases_own_task_list() -> None:
-    """The four things that need the work machine are in the plan and in the packet, so
-    neither can quietly lose one."""
+def owed_on_the_work_machine() -> tuple[list[str], list[str]]:
+    """The plan's work-machine tasks, and the register's rows for them.
+
+    Two records of the same thing, kept apart on purpose: the plan is what the gate
+    reads, the register is what a person reads. Returning both lets a test assert they
+    agree rather than assert a number, which is what actually matters - a literal count
+    goes stale the moment somebody defers a fifth thing, and then three tests fail for a
+    reason that has nothing to do with what they guard.
+    """
     import json
 
     plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
     p28 = next(p for p in plan["phases"] if p["id"] == "P28")
-    owed = [t for t in p28["tasks"] if t.startswith("On the work machine")]
-    assert len(owed) == 4, owed
+    tasks = [t for t in p28["tasks"] if t.startswith("On the work machine")]
+
+    register = (ROOT / "BUILD" / "OPEN.md").read_text(encoding="utf-8")
+    section = register[register.index("## 3. Evidence only the work machine") :]
+    section = section[: section.index("\n\nTwo more")]
+    rows = [
+        line for line in section.splitlines()
+        if line.startswith("| **") and "What is owed" not in line
+    ]
+    return tasks, rows
+
+
+def test_what_is_still_owed_is_the_phases_own_task_list() -> None:
+    """The four things that need the work machine are in the plan and in the packet, so
+    neither can quietly lose one."""
+    owed, rows = owed_on_the_work_machine()
+    assert owed, "nothing is owed to the work machine, which would be a first"
+    assert len(owed) == len(rows), {"in the plan": owed, "in the register": rows}
     handoff = HANDOFF.read_text(encoding="utf-8")
     for fragment in ("taxonomy", "add-backs", "model builder", "timing normalization"):
         assert fragment.lower() in handoff.lower(), fragment

@@ -5,38 +5,15 @@
 
 ## Where the build is
 
-- **27 of 33 phases closed**
+- **28 of 33 phases closed**
 - Last green checkpoint: **C9**
-- Current phase: **P28 - Docker, portability, handoff packet** (gate: human)
+- Current phase: **P29 - Scope choices in the admin surface** (gate: auto)
 
 ## The next action
 
-Work P28. Its full definition is in [BUILD/phases/P28.md](phases/P28.md).
+**C10 is due and has not passed.** Nothing else starts until it does.
 
-> One image, any host. The portability requirement in its most concrete form - and the packet that makes the move to the work machine boring.
-
-Tasks:
-
-- [ ] Dockerfile and compose: app plus Postgres, one command up
-- [ ] The whole suite green inside the container
-- [ ] HANDOFF.md: what changes on the work machine and what does not
-- [ ] Adapter stubs named for the existing ShareFile and Box connectors, with their port contracts written
-- [ ] The work Anthropic key as a .env change and nothing else
-- [ ] On the work machine: confirm the timing-normalization alignment on a real engagement's files and tailor the normalized table to the firm's Excel models (deferred from P18 through P25)
-- [ ] On the work machine: publish Chartwell's chart-of-accounts conventions as a new taxonomy version (never edit 1.0.0 in place), measure the two-analyst baseline on 200 real line items, rebuild fixtures/skills/line-item-tagging (deferred from P24)
-- [ ] On the work machine: have an analyst confirm real-engagement add-backs are defensible and that nothing material was auto-accepted; rebuild fixtures/skills/ebitda-normalization (deferred from P24)
-- [ ] On the work machine: read the work model-builder repo, reconcile its named-range binding with tools/write_template.py, register Chartwell's real templates with input schemas under templates/inputs/ (deferred from P24)
-- [ ] One command that verifies the whole build and says what it did not run (tools/verify.py)
-- [ ] The public-surface snapshot and the regression suite that guards it (tools/surfaces.py, BUILD/surfaces.json, tests/regression)
-- [ ] CHANGING.md: the protocol for changing the system after v1
-- [ ] A CI workflow that runs the Postgres, Redis and container halves a laptop cannot
-- [ ] With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)
-- [ ] Prove it on a runtime that is not Docker Desktop and name it in HANDOFF.md
-
-Then:
-
-    python tools/gate.py check P28
-    python tools/gate.py close P28  --signoff "name: what you checked"
+    python tools/gate.py checkpoint C10
 
 ## Before you start
 
@@ -75,4 +52,5 @@ Then:
 - **P25** Worker pool and the queue port (2026-09-04)
 - **P26** Orchestrator agent and triage (2026-09-04) - Caleb: it all looks good
 - **P27** The governance chain (2026-09-04)
+- **P28** Docker, portability, handoff packet (2026-09-05) - Caleb: podman 6.1.1 here, image built from a clean clone, 1711 passed / 78 skipped inside it. Nothing but .env changes. Work-machine clone still to do.
 

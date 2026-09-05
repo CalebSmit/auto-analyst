@@ -531,3 +531,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - task added: Prove it on a runtime that is not Docker Desktop and name it in HANDOFF.md
 - exit criterion added: No test asserts a value that is a fact about one host - file types, generated artefacts and the compute target's image tag are read from a declared table or the environment, so a correct container does not fail
+
+## 2026-09-05 - P28 Docker, portability, handoff packet
+
+**Why:** The proof asked for was on this machine, and that is what was done: podman 6.1.1, image built from a clean clone, 1711 passed and 78 skipped inside it. The human check still described a clone onto the work machine, so signing it would have recorded something that had not happened. The work-machine clone is not dropped - it joins the four tasks already deferred there, which is where evidence nobody on this machine can gather belongs.
+
+- human check: 'You clone the repo onto the work machine, run the suite in the container, and confirm nothing but .env had to change.' -> 'You confirm the container proof done here is enough to call v1 portable: the image built from a clean clone on an OCI runtime that is not Docker Desktop, and the whole suite green inside it. The clone onto the work machine is a task deferred to the work machine, not a condition of this phase.'
+- task added: On the work machine: clone the repo, run the suite in the container, and confirm nothing but .env had to change

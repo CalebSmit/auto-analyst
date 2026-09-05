@@ -88,19 +88,26 @@ def test_the_reason_is_recorded_like_every_other_plan_change(sandbox: Path) -> N
 
 
 def test_a_phase_with_no_exit_criterion_is_refused(sandbox: Path) -> None:
-    """A phase that can close on nothing is a phase that means nothing."""
+    """A phase that can close on nothing is a phase that means nothing.
+
+    "Nothing was written" is counted against the plan as it was a moment ago, not against
+    a number typed here - the plan is meant to grow, and a literal count turns that into
+    a failure.
+    """
+    before = len(plan_of(sandbox)["phases"])
     result = extend(sandbox, "--check", "true")
     assert result.returncode != 0
     assert "exit criterion" in result.stdout + result.stderr
-    assert len(plan_of(sandbox)["phases"]) == 33, "nothing was written"
+    assert len(plan_of(sandbox)["phases"]) == before, "nothing was written"
 
 
 def test_a_phase_with_no_check_is_refused(sandbox: Path) -> None:
     """`gate close` runs the checks. With none, closing is an assertion, not a test."""
+    before = len(plan_of(sandbox)["phases"])
     result = extend(sandbox, "--exit", "it does the thing")
     assert result.returncode != 0
     assert "check" in result.stdout + result.stderr
-    assert len(plan_of(sandbox)["phases"]) == 33
+    assert len(plan_of(sandbox)["phases"]) == before, "nothing was written"
 
 
 def test_a_judgment_phase_says_what_a_person_confirms(sandbox: Path) -> None:
@@ -131,11 +138,23 @@ def test_extending_renders_the_phase_file_and_the_plan(sandbox: Path) -> None:
 
 def test_the_new_phase_becomes_current_only_after_the_ones_before_it(sandbox: Path) -> None:
     """Phases close in order, so a phase added at the end waits its turn. The status
-    output keeps naming the first open phase, not the newest one."""
-    extend(sandbox, "--exit", "it does the thing", "--check", "true")
+    output keeps naming the first phase still open, not the newest one.
+
+    Which phase that is comes from the plan rather than from a name written here. A test
+    that pins today's current phase fails every time one closes, and a phase closing is
+    the most routine thing this build does.
+    """
+    before = plan_of(sandbox)["phases"]
+    first_open = next(x["id"] for x in before if x["status"] != "done")
+
+    added = extend(sandbox, "--exit", "it does the thing", "--check", "true")
+    assert first_open not in added.stdout.split("added")[0]
+
     status = run(sandbox, "status").stdout
-    assert "CURRENT   P28" in status, status
-    assert "34/34" not in status
+    assert f"CURRENT   {first_open}" in status, status
+    after = plan_of(sandbox)["phases"]
+    assert after[-1]["id"] != first_open, "the new phase is not the current one"
+    assert f"{len(after)}/{len(after)}" not in status, "not everything is closed"
 
 
 def test_a_block_is_sealed_with_a_checkpoint(sandbox: Path) -> None:

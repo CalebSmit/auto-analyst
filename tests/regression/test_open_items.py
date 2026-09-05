@@ -8,12 +8,12 @@ somewhere else.
 
 from __future__ import annotations
 
-import json
 import re
 import subprocess
 from pathlib import Path
 
 from tests.conftest import needs_a_checkout
+from tests.p28.test_portability import owed_on_the_work_machine
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -40,10 +40,8 @@ def test_the_register_exists_and_is_committed() -> None:
 def test_every_task_that_needs_the_work_machine_is_in_the_register() -> None:
     """P28 carries four tasks that need material only the firm has. If one is added to
     the plan and not to the register, the register has started lying."""
-    plan = json.loads(PLAN.read_text(encoding="utf-8"))
-    p28 = next(p for p in plan["phases"] if p["id"] == "P28")
-    owed = [t for t in p28["tasks"] if t.startswith("On the work machine")]
-    assert len(owed) == 4, owed
+    owed, rows = owed_on_the_work_machine()
+    assert owed and len(owed) == len(rows), {"plan": owed, "register": rows}
 
     register = text().lower()
     for fragment in ("timing", "taxonomy", "add-back", "model builder"):

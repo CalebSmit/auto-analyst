@@ -477,6 +477,14 @@ def cmd_amend(plan: dict[str, Any], args: argparse.Namespace) -> int:
     if args.set_title:
         changes.append(f"title: {p['title']!r} -> {args.set_title!r}")
         p["title"] = args.set_title
+    if args.set_human_check:
+        if p["gate"] != "human":
+            sys.exit(
+                f"{p['id']} is gate: auto - it has nothing for a person to sign against. "
+                f"Set --set-gate human first if that is the change you mean."
+            )
+        changes.append(f"human check: {p['human_check']!r} -> {args.set_human_check!r}")
+        p["human_check"] = args.set_human_check
     if args.add_task:
         for t in args.add_task:
             p["tasks"].append(t)
@@ -845,6 +853,12 @@ def main() -> int:
     c.add_argument("reason")
     c.add_argument("--set-title")
     c.add_argument("--set-gate", choices=["auto", "human"])
+    c.add_argument(
+        "--set-human-check",
+        help="what the person signing is being asked to confirm - the one field a "
+        "phase can carry that tests cannot check, so it must say what was actually "
+        "done rather than what was once planned",
+    )
     c.add_argument("--add-task", action="append")
     c.add_argument(
         "--drop-task",

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**27 of 33 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**28 of 33 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -78,7 +78,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P26** Orchestrator agent and triage | human | A proposed plan that violates any plan assertion is rejected and the recipe is used instead | 2026-09-04 |
 | [x] | **P27** The governance chain | auto | No path from the drop folder to the tree skips fixtures, review or a shadow run - remove any one gate and the path breaks | 2026-09-04 |
 | [x] | **C9 - Many engagements, governed change** | integration | A nightly sweep over several engagements completes, and a skill ships through the full governance chain | 2026-09-04 |
-| [ ] | **P28** Docker, portability, handoff packet | human | No managed-service primitive is depended on anywhere in the codebase |  |
+| [x] | **P28** Docker, portability, handoff packet | human | No managed-service primitive is depended on anywhere in the codebase | 2026-09-05 |
 | [ ] | **C10 - v1 - portable and handed off** | integration | Everything above, green, inside a container, from a clean clone plus .env |  |
 
 ## Block H - Practice groups and their workflows

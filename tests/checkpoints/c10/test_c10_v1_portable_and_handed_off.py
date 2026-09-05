@@ -33,6 +33,7 @@ from tests.p28.test_portability import (
     ENV_PATTERN,
     MANAGED_SERVICE_IMPORTS,
     SHIPPED,
+    owed_on_the_work_machine,
     shipped_files,
 )
 
@@ -117,9 +118,10 @@ def test_the_build_state_says_this_is_v1() -> None:
         "work added after v1 belongs to a block of its own"
     )
 
-    # The four things that need the work machine are tasks on P28, not silence.
+    # What needs the work machine is a task on P28 and a row in the register, not silence.
     p28 = next(p for p in covered if p["id"] == "P28")
-    assert len([t for t in p28["tasks"] if t.startswith("On the work machine")]) == 4
+    owed, rows = owed_on_the_work_machine()
+    assert owed and len(owed) == len(rows), {"plan": owed, "register": rows}
     assert p28["gate"] == "human", "the last word is a person's"
 
 
