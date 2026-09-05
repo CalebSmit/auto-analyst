@@ -437,3 +437,15 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - task added: A CI workflow that runs the Postgres, Redis and container halves a laptop cannot
 - exit criterion added: A change that moves a public surface fails a test naming it, and accepting it is a recorded decision
 - check added: python -m uv run pytest tests/regression -q
+
+## 2026-09-05 - P28 Docker, portability, handoff packet
+
+**Why:** Caleb decided on 2026-09-05: model access is the Anthropic API directly, not Microsoft Foundry if it can be avoided. Recorded in the blueprint's LLM port row, whose cloud column previously named Bedrock and Vertex and no decision. The reasoning, checked against current platform availability rather than recalled: this build sends one turn with a system prompt and sets adaptive thinking and effort from the model pin on every single call, and both of those are GA on the first-party API and beta on Foundry. Data residency runs opposite to the intuition - the first-party API has an inference_geo control and Foundry has none - so the only genuine argument for a provider-hosted route is network egress, not residency. And the firm's Anthropic account is already sanctioned for client data, so the direct path is one that exists rather than a new procurement. Consequence for the build: the model-pin-names-a-platform work is not needed. It was raised because a pin folded into every plan hash that can be served by two providers lets two runs share a hash, reach different infrastructure and legitimately disagree - the same failure the precedent-snapshot fix closed. With one provider that cannot happen. It returns only if the fallback is taken. The one thing that could overturn this is IT refusing egress from Azure to api.anthropic.com; that is now a question in BUILD/OPEN.md rather than an open architectural choice. Hosting on Azure does not move model access with it: compute, storage, secrets, queue and database all move independently of where Claude is served from. Also settled the same day: Power Automate sits outside the boundary - it notifies and moves files, never drives the pipeline, and no flow is given a database connection string or write access to the outbox.
+
+- blueprint: 'docs/architecture.html' -> 'docs/architecture.html'
+
+## 2026-09-05 - P28 Docker, portability, handoff packet
+
+**Why:** The 2026-09-05 decision to stay on the Anthropic API has exactly one condition attached, and a condition nobody owns is one nobody checks. It becomes a task: IT confirms a container in Azure may reach api.anthropic.com. If it is refused, the provider-hosted adapter and the platform-aware model pin get scoped; if it is granted, the decision stands and nothing changes. Deliberately not worded 'On the work machine' - it is a question for IT rather than evidence gathered at a desk, and the four work-machine tasks stay four.
+
+- task added: With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)

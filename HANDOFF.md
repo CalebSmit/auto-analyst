@@ -72,6 +72,7 @@ Everything in this table is configuration. None of it is a code change.
 | | This machine | The work machine |
 |---|---|---|
 | **Model key** | a personal key, or none — the fake adapter replays fixtures | the firm's `ANTHROPIC_API_KEY` |
+| **Model access** | the Anthropic API directly | **the same.** Decided 2026-09-05: not Foundry. Hosting can move to Azure without model access moving with it — everything this build sends is GA on the first-party API, and the firm's account is already sanctioned for client data. Needs one thing from IT: egress from the container to `api.anthropic.com` |
 | **Vault key** | generated locally, never committed | generated there, never copied |
 | **Intake** | `AA_STORAGE_ADAPTER=local_folder`, a watched folder | `sharefile`, once the firm's connector is wired in |
 | **Delivery** | `AA_DELIVERY_ADAPTER=local_folder`, `./outbox` | `box`, once the firm's connector is wired in |

@@ -233,20 +233,26 @@ def main(argv: list[str] | None = None) -> int:
     ]
     # Stale state is a red verdict, not a green one with a failing exit code. A report
     # that says GREEN and then returns 1 is a report nobody will trust twice.
-    if failed or now_dirty:
+    red = bool(failed or now_dirty)
+    if red:
         reasons = [r.step.name for r in failed] + (["state was stale"] if now_dirty else [])
         print(f"  RED - {len(reasons)} problem(s) in {total:.0f}s: {', '.join(reasons)}")
-        print(f"        {len(results) - len(failed)} of {len(results)} checks passed.\n")
-        return 1
+        print(f"        {len(results) - len(failed)} of {len(results)} checks passed.")
+    else:
+        print(f"  GREEN - {len(results)} checks in {total:.0f}s.")
 
-    print(f"  GREEN - {len(results)} checks in {total:.0f}s.")
+    # What did not run is reported either way. It is most needed on a red run, where the
+    # temptation is to read the failure and stop: a verdict that only admits its coverage
+    # when everything passed is a verdict that hides its coverage exactly when somebody is
+    # deciding what to do next.
+    indent = "        " if red else "          "
     if args.fast:
-        print("          --fast: the suite did not run.")
+        print(f"{indent}--fast: the suite did not run.")
     if skipped:
-        print(f"          did not run: {', '.join(skipped)}. Green here means green on")
-        print("          what ran; each of those needs something this machine may not have.")
+        print(f"{indent}did not run: {', '.join(skipped)}. This is green on")
+        print(f"{indent}what ran; each of those needs something this machine may not have.")
     print()
-    return 0
+    return 1 if red else 0
 
 
 if __name__ == "__main__":

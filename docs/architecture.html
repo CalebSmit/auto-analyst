@@ -2275,8 +2275,8 @@ const PORT_ROWS = [
   why:'The thing most likely to get hard-coded early and hurt later. Costs almost nothing to abstract on day one.'},
  {port:'Job queue',      node:'queue_port',    local:'In-process',       work:'Redis + RQ',                        cloud:'SQS · Service Bus · Pub/Sub',
   why:'Phase 1 needs no queue at all. Having the interface means adding one is not a pipeline refactor.'},
- {port:'LLM provider',   node:'llm_port',      local:'Fixture replay · Anthropic API', work:'Anthropic API',          cloud:'Bedrock · Vertex',
-  why:'Also the single choke point where the outbound payload scan sits — one door to a model means one place to check.'},
+ {port:'LLM provider',   node:'llm_port',      local:'Fixture replay · Anthropic API', work:'Anthropic API',          cloud:'Anthropic API direct · (Bedrock · Vertex · Foundry)',
+  why:'Also the single choke point where the outbound payload scan sits — one door to a model means one place to check. <b>Decided 2026-09-05:</b> the model comes from the Anthropic API directly, from wherever the system runs. Hosting moving to Azure does not move model access with it: everything this build sends is GA on the first-party API and beta on Foundry, including the adaptive thinking and effort every call sets, and the firm&rsquo;s Anthropic account is already sanctioned for client data. A provider-hosted route is the fallback if egress is refused, and at that point the model pin has to name the platform as well as the model.'},
  {port:'Compute',        node:'compute_target',local:'Local process',    work:'Docker',                            cloud:'Container Apps · ECS · Cloud Run',
   why:'One image, config-driven. No managed-service primitive is depended on anywhere, so the deployment target is an environment rather than an architecture.'}
 ];

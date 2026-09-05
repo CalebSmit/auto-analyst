@@ -22,6 +22,7 @@ date, rather than being deleted.
 | **P28 sign-off** | You clone onto the work machine, run the suite in the container, and confirm nothing but `.env` had to change. | P28 is `gate: human`. The gate refuses to close it on green tests alone, and I will not invent your words. | `gate close P28 --signoff "..."`, then `gate checkpoint C10`, and v1 is done. |
 | **The container proof** | Either approve a Podman install here, or point this repo at a remote so CI can do it. | The sandbox blocked the download, and no OCI runtime is installed. The image has never been built. | I build the image, run the whole suite inside it, and fill in the runtime and version in [`HANDOFF.md`](../HANDOFF.md) §2. |
 | **The P26 sign-off wording** | Optional. The recorded sign-off reads "Caleb: it all looks good", which does not say what you checked. | Nothing is broken. It is a thin line in a permanent record, beside three others that name what was reviewed. | `gate amend P26 --reopen`, then close again with fuller words. The three checks re-run first. |
+| **Egress from Azure to the Anthropic API** | Confirmation from IT that a container in Azure may reach `api.anthropic.com`. | The 2026-09-05 decision is to call the Anthropic API directly from wherever the system runs. A refusal is the one thing that would force a provider-hosted route, and with it the model-pin change. | Nothing changes and the decision stands. If it is refused, the Foundry adapter and the platform-aware pin get scoped. |
 | **A real Redis** | A reachable server, once. | The queue adapter has only ever run against an in-memory fake. That proves its use of RQ, not Redis. | `pytest --redis` goes green and the session summary stops saying FAKED. |
 
 ---
@@ -175,8 +176,11 @@ Three things worth weighing beyond the table:
    the pin into every plan hash, so a platform that gets a model later means the firm's
    runs lag - and a pin that is unavailable fails the run at startup by design.
 
-**My recommendation: start on the Anthropic API directly, and keep Foundry as an adapter
-if network policy demands it.** Everything this build uses is GA there, the account is
+**Decided 2026-09-05: the Anthropic API directly, not Foundry if it can be avoided.**
+Recorded in the blueprint's LLM port row. The model-pin-names-a-platform work is therefore
+**not needed** - it comes back only if the fallback below is taken.
+
+The original recommendation, for the record: Everything this build uses is GA there, the account is
 already approved, and the LLM port means the choice stays reversible for the cost of one
 module. If IT rules out egress, the Foundry adapter is a day's work plus the pin change -
 and at that point the pin must name the platform, because two providers behind one pin is
@@ -225,3 +229,4 @@ deleted - a decision nobody can find later is one that gets made again.*
 | 2026-09-04 | P26 signed off | `BUILD/plan.json`, and the closed-phase list in STATE.md |
 | 2026-09-04 | Prove the container on this machine before tailoring at work | This file, §1 |
 | 2026-09-05 | Power Automate sits outside the boundary: notify and move files, never drive | This file, §5 |
+| 2026-09-05 | Model access is the Anthropic API directly, not Foundry if avoidable | The blueprint's LLM port row; this file, §5 |
