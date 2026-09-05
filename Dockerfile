@@ -63,4 +63,7 @@ USER analyst
 
 # The default is the suite, because the first thing anybody does with this image on a new
 # machine is ask whether it works here.
-CMD ["python", "-m", "pytest", "-q"]
+# pyproject already passes -q. A second one makes it -qq, which suppresses the line
+# that says how many tests passed - so the image would run the whole suite and
+# report the count to nobody. `-r` keeps the reasons for skips visible.
+CMD ["python", "-m", "pytest", "-rs"]

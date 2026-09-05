@@ -249,9 +249,10 @@ def test_the_image_is_built_and_the_suite_runs_inside_it(container_runtime: str)
     )
     assert build.returncode == 0, build.stderr[-4000:]
 
+    # The image's own command, not one of ours - what a colleague gets when they run it
+    # with no arguments is the thing being proved.
     run = subprocess.run(  # noqa: S603
-        [container_runtime, "run", "--rm", "automated-analyst:test",
-         "python", "-m", "pytest", "-q"],
+        [container_runtime, "run", "--rm", "automated-analyst:test"],
         cwd=ROOT,
         capture_output=True,
         text=True,
