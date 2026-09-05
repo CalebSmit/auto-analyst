@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import ast
 import re
-import shutil
 import subprocess
 from pathlib import Path
 
@@ -156,16 +155,26 @@ def test_the_handoff_names_every_environment_difference() -> None:
 
 
 def test_the_handoff_says_which_runtime_was_actually_used() -> None:
-    """The exit criterion asks for the runtime that was used, which on a machine with
-    none installed is an honest sentence rather than a name."""
+    """The exit criterion asks which runtime the proof was actually run on.
+
+    That is a fact about history, not about whatever machine happens to be reading the
+    packet - so it is not conditioned on what is installed here. Either the packet names
+    a runtime, a version and a date, or it says plainly that the image has never been
+    built. A version and a date, because "we used podman" is not something a colleague
+    can reproduce or date.
+    """
     handoff = HANDOFF.read_text(encoding="utf-8")
     assert "Which runtime was actually used" in handoff
-    installed = [r for r in ("docker", "podman", "nerdctl", "finch") if shutil.which(r)]
-    if installed:
-        assert any(r in handoff for r in installed), installed
-    else:
-        assert "None, on the build machine" in handoff
-        assert "has never been built" in handoff
+    block = handoff[handoff.index("Which runtime was actually used") :][:2000]
+
+    if "has never been built" in block:
+        return  # the honest unproven form, until somebody runs it
+
+    named = [r for r in ("docker", "podman", "nerdctl", "finch") if r in block.lower()]
+    assert named, "the packet claims a run but names no runtime"
+    assert re.search(r"\d+\.\d+\.\d+", block), "a runtime without a version"
+    assert re.search(r"20\d\d-\d\d-\d\d", block), "a run without a date"
+    assert "Docker Desktop" in block, "say what it was not, since that is the constraint"
 
 
 def test_what_is_still_owed_is_the_phases_own_task_list() -> None:
