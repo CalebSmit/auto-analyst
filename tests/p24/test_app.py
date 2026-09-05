@@ -50,7 +50,7 @@ def test_an_engagement_is_set_up_over_http_and_activated_only_when_preflight_pas
         == 200
     )
     report = client.get("/api/admin/preflight", params={"engagement_id": HEND}).json()
-    assert report["passed"] and len(report["checks"]) == 10
+    assert report["passed"] and len(report["checks"]) == 11
     activated = client.post(f"/api/admin/engagements/{HEND}/activate", json=change())
     assert activated.status_code == 200 and activated.json()["state"] == "active"
 

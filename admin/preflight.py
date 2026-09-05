@@ -1,7 +1,7 @@
 """Setup Preflight: checks a setup before anyone relies on it, and says exactly what is
 wrong.
 
-Ten checks over the live configuration, the roster and the ports:
+Eleven checks over the live configuration, the roster and the ports:
 
  1. every watch root is readable through the Storage Port
  2. every credential the environment expects is present and unexpired - presence and
@@ -10,14 +10,17 @@ Ten checks over the live configuration, the roster and the ports:
  4. every swept subfolder maps to an engagement (unclaimed ones are a warning, routed
     to a person, never guessed)
  5. every active engagement's scope resolves to at least one skill
- 6. every active engagement has a complete engagement profile, with a checkpoint
+ 6. every active engagement's practice group and segment are defined, rather than
+    resolving to the firm layer only - a warning, because that is correct and not
+    useful, and silence would make a short list look like a considered answer
+ 7. every active engagement has a complete engagement profile, with a checkpoint
     policy naming an owner and an SLA (finding F1)
- 7. every active engagement resolves to exactly one destination and exactly one
+ 8. every active engagement resolves to exactly one destination and exactly one
     template pin, and that template is registered
- 8. the template on disk is the bytes the registry pinned, and declares every
+ 9. the template on disk is the bytes the registry pinned, and declares every
     required input
- 9. every destination is writable through the Delivery Port
-10. every watch names a recipe that exists, and every run budget sits at or under the
+10. every destination is writable through the Delivery Port
+11. every watch names a recipe that exists, and every run budget sits at or under the
     firm ceiling
 
 A setup error found here costs a minute. The same error found at run time costs a
@@ -46,6 +49,7 @@ from registries.errors import (
     BUDGET_ABOVE_CEILING,
     CREDENTIAL_EXPIRED,
     DESTINATION_UNWRITABLE,
+    GROUP_UNDEFINED,
     MISSING_CREDENTIAL,
     NO_ENGAGEMENT,
     PATH_UNREADABLE,
@@ -72,6 +76,7 @@ CHECKS: tuple[tuple[str, str], ...] = (
     ("watch_overlap", "No two watches claim the same path"),
     ("unclaimed_folders", "Every swept subfolder maps to an engagement"),
     ("scope_resolves", "Every active engagement resolves to at least one skill"),
+    ("scope_defined", "Every active engagement's practice group and segment are defined"),
     ("profile_complete", "Every active engagement has a complete engagement profile"),
     ("bindings", "Every active engagement resolves to one destination and one template"),
     ("template_intact", "Template hashes match and every required input is declared"),
@@ -218,6 +223,7 @@ class Preflight:
             self._watch_overlap(),
             self._unclaimed(),
             self._scopes(entries),
+            self._scope_defined(entries),
             self._profiles(entries),
             self._bindings(entries),
             self._templates(entries),
@@ -394,6 +400,44 @@ class Preflight:
             "scope_resolves",
             failures,
             f"{len(entries) - len(failures)} of {len(entries)} resolve, {spread}",
+        )
+
+    def _scope_defined(self, entries: tuple[RosterEntry, ...]) -> Check:
+        """Which engagements are scoped to a group nothing has been written for yet.
+
+        Measured by resolving, not by reading the registry's `defined` flag: the flag is
+        what somebody declared and the resolver is what a run actually gets, and when
+        those two disagree the second one is the truth.
+        """
+        failures = []
+        resolver = self._resolver()
+        for entry in entries:
+            try:
+                resolved = resolver.resolve(entry.scope_path)
+            except DiagnosticError:
+                continue  # scope_resolves owns that failure; this check does not repeat it
+            if not resolved.firm_layer_only:
+                continue
+            failures.append(
+                Failure(
+                    "scope_defined",
+                    diagnose(
+                        GROUP_UNDEFINED,
+                        f"{entry.engagement_id} is scoped to {entry.scope_path}, which "
+                        f"resolves to the firm layer only: {len(resolved)} firm skills and "
+                        f"nothing of its group's. The group is scaffolded and nobody has "
+                        f"named its segments yet.",
+                        locator=entry.engagement_id,
+                    ),
+                    engagement_ids=(entry.engagement_id,),
+                    severity="warn",
+                )
+            )
+        named = len(entries) - len(failures)
+        return _check(
+            "scope_defined",
+            failures,
+            f"{named} of {len(entries)} scoped to a defined group",
         )
 
     # -- 6. profiles

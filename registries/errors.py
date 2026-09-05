@@ -163,6 +163,7 @@ TEMPLATE_INPUTS_MISSING = "CONFIG.TEMPLATE_INPUTS_MISSING"
 CELL_ADDRESS_BINDING = "CONFIG.CELL_ADDRESS_BINDING"
 BELOW_GATE = "SKILL.BELOW_GATE"
 ADAPTER_NOT_WIRED = "SCOPE.ADAPTER_NOT_WIRED"
+GROUP_UNDEFINED = "SCOPE.GROUP_UNDEFINED"
 GATE_SKIPPED = "SKILL.GATE_SKIPPED"
 CLIENT_DATA_IN_DRAFT = "SKILL.CLIENT_DATA_IN_DRAFT"
 SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
@@ -368,6 +369,15 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A declared loop asks for more iterations than the constraint registry allows, "
         "or is not an in-run loop at all. Ceilings are raised in constraints.yaml "
         "deliberately, never in the recipe that wants the extra go.",
+    ),
+    GROUP_UNDEFINED: (
+        "config",
+        "The engagement's practice group or segment is declared in the scope registry but "
+        "nothing is defined behind it, so the run resolves to the firm layer only. That "
+        "is correct and it is not useful: the engagement gets the firm's skills and none "
+        "of its group's. Not a failure and not a blocker - the practice leads name the "
+        "segments, and until they do this is the honest state rather than a short list "
+        "that looks like a considered answer.",
     ),
     ADAPTER_NOT_WIRED: (
         "config",

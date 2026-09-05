@@ -114,6 +114,11 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
     def credential(name: str) -> dict[str, Any]:
         return {"name": name, "present": console.credential_present(name)}
 
+    @app.get("/api/admin/scopes")
+    def scopes() -> dict[str, Any]:
+        """What an engagement may be scoped to, from the registry rather than by hand."""
+        return console.scope_choices()
+
     @app.post("/api/admin/engagements")
     def register(body: Registration) -> dict[str, Any]:
         entry = RosterEntry(

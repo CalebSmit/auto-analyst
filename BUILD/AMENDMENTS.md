@@ -518,3 +518,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C12 after P33, covering P32, P33
 - proves: An engagement runs its own group's workflow, and a workflow nobody approved does not run at all
+
+## 2026-09-05 - P29 Scope choices in the admin surface
+
+**Why:** Two findings while building. (1) The blueprint's preflight node said ten checks and there are now eleven: the new one names an engagement whose practice group or segment is declared but not defined, so the scope resolves to the firm layer only. Code and blueprint disagreeing is a finding, so the node's description was corrected rather than left. (2) SCOPE.GROUP_UNDEFINED is a new code, owner config, and it moved the surface snapshot - which is the snapshot doing its job. It is a warning rather than a failure on purpose: resolving to the firm layer is correct behaviour for a group nobody has described yet, and refusing activation on it would make the tool the reason an engagement waits on a conversation between practice leads. What it must never be is silent, because a short list of skills looks exactly like a considered answer. Also recorded: scope_choices() measures what each path would actually resolve to rather than reading the registry's own defined flag, because those two can disagree - a group declared defined with nothing yet written for it - and the resolver is the one that decides what a run gets.
+
+- task added: Correct the blueprint's preflight node: eleven checks, not ten

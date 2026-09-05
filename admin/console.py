@@ -86,6 +86,53 @@ class AdminConsole:
     def firm_ceiling(self) -> float:
         return float(self.constraints.ceilings["per_run"]["usd_max"])
 
+    def scope_choices(self) -> dict[str, Any]:
+        """Every scope an engagement can be given, and which of them mean anything yet.
+
+        The dashboard offers these rather than asking somebody to type
+        `valuation/esop/repeat` correctly. The registry is the source: adding a practice
+        group is an entry there, and it shows up here without anything else changing.
+
+        `defined` is the registry's own flag - a group scaffolded but not yet described.
+        `firm_layer_only` is the consequence, measured by resolving the path rather than
+        inferred from the flag, because those two can disagree and the resolver is the one
+        that decides what a run actually gets.
+        """
+        registry = self.preflight._resolver().scopes  # noqa: SLF001
+        paths = []
+        for path in registry.combinations():
+            practice = registry.practice(path.practice)
+            segment = practice.segment(path.segment)
+            resolved = self.preflight._resolver().resolve(path)  # noqa: SLF001
+            paths.append(
+                {
+                    "scope_path": str(path),
+                    "defined": practice.defined and bool(segment and segment.defined),
+                    "skills": len(resolved),
+                    "firm_layer_only": resolved.firm_layer_only,
+                }
+            )
+        return {
+            "layer_order": list(registry.layer_order),
+            "practices": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "defined": p.defined,
+                    "note": p.note,
+                    "segments": [
+                        {"id": s.id, "name": s.name, "defined": s.defined} for s in p.segments
+                    ],
+                }
+                for p in registry.practices
+            ],
+            "dispositions": [
+                {"id": d.id, "name": d.name, "precedent_scope": d.precedent_scope, "note": d.note}
+                for d in registry.dispositions
+            ],
+            "paths": paths,
+        }
+
     def resolve_model(self, scope_path: str) -> dict[str, Any]:
         """Which model this scope builds into and which layer said so - the same
         five-layer walk the skills use."""

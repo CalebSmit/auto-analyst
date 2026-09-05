@@ -15,11 +15,11 @@ from registries.diagnostics import DiagnosticsRegistry
 from tests.p24.conftest import HEND, NOVK, WHO, Clock, entry, profile_for
 
 
-def test_the_ten_checks_are_the_blueprints_and_a_clean_setup_passes_them_all(
+def test_the_eleven_checks_are_the_blueprints_and_a_clean_setup_passes_them_all(
     console: AdminConsole, henderson: Any
 ) -> None:
     report = console.check(HEND)
-    assert [c.id for c in report.checks] == [c[0] for c in CHECKS] and len(CHECKS) == 10
+    assert [c.id for c in report.checks] == [c[0] for c in CHECKS] and len(CHECKS) == 11
     assert report.passed, report.report()
     assert all(c.status == "pass" for c in report.checks), report.report()
     by_id = {c.id: c for c in report.checks}

@@ -992,7 +992,8 @@
       "tasks": [
         "AdminConsole.scope_choices() and GET /api/admin/scopes, from the scope registry",
         "Registering into an undefined practice or segment is allowed and reported, never silent",
-        "A preflight check that names an engagement resolving to the firm layer only"
+        "A preflight check that names an engagement resolving to the firm layer only",
+        "Correct the blueprint's preflight node: eleven checks, not ten"
       ],
       "exit": [
         "The admin surface offers every declared practice, segment and disposition, and marks the undefined ones",
