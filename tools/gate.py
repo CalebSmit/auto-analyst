@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -97,9 +98,29 @@ def phases_before(plan: dict[str, Any], cid: str) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------- running
 
 
+UV_PREFIX = "python -m uv run "
+
+
+def resolve(cmd: str) -> str:
+    """Point `python -m uv run` at an interpreter that has uv.
+
+    The checks are written for a person to type, and typed in a shell they work. Run from
+    inside a uv-managed environment - `uv run python tools/gate.py check P28` - PATH
+    starts with the project venv, which has no uv, and every check fails with "No module
+    named uv". A red phase that is actually green is the worst answer this tool can give,
+    so the prefix is resolved rather than trusted.
+    """
+    if not cmd.startswith(UV_PREFIX):
+        return cmd
+    exe = shutil.which("uv")
+    if exe is None:
+        return cmd
+    return f'"{exe}" run ' + cmd[len(UV_PREFIX) :]
+
+
 def run(cmd: str) -> tuple[bool, str]:
     proc = subprocess.run(
-        cmd,
+        resolve(cmd),
         shell=True,
         cwd=ROOT,
         capture_output=True,
