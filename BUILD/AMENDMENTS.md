@@ -449,3 +449,72 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The 2026-09-05 decision to stay on the Anthropic API has exactly one condition attached, and a condition nobody owns is one nobody checks. It becomes a task: IT confirms a container in Azure may reach api.anthropic.com. If it is refused, the provider-hosted adapter and the platform-aware model pin get scoped; if it is granted, the decision stands and nothing changes. Deliberately not worded 'On the work machine' - it is a question for IT rather than evidence gathered at a desk, and the four work-machine tasks stay four.
 
 - task added: With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)
+
+## 2026-09-05 - P29 Scope choices in the admin surface
+
+**Why:** Caleb approved the group-routing proposal on 2026-09-05 and delegated its four open decisions. This is the first of five phases in a new block; the reasoning for all four decisions is in BUILD/proposals/group-routing.md. Today the admin surface takes a scope path as free text, so setting up an engagement means typing 'valuation/esop/repeat' exactly right, and choosing a practice group that has no segments defined resolves silently to the firm layer - correct, and indistinguishable from a considered answer. The scope registry already declares every practice, segment and disposition and which are defined; this makes it the source of the choices rather than a thing to be matched by hand.
+
+- phase added: P29 Scope choices in the admin surface (Block H - Practice groups and their workflows, gate: auto)
+- exit criterion: The admin surface offers every declared practice, segment and disposition, and marks the undefined ones
+- exit criterion: An engagement whose scope resolves to the firm layer only is visible in the preflight report
+- exit criterion: The scope path remains the single stored representation: choosing one adds no second source of truth
+
+## 2026-09-05 - P30 Registered methodology: cleared once, checked every run
+
+**Why:** Decision 2 of the group-routing proposal. Methodology reaches every model call for every engagement in its scope, and nothing checks it for client data - the outbound payload scan only knows the current engagement's identifiers, so a worked example from a real deal in a house-rules document would reach every prompt for every client unnoticed. A live scan was rejected: the client-data patterns deliberately err toward flagging, and a regex that can take a practice group offline mid-run is a worse failure than the one it prevents. So the scan happens once, at registration, by a named person, and what is recorded is the digest of what they cleared. The Context Builder then checks a hash rather than re-running a judgment. An edited file loses its clearance because its digest changes. This is the same shape skills already use, and it is built before the per-group methodology of P31 so that nothing can reach a prompt uncleared.
+
+- phase added: P30 Registered methodology: cleared once, checked every run (Block H - Practice groups and their workflows, gate: auto)
+- exit criterion: A methodology file carrying something shaped like client data cannot be cleared
+- exit criterion: An edited file loses its clearance automatically, because the digest changes
+- exit criterion: The Context Builder refuses an uncleared file, and the refusal names it
+- exit criterion: The run-time check is a hash lookup, so it cannot fail on a false positive
+
+## 2026-09-05 - P31 Methodology per practice group
+
+**Why:** Piece D of the group-routing proposal. foundations/ is flat and firm-wide: three files attached to every call unconditionally. Per-group methodology means the same five-layer walk the skills already use, so a valuation run carries the firm and valuation methodology and a consulting run carries the firm and consulting's, and neither carries the other's. Two things come with it. A size ceiling per layer, because this is content on every model call and methodology that grows unchecked is a token bill on every run and a step toward the per-run ceiling. And an entry in the surface snapshot, so a change to what every prompt carries is a visible change rather than a quiet one. Built after P30 so nothing reaches a prompt uncleared.
+
+- phase added: P31 Methodology per practice group (Block H - Practice groups and their workflows, gate: auto)
+- exit criterion: A valuation run carries the firm and valuation methodology and not consulting's
+- exit criterion: A group with no methodology of its own still carries the firm's
+- exit criterion: Methodology past its size ceiling is refused at setup, not discovered in a bill
+- exit criterion: A change to what every prompt carries moves the surface snapshot
+
+## 2026-09-05 - P32 The recipe belongs to the engagement
+
+**Why:** Piece C of the group-routing proposal. The recipe - the order work happens in - is a field on the watch, so every engagement under one watched tree shares one workflow. Per-group workflows would need a watch per group, which makes the watch do two jobs: where to look, and what to run. Moving the recipe onto the engagement with the watch's as the default keeps one watch over a client tree while letting each engagement run its own sequence. The config document gains a field, so it is config_document@1.2.0 with 1.1.0 left listed: a contract change is a new version beside the old one, never an edit in place.
+
+- phase added: P32 The recipe belongs to the engagement (Block H - Practice groups and their workflows, gate: auto)
+- exit criterion: Two engagements under one watch run different recipes
+- exit criterion: An engagement naming no recipe behaves exactly as it does today
+- exit criterion: A recipe that does not load is refused at setup, naming the engagement
+
+## 2026-09-05 - P33 Registered recipes
+
+**Why:** Decision 3 of the group-routing proposal. A skill passes eleven governed stages before it runs on client work; a recipe is a YAML file in the repo. That asymmetry is what gets used first once MDs author workflows, because a procedure that could not pass the skill chain can often be expressed as a recipe that reorders governed skills to the same effect. The full chain would be theatre for a file that can only reorder things already governed, but 'which recipes may run on client work' has no answer today and that is the real gap. Registration only: a version, a digest, a named approver, written by the Skill Review Board and nothing else. With P30 this makes one pattern with three consumers - skills, methodology, recipes - rather than three answers to one question.
+
+- phase added: P33 Registered recipes (Block H - Practice groups and their workflows, gate: auto)
+- exit criterion: An unregistered recipe cannot run on client work
+- exit criterion: A recipe edited after registration loses it, because the digest changes
+- exit criterion: Registration names the person who approved it, and refuses without one
+
+## 2026-09-05 - C11 Practice groups, end to end
+
+**Why:** Block H adds five phases past C10, and every block of work ends in a checkpoint: phases that each pass alone can still disagree with each other, which is the whole reason checkpoints exist. This one covers the group-routing work end to end - an engagement labelled by choosing a practice group, running its own workflow, carrying its own cleared methodology and no other group's.
+
+- checkpoint added: C11 after P33, covering P29, P30, P31, P32, P33
+- proves: An engagement is set up by choosing its group, runs that group's workflow, and carries that group's cleared methodology and nobody else's
+
+## 2026-09-05 - C11 A group's methodology, and nobody else's
+
+**Why:** C11 was sealed after P33, covering all five phases of Block H, and a checkpoint covers at most four - small on purpose, because one that spans half a block cannot say which phase stopped agreeing with the others. Block H splits cleanly in two anyway: P29 to P31 are about methodology reaching the right runs, P32 and P33 are about workflow. C11 now covers the first three and C12 the last two.
+
+- title: 'Practice groups, end to end' -> "A group's methodology, and nobody else's"
+- proves: "An engagement is set up by choosing its group, runs that group's workflow, and carries that group's cleared methodology and nobody else's" -> "An engagement is set up by choosing its practice group, and carries that group's cleared methodology and no other group's"
+- after: P33 -> P31
+
+## 2026-09-05 - C12 A group's workflow, and only approved ones
+
+**Why:** The second half of Block H: the workflow a group runs, and which workflows may run at all. Split from C11 because a checkpoint covers at most four phases and Block H has five - and the split is a real seam rather than an arbitrary one, since P29 to P31 are about methodology reaching the right runs and P32 to P33 are about the order that work happens in.
+
+- checkpoint added: C12 after P33, covering P32, P33
+- proves: An engagement runs its own group's workflow, and a workflow nobody approved does not run at all

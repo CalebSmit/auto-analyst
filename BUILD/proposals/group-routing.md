@@ -1,6 +1,6 @@
 # Proposal: routing by practice group
 
-**Status: for review. Nothing here is built.**
+**Status: approved 2026-09-05. Building.**
 Raised by Caleb 2026-09-05. Written 2026-09-05.
 
 Label each engagement with its practice group so the orchestrator only ever sees that
@@ -126,17 +126,22 @@ into every call, and the outbound payload scan only knows the **current** engage
 identifiers - so a methodology document quoting a worked example from a real deal would
 reach every prompt for every client, and nothing would notice.
 
-- Reuse `governance.conformance.find_client_data` and the untrusted boundary.
-- **Two places, deliberately.** Preflight reports it, so it is caught at setup. The Context
-  Builder refuses to attach a file that trips, so a document added afterwards cannot slip
-  in. Guards fail closed; a methodology file that looks like client data stops the run.
-- The alternative - preflight only - leaves the window between setup and the next check.
+**Settled by decision 2 below: cleared once, checked every run.** Not a live scan, which
+would let a broad regex take a practice group offline; not a warning, which nobody reads.
 
-**Decision needed:** refusing at run time means one bad paragraph halts every run in that
-group until it is fixed. I think that is right, and it is the same bargain every other
-guard makes. Say if you would rather it warned.
+- **Registering** a methodology file scans it with `governance.conformance.find_client_data`
+  and the untrusted boundary, and records its digest against the name of the person who
+  cleared it. Same shape as a skill registration, and the same reason: approval is a
+  decision, registration is a deployment.
+- **The Context Builder refuses** to attach any file whose digest is not on that list. At
+  run time this is a hash lookup, so it is deterministic and cannot false-positive.
+- **An edit loses its clearance automatically**, because the digest changes. There is no
+  path where a file is cleared, edited, and still attached.
+- Preflight reports anything uncleared at setup, so it is caught before a run rather than
+  by one.
 
-**Touches** `harness/context.py`, `admin/preflight.py`, `tests/p09`, `tests/p24`.
+**Touches** `harness/context.py`, `admin/preflight.py`, a small registry beside
+`evals/registration.py`, `tests/p09`, `tests/p24`.
 
 ### F. A review path for recipes
 
@@ -195,14 +200,85 @@ sign-off is about portability, and this work is not that.
 
 ---
 
-## What I need from you
+## Decisions
 
-1. **Approve or redirect the shape.** Six pieces, the order, and the split between what is
-   built now and what waits for the MDs.
-2. **E: refuse or warn** when methodology looks like it contains client data.
-3. **F: which of the three** options for recipe governance.
-4. **Whether Block H is the right home**, and whether `gate amend --add-phase` is a change
-   you want made to the build tool.
+**Approved by Caleb 2026-09-05**, who delegated the four open questions. Here is what was
+decided and why, so that the reasoning outlives the decision.
 
-Nothing is built until you say. When you do, each piece gets its own phase, its own exit
-criteria and its own gate, the same as every phase before it.
+### 1. The shape — approved as written
+
+Six pieces, in the stated order, with the segments (B) staying a conversation rather than
+becoming a phase. **B is deliberately not a phase.** A closed phase renders every task it
+lists as done, and naming the Consulting and Corporate Finance segments is owned by the
+practice leads with no date. Made a phase, it would either block everything behind it or
+close as a lie. It stays in the open register, where an unanswered thing can sit honestly.
+
+### 2. Methodology that looks like client data: neither refuse nor warn
+
+I was offered a choice between failing the run and logging a warning, and both are wrong.
+
+**Warning fails on the timescale that matters.** Methodology reaches *every* call for
+*every* engagement in its scope. A leak there is not one bad run, it is systemic and
+silent, and a warning in a log is read by nobody for months.
+
+**Refusing on a live scan fails on false positives.** The client-data patterns are
+deliberately broad and "err toward flagging" — a made-up example with a dollar amount over
+a thousand trips one. For a skill draft that is fine: a person is standing there, at
+authoring time, and clears it. For methodology at run time it is a production outage in a
+practice group, caused by a regex, at the worst possible moment.
+
+**So: clear it once, check the clearance every time.** Methodology is scanned when it is
+registered, by a person who names themselves, and the digest of what they cleared is
+recorded. The Context Builder then refuses to attach any file whose digest is not on that
+list. That is fail-closed *and* deterministic: at run time it is a hash lookup, so it
+cannot false-positive, and an edited file loses its clearance automatically because its
+digest changes.
+
+It is also the shape the system already uses for skills: **approval is a decision,
+registration is a deployment**, and keeping them separate is what stops "someone approved
+this" and "this is running on client work" from being the same moment by accident.
+
+### 3. Recipe governance: registration, option 2
+
+The registry, not the full chain. A recipe can only reorder skills that are already
+governed, so eleven stages would be theatre; but "which recipes may run on client work"
+has no answer today, and that is the actual gap.
+
+The deciding argument is consistency. **Three things reach a live run: skills, recipes and
+methodology. Only skills have a registry.** After decision 2, methodology gets one. Giving
+recipes the same minimal shape — a version, a digest, a named approver, written by the
+board and nothing else — means one pattern with three consumers rather than three
+different answers to one question. `evals/registration.py` is already that pattern's last
+link for skills; the other two follow it.
+
+### 4. Block H, and `gate extend`
+
+Yes to both, with one correction to what I proposed. Not `amend --add-phase`: **a separate
+`gate extend` subcommand**. `amend` takes the id of a phase that exists and changes it;
+adding one is a different act with different required fields, and typing it as a flag on
+amend would make the bigger act look like the smaller one.
+
+It enforces three rules. Append only, because inserting before a closed phase renumbers
+history and makes "phases close in order" false. The id follows the last, so there are no
+gaps and no choosing. And a phase must arrive with a block, an intent, a gate, exit
+criteria and checks — a phase with no exit criteria can close on nothing.
+
+The alternative was editing `plan.json` by hand, which is the one thing the rules forbid
+outright, and for exactly this reason: it is how a plan and its real state start to
+disagree.
+
+---
+
+## The phases
+
+Block H, *Practice groups and their workflows*. In build order, which is also close order.
+
+| | | Piece |
+|---|---|---|
+| **P29** | Scope choices in the admin surface | A |
+| **P30** | Registered methodology: cleared once, checked every run | E |
+| **P31** | Methodology per practice group | D |
+| **P32** | The recipe belongs to the engagement | C |
+| **P33** | Registered recipes | F |
+
+B has no phase, by decision 1. It is in the open register and it is the practice leads'.

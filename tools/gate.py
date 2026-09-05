@@ -9,6 +9,8 @@ hand-edited, because a hand edit is how a plan and its real state start to disag
     python tools/gate.py check P07
     python tools/gate.py close P07 [--signoff "Caleb: reviewed 40 items"]
     python tools/gate.py checkpoint C3
+    python tools/gate.py extend "reason" --title "..." --block "..." --intent "..." \
+        --exit "..." --check "..."
     python tools/gate.py amend P18 "reason" --set-title "..." --add-task "..." --drop-task "..."
     python tools/gate.py ledger "what was tried" --cause "why it failed" --rule "what to do instead"
     python tools/gate.py render
@@ -36,6 +38,11 @@ PHASES_DIR = BUILD / "phases"
 OK = "PASS"
 NO = "FAIL"
 
+# A checkpoint covers at most this many phases. Small on purpose: a checkpoint that spans
+# half a block cannot tell you which phase stopped agreeing with the others, which is the
+# only question it exists to answer.
+MAX_CHECKPOINT_SPAN = 4
+
 
 # ---------------------------------------------------------------- plan i/o
 
@@ -48,8 +55,15 @@ def load() -> dict[str, Any]:
 
 
 def save(plan: dict[str, Any]) -> None:
+    """Write the plan and regenerate everything derived from it.
+
+    Everything, including the phase files. They were left out once, which meant an amend
+    updated PLAN.md and STATE.md and left `BUILD/phases/` describing the plan as it had
+    been - and CLAUDE.md sends every session to read exactly those files.
+    """
     PLAN_JSON.write_text(json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     render(plan)
+    render_phase_files(plan)
 
 
 def today() -> str:
@@ -258,6 +272,13 @@ def amend_checkpoint(plan: dict[str, Any], args: argparse.Namespace) -> int:
     if args.set_proves:
         changes.append(f"proves: {c['proves']!r} -> {args.set_proves!r}")
         c["proves"] = args.set_proves
+    if getattr(args, "set_after", None):
+        target = args.set_after.upper()
+        if target not in {p["id"] for p in plan["phases"]}:
+            sys.exit(f"unknown phase {target}")
+        changes.append(f"after: {c['after']} -> {target}")
+        c["after"] = target
+        plan["checkpoints"].sort(key=lambda x: x["after"])
     if args.add_check:
         for check in args.add_check:
             c["checks"].append(check)
@@ -283,6 +304,147 @@ def amend_checkpoint(plan: dict[str, Any], args: argparse.Namespace) -> int:
     save(plan)
     print(f"\n  amended {c['id']} - {len(changes)} change(s), reason recorded.\n")
     return 0
+
+
+def next_phase_id(plan: dict[str, Any]) -> str:
+    """The id after the last one. Phases are ordered and close in order, so a new phase
+    goes at the end or it is not a phase, it is a rewrite of the sequence."""
+    last = max(int(p["id"][1:]) for p in plan["phases"])
+    return f"P{last + 1:02d}"
+
+
+def cmd_extend(plan: dict[str, Any], args: argparse.Namespace) -> int:
+    """Add a phase to the end of the plan, recording why.
+
+    Deliberately not a flag on `amend`: amend changes a phase that exists, this makes one.
+    """
+    if not args.exit:
+        sys.exit(
+            "a phase needs at least one exit criterion. A phase that can close on "
+            "nothing is a phase that means nothing."
+        )
+    if not args.check:
+        sys.exit(
+            "a phase needs at least one check. `gate close` runs the checks; with none, "
+            "closing would be an assertion rather than a test."
+        )
+
+    pid = next_phase_id(plan)
+    phase: dict[str, Any] = {
+        "id": pid,
+        "title": args.title,
+        "block": args.block,
+        "gate": args.gate,
+        "status": "open",
+        "intent": args.intent,
+        "builds": list(args.builds or []),
+        "tasks": list(args.task or []),
+        "exit": list(args.exit),
+        "checks": list(args.check),
+        "notes": args.notes or "",
+    }
+    if args.gate == "human":
+        if not args.human_check:
+            sys.exit("a judgment phase says what a person is confirming: --human-check")
+        phase["human_check"] = args.human_check
+    plan["phases"].append(phase)
+
+    entry = [
+        f"\n## {today()} - {pid} {args.title}",
+        f"\n**Why:** {args.reason}\n",
+        f"- phase added: {pid} {args.title} ({args.block}, gate: {args.gate})",
+        *[f"- exit criterion: {e}" for e in args.exit],
+    ]
+    with AMEND_MD.open("a", encoding="utf-8") as f:
+        f.write("\n".join(entry) + "\n")
+
+    save(plan)
+    print(f"\n  added {pid}  {args.title}")
+    print(f"  block {args.block} | gate: {args.gate} | {len(args.exit)} exit criteria")
+    print("  reason recorded in AMENDMENTS.md.")
+
+    # Every block of work ends in a checkpoint: phases that each pass alone can still
+    # disagree with each other, which is the whole reason checkpoints exist. Warned
+    # rather than refused, because the phases of a block are added one at a time and
+    # only the last of them knows it is the last.
+    uncovered = phases_after_last_checkpoint(plan)
+    if uncovered:
+        print(
+            f"\n  OWED - {', '.join(uncovered)} sit past the last checkpoint."
+            f"\n         Close the block with `gate seal` when it is finished."
+        )
+    print()
+    return 0
+
+
+def cmd_seal(plan: dict[str, Any], args: argparse.Namespace) -> int:
+    """Close the last block with a checkpoint.
+
+    Every block of work ends in one: phases that each pass alone can still disagree with
+    each other, and a checkpoint re-runs them together plus an integration test of its
+    own. Separate from `extend` because a phase is rarely known to be the last of its
+    block at the moment it is added.
+    """
+    uncovered = phases_after_last_checkpoint(plan)
+    if not uncovered:
+        sys.exit("every phase is already covered by a checkpoint; there is nothing to seal.")
+
+    after = (args.after or plan["phases"][-1]["id"]).upper()
+    if after not in uncovered:
+        sys.exit(
+            f"{after} is not one of the phases waiting for a checkpoint "
+            f"({', '.join(uncovered)}). A checkpoint goes after the last phase of the "
+            f"block it covers."
+        )
+    covered = uncovered[: uncovered.index(after) + 1]
+    if len(covered) > MAX_CHECKPOINT_SPAN:
+        sys.exit(
+            f"that checkpoint would cover {len(covered)} phases ({', '.join(covered)}), "
+            f"and a checkpoint covers at most {MAX_CHECKPOINT_SPAN}. One that spans half "
+            f"a block cannot tell you which phase stopped agreeing with the others - "
+            f"seal the block in two."
+        )
+    cid = next_checkpoint_id(plan)
+    checkpoint = {
+        "id": cid,
+        "title": args.title,
+        "after": after,
+        "status": "open",
+        "proves": args.proves,
+        "checks": [f"python -m uv run pytest tests/checkpoints/c{int(cid[1:]):02d} -q"],
+    }
+    plan["checkpoints"].append(checkpoint)
+    plan["checkpoints"].sort(key=lambda c: c["after"])
+
+    entry = [
+        f"\n## {today()} - {cid} {args.title}",
+        f"\n**Why:** {args.reason}\n",
+        f"- checkpoint added: {cid} after {after}, covering {', '.join(covered)}",
+        f"- proves: {args.proves}",
+    ]
+    with AMEND_MD.open("a", encoding="utf-8") as f:
+        f.write("\n".join(entry) + "\n")
+
+    save(plan)
+    print(f"\n  added {cid}  {args.title}")
+    print(f"  after {after}, covering {', '.join(covered)}")
+    print(f"  its integration test goes in {checkpoint['checks'][0].split()[-2]}\n")
+    return 0
+
+
+def next_checkpoint_id(plan: dict[str, Any]) -> str:
+    last = max(int(c["id"][1:]) for c in plan["checkpoints"])
+    return f"C{last + 1}"
+
+
+def phases_after_last_checkpoint(plan: dict[str, Any]) -> list[str]:
+    """Phases no checkpoint covers. A plan that ends in phases rather than in a
+    checkpoint is a plan whose last block was never tested as a whole."""
+    covered = {c["after"] for c in plan["checkpoints"]}
+    if not covered:
+        return [p["id"] for p in plan["phases"]]
+    last = max(covered)
+    return [p["id"] for p in plan["phases"] if p["id"] > last]
 
 
 def cmd_amend(plan: dict[str, Any], args: argparse.Namespace) -> int:
@@ -634,6 +796,29 @@ def main() -> int:
     c = sub.add_parser("checkpoint", help="re-run every prior phase plus an integration test")
     c.add_argument("id")
 
+    c = sub.add_parser("extend", help="add a phase to the end of the plan, recording why")
+    c.add_argument("reason", help="why the plan is growing; recorded in AMENDMENTS.md")
+    c.add_argument("--title", required=True)
+    c.add_argument("--block", required=True)
+    c.add_argument("--intent", required=True)
+    c.add_argument("--gate", choices=["auto", "human"], default="auto")
+    c.add_argument("--human-check", help="what a person confirms; required when gate is human")
+    c.add_argument("--task", action="append")
+    c.add_argument("--exit", action="append", help="an exit criterion; at least one")
+    c.add_argument("--check", action="append", help="a command gate close runs; at least one")
+    c.add_argument("--builds", action="append", help="blueprint node ids this phase implements")
+    c.add_argument("--notes")
+
+    c = sub.add_parser("seal", help="close the last block with a checkpoint")
+    c.add_argument("reason", help="why the block ends here; recorded in AMENDMENTS.md")
+    c.add_argument("--title", required=True)
+    c.add_argument("--proves", required=True, help="what this checkpoint proves, in one sentence")
+    c.add_argument(
+        "--after",
+        help="the last phase it covers; defaults to the last phase in the plan. "
+        "A checkpoint covers at most four.",
+    )
+
     c = sub.add_parser("amend", help="change the plan, recording why")
     c.add_argument("id")
     c.add_argument("reason")
@@ -656,6 +841,7 @@ def main() -> int:
     c.add_argument("--add-check", action="append")
     c.add_argument("--set-blueprint", help="where the design of record lives")
     c.add_argument("--set-proves", help="what a checkpoint proves")
+    c.add_argument("--set-after", help="move a checkpoint to cover up to a different phase")
     c.add_argument("--reopen", action="store_true")
 
     c = sub.add_parser("ledger", help="record a dead end so it is not re-walked")
@@ -677,6 +863,8 @@ def main() -> int:
         "check": cmd_check,
         "close": cmd_close,
         "checkpoint": cmd_checkpoint,
+        "extend": cmd_extend,
+        "seal": cmd_seal,
         "amend": cmd_amend,
         "ledger": cmd_ledger,
         "render": cmd_render,

@@ -89,21 +89,34 @@ def test_nothing_in_the_build_is_a_fact_about_one_machine() -> None:
 
 
 def test_the_build_state_says_this_is_v1() -> None:
-    """The record, not anybody's memory: every phase closed, every checkpoint green, and
-    what is still owed named as owed rather than quietly dropped."""
+    """The record, not anybody's memory: every phase v1 covers is closed, every
+    checkpoint up to this one is green, and what is still owed is named as owed.
+
+    Scoped to what C10 covers rather than to the whole plan. v1 is a milestone, not the
+    end of the plan - work agreed afterwards is added past P28 through `gate extend`, and
+    a checkpoint that asserted the plan had exactly 28 phases would fail the first time
+    the firm asked for something, which is not a thing going wrong.
+    """
     plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
-    phases = plan["phases"]
-    assert len(phases) == 28
-    open_phases = [p["id"] for p in phases if p["status"] != "done"]
+    covered = [p for p in plan["phases"] if p["id"] <= "P28"]
+    assert len(covered) == 28, "v1 is the first 28 phases"
+
+    open_phases = [p["id"] for p in covered if p["status"] != "done"]
     assert open_phases in ([], ["P28"]), open_phases
 
-    checkpoints = plan["checkpoints"]
-    assert len(checkpoints) == 10
-    red = [c["id"] for c in checkpoints if c["status"] != "done" and c["id"] != "C10"]
+    up_to_here = [c for c in plan["checkpoints"] if c["after"] <= "P28"]
+    assert len(up_to_here) == 10
+    red = [c["id"] for c in up_to_here if c["status"] != "done" and c["id"] != "C10"]
     assert red == [], red
 
+    # Anything past v1 is a later block, and does not make v1 unfinished.
+    later = [p for p in plan["phases"] if p["id"] > "P28"]
+    assert all(p["block"] != covered[-1]["block"] for p in later), (
+        "work added after v1 belongs to a block of its own"
+    )
+
     # The four things that need the work machine are tasks on P28, not silence.
-    p28 = next(p for p in phases if p["id"] == "P28")
+    p28 = next(p for p in covered if p["id"] == "P28")
     assert len([t for t in p28["tasks"] if t.startswith("On the work machine")]) == 4
     assert p28["gate"] == "human", "the last word is a person's"
 

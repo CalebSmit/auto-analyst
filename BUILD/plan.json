@@ -977,6 +977,152 @@
         "python -m uv run pytest tests/regression -q"
       ],
       "notes": "The three work repos - model builder, ShareFile connector, Box connector - are named here as adapters to write, not as dependencies to satisfy."
+    },
+    {
+      "id": "P29",
+      "title": "Scope choices in the admin surface",
+      "block": "Block H - Practice groups and their workflows",
+      "gate": "auto",
+      "status": "open",
+      "intent": "An engagement is labelled with its practice group by choosing one, not by typing a path, and a group with nothing defined behind it says so rather than looking like an answer.",
+      "builds": [
+        "admin_console",
+        "scope_registry"
+      ],
+      "tasks": [
+        "AdminConsole.scope_choices() and GET /api/admin/scopes, from the scope registry",
+        "Registering into an undefined practice or segment is allowed and reported, never silent",
+        "A preflight check that names an engagement resolving to the firm layer only"
+      ],
+      "exit": [
+        "The admin surface offers every declared practice, segment and disposition, and marks the undefined ones",
+        "An engagement whose scope resolves to the firm layer only is visible in the preflight report",
+        "The scope path remains the single stored representation: choosing one adds no second source of truth"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p29 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin registries graph"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P30",
+      "title": "Registered methodology: cleared once, checked every run",
+      "block": "Block H - Practice groups and their workflows",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Methodology is evidence-free reference material that reaches every call, so it is cleared by a person before it can, and checked by a hash after.",
+      "builds": [
+        "context_builder",
+        "skill_registry"
+      ],
+      "tasks": [
+        "A methodology registry: digest, who cleared it, when - written only on a clearance",
+        "Clearance scans with the conformance patterns and the untrusted boundary",
+        "The Context Builder refuses to attach a file whose digest is not cleared",
+        "Preflight reports uncleared or edited methodology at setup"
+      ],
+      "exit": [
+        "A methodology file carrying something shaped like client data cannot be cleared",
+        "An edited file loses its clearance automatically, because the digest changes",
+        "The Context Builder refuses an uncleared file, and the refusal names it",
+        "The run-time check is a hash lookup, so it cannot fail on a false positive"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p30 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy harness admin governance"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P31",
+      "title": "Methodology per practice group",
+      "block": "Block H - Practice groups and their workflows",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Each group's way of working is attached to its own runs and to no others, through the same layer walk that already decides which skills a run has.",
+      "builds": [
+        "context_builder",
+        "foundations"
+      ],
+      "tasks": [
+        "foundations/ resolved through LAYER_ORDER, the existing files moving to _firm",
+        "A size ceiling per layer in constraints.yaml, reported by preflight",
+        "A foundations group in BUILD/surfaces.json: layer, files, digest"
+      ],
+      "exit": [
+        "A valuation run carries the firm and valuation methodology and not consulting's",
+        "A group with no methodology of its own still carries the firm's",
+        "Methodology past its size ceiling is refused at setup, not discovered in a bill",
+        "A change to what every prompt carries moves the surface snapshot"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p31 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy harness registries graph"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P32",
+      "title": "The recipe belongs to the engagement",
+      "block": "Block H - Practice groups and their workflows",
+      "gate": "auto",
+      "status": "open",
+      "intent": "What order the work happens in is a property of the engagement, not of the folder it was found in.",
+      "builds": [
+        "project_roster",
+        "config_store",
+        "sweep_planner"
+      ],
+      "tasks": [
+        "RosterEntry.recipe, empty meaning inherit the watch's",
+        "config_document@1.2.0, with 1.1.0 left listed",
+        "AdminConsole.set_recipe, logged like every other config write",
+        "Preflight checks the recipe the engagement actually runs"
+      ],
+      "exit": [
+        "Two engagements under one watch run different recipes",
+        "An engagement naming no recipe behaves exactly as it does today",
+        "A recipe that does not load is refused at setup, naming the engagement"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p32 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy intake admin registries"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P33",
+      "title": "Registered recipes",
+      "block": "Block H - Practice groups and their workflows",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Which workflows may run on client work is a recorded decision with a name on it, the same as which skills may.",
+      "builds": [
+        "skill_board",
+        "skill_registry",
+        "run_plan"
+      ],
+      "tasks": [
+        "A recipe registry: name, version, digest, approver - written only by the board",
+        "load_recipe refuses an unregistered recipe outside the test suite",
+        "The board's decision surface covers recipes as well as skills"
+      ],
+      "exit": [
+        "An unregistered recipe cannot run on client work",
+        "A recipe edited after registration loses it, because the digest changes",
+        "Registration names the person who approved it, and refuses without one"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p33 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy governance graph evals"
+      ],
+      "notes": ""
     }
   ],
   "checkpoints": [
@@ -1088,6 +1234,26 @@
       "proves": "Everything above, green, inside a container, from a clean clone plus .env",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c10 -q"
+      ]
+    },
+    {
+      "id": "C11",
+      "title": "A group's methodology, and nobody else's",
+      "after": "P31",
+      "status": "open",
+      "proves": "An engagement is set up by choosing its practice group, and carries that group's cleared methodology and no other group's",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c11 -q"
+      ]
+    },
+    {
+      "id": "C12",
+      "title": "A group's workflow, and only approved ones",
+      "after": "P33",
+      "status": "open",
+      "proves": "An engagement runs its own group's workflow, and a workflow nobody approved does not run at all",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c12 -q"
       ]
     }
   ]

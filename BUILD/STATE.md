@@ -5,7 +5,7 @@
 
 ## Where the build is
 
-- **27 of 28 phases closed**
+- **27 of 33 phases closed**
 - Last green checkpoint: **C9**
 - Current phase: **P28 - Docker, portability, handoff packet** (gate: human)
 
