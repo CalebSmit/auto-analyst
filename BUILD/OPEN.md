@@ -256,6 +256,10 @@ answering it, so the two should happen together.
    from a real deal would reach every prompt for every client, unnoticed. Whoever writes
    methodology needs the same scan the skill drop folder has.
 
+**A plan exists and is waiting on you:**
+[`proposals/group-routing.md`](proposals/group-routing.md). Six pieces, the order they
+have to happen in, and four decisions it needs before anything is built.
+
 ### What is needed from the MD conversations
 
 - The **segments** for Consulting and Corporate Finance, and for Corporate Finance the
