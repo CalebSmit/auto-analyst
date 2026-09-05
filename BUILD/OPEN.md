@@ -219,6 +219,55 @@ given a database connection string or write access to the outbox.
 
 ---
 
+## 6. Proposed next: routing by practice group
+
+**2026-09-05, from Caleb.** Label each watched folder with a practice group in the admin
+dashboard so the orchestrator only sees that group's skills. Then work with the MDs and
+each group to define workflows - "do this first, then this". Then give each group a
+methodology folder for how Chartwell does things.
+
+Two thirds of this is built. The map:
+
+| The idea | Where it lives today | What is missing |
+|---|---|---|
+| A folder belongs to a group | The roster binds folder to engagement, the engagement carries `scope_path`, and the Scope Resolver narrows the library before anything runs | Nothing structural. The admin surface takes a typed scope path; it should offer the practice, segment and disposition as **choices from the scope registry** |
+| "Do this first, then this" | A **recipe**: named, versioned, compiled into a typed DAG and checked by 7 plan assertions | The recipe is chosen by the *watch*, so every engagement under one watch shares it. Per-group workflows need either a watch per group, or the recipe moved onto the engagement |
+| Methodology per group | `foundations/` - three files, attached to **every** model call, unconditionally | It is flat and firm-wide. Per-group methodology means resolving `foundations/` through the same five layers the skills already use |
+
+### The blocker, and why the timing is good
+
+`scope/scopes.yaml` marks Consulting and Corporate Finance `defined: false`, with segments
+named `tbd`. Label a folder "consulting" today and it resolves to the firm layer only -
+correct, and useless. **Naming those segments is one of the nine decisions in §2**, owned
+by the practice leads. Caleb's conversation with the MDs is exactly the mechanism for
+answering it, so the two should happen together.
+
+### Two risks worth deciding before building
+
+1. **Recipes have no governance chain.** A skill passes eleven stages before it can run on
+   client work. A recipe is a YAML file in the repo. If MDs are going to author workflows,
+   that asymmetry is the thing that will be exploited first - a procedure that could not
+   pass the skill chain becomes a recipe that reorders skills to the same effect. Either
+   recipes get a review path, or the difference is a decision somebody has made on purpose.
+2. **Foundations are never scanned for client data.** A skill draft dropped into governance
+   is scanned for injection and for anything shaped like a real client file. `foundations/`
+   is read straight off disk into every call, and the outbound payload scan only knows the
+   *current* engagement's identifiers - so a methodology document citing a worked example
+   from a real deal would reach every prompt for every client, unnoticed. Whoever writes
+   methodology needs the same scan the skill drop folder has.
+
+### What is needed from the MD conversations
+
+- The **segments** for Consulting and Corporate Finance, and for Corporate Finance the
+  model it builds into (`CF_LBO_Model_v3` is bound with no master and no input schema).
+- For each group, the **engagement types** that deserve their own workflow, and for each of
+  those the steps in order. That is what becomes a recipe.
+- Who **owns** each group's methodology, and who reviews a change to it.
+- Whether a group's workflow may differ by disposition - a repeat client and a first-year
+  engagement are already different layers in the resolver, and can be different recipes.
+
+---
+
 ## Settled
 
 *Answered items move here with a date and where the answer is recorded, rather than being
