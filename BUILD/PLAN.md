@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**28 of 33 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**29 of 33 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -79,13 +79,13 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P27** The governance chain | auto | No path from the drop folder to the tree skips fixtures, review or a shadow run - remove any one gate and the path breaks | 2026-09-04 |
 | [x] | **C9 - Many engagements, governed change** | integration | A nightly sweep over several engagements completes, and a skill ships through the full governance chain | 2026-09-04 |
 | [x] | **P28** Docker, portability, handoff packet | human | No managed-service primitive is depended on anywhere in the codebase | 2026-09-05 |
-| [ ] | **C10 - v1 - portable and handed off** | integration | Everything above, green, inside a container, from a clean clone plus .env |  |
+| [x] | **C10 - v1 - portable and handed off** | integration | Everything above, green, inside a container, from a clean clone plus .env | 2026-09-05 |
 
 ## Block H - Practice groups and their workflows
 
 | | Phase | Gate | Closes when | Status |
 |---|---|---|---|---|
-| [ ] | **P29** Scope choices in the admin surface | auto | The admin surface offers every declared practice, segment and disposition, and marks the undefined ones |  |
+| [x] | **P29** Scope choices in the admin surface | auto | The admin surface offers every declared practice, segment and disposition, and marks the undefined ones | 2026-09-05 |
 | [ ] | **P30** Registered methodology: cleared once, checked every run | auto | A methodology file carrying something shaped like client data cannot be cleared |  |
 | [ ] | **P31** Methodology per practice group | auto | A valuation run carries the firm and valuation methodology and not consulting's |  |
 | [ ] | **C11 - A group's methodology, and nobody else's** | integration | An engagement is set up by choosing its practice group, and carries that group's cleared methodology and no other group's |  |

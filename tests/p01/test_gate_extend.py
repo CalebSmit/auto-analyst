@@ -184,8 +184,12 @@ def test_block_h_is_in_the_real_plan_and_is_open(sandbox: Path) -> None:
     plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
     block = [p for p in plan["phases"] if p["block"].startswith("Block H")]
     assert [p["id"] for p in block] == ["P29", "P30", "P31", "P32", "P33"]
-    assert all(p["status"] == "open" for p in block)
-    assert all(p["exit"] and p["checks"] for p in block)
+    assert all(p["exit"] and p["checks"] for p in block), "each one can be closed and checked"
+
+    # Not "all open" - the block closing is the block working. What has to hold is that
+    # they close in order, so a done phase never sits behind an open one.
+    done = [p["status"] == "done" for p in block]
+    assert done == sorted(done, reverse=True), [p["id"] for p in block if p["status"] == "done"]
     titles = [p["title"] for p in block]
     assert titles[0].startswith("Scope choices")
     assert "Registered methodology" in titles[1]

@@ -988,7 +988,7 @@
       "title": "Scope choices in the admin surface",
       "block": "Block H - Practice groups and their workflows",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "An engagement is labelled with its practice group by choosing one, not by typing a path, and a group with nothing defined behind it says so rather than looking like an answer.",
       "builds": [
         "admin_console",
@@ -1010,7 +1010,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy admin registries graph"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-05"
     },
     {
       "id": "P30",
@@ -1236,11 +1237,12 @@
       "id": "C10",
       "title": "v1 - portable and handed off",
       "after": "P28",
-      "status": "open",
+      "status": "done",
       "proves": "Everything above, green, inside a container, from a clean clone plus .env",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c10 -q"
-      ]
+      ],
+      "closed": "2026-09-05"
     },
     {
       "id": "C11",

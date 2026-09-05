@@ -5,15 +5,27 @@
 
 ## Where the build is
 
-- **28 of 33 phases closed**
-- Last green checkpoint: **C9**
-- Current phase: **P29 - Scope choices in the admin surface** (gate: auto)
+- **29 of 33 phases closed**
+- Last green checkpoint: **C10**
+- Current phase: **P30 - Registered methodology: cleared once, checked every run** (gate: auto)
 
 ## The next action
 
-**C10 is due and has not passed.** Nothing else starts until it does.
+Work P30. Its full definition is in [BUILD/phases/P30.md](phases/P30.md).
 
-    python tools/gate.py checkpoint C10
+> Methodology is evidence-free reference material that reaches every call, so it is cleared by a person before it can, and checked by a hash after.
+
+Tasks:
+
+- [ ] A methodology registry: digest, who cleared it, when - written only on a clearance
+- [ ] Clearance scans with the conformance patterns and the untrusted boundary
+- [ ] The Context Builder refuses to attach a file whose digest is not cleared
+- [ ] Preflight reports uncleared or edited methodology at setup
+
+Then:
+
+    python tools/gate.py check P30
+    python tools/gate.py close P30
 
 ## Before you start
 
@@ -53,4 +65,5 @@
 - **P26** Orchestrator agent and triage (2026-09-04) - Caleb: it all looks good
 - **P27** The governance chain (2026-09-04)
 - **P28** Docker, portability, handoff packet (2026-09-05) - Caleb: podman 6.1.1 here, image built from a clean clone, 1711 passed / 78 skipped inside it. Nothing but .env changes. Work-machine clone still to do.
+- **P29** Scope choices in the admin surface (2026-09-05)
 
