@@ -12,6 +12,8 @@ words, with a count. A skip nobody reads is the same as no test.
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -37,6 +39,74 @@ REDIS: dict[str, Any] = {"requested": False, "fake": 0, "real": 0, "url": "", "e
 # summary says which one, or says the image has never been built here.
 RUNTIMES = ("podman", "docker", "nerdctl", "finch")
 CONTAINER: dict[str, Any] = {"requested": False, "ran": 0, "not_run": 0, "runtime": ""}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def synthetic_templates() -> None:
+    """Build the synthetic model templates if they are not on disk.
+
+    `templates/*.xlsx` is gitignored and .dockerignored, because the firm's real masters
+    are its own and must never reach a git history or an image layer. The synthetic ones
+    stand in for them, and they are generated from the input schemas in
+    `templates/inputs/`, which *are* tracked - so this is a build step, not a download.
+
+    Autouse and session-scoped because the alternative is every phase that touches a
+    workbook carrying its own copy of this, and the failure without it is nineteen tests
+    erroring with DELIVER.TEMPLATE_MISSING on a machine that has simply never run the
+    tool. A clean clone, a container and a developer's laptop are the same case, and this
+    is what makes them behave that way.
+    """
+    import subprocess
+
+    root = Path(__file__).resolve().parents[1]
+    schemas = sorted((root / "templates" / "inputs").glob("*.yaml"))
+    assert schemas, "templates/inputs/ is tracked and should not be empty"
+
+    import yaml
+
+    missing = [
+        name
+        for name in (
+            yaml.safe_load(schema.read_text(encoding="utf-8"))["template"] for schema in schemas
+        )
+        if not (root / "templates" / name).is_file()
+    ]
+    if not missing:
+        return
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, str(root / "tools" / "synthesize_templates.py")],
+        cwd=root, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, (
+        f"could not build the synthetic templates ({', '.join(missing)}):\n"
+        f"{result.stdout}{result.stderr}"
+    )
+
+
+def needs_a_checkout(what: str) -> None:
+    """Skip when this is not a git checkout.
+
+    Some tests ask git what is tracked, or read files the image deliberately does not
+    ship - `.git` and `.github` are both in `.dockerignore`, because an image is the
+    built thing rather than the repository that built it. Those questions are about the
+    repository, they are answered on every developer machine and in CI, and inside a
+    container the honest answer is that this is not the place to ask.
+
+    A skip with a reason, never a silent pass: `pytest -q` prints an `s`, and the reason
+    is one `-rs` away.
+    """
+    import shutil
+    import subprocess
+
+    root = Path(__file__).resolve().parents[1]
+    if not shutil.which("git") or not (root / ".git").exists():
+        pytest.skip(f"{what} needs a git checkout; this is not one")
+    probe = subprocess.run(  # noqa: S603
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=root, capture_output=True, text=True, check=False,
+    )
+    if probe.returncode != 0:
+        pytest.skip(f"{what} needs a git checkout; git says this is not one")
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

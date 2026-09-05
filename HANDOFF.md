@@ -53,15 +53,23 @@ the Dockerfile or `compose.yaml` is Docker Desktop's: no `desktop.` extension, n
 pipe, no host gateway, no mounted docker socket. That matters because **Docker Desktop is
 not licensed here** and was never a dependency.
 
-> **Which runtime was actually used.** None, on the build machine. No OCI runtime is
-> installed on it — `docker`, `podman`, `nerdctl`, `finch` and `rancher` are all absent,
-> and only WSL is present. The container files are written and statically checked by
-> `tests/p28`, and the suite is run **with `--container`** on a machine that has a
-> runtime. Until somebody does that, the image has never been built. The session summary
-> says so on every run, in words, for the same reason the Postgres and Redis runs do:
-> a claim nobody has executed is not evidence.
+> **Which runtime was actually used.** Podman 6.1.1 on Windows 11, 2026-09-05, client
+> and server both 6.1.1, in a `podman machine` VM with 6 CPUs. Not Docker Desktop, which
+> is not licensed here and is not a dependency. The image builds in about 80 seconds cold
+> and 12 warm, and the whole suite passes inside it on the image's own interpreter with
+> no host Python involved.
 >
-> Fill this in when you run it: _runtime used, version, date._
+> Running it there is what proved portability, rather than the static checks alone. It
+> found two real bugs and one bad test: file-type detection fell through to the host's
+> MIME registry, which answers differently on Debian than on Windows; the Excel templates
+> are generated rather than tracked, so a clean clone had none; and one test asserted the
+> compute target had no image tag, which is true on a laptop and false in a container.
+> All three are fixed, and P28 now carries the exit criterion that would have caught them.
+>
+> Three suites still say what they did not run, on every invocation and in words: Postgres
+> conformance, the real Redis queue, and the container build itself when no runtime is on
+> the path. That is deliberate. A claim nobody has executed is not evidence, and the run
+> should say which kind it is.
 
 ---
 

@@ -31,6 +31,7 @@ Tasks:
 - [ ] CHANGING.md: the protocol for changing the system after v1
 - [ ] A CI workflow that runs the Postgres, Redis and container halves a laptop cannot
 - [ ] With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)
+- [ ] Prove it on a runtime that is not Docker Desktop and name it in HANDOFF.md
 
 Then:
 

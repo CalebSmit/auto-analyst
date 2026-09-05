@@ -15,6 +15,7 @@ from pathlib import Path
 import yaml
 
 import ports
+from tests.conftest import needs_a_checkout
 
 ROOT = Path(__file__).resolve().parents[2]
 HANDOFF = ROOT / "HANDOFF.md"
@@ -260,6 +261,7 @@ def test_a_clean_clone_reaches_a_passing_suite_with_no_undocumented_step() -> No
     client file may be. Not the whole suite: that is what the run they are told to do
     proves, and running it twice inside itself would double the slowest thing in the build.
     """
+    needs_a_checkout("what a colleague gets")
     tracked = set(
         subprocess.run(  # noqa: S603
             ["git", "ls-files"],

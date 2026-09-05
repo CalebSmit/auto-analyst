@@ -24,6 +24,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools.surfaces import COLLECTORS, SNAPSHOT, collect, differences, load, report
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -69,6 +70,7 @@ def test_the_snapshot_covers_every_surface_that_is_collected(recorded: dict) -> 
 def test_the_snapshot_is_committed_and_readable(recorded: dict) -> None:
     """It is evidence, so it lives in the repo rather than in a cache, and it is JSON a
     person can read in a diff rather than a pickle nobody can review."""
+    needs_a_checkout("the tracked-file check")
     import subprocess
 
     tracked = subprocess.run(  # noqa: S603

@@ -13,7 +13,10 @@ import re
 import subprocess
 from pathlib import Path
 
+from tests.conftest import needs_a_checkout
+
 ROOT = Path(__file__).resolve().parents[2]
+
 OPEN = ROOT / "BUILD" / "OPEN.md"
 PLAN = ROOT / "BUILD" / "plan.json"
 BLUEPRINT = ROOT / "docs" / "architecture.html"
@@ -26,6 +29,7 @@ def text() -> str:
 def test_the_register_exists_and_is_committed() -> None:
     """It is the thing a next session reads. A file that is not tracked is a file that
     does not travel to the work machine."""
+    needs_a_checkout("the tracked-file check")
     tracked = subprocess.run(  # noqa: S603
         ["git", "ls-files", "BUILD/OPEN.md"],
         cwd=ROOT, capture_output=True, text=True, check=True,

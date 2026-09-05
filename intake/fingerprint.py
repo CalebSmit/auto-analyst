@@ -26,12 +26,33 @@ from intake.bind import Bound
 from intake.store import IntakeRow, IntakeStore
 from ports.storage import StoragePort
 
-__all__ = ["Fingerprinter", "IntakeRecord", "kind_of"]
+__all__ = ["BY_EXTENSION", "Fingerprinter", "IntakeRecord", "kind_of", "mime_of"]
 
 IntakeRecord = IntakeRow
 
+# What each extension means, declared rather than asked of the host.
+#
+# `mimetypes.guess_type` reads the platform's own table - the Windows registry, or
+# /etc/mime.types on Linux, which a slim container image does not install. The same
+# spreadsheet was therefore a spreadsheet on one machine and `application/octet-stream`
+# on another, which changed `kind`, sent the file past the workbook reader, and put a
+# different `mime` in the manifest for identical bytes. A run's record must not depend on
+# which host read the file.
+BY_EXTENSION: dict[str, str] = {
+    ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ".xlsm": "application/vnd.ms-excel.sheet.macroEnabled.12",
+    ".xls": "application/vnd.ms-excel",
+    ".csv": "text/csv",
+    ".pdf": "application/pdf",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".doc": "application/msword",
+    ".txt": "text/plain",
+    ".md": "text/markdown",
+}
+
 SPREADSHEET = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel.sheet.macroEnabled.12",
     "application/vnd.ms-excel",
     "text/csv",
 }
@@ -41,6 +62,21 @@ DOCUMENT = {
     "application/msword",
     "text/plain",
 }
+
+
+def mime_of(filename: str) -> str:
+    """The type of a file, from its extension, the same on every host.
+
+    The declared table first, so the document types this system actually handles are
+    decided here. `mimetypes` second, so anything outside the table still gets whatever
+    the platform knows, and last `application/octet-stream` - which is honest: unknown.
+    """
+    import os
+
+    extension = os.path.splitext(filename)[1].lower()
+    if extension in BY_EXTENSION:
+        return BY_EXTENSION[extension]
+    return mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
 
 def kind_of(mime: str) -> str:
@@ -69,7 +105,7 @@ class Fingerprinter:
         already = self.intake_store.known(bound.engagement_id, stat.content_hash)
         if already is not None:
             return None
-        mime = mimetypes.guess_type(bound.filename)[0] or "application/octet-stream"
+        mime = mime_of(bound.filename)
         prior = self.intake_store.versions_of(bound.engagement_id, bound.filename)
         row = IntakeRow(
             engagement_id=bound.engagement_id,

@@ -961,14 +961,16 @@
         "The public-surface snapshot and the regression suite that guards it (tools/surfaces.py, BUILD/surfaces.json, tests/regression)",
         "CHANGING.md: the protocol for changing the system after v1",
         "A CI workflow that runs the Postgres, Redis and container halves a laptop cannot",
-        "With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)"
+        "With IT: confirm a container in Azure may reach api.anthropic.com, since model access stays on the Anthropic API directly (decided 2026-09-05)",
+        "Prove it on a runtime that is not Docker Desktop and name it in HANDOFF.md"
       ],
       "exit": [
         "No managed-service primitive is depended on anywhere in the codebase",
         "HANDOFF.md names every environment difference between this machine and the work one",
         "A clean clone plus .env reaches a passing suite with no undocumented step",
         "The image builds and the whole suite passes inside it with no host Python involved, using any OCI-compatible runtime - podman, containerd, Rancher Desktop or Docker Engine. No step depends on Docker Desktop, and HANDOFF.md names the runtime actually used",
-        "A change that moves a public surface fails a test naming it, and accepting it is a recorded decision"
+        "A change that moves a public surface fails a test naming it, and accepting it is a recorded decision",
+        "No test asserts a value that is a fact about one host - file types, generated artefacts and the compute target's image tag are read from a declared table or the environment, so a correct container does not fail"
       ],
       "checks": [
         "python -m uv run pytest tests/p28 -q",

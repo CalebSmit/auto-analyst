@@ -4,6 +4,7 @@ resumes rather than a record that lies."""
 
 from __future__ import annotations
 
+import os
 import threading
 from typing import Any
 
@@ -12,6 +13,7 @@ from fastapi.testclient import TestClient
 from ops.console import Console, create_app
 from ops.models import RunState, StepStatus
 from ops.run_store import SqlRunStore
+from ports.compute.local_process import ENV_IMAGE
 from ports.queue import JobState
 from review.surface import ReviewSurface
 from tests.p25.conftest import (
@@ -45,14 +47,20 @@ def test_several_engagements_run_at_once_while_one_engagement_still_serialises(
     assert [placed[r].position for r in (hend_a, merc, novk)] == [1, 2, 3]
     assert all(placed[r].waiting_on == "worker" for r in (hend_a, merc, novk))
     assert store.run(hend_a).state is RunState.QUEUED, "holds the lock; nothing allocated"
-    assert pool.pressure().as_dict() == {
+    pressure = pool.pressure().as_dict()
+    # `target` is what the compute port reports about where this is running, and it
+    # carries the image tag when there is one - so it reads `local_process` on a laptop
+    # and `local_process (automated-analyst:0.1.0)` in a container. That difference is
+    # the manifest recording which image produced a deliverable, and asserting the exact
+    # string here would make a correct environment fail.
+    assert pressure.pop("target").startswith("local_process")
+    assert pressure == {
         "capacity": 2,
         "in_flight": 0,
         "waiting": 3,
         "behind_locks": 1,
         "saturated": False,
         "adapter": "in_process",
-        "target": "local_process",
     }
 
     pool.work()
@@ -73,9 +81,12 @@ def test_several_engagements_run_at_once_while_one_engagement_still_serialises(
     ]
     assert order == sorted(order), types
     (started,) = events_of(store, hend_b, "worker.started")
+    # `image` is whatever AA_IMAGE says, which is nothing on a laptop and the tag inside
+    # the container - the manifest recording which image produced a deliverable. Read from
+    # the environment rather than hard-coded, so a correct container does not fail here.
     assert started.payload["target"] == {
         "kind": "local_process",
-        "image": None,
+        "image": os.environ.get(ENV_IMAGE),
         "max_parallelism": 2,
     }
     assert started.node_id == "queue_port" and started.payload["adapter"] == "in_process"

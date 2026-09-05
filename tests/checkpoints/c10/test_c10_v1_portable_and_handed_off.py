@@ -28,6 +28,7 @@ from pathlib import Path
 import pytest
 
 import ports
+from tests.conftest import needs_a_checkout
 from tests.p28.test_portability import (
     ENV_PATTERN,
     MANAGED_SERVICE_IMPORTS,
@@ -40,6 +41,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 def test_a_clean_clone_plus_env_is_the_whole_setup() -> None:
     """What a colleague gets, and what they have to add: two values in .env."""
+    needs_a_checkout("what a colleague gets")
     tracked = set(
         subprocess.run(  # noqa: S603
             ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True

@@ -9,12 +9,14 @@ table does not know a package, the answer has to be "run everything".
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools.verify import COVERAGE, TYPED_PACKAGES, suites_for
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -72,6 +74,9 @@ def test_verify_runs_and_reports_what_it_did_not_run() -> None:
     depend on when somebody happened to run it, which is exactly the flake this apparatus
     exists to catch. What is not negotiable is that the report says which happened.
     """
+    needs_a_checkout("the verification command")
+    if shutil.which("uv") is None and not (ROOT / ".venv").exists():
+        pytest.skip("verify runs the toolchain through uv, which is not on this path")
     result = subprocess.run(  # noqa: S603
         [sys.executable, str(ROOT / "tools" / "verify.py"), "--fast"],
         cwd=ROOT, capture_output=True, text=True, check=False, timeout=900,
@@ -110,7 +115,10 @@ def test_the_ci_workflow_runs_what_this_machine_cannot(workflow: str) -> None:
     make. CI is where they get made, so the file has to actually ask for them."""
     import yaml
 
-    spec = yaml.safe_load((ROOT / ".github" / "workflows" / f"{workflow}.yml").read_text())
+    path = ROOT / ".github" / "workflows" / f"{workflow}.yml"
+    if not path.is_file():
+        pytest.skip(".github is not shipped in the image; this is a question about the repo")
+    spec = yaml.safe_load(path.read_text())
     assert set(spec["jobs"]) == {"verify", "container"}
     verify = spec["jobs"]["verify"]
     assert set(verify["services"]) == {"postgres", "redis"}
