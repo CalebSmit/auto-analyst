@@ -5,26 +5,27 @@
 
 ## Where the build is
 
-- **30 of 33 phases closed**
-- Last green checkpoint: **C10**
-- Current phase: **P31 - Methodology per practice group** (gate: auto)
+- **31 of 33 phases closed**
+- Last green checkpoint: **C11**
+- Current phase: **P32 - The recipe belongs to the engagement** (gate: auto)
 
 ## The next action
 
-Work P31. Its full definition is in [BUILD/phases/P31.md](phases/P31.md).
+Work P32. Its full definition is in [BUILD/phases/P32.md](phases/P32.md).
 
-> Each group's way of working is attached to its own runs and to no others, through the same layer walk that already decides which skills a run has.
+> What order the work happens in is a property of the engagement, not of the folder it was found in.
 
 Tasks:
 
-- [ ] foundations/ resolved through LAYER_ORDER, the existing files moving to _firm
-- [ ] A size ceiling per layer in constraints.yaml, reported by preflight
-- [ ] A foundations group in BUILD/surfaces.json: layer, files, digest
+- [ ] RosterEntry.recipe, empty meaning inherit the watch's
+- [ ] config_document@1.2.0, with 1.1.0 left listed
+- [ ] AdminConsole.set_recipe, logged like every other config write
+- [ ] Preflight checks the recipe the engagement actually runs
 
 Then:
 
-    python tools/gate.py check P31
-    python tools/gate.py close P31
+    python tools/gate.py check P32
+    python tools/gate.py close P32
 
 ## Before you start
 
@@ -66,4 +67,5 @@ Then:
 - **P28** Docker, portability, handoff packet (2026-09-05) - Caleb: podman 6.1.1 here, image built from a clean clone, 1711 passed / 78 skipped inside it. Nothing but .env changes. Work-machine clone still to do.
 - **P29** Scope choices in the admin surface (2026-09-05)
 - **P30** Registered methodology: cleared once, checked every run (2026-09-06)
+- **P31** Methodology per practice group (2026-09-06)
 

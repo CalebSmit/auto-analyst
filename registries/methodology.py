@@ -29,6 +29,7 @@ the firm has read these files yet - and preflight says so before a run finds out
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -57,8 +58,8 @@ FOUNDATIONS_DIR = REPO_ROOT / "foundations"
 CLEARED_FILE = FOUNDATIONS_DIR / "cleared.yaml"
 
 SKIP = frozenset({"readme.md"})
-"""Files in the folder that are not methodology. The README describes the folder; it is
-not attached to anything, so clearing it would be recording a decision nobody made."""
+"""Files that are not methodology. A README describes a folder; it is not attached to
+anything, so clearing one would be recording a decision nobody made."""
 
 
 def digest_of(body: bytes) -> str:
@@ -144,9 +145,49 @@ class MethodologyRegister:
 
     # -- what is on disk, and what the register says about it
 
+    def name_of(self, path: Path) -> str:
+        """A file is identified by its layer and its filename, because two practice groups
+        can both write a `scope-memo.md` and they are two different documents."""
+        return path.relative_to(self.root).as_posix()
+
     def files(self) -> tuple[Path, ...]:
-        """The methodology files, in the order the Context Builder attaches them."""
-        return tuple(p for p in sorted(self.root.glob("*.md")) if p.name.lower() not in SKIP)
+        """Every methodology file in the tree, whichever layer it sits in.
+
+        What a person clears and what preflight reports on - all of it, not one run's
+        worth. Which files a given run carries is `for_layers`.
+        """
+        return tuple(p for p in sorted(self.root.rglob("*.md")) if p.name.lower() not in SKIP)
+
+    def for_layers(self, layers: Sequence[str]) -> tuple[Path, ...]:
+        """The files a run carries, shallowest layer first.
+
+        The same walk that decides which skills a run has, over the same layer names, so
+        methodology and skills cannot disagree about what a practice group is. Order is
+        part of the context hash, so it is fixed here rather than left to a glob: layers
+        in the order the resolver returned them, filenames sorted within each layer.
+        """
+        out: list[Path] = []
+        for layer in layers:
+            directory = self.root / layer
+            if not directory.is_dir():
+                continue  # a group with no methodology of its own still gets the firm's
+            out.extend(
+                p for p in sorted(directory.glob("*.md")) if p.name.lower() not in SKIP
+            )
+        return tuple(out)
+
+    def layers(self) -> tuple[str, ...]:
+        """Every layer that has methodology in it, shallowest first."""
+        return tuple(sorted({self.name_of(p).rsplit("/", 1)[0] for p in self.files()}))
+
+    def bytes_at(self, layer: str) -> int:
+        """What that layer adds to every prompt of every run that resolves through it."""
+        directory = self.root / layer
+        if not directory.is_dir():
+            return 0
+        return sum(
+            p.stat().st_size for p in directory.glob("*.md") if p.name.lower() not in SKIP
+        )
 
     def review(self) -> tuple[MethodologyFile, ...]:
         """Every file on disk against the register. What preflight reports, and what an
@@ -154,12 +195,13 @@ class MethodologyRegister:
         by_name = {row.name for row in self.cleared()}
         out: list[MethodologyFile] = []
         for path in self.files():
+            name = self.name_of(path)
             digest = digest_of(path.read_bytes())
             found = self.entry(digest)
             if found is not None:
                 out.append(
                     MethodologyFile(
-                        name=path.name,
+                        name=name,
                         digest=digest,
                         state="cleared",
                         cleared_by=found.cleared_by,
@@ -169,9 +211,9 @@ class MethodologyRegister:
             else:
                 out.append(
                     MethodologyFile(
-                        name=path.name,
+                        name=name,
                         digest=digest,
-                        state="edited" if path.name in by_name else "uncleared",
+                        state="edited" if name in by_name else "uncleared",
                     )
                 )
         return tuple(out)
@@ -208,14 +250,15 @@ class MethodologyRegister:
         body = path.read_bytes()
         digest = digest_of(body)
 
-        reasons = self.scan(body, path.name)
+        name = self.name_of(path)
+        reasons = self.scan(body, name)
         if reasons:
             raise ClearanceRefused(
                 diagnose(
                     METHODOLOGY_UNSAFE,
-                    f"{path.name} carries {len(reasons)} thing(s) that must not reach "
+                    f"{name} carries {len(reasons)} thing(s) that must not reach "
                     f"every prompt: " + "; ".join(reasons[:4]),
-                    locator=path.name,
+                    locator=name,
                     expected="methodology with no engagement data and no instructions in it",
                     found="; ".join(reasons[:4]),
                 )
@@ -226,7 +269,7 @@ class MethodologyRegister:
             return existing
 
         record = ClearedFile(
-            name=path.name,
+            name=name,
             digest=digest,
             cleared_at=datetime.now(tz=UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
             cleared_by=cleared_by.strip(),

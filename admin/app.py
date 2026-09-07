@@ -129,7 +129,10 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
     def methodology() -> dict[str, Any]:
         return console.methodology()
 
-    @app.post("/api/admin/methodology/{name}/clear")
+    # `{name:path}` rather than `{name}`: a methodology file is identified by its layer and
+    # its filename - `_firm/qc-conventions.md` - and a plain path parameter stops at the
+    # slash, which would make every file below the first layer unreachable.
+    @app.post("/api/admin/methodology/{name:path}/clear")
     def clear_methodology(name: str, body: Clearance) -> dict[str, Any]:
         return _guard(lambda: console.clear_methodology(name, who=body.who))
 

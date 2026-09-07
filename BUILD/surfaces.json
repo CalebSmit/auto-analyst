@@ -1,7 +1,10 @@
 {
  "constraints": {
   "ceilings": {
-   "note": "transport_retries covers transport failures only. A guard failure is never a retry \u2014 it is a loop iteration, and it must change the input to count.",
+   "note": "transport_retries covers transport failures only. A guard failure is never a retry \u2014 it is a loop iteration, and it must change the input to count.\nper_methodology_layer is bytes of foundations/ per layer, and it is a ceiling on every prompt of every run that resolves through that layer \u2014 the firm layer being every run there is. 64 KiB is roughly sixteen thousand tokens: room for a practice group to say how it works, and not room for a document nobody meant to send with every call. Raising it is a decision about what the firm pays per run.",
+   "per_methodology_layer": {
+    "bytes_max": 65536
+   },
    "per_run": {
     "loop_iterations_max": 8,
     "tokens_max": 3000000,
@@ -259,6 +262,7 @@
    "CONFIG.CELL_ADDRESS_BINDING": "config",
    "CONFIG.CREDENTIAL_EXPIRED": "config",
    "CONFIG.DESTINATION_UNWRITABLE": "config",
+   "CONFIG.METHODOLOGY_TOO_LARGE": "config",
    "CONFIG.METHODOLOGY_UNCLEARED": "config",
    "CONFIG.METHODOLOGY_UNSAFE": "config",
    "CONFIG.PATH_UNREADABLE": "config",
@@ -450,6 +454,17 @@
     "threshold": 1.0
    }
   ]
+ },
+ "foundations": {
+  "_firm": {
+   "bytes": 1070,
+   "digest": "sha256:386c9d6b4d4db2d355f5c8f41fb3c204776a588d645c0be848af8c05bc12e46a",
+   "files": [
+    "qc-conventions.md",
+    "tagging-policy.md",
+    "valuation-standards.md"
+   ]
+  }
  },
  "governance": {
   "nodes": {

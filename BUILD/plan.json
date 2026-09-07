@@ -1051,7 +1051,7 @@
       "title": "Methodology per practice group",
       "block": "Block H - Practice groups and their workflows",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Each group's way of working is attached to its own runs and to no others, through the same layer walk that already decides which skills a run has.",
       "builds": [
         "context_builder",
@@ -1060,7 +1060,8 @@
       "tasks": [
         "foundations/ resolved through LAYER_ORDER, the existing files moving to _firm",
         "A size ceiling per layer in constraints.yaml, reported by preflight",
-        "A foundations group in BUILD/surfaces.json: layer, files, digest"
+        "A foundations group in BUILD/surfaces.json: layer, files, digest",
+        "A byte ceiling per layer, its diagnostic, and the foundations group in the snapshot"
       ],
       "exit": [
         "A valuation run carries the firm and valuation methodology and not consulting's",
@@ -1073,7 +1074,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy harness registries graph"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-06"
     },
     {
       "id": "P32",
@@ -1251,11 +1253,12 @@
       "id": "C11",
       "title": "A group's methodology, and nobody else's",
       "after": "P31",
-      "status": "open",
+      "status": "done",
       "proves": "An engagement is set up by choosing its practice group, and carries that group's cleared methodology and no other group's",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c11 -q"
-      ]
+      ],
+      "closed": "2026-09-06"
     },
     {
       "id": "C12",

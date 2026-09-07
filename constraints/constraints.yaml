@@ -154,9 +154,17 @@ ceilings:
     usd_max: 6.00
     timeout_s: 300
     transport_retries_max: 2
+  per_methodology_layer:
+    bytes_max: 65536
   note: >-
     transport_retries covers transport failures only. A guard failure is never a
     retry — it is a loop iteration, and it must change the input to count.
+
+    per_methodology_layer is bytes of foundations/ per layer, and it is a ceiling on
+    every prompt of every run that resolves through that layer — the firm layer being
+    every run there is. 64 KiB is roughly sixteen thousand tokens: room for a practice
+    group to say how it works, and not room for a document nobody meant to send with
+    every call. Raising it is a decision about what the firm pays per run.
 
 # ── Declared loops ────────────────────────────────────────────────────────────────
 #

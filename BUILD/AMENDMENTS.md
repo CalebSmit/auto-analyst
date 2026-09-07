@@ -550,3 +550,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The register lives in registries/ rather than governance/, where the plan assumed it. Two reasons, both about the run-time path: the Context Builder consults this on every model call, and importing the governance package would pull the whole eleven-stage chain - including its edge back into harness.door - into that path; and registries/ is where the things a run reads live, beside contracts, scopes, skills and constraints. The clearance act still uses governance's scanners, imported inside the method that scans, so the dependency exists only when somebody is clearing something. The phase check gains registries so the phase type-checks its own code.
 
 - check added: python -m uv run mypy registries
+
+## 2026-09-06 - P31 Methodology per practice group
+
+**Why:** Three surfaces move. constraints.ceilings gains per_methodology_layer, a byte ceiling per layer of foundations/ - this is content on every model call of every run that walks through the layer, so unchecked growth is a standing cost nobody can attribute months later; its note says why the number is the number, which is why the note itself moves too. CONFIG.METHODOLOGY_TOO_LARGE is the refusal preflight raises for it. And the snapshot gains a foundations group - layer, filenames, bytes and one digest over the layer in the order the Context Builder attaches it - because nothing else in the snapshot moved when somebody added a paragraph to a document that every prompt carries, which is exactly the kind of change it exists to make visible.
+
+- task added: A byte ceiling per layer, its diagnostic, and the foundations group in the snapshot

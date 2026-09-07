@@ -144,9 +144,11 @@ class AdminConsole:
         register = self.preflight.methodology
         return {
             "root": register.root.name,
+            "layers": list(register.layers()),
             "files": [
                 {
                     "name": found.name,
+                    "layer": found.name.rsplit("/", 1)[0],
                     "digest": found.digest,
                     "state": found.state,
                     "cleared_by": found.cleared_by,
@@ -164,7 +166,7 @@ class AdminConsole:
         than defaulting it, because a default is how "cleared by nobody" gets back in.
         """
         register = self.preflight.methodology
-        path = next((p for p in register.files() if p.name == name), None)
+        path = next((p for p in register.files() if register.name_of(p) == name), None)
         if path is None:
             raise KeyError(f"{name} is not a methodology file in {register.root.name}/")
         record = register.clear(path, cleared_by=who)

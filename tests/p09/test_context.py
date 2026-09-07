@@ -188,10 +188,20 @@ def test_a_non_skill_step_has_no_context(builder: ContextBuilder, request_for: A
 
 
 def test_foundations_are_attached_to_every_call(builder: ContextBuilder, request_for: Any) -> None:
-    """Unconditionally. Not something the next skill's author can leave out."""
+    """Unconditionally. Not something the next skill\'s author can leave out.
+
+    The firm layer is the floor of every scope walk, which is what makes it unconditional
+    without a second mechanism saying so. A file is named by its layer because two
+    practice groups can write the same filename and mean different documents; what a
+    group adds on top of this is P31.
+    """
     for step_id in ("timing", "ebitda", "qc"):
         names = {s.name for s in builder.build(request_for(step_id)).section("foundations")}
-        assert names == {"qc-conventions.md", "tagging-policy.md", "valuation-standards.md"}
+        assert names == {
+            "_firm/qc-conventions.md",
+            "_firm/tagging-policy.md",
+            "_firm/valuation-standards.md",
+        }
 
 
 def test_the_foundations_readme_is_not_context(builder: ContextBuilder, request_for: Any) -> None:

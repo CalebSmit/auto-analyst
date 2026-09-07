@@ -7,10 +7,16 @@ why a changed precedent changes the key, and why a resumed run can never return 
 result the current context would no longer produce.
 
 **What goes in, in this order, every time.** The skill body. The references it declares,
-including the ones an overlay added. The firm's foundations, unconditionally. Retrieved
-precedents. The engagement profile. The masked payload. On a repair pass, the guard
-failure that sent it back. The order is fixed because the hash is an identity, and two
-contexts that differed only in section order would be two keys for one question.
+including the ones an overlay added. The methodology for this run's layers, firm layer
+first. Retrieved precedents. The engagement profile. The masked payload. On a repair pass,
+the guard failure that sent it back. The order is fixed because the hash is an identity,
+and two contexts that differed only in section order would be two keys for one question.
+
+**Methodology is scope-walked and digest-checked.** `foundations/` is the same five-layer
+tree as `skills/`, walked the same way, so a valuation run carries the firm's standards
+and valuation's and never consulting's. Every file is checked against the clearance
+register on the way in - a hash lookup, never a scan - so an edit after a clearance stops
+the run rather than reaching every prompt.
 
 **Progressive disclosure is enforced here, not hoped for.** The tree holds frontmatter for
 every skill and the body for none. This builder asks the tree for exactly one body - the
@@ -240,35 +246,43 @@ class ContextBuilder:
             )
             parts.append(("reference", ref_name, text.encode("utf-8")))
 
-        # 3. Foundations, unconditionally - and only ever the cleared version.
+        # 3. Methodology: the firm's, then this run's own groups', and nobody else's.
         #
-        # Unconditional is what makes methodology worth checking: it is the one input that
-        # reaches every call for every client, and the outbound scan knows only the
-        # current engagement's identifiers, so a worked example from a real deal pasted in
-        # here would travel everywhere and trip nothing. It is read by a person once and
-        # recorded by digest; this is the lookup, and it refuses rather than dropping the
-        # file, because a run silently missing half its methodology answers a different
-        # question from the one that was asked.
+        # The same five-layer walk that decided which skills this run has, over the same
+        # layer names, so methodology and skills cannot disagree about what a practice
+        # group is. The firm layer is the floor of that walk, which is what makes the
+        # firm's standards unconditional without a second mechanism for it - and a group
+        # that has written nothing of its own still carries the firm's, because a missing
+        # layer contributes nothing rather than failing.
+        #
+        # Only ever the cleared version. Methodology is the one input that reaches every
+        # call for every client, and the outbound scan knows only the current engagement's
+        # identifiers, so a worked example from a real deal pasted in here would travel
+        # everywhere and trip nothing. It is read by a person once and recorded by digest;
+        # this is the lookup. It refuses rather than dropping the file, because a run
+        # silently missing half its methodology answers a different question from the one
+        # that was asked.
         cleared = self.methodology.digests()
-        for path in self.methodology.files():
+        for path in self.methodology.for_layers(request.scope.layers):
+            name = self.methodology.name_of(path)
             body = path.read_bytes()
             digest = digest_of(body)
             if digest not in cleared:
                 raise RegistryError(
                     diagnose(
                         METHODOLOGY_UNCLEARED,
-                        f"{path.name} is not cleared methodology"
+                        f"{name} is not cleared methodology"
                         + (
                             " - it was cleared once, but not this version of it"
-                            if any(row.name == path.name for row in self.methodology.cleared())
+                            if any(row.name == name for row in self.methodology.cleared())
                             else ""
                         ),
-                        locator=path.name,
+                        locator=name,
                         expected="a digest recorded in the methodology register",
                         found=digest,
                     )
                 )
-            parts.append(("foundations", path.name, body))
+            parts.append(("foundations", name, body))
 
         # 4. Precedents, from a scope-built query, checked on the way in.
         query = self.query_for(request, resolved)

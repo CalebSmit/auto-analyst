@@ -57,7 +57,7 @@ def test_a_file_carrying_client_data_or_an_instruction_cannot_be_cleared(
     dangerous document of the two: a skill draft is read by one step of one run, and this
     is read by every step of every run, for every client.
     """
-    path = foundations / "qc-conventions.md"
+    path = foundations / "_firm" / "qc-conventions.md"
     path.write_text(content, encoding="utf-8")
 
     with pytest.raises(ClearanceRefused) as refused:
@@ -66,7 +66,7 @@ def test_a_file_carrying_client_data_or_an_instruction_cannot_be_cleared(
     diagnostic = refused.value.diagnostic
     assert diagnostic.code == "CONFIG.METHODOLOGY_UNSAFE"
     assert diagnostic.owner == "config"
-    assert "qc-conventions.md" in diagnostic.detail
+    assert "_firm/qc-conventions.md" in diagnostic.detail
     assert diagnostic.what_now, "a refusal that says nothing is a refusal nobody can act on"
     assert register.cleared() == (), "nothing is written when a clearance is refused"
 
@@ -78,7 +78,7 @@ def test_a_file_carrying_client_data_or_an_instruction_cannot_be_cleared(
 def test_a_clearance_names_a_person(register: MethodologyRegister, foundations: Path) -> None:
     """"Cleared by nobody" is the state this register exists to make impossible, so there
     is no default and a blank is refused rather than recorded."""
-    path = foundations / "qc-conventions.md"
+    path = foundations / "_firm" / "qc-conventions.md"
     for blank in ("", "   "):
         with pytest.raises(ValueError, match="names the person"):
             register.clear(path, cleared_by=blank)
@@ -88,7 +88,7 @@ def test_a_clearance_names_a_person(register: MethodologyRegister, foundations: 
 def test_what_is_recorded_is_who_when_and_which_bytes(
     register: MethodologyRegister, foundations: Path
 ) -> None:
-    path = foundations / "qc-conventions.md"
+    path = foundations / "_firm" / "qc-conventions.md"
     record = register.clear(path, cleared_by="  C. Smit  ")
 
     assert record.cleared_by == "C. Smit", "whitespace is not part of anybody's name"
@@ -101,7 +101,7 @@ def test_what_is_recorded_is_who_when_and_which_bytes(
     written = yaml.safe_load(register.path.read_text(encoding="utf-8"))
     assert written["cleared"] == [
         {
-            "name": "qc-conventions.md",
+            "name": "_firm/qc-conventions.md",
             "digest": record.digest,
             "cleared_at": record.cleared_at,
             "cleared_by": "C. Smit",
@@ -117,7 +117,7 @@ def test_clearing_the_same_content_twice_records_it_once(
     """Idempotent by digest. Two people clearing the same bytes is one fact, and a second
     row would make the register look like a log of attempts rather than a record of what
     is cleared."""
-    path = foundations / "qc-conventions.md"
+    path = foundations / "_firm" / "qc-conventions.md"
     first = register.clear(path, cleared_by="C. Smit")
     again = register.clear(path, cleared_by="Somebody Else")
     assert again == first
@@ -132,15 +132,18 @@ def test_an_edited_file_loses_its_clearance(
 ) -> None:
     """The second exit criterion. Nobody has to notice, remember or revoke anything: the
     bytes changed, so the digest changed, so the lookup misses."""
-    path = foundations / "qc-conventions.md"
+    path = foundations / "_firm" / "qc-conventions.md"
     before = {found.name: found.state for found in cleared.review()}
-    assert before == {"qc-conventions.md": "cleared", "valuation-standards.md": "cleared"}
+    assert before == {
+        "_firm/qc-conventions.md": "cleared",
+        "_firm/valuation-standards.md": "cleared",
+    }
 
     path.write_text(path.read_text(encoding="utf-8") + "\nOne more sentence.\n", encoding="utf-8")
 
     after = {found.name: found.state for found in cleared.review()}
-    assert after["qc-conventions.md"] == "edited"
-    assert after["valuation-standards.md"] == "cleared", "one file changing is not two"
+    assert after["_firm/qc-conventions.md"] == "edited"
+    assert after["_firm/valuation-standards.md"] == "cleared", "one file changing is not two"
     assert not cleared.is_cleared(digest_of(path.read_bytes()))
 
     # The old clearance is still on the record - it happened - it just no longer matches
@@ -169,7 +172,7 @@ def test_the_context_builder_refuses_an_uncleared_file_and_names_it(
     diagnostic = refused.value.diagnostic
     assert diagnostic.code == "CONFIG.METHODOLOGY_UNCLEARED"
     assert diagnostic.owner == "config"
-    assert diagnostic.locator in {"qc-conventions.md", "valuation-standards.md"}
+    assert diagnostic.locator in {"_firm/qc-conventions.md", "_firm/valuation-standards.md"}
     assert diagnostic.locator in diagnostic.detail, "the refusal names the file"
     assert diagnostic.found.startswith("sha256:")
 
@@ -181,7 +184,7 @@ def test_an_edited_file_stops_the_run_and_says_it_was_edited(
     and looking exactly as legitimate as it did before."""
     assert builder.build(request_for("ebitda")).sections, "cleared methodology attaches"
 
-    path = foundations / "qc-conventions.md"
+    path = foundations / "_firm" / "qc-conventions.md"
     path.write_text(WITH_CLIENT_DATA, encoding="utf-8")
 
     with pytest.raises(RegistryError) as refused:
@@ -197,7 +200,10 @@ def test_cleared_methodology_is_attached_in_full(
     assembled = builder.build(request_for("ebitda"))
     attached = assembled.section("foundations")
 
-    assert [s.name for s in attached] == ["qc-conventions.md", "valuation-standards.md"]
+    assert [s.name for s in attached] == [
+        "_firm/qc-conventions.md",
+        "_firm/valuation-standards.md",
+    ]
     for section in attached:
         assert cleared.is_cleared(section.content_hash)
         assert section.content_hash == digest_of((foundations / section.name).read_bytes())
@@ -245,8 +251,8 @@ def test_preflight_reports_uncleared_methodology_before_a_run_finds_it(
     assert check.status == "fail"
     assert check.detail == "0 of 2 methodology files cleared"
     assert {f.diagnostic.locator for f in check.failures} == {
-        "qc-conventions.md",
-        "valuation-standards.md",
+        "_firm/qc-conventions.md",
+        "_firm/valuation-standards.md",
     }
     assert all(f.blocks_everything for f in check.failures), "this is not one engagement's problem"
     assert "has never been cleared" in check.failures[0].diagnostic.detail
@@ -258,7 +264,7 @@ def test_preflight_reports_an_edited_file_as_edited(
 ) -> None:
     assert preflight.run().checks[-1].status == "pass"
 
-    (foundations / "qc-conventions.md").write_text("# Changed\n", encoding="utf-8")
+    (foundations / "_firm" / "qc-conventions.md").write_text("# Changed\n", encoding="utf-8")
     check = next(c for c in preflight.run().checks if c.id == "methodology_cleared")
 
     assert check.status == "fail"
@@ -276,12 +282,14 @@ def test_the_check_joins_the_table_and_the_blueprint_agrees(
     a number somebody typed in a test.
     """
     ids = [c[0] for c in CHECKS]
-    assert ids[-1] == "methodology_cleared", "it reads last; everything else is per-engagement"
+    assert ids[-2:] == ["methodology_cleared", "methodology_size"], (
+        "they read last; everything above them is per-engagement"
+    )
     assert [c.id for c in preflight.run().checks] == ids
 
     written = {10: "Ten", 11: "Eleven", 12: "Twelve", 13: "Thirteen"}
     blueprint = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
-    assert len(CHECKS) == 12
+    assert len(CHECKS) == 13
     assert f"{written[len(CHECKS)]} checks over a proposed or live configuration" in blueprint
     assert f"{written[len(CHECKS)].lower()} checks, then what an admin may" in blueprint
     assert "every methodology file cleared, and the version that was cleared" in blueprint
@@ -295,13 +303,14 @@ def test_a_person_clears_a_file_through_the_admin_surface(console: Any, foundati
     before = console.methodology()
     assert [f["state"] for f in before["files"]] == ["uncleared", "uncleared"]
 
-    record = console.clear_methodology("qc-conventions.md", who="C. Smit")
+    record = console.clear_methodology("_firm/qc-conventions.md", who="C. Smit")
     assert record["cleared_by"] == "C. Smit"
 
     after = {f["name"]: f for f in console.methodology()["files"]}
-    assert after["qc-conventions.md"]["state"] == "cleared"
-    assert after["qc-conventions.md"]["cleared_by"] == "C. Smit"
-    assert after["valuation-standards.md"]["state"] == "uncleared"
+    assert after["_firm/qc-conventions.md"]["state"] == "cleared"
+    assert after["_firm/qc-conventions.md"]["cleared_by"] == "C. Smit"
+    assert after["_firm/qc-conventions.md"]["layer"] == "_firm"
+    assert after["_firm/valuation-standards.md"]["state"] == "uncleared"
 
     with pytest.raises(KeyError):
         console.clear_methodology("not-a-file.md", who="C. Smit")
@@ -315,7 +324,7 @@ def test_the_surface_refuses_over_http_with_a_diagnostic(
 
     from admin.app import create_admin_app
 
-    (foundations / "qc-conventions.md").write_text(WITH_CLIENT_DATA, encoding="utf-8")
+    (foundations / "_firm" / "qc-conventions.md").write_text(WITH_CLIENT_DATA, encoding="utf-8")
     client = TestClient(create_admin_app(console))
 
     listed = client.get("/api/admin/methodology")
@@ -323,7 +332,7 @@ def test_the_surface_refuses_over_http_with_a_diagnostic(
     assert [f["state"] for f in listed.json()["files"]] == ["uncleared", "uncleared"]
 
     refused = client.post(
-        "/api/admin/methodology/qc-conventions.md/clear", json={"who": "C. Smit"}
+        "/api/admin/methodology/_firm/qc-conventions.md/clear", json={"who": "C. Smit"}
     )
     assert refused.status_code == 422
     diagnostic = refused.json()["detail"]["refused"][0]
@@ -331,7 +340,8 @@ def test_the_surface_refuses_over_http_with_a_diagnostic(
     assert diagnostic["what_now"]
 
     ok = client.post(
-        "/api/admin/methodology/valuation-standards.md/clear", json={"who": "C. Smit"}
+        "/api/admin/methodology/_firm/valuation-standards.md/clear",
+        json={"who": "C. Smit"},
     )
     assert ok.status_code == 200 and ok.json()["cleared_by"] == "C. Smit"
 

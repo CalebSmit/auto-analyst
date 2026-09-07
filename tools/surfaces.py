@@ -281,6 +281,35 @@ def criteria_surface() -> dict[str, Any]:
     }
 
 
+def foundations_surface(register: Any = None) -> dict[str, Any]:
+    """What every prompt carries, by layer: the filenames and one digest over them.
+
+    Not the content - a snapshot is a diff somebody reads, and a methodology file pasted
+    into it would be unreadable and would put the firm\'s standards in two places. The
+    digest is over the layer as a whole, in the order the Context Builder attaches it, so
+    an edit, an addition, a deletion and a reorder each move exactly one line.
+    """
+    import hashlib
+
+    from registries.methodology import MethodologyRegister
+
+    register = register or MethodologyRegister()
+    out: dict[str, Any] = {}
+    for layer in register.layers():
+        files = sorted((register.root / layer).glob("*.md"))
+        files = [f for f in files if f.name.lower() != "readme.md"]
+        rolling = hashlib.sha256()
+        for path in files:
+            rolling.update(path.name.encode("utf-8"))
+            rolling.update(path.read_bytes())
+        out[layer] = {
+            "files": [f.name for f in files],
+            "bytes": sum(f.stat().st_size for f in files),
+            "digest": f"sha256:{rolling.hexdigest()}",
+        }
+    return out
+
+
 def governance_surface() -> dict[str, Any]:
     from governance.candidate import NODE_FOR, STAGES
 
@@ -304,6 +333,7 @@ COLLECTORS = {
     "evals": evals_surface,
     "criteria": criteria_surface,
     "governance": governance_surface,
+    "foundations": foundations_surface,
 }
 
 

@@ -50,6 +50,7 @@ from registries.errors import (
     CREDENTIAL_EXPIRED,
     DESTINATION_UNWRITABLE,
     GROUP_UNDEFINED,
+    METHODOLOGY_TOO_LARGE,
     METHODOLOGY_UNCLEARED,
     MISSING_CREDENTIAL,
     NO_ENGAGEMENT,
@@ -85,6 +86,7 @@ CHECKS: tuple[tuple[str, str], ...] = (
     ("destinations_writable", "Delivery destinations writable"),
     ("recipes_and_budgets", "Named recipes exist and budgets are at or under the ceiling"),
     ("methodology_cleared", "Every methodology file is cleared, and is the cleared version"),
+    ("methodology_size", "No layer of methodology is past its size ceiling"),
 )
 
 
@@ -235,6 +237,7 @@ class Preflight:
             self._destinations(),
             self._recipes_and_budgets(entries),
             self._methodology(),
+            self._methodology_size(),
         )
         return PreflightReport(
             ran_at=self._clock().isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -702,6 +705,43 @@ class Preflight:
             "methodology_cleared",
             failures,
             f"{len(files) - len(failures)} of {len(files)} methodology files cleared",
+        )
+
+
+    def _methodology_size(self) -> Check:
+        """What each layer adds to every prompt of every run that walks through it.
+
+        A standing cost, not a one-off: the firm layer is on every run there is, and a
+        practice group layer is on every run of that group. Found at setup, because the
+        alternative is finding it in a bill and not knowing which document caused it.
+        """
+        ceiling = self.constraints.methodology_ceiling()
+        failures = []
+        largest = 0
+        for layer in self.methodology.layers():
+            size = self.methodology.bytes_at(layer)
+            largest = max(largest, size)
+            if size <= ceiling:
+                continue
+            failures.append(
+                Failure(
+                    "methodology_size",
+                    diagnose(
+                        METHODOLOGY_TOO_LARGE,
+                        f"foundations/{layer} is {size:,} bytes against a ceiling of "
+                        f"{ceiling:,}. Every run resolving through this layer carries all "
+                        f"of it, on every model call.",
+                        locator=layer,
+                        expected=f"{ceiling:,} bytes or fewer",
+                        found=f"{size:,} bytes",
+                    ),
+                )
+            )
+        layers = self.methodology.layers()
+        return _check(
+            "methodology_size",
+            failures,
+            f"{len(layers)} layer(s), largest {largest:,} of {ceiling:,} bytes",
         )
 
 

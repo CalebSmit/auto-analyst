@@ -140,6 +140,10 @@ class ConstraintRegistry:
     def loop_ceiling(self) -> int:
         return int(self.ceilings["per_run"]["loop_iterations_max"])
 
+    def methodology_ceiling(self) -> int:
+        """Bytes of methodology one layer may add to every prompt that walks through it."""
+        return int(self.ceilings["per_methodology_layer"]["bytes_max"])
+
     def materiality_floor(self) -> tuple[float, str]:
         floor = self.materiality["firm_floor"]
         return float(floor["amount"]), str(floor["currency"])

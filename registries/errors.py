@@ -169,6 +169,7 @@ CLIENT_DATA_IN_DRAFT = "SKILL.CLIENT_DATA_IN_DRAFT"
 SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
 METHODOLOGY_UNCLEARED = "CONFIG.METHODOLOGY_UNCLEARED"
 METHODOLOGY_UNSAFE = "CONFIG.METHODOLOGY_UNSAFE"
+METHODOLOGY_TOO_LARGE = "CONFIG.METHODOLOGY_TOO_LARGE"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 WORKER_LOST = "PROCESS.WORKER_LOST"
@@ -421,6 +422,16 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "recorded by digest; editing a file after it was cleared is what this catches, "
         "and it catches it by the hash changing rather than by anybody remembering. "
         "Clear it from the admin surface, or restore the version that was cleared.",
+    ),
+    METHODOLOGY_TOO_LARGE: (
+        "config",
+        "One layer of foundations/ is past the size ceiling in constraints.yaml. That is "
+        "content on every model call of every run that resolves through the layer - the "
+        "firm layer being all of them - so it is a standing cost per run rather than a "
+        "one-off. Reported at setup because the alternative is finding it in a bill and "
+        "not knowing which document caused it. Either take something out of the layer, "
+        "or raise the ceiling deliberately, which is a decision about what a run costs "
+        "and belongs in constraints.yaml rather than in whatever wanted the room.",
     ),
     METHODOLOGY_UNSAFE: (
         "config",
