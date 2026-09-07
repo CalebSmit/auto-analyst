@@ -70,6 +70,11 @@ Then open:
 
 - **http://127.0.0.1:8000/admin** — setup, engagements, practice groups, methodology
 - **http://127.0.0.1:8000/** — the ops console: runs, steps, cost, the review queue
+- **http://127.0.0.1:8000/analytics** — across every run: is it working, and what to fix
+
+Each links to the other two. They answer different questions and are read at different
+times: the admin page when you are setting something up, the console while a run is
+happening, analytics weekly by whoever is deciding whether this is worth continuing.
 
 `--no-sweep` starts the consoles without watching any folder. `--check` builds everything,
 starts nothing, and prints what is ready — the right first command on a new machine.
@@ -202,6 +207,12 @@ what to do about it; a failure with no engagement named blocks everything.
 - **The ops console** shows every run, every step, cost against budget, and the review
   queue. If the console is down, runs continue — it reads the event log, it does not drive
   anything.
+- **The analytics page** answers the four questions that decide whether this is worth
+  continuing: is it healthy (first-pass yield, where runs stop), what to fix first
+  (failures ranked, each with the owner the diagnostics registry gives it — the largest
+  class is usually client data, and no engineering removes that), is it getting better
+  (auto-accept and override rates beside the human baseline, which reads `unmeasured`
+  until two analysts have measured it on real line items), and is anything stuck.
 - **Every run has a manifest**: what was in context, which model, which skill versions,
   which template, what each guard said. "Why did it do that" is a lookup, not an
   investigation.

@@ -116,6 +116,58 @@ def test_the_admin_page_is_a_page_a_person_can_use(served: Any) -> None:
     assert "every change here is recorded against it" in body, "who did it travels with it"
 
 
+def test_the_three_pages_are_served_and_reach_each_other(served: Any) -> None:
+    """A page nobody can navigate to is a page nobody reads.
+
+    Three surfaces, three questions: the admin page is "set it up", the ops console is
+    "what is happening now", and analytics is "across every run, is it working". Each
+    links to the other two, because the alternative is knowing the URLs.
+    """
+    client = TestClient(served.app)
+    client.post("/api/admin/initialise", json={"who": "C. Smit", "reason": "first"})
+
+    pages = {path: client.get(path) for path in ("/", "/admin", "/analytics")}
+    assert all(page.status_code == 200 for page in pages.values()), {
+        path: page.status_code for path, page in pages.items()
+    }
+    for path, page in pages.items():
+        others = {other for other in pages if other != path}
+        assert all(f'href="{other}"' in page.text for other in others), path
+
+
+def test_the_analytics_page_renders_what_the_analytics_module_computes(served: Any) -> None:
+    """The page and the data have to agree about the field names, or the dashboard shows
+    blanks the first time somebody renames one - and a blank on a dashboard reads as a
+    zero rather than as a bug."""
+    client = TestClient(served.app)
+    client.post("/api/admin/initialise", json={"who": "C. Smit", "reason": "first"})
+
+    overview = client.get("/api/analytics").json()
+    assert set(overview) >= {
+        "since", "head", "outcomes", "funnel", "failures", "trends", "stuck", "skills"
+    }
+
+    page = client.get("/analytics").text
+    for group in ("head", "outcomes", "funnel", "failures", "trends", "stuck", "skills"):
+        assert f"a.{group}" in page, group
+    for field in (
+        "first_pass_yield",
+        "time_to_first_reviewable_min",
+        "released_then_corrected",
+        "auto_accept_rate",
+        "override_rate_human_baseline",
+        "tieout_failure_rate",
+        "quarantined_steps",
+        "review_items_past_sla",
+        "skills_flagged_by_drift",
+    ):
+        assert field in page, field
+
+    # The baseline is the one number the dashboard must not invent.
+    assert "unmeasured" in page
+    assert "two analysts, 200 real line items" in page
+
+
 def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> None:
     """The part that keeps this honest.
 

@@ -25,6 +25,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 
 from ops.analytics import Analytics
 from ops.blobs import ContentRef, ContentStore
+from ops.console.analytics_page import PAGE as ANALYTICS_PAGE
 from ops.console.trace import Trace, TraceReducer
 from ops.cost import CostMeter
 from ops.drift import DriftMonitor
@@ -307,6 +308,16 @@ def create_app(console: Console) -> FastAPI:
     def cost(engagement_id: str) -> dict[str, Any]:
         return console.meter.rollup(engagement_id).as_dict()
 
+    @app.get("/analytics", response_class=HTMLResponse)
+    def analytics_page() -> str:
+        """The four questions that decide whether the project continues.
+
+        A second page rather than a tab: the live console answers "what is happening now"
+        and this answers "across every run, is it working". They are read at different
+        times, by people asking different things.
+        """
+        return ANALYTICS_PAGE
+
     @app.get("/api/analytics")
     def analytics(days: int = 30) -> dict[str, Any]:
         return console.analytics.overview(days=days).as_dict()
@@ -430,7 +441,7 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#8b93a1;ma
 .pass{color:#5fcf8a}.fail{color:#ff6b6b}.not_measured{color:#4a515c}
 #feed{max-height:52vh;overflow:auto}a{color:#7cb7ff}
 </style>
-<header><h1>Ops console</h1><span id="status" class="mono">reader of the event bus - console down, runs continue</span></header>
+<header><h1>Ops console</h1><span id="status" class="mono">reader of the event bus - console down, runs continue</span><span style="margin-left:auto"><a href="/analytics">analytics</a> &middot; <a href="/admin">admin</a></span></header>
 <main>
 <div>
 <section><h2>Runs</h2><div id="runs"></div></section>

@@ -44,7 +44,7 @@ details summary{cursor:pointer;color:#8b93a1;font-size:12px}
 <header>
  <h1>Admin</h1>
  <span id="where" class="mono muted"></span>
- <span style="margin-left:auto"><a href="/" style="color:#7cb7ff">ops console</a></span>
+ <span style="margin-left:auto"><a href="/" style="color:#7cb7ff">ops console</a> &middot; <a href="/analytics" style="color:#7cb7ff">analytics</a></span>
 </header>
 <div id="said" class="mono"></div>
 <main>
