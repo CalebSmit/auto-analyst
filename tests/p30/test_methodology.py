@@ -30,6 +30,7 @@ from registries.methodology import (
     CLEARED_FILE,
     ClearanceRefused,
     MethodologyRegister,
+    body_of,
     digest_of,
 )
 from tests.conftest import needs_a_checkout
@@ -71,7 +72,7 @@ def test_a_file_carrying_client_data_or_an_instruction_cannot_be_cleared(
     assert register.cleared() == (), "nothing is written when a clearance is refused"
 
     # The refusal says what it found, not just that it found something.
-    reasons = register.scan(path.read_bytes(), path.name)
+    reasons = register.scan(body_of(path), path.name)
     assert reasons and any(expected in r.lower() for r in reasons), reasons
 
 
@@ -92,8 +93,8 @@ def test_what_is_recorded_is_who_when_and_which_bytes(
     record = register.clear(path, cleared_by="  C. Smit  ")
 
     assert record.cleared_by == "C. Smit", "whitespace is not part of anybody's name"
-    assert record.digest == digest_of(path.read_bytes())
-    assert record.size_bytes == len(path.read_bytes())
+    assert record.digest == digest_of(body_of(path))
+    assert record.size_bytes == len(body_of(path))
     assert record.cleared_at.endswith("Z")
     assert register.is_cleared(record.digest)
 
@@ -144,7 +145,7 @@ def test_an_edited_file_loses_its_clearance(
     after = {found.name: found.state for found in cleared.review()}
     assert after["_firm/qc-conventions.md"] == "edited"
     assert after["_firm/valuation-standards.md"] == "cleared", "one file changing is not two"
-    assert not cleared.is_cleared(digest_of(path.read_bytes()))
+    assert not cleared.is_cleared(digest_of(body_of(path)))
 
     # The old clearance is still on the record - it happened - it just no longer matches
     # anything on disk. Nothing is edited or removed to make this work.
@@ -206,7 +207,7 @@ def test_cleared_methodology_is_attached_in_full(
     ]
     for section in attached:
         assert cleared.is_cleared(section.content_hash)
-        assert section.content_hash == digest_of((foundations / section.name).read_bytes())
+        assert section.content_hash == digest_of(body_of(foundations / section.name))
     assert b"Every engagement gets a scope memo" in builder.blobs.get(assembled.ref)
 
 
@@ -383,7 +384,7 @@ def test_the_repos_own_methodology_scans_clean() -> None:
     register = MethodologyRegister()
     assert register.files(), "the firm ships methodology"
     for path in register.files():
-        assert register.scan(path.read_bytes(), path.name) == (), path.name
+        assert register.scan(body_of(path), path.name) == (), path.name
 
 
 def test_the_error_codes_are_in_the_catalogue_with_what_to_do() -> None:

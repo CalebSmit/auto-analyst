@@ -1061,7 +1061,8 @@
         "foundations/ resolved through LAYER_ORDER, the existing files moving to _firm",
         "A size ceiling per layer in constraints.yaml, reported by preflight",
         "A foundations group in BUILD/surfaces.json: layer, files, digest",
-        "A byte ceiling per layer, its diagnostic, and the foundations group in the snapshot"
+        "A byte ceiling per layer, its diagnostic, and the foundations group in the snapshot",
+        "One definition of a methodology file's bytes, so a clearance travels between a laptop and a container"
       ],
       "exit": [
         "A valuation run carries the firm and valuation methodology and not consulting's",

@@ -50,6 +50,7 @@ __all__ = [
     "ClearedFile",
     "MethodologyFile",
     "MethodologyRegister",
+    "body_of",
     "digest_of",
 ]
 
@@ -60,6 +61,21 @@ CLEARED_FILE = FOUNDATIONS_DIR / "cleared.yaml"
 SKIP = frozenset({"readme.md"})
 """Files that are not methodology. A README describes a folder; it is not attached to
 anything, so clearing one would be recording a decision nobody made."""
+
+
+def body_of(path: Path) -> bytes:
+    """The bytes of a methodology file, with line endings normalised to `\n`.
+
+    Read as text and encoded back rather than read raw, because a checkout on Windows and
+    the same checkout in a Linux container differ by a byte per line - and everything here
+    is a digest over those bytes. Raw reads would mean a file cleared on a laptop reads as
+    edited in the container, every run stopping for a change nobody made, and the same
+    methodology producing two different context hashes on two machines.
+
+    This is also the byte sequence the Context Builder frames and the model is shown, so
+    the digest keeps describing what was actually sent rather than what was on disk.
+    """
+    return path.read_text(encoding="utf-8").encode("utf-8")
 
 
 def digest_of(body: bytes) -> str:
@@ -186,7 +202,7 @@ class MethodologyRegister:
         if not directory.is_dir():
             return 0
         return sum(
-            p.stat().st_size for p in directory.glob("*.md") if p.name.lower() not in SKIP
+            len(body_of(p)) for p in directory.glob("*.md") if p.name.lower() not in SKIP
         )
 
     def review(self) -> tuple[MethodologyFile, ...]:
@@ -196,7 +212,7 @@ class MethodologyRegister:
         out: list[MethodologyFile] = []
         for path in self.files():
             name = self.name_of(path)
-            digest = digest_of(path.read_bytes())
+            digest = digest_of(body_of(path))
             found = self.entry(digest)
             if found is not None:
                 out.append(
@@ -247,7 +263,7 @@ class MethodologyRegister:
         """
         if not cleared_by.strip():
             raise ValueError("a clearance names the person who gave it")
-        body = path.read_bytes()
+        body = body_of(path)
         digest = digest_of(body)
 
         name = self.name_of(path)

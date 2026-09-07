@@ -53,7 +53,7 @@ from registries.errors import (
     RegistryError,
     diagnose,
 )
-from registries.methodology import MethodologyRegister, digest_of
+from registries.methodology import MethodologyRegister, body_of, digest_of
 from registries.skills import SkillTree
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -265,7 +265,7 @@ class ContextBuilder:
         cleared = self.methodology.digests()
         for path in self.methodology.for_layers(request.scope.layers):
             name = self.methodology.name_of(path)
-            body = path.read_bytes()
+            body = body_of(path)
             digest = digest_of(body)
             if digest not in cleared:
                 raise RegistryError(

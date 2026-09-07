@@ -623,3 +623,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - task added: who taken from the authenticated identity on every write, and a client-supplied name refused
 - task added: The review surface and the precedent store record the identity that decided
 - task added: The blueprint gains identity: it does not mention it at all today
+
+## 2026-09-07 - P31 Methodology per practice group
+
+**Why:** The foundations digest moves, and the reason is a portability bug the container proof caught. A methodology file was hashed with read_bytes, so the same three files gave one digest on a Windows checkout and another inside a Linux image - a byte per line. That is worse than a moving snapshot: a file cleared at the firm on a laptop would read as edited the moment the same repo ran in a container, stopping every run for a change nobody made, and the assembled context would differ byte for byte between the two, which is two idempotency keys for one question. The rest of the system already avoided this without saying so, because a skill body reaches context through read_text and Python translates newlines. registries.methodology.body_of is now the one place that decides what a methodology file is: decoded as text, encoded back with newlines as LF, which is also the byte sequence the model is shown.
+
+- task added: One definition of a methodology file's bytes, so a clearance travels between a laptop and a container

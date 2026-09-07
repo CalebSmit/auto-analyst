@@ -25,7 +25,7 @@ from graph.resolve import ScopeResolver
 from harness.context import ContextBuilder
 from registries.constraints import ConstraintRegistry
 from registries.errors import RegistryError
-from registries.methodology import MethodologyRegister
+from registries.methodology import MethodologyRegister, body_of
 from tools.surfaces import SNAPSHOT, foundations_surface
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -177,7 +177,7 @@ def test_the_ceiling_is_per_layer_not_per_tree(
     practice groups does not have ten groups' worth of methodology on any one call."""
     for layer in ("_firm", "valuation/_group", "consulting/_group"):
         assert register.bytes_at(layer) == len(
-            (foundations / layer / "how-we-work.md").read_bytes()
+            body_of(foundations / layer / "how-we-work.md")
         )
     assert register.bytes_at("corporate-finance/_group") == 0, "a layer with no folder"
 
