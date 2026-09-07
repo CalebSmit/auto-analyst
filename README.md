@@ -14,9 +14,12 @@ python tools/serve.py --check     # what is wired, what is not, and what setup n
 python tools/serve.py             # the admin page at /admin, the ops console at /
 ```
 
-[`docs/USING.md`](docs/USING.md) is the guide for the people it is for. **Execution is not
-wired yet** - `tools/serve.py --check` says so, derived from the code rather than from a
-sentence somebody has to remember to update, and phases P34 and P35 are the work.
+[`docs/USING.md`](docs/USING.md) is the guide for the people it is for. Every seam is
+joined: a file landing in a watched folder is bound to an engagement, held until the set is
+complete, released as a run, picked up and driven through its plan - masked, checked, and
+recorded. What it cannot yet do is *finish*, because two of the skills the shipped recipes
+name have no mechanical half written. `tools/serve.py --check` says what is joined, derived
+from the code rather than from a sentence somebody has to remember to update.
 
 To **build** it:
 
@@ -126,7 +129,7 @@ Resolve it explicitly and record the resolution with `gate amend`.
 
 ## Where this is going
 
-Phases 1–31 run entirely on this machine: a watched local folder in, a local folder out,
+Every phase runs entirely on this machine: a watched local folder in, a local folder out,
 SQLite, no cloud, no credentials beyond one API key. That is deliberate — the ports exist
 so the move to ShareFile intake, Box delivery and the firm's own Anthropic account is a
 `.env` change and three adapter classes, not a rewrite.

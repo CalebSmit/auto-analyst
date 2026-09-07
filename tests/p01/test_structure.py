@@ -232,7 +232,9 @@ def gate(*args: str) -> subprocess.CompletedProcess[str]:
 def test_gate_status_runs_with_no_arguments() -> None:
     r = gate("status")
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "CURRENT" in r.stdout
+    # Either a phase is in progress or the plan is finished. Both are states the gate
+    # prints properly, and a test that only knows the first one fails on the last day.
+    assert "CURRENT" in r.stdout or "Every phase is closed" in r.stdout
 
 
 def test_gate_refuses_to_close_a_phase_out_of_order() -> None:
@@ -271,6 +273,10 @@ def test_gate_refuses_a_checkpoint_whose_phases_are_open() -> None:
 
 def test_gate_check_does_not_mutate_the_plan() -> None:
     before = (ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8")
-    gate("check", open_phases()[0])
+    # The first phase still open, or the last one there is when the plan is finished.
+    # `check` re-runs a closed phase quite happily; what this is about is that it writes
+    # nothing either way.
+    still_open = open_phases()
+    gate("check", still_open[0] if still_open else plan()["phases"][-1]["id"])
     after = (ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8")
     assert before == after, "check must never write state - only close may"

@@ -1199,14 +1199,15 @@
       "title": "Who is asking: identity on both surfaces",
       "block": "Block I - The system runs",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "The name on a recorded change is one the system verified, not one the caller typed.",
       "builds": [],
       "tasks": [
         "An identity port, with a local adapter that names the operating-system user and refuses outside a loopback bind",
         "who taken from the authenticated identity on every write, and a client-supplied name refused",
         "The review surface and the precedent store record the identity that decided",
-        "The blueprint gains identity: it does not mention it at all today"
+        "The blueprint gains identity: it does not mention it at all today",
+        "The identity port and its local_user adapter, in the ports surface"
       ],
       "exit": [
         "Neither surface serves anything outside a loopback bind without an authenticated identity",
@@ -1219,7 +1220,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy admin ops ports review"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-07"
     }
   ],
   "checkpoints": [
@@ -1360,11 +1362,12 @@
       "id": "C13",
       "title": "The system runs",
       "after": "P36",
-      "status": "open",
+      "status": "done",
       "proves": "A file landing in a watched folder becomes a deliverable in the outbox, with nothing in the path that exists only in a test",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c13 -q"
-      ]
+      ],
+      "closed": "2026-09-07"
     }
   ]
 }

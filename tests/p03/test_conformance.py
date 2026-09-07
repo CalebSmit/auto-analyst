@@ -24,6 +24,7 @@ import pytest
 import ports
 from ports.compute import ComputePort, ComputeTarget
 from ports.delivery import DeliveryPort
+from ports.identity import IdentityPort
 from ports.llm import LLMPort, LLMRequest, LLMResponse, Message, ModelPin, Usage
 from ports.queue import JobState, QueuePort
 from ports.secrets import Secret, SecretsPort
@@ -37,6 +38,7 @@ from registries.errors import (
 )
 
 PROTOCOLS: dict[str, Any] = {
+    "identity": IdentityPort,
     "storage": StoragePort,
     "delivery": DeliveryPort,
     "secrets": SecretsPort,
@@ -100,12 +102,27 @@ def test_every_port_has_a_protocol_and_at_least_one_adapter(port: str) -> None:
     assert ports.adapters(port), f"{port} has no adapter"
 
 
-def test_there_are_six_ports(port_count: int = 6) -> None:
-    """Storage, delivery, secrets, queue, llm, compute. Compute is a port rather than an
-    assumption so the manifest can record where a run happened and the worker pool can
-    ask how much concurrency exists instead of guessing."""
-    assert set(ports.PORTS) == {"storage", "delivery", "secrets", "queue", "llm", "compute"}
-    assert len(ports.PORTS) == port_count
+def test_the_ports_are_the_ones_the_blueprint_names() -> None:
+    """Storage, delivery, secrets, queue, llm, compute, identity.
+
+    Each is a port because each is a deployment choice rather than an architecture.
+    Compute so the manifest can record where a run happened and the pool can ask how much
+    concurrency exists instead of guessing. Identity so a laptop can have one person and
+    no accounts while the firm has a provider, without the admin surface knowing which.
+
+    Every one has a protocol here, and adding a port without one would mean an adapter
+    nothing checks - so the two sets are compared rather than the count.
+    """
+    assert set(ports.PORTS) == {
+        "storage",
+        "delivery",
+        "secrets",
+        "queue",
+        "llm",
+        "compute",
+        "identity",
+    }
+    assert set(PROTOCOLS) == set(ports.PORTS), "every port has a protocol to satisfy"
 
 
 @pytest.mark.parametrize("port", sorted(ports.PORTS))

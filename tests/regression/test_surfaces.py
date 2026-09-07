@@ -96,7 +96,9 @@ def test_the_load_bearing_surfaces_are_all_there(recorded: dict) -> None:
     assert len(recorded["graph"]["invariants"]) == 25
     assert recorded["graph"]["nodes"] == 118
     assert len(recorded["skills"]["skills"]) >= 13
-    assert len(recorded["ports"]) == 6
+    assert set(recorded["ports"]) == {
+        "storage", "delivery", "secrets", "queue", "llm", "compute", "identity",
+    }
     assert len(recorded["governance"]["stages"]) == 11
     assert len(recorded["record"]["run_states"]) == 7
     assert set(recorded["recipes"]) == {"monthly-refresh@v3", "full-ddr-intake@v1"}

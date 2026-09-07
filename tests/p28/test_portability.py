@@ -104,7 +104,9 @@ def test_the_dependency_list_names_no_vendor_sdk() -> None:
 def test_every_deployment_choice_is_a_port() -> None:
     """Six ports, and the two that are contracts for the firm's connectors are declared
     rather than absent - so choosing one is a refusal somebody can read."""
-    assert set(ports.PORTS) == {"storage", "delivery", "secrets", "queue", "llm", "compute"}
+    assert set(ports.PORTS) == {
+        "storage", "delivery", "secrets", "queue", "llm", "compute", "identity",
+    }
     assert ports.contracts("storage") == ("sharefile",)
     assert ports.contracts("delivery") == ("box",)
     assert "local_folder" in ports.ready("storage") and "local_folder" in ports.ready("delivery")

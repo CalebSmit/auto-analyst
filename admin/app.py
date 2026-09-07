@@ -10,17 +10,18 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
+import ports
 from admin.console import AdminConsole, AdminRefused
 from admin.page import PAGE
 from intake.config import Destination, Watch
 from intake.roster import RosterEntry, RosterState
-from registries.errors import DiagnosticError
+from registries.errors import ADMIN_FORBIDDEN, DiagnosticError, diagnose  # noqa: F401
 
-__all__ = ["create_admin_app"]
+__all__ = ["create_admin_app", "install_identity", "who"]
 
 
 class Change(BaseModel):
@@ -104,8 +105,62 @@ class CredentialBody(Change):
     expires_on: str | None = None
 
 
-def create_admin_app(console: AdminConsole) -> FastAPI:
+def install_identity(app: FastAPI, identity: Any | None = None) -> None:
+    """Resolve who is asking on every request to `app`, or refuse before a route runs.
+
+    Installed by the caller that assembles the application, because a router does not
+    carry its application\'s middleware: `tools/serve.py` puts both consoles on one app,
+    and this living on the admin app alone meant the combined one had no check at all.
+
+    On the request rather than in each handler for the same reason - a check twenty
+    handlers have to remember is a check one of them will not, and the one that forgets is
+    the one that writes to the record.
+    """
+    port = identity or ports.get_identity()
+
+    @app.middleware("http")
+    async def _who_is_asking(request: Request, call_next: Any) -> Any:
+        try:
+            request.state.identity = port.resolve(
+                request.client.host if request.client else None
+            )
+        except DiagnosticError as refused:
+            return JSONResponse(
+                status_code=401, content={"detail": {"refused": [refused.diagnostic.as_dict()]}}
+            )
+        return await call_next(request)
+
+
+def who(request: Request, claimed: str | None) -> str:
+    """The name that goes in the record.
+
+    The system\'s answer, and a refusal when the caller sent a different one. Not ignored -
+    refused - because a request that disagrees about who is making it is either a bug or an
+    attempt, and silently correcting it hides both.
+    """
+    resolved = request.state.identity
+    if claimed and claimed.strip() and claimed.strip() != resolved.name:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "refused": [
+                    diagnose(
+                        ADMIN_FORBIDDEN,
+                        f"this change would be recorded against {claimed.strip()!r}, and "
+                        f"the identity behind the request is {resolved.name!r}",
+                        locator="identity",
+                        expected=resolved.name,
+                        found=claimed.strip(),
+                    ).as_dict()
+                ]
+            },
+        )
+    return str(resolved.name)
+
+
+def create_admin_app(console: AdminConsole, identity: Any | None = None) -> FastAPI:
     app = FastAPI(title="Chartwell Automated Analyst - admin", docs_url=None, redoc_url=None)
+    install_identity(app, identity)
 
     @app.get("/admin", response_class=HTMLResponse)
     def dashboard() -> str:
@@ -114,9 +169,9 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
         return PAGE
 
     @app.post("/api/admin/initialise")
-    def initialise(body: Change) -> dict[str, Any]:
+    def initialise(request: Request, body: Change) -> dict[str, Any]:
         """The first configuration for this environment. Everything else needs one."""
-        return _guard(lambda: console.initialise(who=body.who, reason=body.reason))
+        return _guard(lambda: console.initialise(who=who(request, body.who), reason=body.reason))
 
     @app.get("/api/admin/setup")
     def setup() -> dict[str, Any]:
@@ -159,11 +214,11 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
     # its filename - `_firm/qc-conventions.md` - and a plain path parameter stops at the
     # slash, which would make every file below the first layer unreachable.
     @app.post("/api/admin/methodology/{name:path}/clear")
-    def clear_methodology(name: str, body: Clearance) -> dict[str, Any]:
-        return _guard(lambda: console.clear_methodology(name, who=body.who))
+    def clear_methodology(name: str, request: Request, body: Clearance) -> dict[str, Any]:
+        return _guard(lambda: console.clear_methodology(name, who=who(request, body.who)))
 
     @app.post("/api/admin/engagements")
-    def register(body: Registration) -> dict[str, Any]:
+    def register(request: Request, body: Registration) -> dict[str, Any]:
         entry = RosterEntry(
             engagement_id=body.engagement_id,
             client=body.client,
@@ -180,56 +235,59 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
         return _guard(
             lambda: (
                 console.register_engagement(
-                    entry, profile=body.profile, who=body.who, reason=body.reason
+                    entry, profile=body.profile, who=who(request, body.who), reason=body.reason
                 ).__dict__
             )
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/activate")
-    def activate(engagement_id: str, body: Change) -> dict[str, Any]:
+    def activate(engagement_id: str, request: Request, body: Change) -> dict[str, Any]:
         return _guard(
-            lambda: console.activate(engagement_id, who=body.who, reason=body.reason).__dict__
+            lambda: console.activate(engagement_id, who=who(request, body.who),
+                reason=body.reason).__dict__
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/pause")
-    def pause(engagement_id: str, body: Change) -> dict[str, Any]:
+    def pause(engagement_id: str, request: Request, body: Change) -> dict[str, Any]:
         return _guard(
-            lambda: console.pause(engagement_id, who=body.who, reason=body.reason).__dict__
+            lambda: console.pause(engagement_id, who=who(request, body.who),
+                reason=body.reason).__dict__
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/archive")
-    def archive(engagement_id: str, body: Change) -> dict[str, Any]:
+    def archive(engagement_id: str, request: Request, body: Change) -> dict[str, Any]:
         return _guard(
-            lambda: console.archive(engagement_id, who=body.who, reason=body.reason).__dict__
+            lambda: console.archive(engagement_id, who=who(request, body.who),
+                reason=body.reason).__dict__
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/budget")
-    def budget(engagement_id: str, body: Budget) -> dict[str, Any]:
+    def budget(engagement_id: str, request: Request, body: Budget) -> dict[str, Any]:
         return _guard(
             lambda: (
                 console.set_budget(
-                    engagement_id, body.usd, who=body.who, reason=body.reason
+                    engagement_id, body.usd, who=who(request, body.who), reason=body.reason
                 ).__dict__
             )
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/recipe")
-    def recipe(engagement_id: str, body: RecipeChoice) -> dict[str, Any]:
+    def recipe(engagement_id: str, request: Request, body: RecipeChoice) -> dict[str, Any]:
         """What order the work happens in, for this engagement."""
         return _guard(
             lambda: {
                 "version": console.set_recipe(
-                    engagement_id, body.recipe, who=body.who, reason=body.reason
+                    engagement_id, body.recipe, who=who(request, body.who), reason=body.reason
                 )
             }
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/review-level")
-    def review_level(engagement_id: str, body: ReviewLevel) -> dict[str, Any]:
+    def review_level(engagement_id: str, request: Request, body: ReviewLevel) -> dict[str, Any]:
         return _guard(
             lambda: (
                 console.set_review_level(
-                    engagement_id, body.level, who=body.who, reason=body.reason
+                    engagement_id, body.level, who=who(request, body.who), reason=body.reason
                 ).__dict__
             )
         )
@@ -240,22 +298,22 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
         return _guard(lambda: console.profile_template(engagement_id))
 
     @app.post("/api/admin/engagements/{engagement_id}/profile")
-    def profile(engagement_id: str, body: Profile) -> dict[str, Any]:
+    def profile(engagement_id: str, request: Request, body: Profile) -> dict[str, Any]:
         return _guard(
             lambda: {
                 "version": console.set_profile(
-                    engagement_id, body.profile, who=body.who, reason=body.reason
+                    engagement_id, body.profile, who=who(request, body.who), reason=body.reason
                 )
             }
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/bind")
-    def bind(engagement_id: str, body: Binding) -> dict[str, Any]:
+    def bind(engagement_id: str, request: Request, body: Binding) -> dict[str, Any]:
         return _guard(
             lambda: (
                 console.bind_engagement(
                     engagement_id,
-                    who=body.who,
+                    who=who(request, body.who),
                     reason=body.reason,
                     destination_id=body.destination_id,
                     template_pin=body.template_pin,
@@ -266,7 +324,7 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
         )
 
     @app.post("/api/admin/models")
-    def bind_model(body: ModelBinding) -> dict[str, Any]:
+    def bind_model(request: Request, body: ModelBinding) -> dict[str, Any]:
         return _guard(
             lambda: {
                 "version": console.bind_model(
@@ -274,39 +332,41 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
                     body.file,
                     body.template_version,
                     why=body.why,
-                    who=body.who,
+                    who=who(request, body.who),
                     reason=body.reason,
                 )
             }
         )
 
     @app.post("/api/admin/watches")
-    def add_watch(body: WatchBody) -> dict[str, Any]:
+    def add_watch(request: Request, body: WatchBody) -> dict[str, Any]:
         watch = Watch(
             body.id, body.kind, body.name, body.root, body.recipe, body.engagement_id, body.depth
         )
         return _guard(
-            lambda: {"version": console.add_watch(watch, who=body.who, reason=body.reason)}
+            lambda: {"version": console.add_watch(watch, who=who(request, body.who),
+                reason=body.reason)}
         )
 
     @app.post("/api/admin/destinations")
-    def add_destination(body: DestinationBody) -> dict[str, Any]:
+    def add_destination(request: Request, body: DestinationBody) -> dict[str, Any]:
         destination = Destination(body.id, body.name, body.path, body.adapter, body.credential)
         return _guard(
             lambda: {
-                "version": console.add_destination(destination, who=body.who, reason=body.reason)
+                "version": console.add_destination(destination, who=who(request, body.who),
+                    reason=body.reason)
             }
         )
 
     @app.post("/api/admin/credentials")
-    def record_credential(body: CredentialBody) -> dict[str, Any]:
+    def record_credential(request: Request, body: CredentialBody) -> dict[str, Any]:
         return _guard(
             lambda: {
                 "version": console.record_credential(
                     body.name,
                     body.purpose,
                     expires_on=body.expires_on,
-                    who=body.who,
+                    who=who(request, body.who),
                     reason=body.reason,
                 )
             }

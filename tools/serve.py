@@ -181,7 +181,7 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
 
     import ports
     from admin import AdminConsole, Preflight
-    from admin.app import create_admin_app
+    from admin.app import create_admin_app, install_identity
     from deliver.registry import TemplateRegistry
     from graph.resolve import ScopeResolver
     from intake import Intake
@@ -250,6 +250,10 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
     # would move every admin path under a prefix, and the paths are the contract the
     # dashboard and every test are written against.
     app = FastAPI(title="Chartwell Automated Analyst", docs_url=None, redoc_url=None)
+    # On the app that is served, not on the one whose routes it borrows: a router does not
+    # carry its application's middleware, so installing it there would leave this one with
+    # no check at all.
+    install_identity(app)
     app.include_router(create_admin_app(admin).router)
     app.include_router(create_app(ops).router)
 

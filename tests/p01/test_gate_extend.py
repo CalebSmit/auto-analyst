@@ -145,16 +145,21 @@ def test_the_new_phase_becomes_current_only_after_the_ones_before_it(sandbox: Pa
     the most routine thing this build does.
     """
     before = plan_of(sandbox)["phases"]
-    first_open = next(x["id"] for x in before if x["status"] != "done")
+    first_open = next((x["id"] for x in before if x["status"] != "done"), None)
 
-    added = extend(sandbox, "--exit", "it does the thing", "--check", "true")
-    assert first_open not in added.stdout.split("added")[0]
-
+    extend(sandbox, "--exit", "it does the thing", "--check", "true")
     status = run(sandbox, "status").stdout
-    assert f"CURRENT   {first_open}" in status, status
     after = plan_of(sandbox)["phases"]
-    assert after[-1]["id"] != first_open, "the new phase is not the current one"
-    assert f"{len(after)}/{len(after)}" not in status, "not everything is closed"
+
+    if first_open is not None:
+        assert f"CURRENT   {first_open}" in status, status
+        assert after[-1]["id"] != first_open, "the new phase waits its turn"
+        return
+
+    # A finished plan. The phase that was just added is the only one open, so it is
+    # current - which is the same rule reaching its other end rather than a different one.
+    assert f"CURRENT   {after[-1]['id']}" in status, status
+    assert after[-1]["status"] == "open"
 
 
 def test_a_block_is_sealed_with_a_checkpoint(sandbox: Path) -> None:

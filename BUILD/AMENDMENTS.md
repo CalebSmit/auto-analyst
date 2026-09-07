@@ -641,3 +641,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** SCOPE.RECIPE_UNREGISTERED is the refusal when a recipe is not approved for client work, or is not the version that was approved. Config-owned, because the answer is to take the workflow through the board rather than to change any code. The blueprint's SCOPE row carries it too.
 
 - task added: SCOPE.RECIPE_UNREGISTERED, and the blueprint row that carries it
+
+## 2026-09-07 - P36 Who is asking: identity on both surfaces
+
+**Why:** The ports surface gains identity: a seventh port, with a local_user adapter that answers with the operating-system user and refuses any request that did not come from this machine. That refusal is the safety of the whole arrangement - binding the surface to a network address without a provider that authenticates does not quietly work - and it is why identity is a port rather than a check in the admin app: which provider vouches for a name at the firm is a deployment choice, and the surface must not know which.
+
+- task added: The identity port and its local_user adapter, in the ports surface

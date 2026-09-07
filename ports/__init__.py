@@ -1,4 +1,4 @@
-"""The ports: six interfaces, their adapters, and the one way to choose between them.
+"""The ports: seven interfaces, their adapters, and the one way to choose between them.
 
 Everything outside this package imports from here and from the six protocol modules -
 never from an adapter. That is not a convention to remember: `tests/p03` walks the import
@@ -10,7 +10,8 @@ the portability argument is worth exactly as much as its weakest import statemen
     from ports.storage.local_folder import LocalFolderStorage   # refused
 
 Which adapter answers is config: AA_STORAGE_ADAPTER, AA_DELIVERY_ADAPTER,
-AA_SECRETS_ADAPTER, AA_QUEUE_ADAPTER, AA_LLM_ADAPTER, AA_COMPUTE_ADAPTER. An unknown
+AA_SECRETS_ADAPTER, AA_QUEUE_ADAPTER, AA_LLM_ADAPTER, AA_COMPUTE_ADAPTER,
+AA_IDENTITY_ADAPTER. An unknown
 name is SCOPE.UNKNOWN_ADAPTER, never a silent fallback to the default - a run reading
 from somewhere nobody chose is the failure this whole arrangement exists to prevent.
 """
@@ -31,6 +32,7 @@ __all__ = [
     "contracts",
     "get_compute",
     "get_delivery",
+    "get_identity",
     "get_llm",
     "get_queue",
     "get_secrets",
@@ -113,6 +115,12 @@ PORTS: dict[str, PortSpec] = {
         default="local_process",
         adapters={"local_process": "ports.compute.local_process"},
     ),
+    "identity": PortSpec(
+        name="identity",
+        env_var="AA_IDENTITY_ADAPTER",
+        default="local_user",
+        adapters={"local_user": "ports.identity.local_user"},
+    ),
 }
 
 _built: dict[tuple[str, str], Any] = {}
@@ -193,6 +201,10 @@ def get_queue(adapter: str | None = None) -> Any:
 
 def get_llm(adapter: str | None = None) -> Any:
     return get_port("llm", adapter)
+
+
+def get_identity(adapter: str | None = None) -> Any:
+    return get_port("identity", adapter)
 
 
 def get_compute(adapter: str | None = None) -> Any:

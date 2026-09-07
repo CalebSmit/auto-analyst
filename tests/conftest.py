@@ -142,6 +142,22 @@ def registered_recipes() -> None:
         )
 
 
+@pytest.fixture(autouse=True)
+def _the_suite_is_somebody(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Who the suite is, to the identity port.
+
+    P36 made the name on a recorded change the one the system resolved rather than the one
+    the caller sent, so a test that posts `who: "C. Smit"` has to actually be C. Smit. The
+    local-user adapter answers with the operating-system user, and `AA_IDENTITY_NAME` is
+    what a container or a test says instead - consulted only for a request that already
+    came from this machine, so it is not a way to be somebody else anywhere it matters.
+
+    Autouse because the alternative is every test that touches the surface remembering,
+    and the one that forgets fails with a 403 that looks like a bug in the surface.
+    """
+    monkeypatch.setenv("AA_IDENTITY_NAME", "C. Smit")
+
+
 def needs_a_checkout(what: str) -> None:
     """Skip when this is not a git checkout.
 

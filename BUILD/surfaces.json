@@ -722,6 +722,14 @@
    "default": "local_folder",
    "env_var": "AA_DELIVERY_ADAPTER"
   },
+  "identity": {
+   "adapters": [
+    "local_user"
+   ],
+   "contracts": [],
+   "default": "local_user",
+   "env_var": "AA_IDENTITY_ADAPTER"
+  },
   "llm": {
    "adapters": [
     "anthropic_messages",

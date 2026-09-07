@@ -5,27 +5,9 @@
 
 ## Where the build is
 
-- **35 of 36 phases closed**
-- Last green checkpoint: **C12**
-- Current phase: **P36 - Who is asking: identity on both surfaces** (gate: auto)
-
-## The next action
-
-Work P36. Its full definition is in [BUILD/phases/P36.md](phases/P36.md).
-
-> The name on a recorded change is one the system verified, not one the caller typed.
-
-Tasks:
-
-- [ ] An identity port, with a local adapter that names the operating-system user and refuses outside a loopback bind
-- [ ] who taken from the authenticated identity on every write, and a client-supplied name refused
-- [ ] The review surface and the precedent store record the identity that decided
-- [ ] The blueprint gains identity: it does not mention it at all today
-
-Then:
-
-    python tools/gate.py check P36
-    python tools/gate.py close P36
+- **36 of 36 phases closed**
+- Last green checkpoint: **C13**
+- Every phase is closed.
 
 ## Before you start
 
@@ -72,4 +54,5 @@ Then:
 - **P33** Registered recipes (2026-09-07)
 - **P34** The run executes: the executor meets the dispatcher (2026-09-07)
 - **P35** A released run is driven to an ending (2026-09-07)
+- **P36** Who is asking: identity on both surfaces (2026-09-07)
 
