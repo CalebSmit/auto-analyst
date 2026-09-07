@@ -45,6 +45,12 @@ class Budget(Change):
     usd: float
 
 
+class Clearance(BaseModel):
+    who: str
+    """A clearance names a person and nothing else. There is no reason field, because the
+    reason for clearing methodology is always the same one: somebody read it."""
+
+
 class ReviewLevel(Change):
     level: str
 
@@ -118,6 +124,14 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
     def scopes() -> dict[str, Any]:
         """What an engagement may be scoped to, from the registry rather than by hand."""
         return console.scope_choices()
+
+    @app.get("/api/admin/methodology")
+    def methodology() -> dict[str, Any]:
+        return console.methodology()
+
+    @app.post("/api/admin/methodology/{name}/clear")
+    def clear_methodology(name: str, body: Clearance) -> dict[str, Any]:
+        return _guard(lambda: console.clear_methodology(name, who=body.who))
 
     @app.post("/api/admin/engagements")
     def register(body: Registration) -> dict[str, Any]:

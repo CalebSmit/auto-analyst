@@ -1018,7 +1018,7 @@
       "title": "Registered methodology: cleared once, checked every run",
       "block": "Block H - Practice groups and their workflows",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Methodology is evidence-free reference material that reaches every call, so it is cleared by a person before it can, and checked by a hash after.",
       "builds": [
         "context_builder",
@@ -1028,7 +1028,8 @@
         "A methodology registry: digest, who cleared it, when - written only on a clearance",
         "Clearance scans with the conformance patterns and the untrusted boundary",
         "The Context Builder refuses to attach a file whose digest is not cleared",
-        "Preflight reports uncleared or edited methodology at setup"
+        "Preflight reports uncleared or edited methodology at setup",
+        "Two diagnostic codes and the blueprint rows that carry them"
       ],
       "exit": [
         "A methodology file carrying something shaped like client data cannot be cleared",
@@ -1039,9 +1040,11 @@
       "checks": [
         "python -m uv run pytest tests/p30 -q",
         "python -m uv run ruff check .",
-        "python -m uv run mypy harness admin governance"
+        "python -m uv run mypy harness admin governance",
+        "python -m uv run mypy registries"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-06"
     },
     {
       "id": "P31",

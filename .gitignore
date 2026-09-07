@@ -26,3 +26,7 @@ docs/.blueprint-mirror
 # os
 Thumbs.db
 .DS_Store
+
+# A clearance is a record of somebody having read a file. Shipping one would be
+# recording a decision nobody made, so a clone starts with nothing cleared.
+foundations/cleared.yaml

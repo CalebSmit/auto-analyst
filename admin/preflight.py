@@ -50,6 +50,7 @@ from registries.errors import (
     CREDENTIAL_EXPIRED,
     DESTINATION_UNWRITABLE,
     GROUP_UNDEFINED,
+    METHODOLOGY_UNCLEARED,
     MISSING_CREDENTIAL,
     NO_ENGAGEMENT,
     PATH_UNREADABLE,
@@ -63,6 +64,7 @@ from registries.errors import (
     DiagnosticError,
     diagnose,
 )
+from registries.methodology import MethodologyRegister
 from registries.scopes import ScopePath
 
 __all__ = ["CHECKS", "Check", "Failure", "Preflight", "PreflightReport", "resolve_model"]
@@ -82,6 +84,7 @@ CHECKS: tuple[tuple[str, str], ...] = (
     ("template_intact", "Template hashes match and every required input is declared"),
     ("destinations_writable", "Delivery destinations writable"),
     ("recipes_and_budgets", "Named recipes exist and budgets are at or under the ceiling"),
+    ("methodology_cleared", "Every methodology file is cleared, and is the cleared version"),
 )
 
 
@@ -195,6 +198,7 @@ class Preflight:
         resolver: ScopeResolver | None = None,
         intake_store: IntakeStore | None = None,
         constraints: ConstraintRegistry | None = None,
+        methodology: MethodologyRegister | None = None,
         recipes: Callable[[str], Any] = load_recipe,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
@@ -207,6 +211,7 @@ class Preflight:
         self.resolver = resolver
         self.intake_store = intake_store
         self.constraints = constraints or ConstraintRegistry.load()
+        self.methodology = methodology or MethodologyRegister()
         self._recipes = recipes
         self._clock = clock or (lambda: datetime.now(tz=UTC))
 
@@ -229,6 +234,7 @@ class Preflight:
             self._templates(entries),
             self._destinations(),
             self._recipes_and_budgets(entries),
+            self._methodology(),
         )
         return PreflightReport(
             ran_at=self._clock().isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -657,6 +663,46 @@ class Preflight:
 
     def _engagements_on_pin(self, entries: tuple[RosterEntry, ...], pin: str) -> tuple[str, ...]:
         return tuple(e.engagement_id for e in entries if self.template_pin_for(e) == pin)
+
+
+    def _methodology(self) -> Check:
+        """Whether the firm's reference material is cleared, and is what was cleared.
+
+        Environment-level rather than per-engagement: `foundations/` reaches every model
+        call, so an uncleared file there stops every run, not one. Reported at setup
+        because the alternative is finding out from a run - and the person who finds out
+        that way is an analyst waiting on a deliverable, not the person who edited the
+        file.
+        """
+        failures = []
+        for found in self.methodology.review():
+            if found.attachable:
+                continue
+            detail = (
+                f"{found.name} was cleared once, but not this version of it - somebody "
+                f"edited it after it was read"
+                if found.state == "edited"
+                else f"{found.name} has never been cleared"
+            )
+            failures.append(
+                Failure(
+                    "methodology_cleared",
+                    diagnose(
+                        METHODOLOGY_UNCLEARED,
+                        f"{detail}. It reaches every model call, so until somebody reads "
+                        f"it and clears it, every run stops here.",
+                        locator=found.name,
+                        expected="a digest in the methodology register",
+                        found=found.digest,
+                    ),
+                )
+            )
+        files = self.methodology.review()
+        return _check(
+            "methodology_cleared",
+            failures,
+            f"{len(files) - len(failures)} of {len(files)} methodology files cleared",
+        )
 
 
 def _profile_gaps(profile: dict[str, Any] | None, scope_path: str) -> list[str]:

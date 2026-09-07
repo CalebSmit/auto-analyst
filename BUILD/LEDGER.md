@@ -86,3 +86,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Never chain a state-changing command behind a piped test run. Capture the exit code first (PIPESTATUS, or run the suite unpiped), or run the commit as its own step after reading the result. And a test that shells out to a tool must not assume the working tree is clean - assert on what the report says, not on the exit code alone.
 
+
+## 2026-09-06 - Running the test suite through the generated pytest.exe console script
+
+**Phase:** P30
+
+**Why it failed:** Windows Application Control refuses to start .venv/Scripts/pytest.exe - a launcher generated at install time, unsigned and unknown to the policy - with 'os error 4551'. Every gate check and every verify run failed on a machine where the suite itself was green, which is the worst kind of failure: the tool saying red about something that is not.
+
+**Rule:** Invoke a Python tool as a module - python -m pytest - not through its generated console script. A managed corporate laptop is more likely to carry that policy than a personal one, so this is the form that travels.
+

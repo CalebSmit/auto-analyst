@@ -40,12 +40,14 @@ from ops.blobs import ContentRef, ContentStore
 from ops.events import EventBus
 from ops.run_store import RunStore
 from registries.errors import (
+    METHODOLOGY_UNCLEARED,
     PRECEDENT_OUT_OF_SCOPE,
     RECIPE_INVALID,
     UNMASKED_PRECEDENT,
     RegistryError,
     diagnose,
 )
+from registries.methodology import MethodologyRegister, digest_of
 from registries.skills import SkillTree
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -200,6 +202,7 @@ class ContextBuilder:
         store: RunStore | None = None,
         precedents: PrecedentSource | None = None,
         foundations_dir: Path = FOUNDATIONS_DIR,
+        methodology: MethodologyRegister | None = None,
     ) -> None:
         self.tree = tree
         self.blobs = blobs
@@ -207,6 +210,7 @@ class ContextBuilder:
         self.store = store
         self.precedents: PrecedentSource = precedents or NoPrecedents()
         self.foundations_dir = foundations_dir
+        self.methodology = methodology or MethodologyRegister(root=foundations_dir)
 
     def build(self, request: ContextRequest) -> AssembledContext:
         step = request.step
@@ -236,11 +240,35 @@ class ContextBuilder:
             )
             parts.append(("reference", ref_name, text.encode("utf-8")))
 
-        # 3. Foundations, unconditionally. Not something a skill author can leave out.
-        for path in sorted(self.foundations_dir.glob("*.md")):
-            if path.name.lower() == "readme.md":
-                continue
-            parts.append(("foundations", path.name, path.read_bytes()))
+        # 3. Foundations, unconditionally - and only ever the cleared version.
+        #
+        # Unconditional is what makes methodology worth checking: it is the one input that
+        # reaches every call for every client, and the outbound scan knows only the
+        # current engagement's identifiers, so a worked example from a real deal pasted in
+        # here would travel everywhere and trip nothing. It is read by a person once and
+        # recorded by digest; this is the lookup, and it refuses rather than dropping the
+        # file, because a run silently missing half its methodology answers a different
+        # question from the one that was asked.
+        cleared = self.methodology.digests()
+        for path in self.methodology.files():
+            body = path.read_bytes()
+            digest = digest_of(body)
+            if digest not in cleared:
+                raise RegistryError(
+                    diagnose(
+                        METHODOLOGY_UNCLEARED,
+                        f"{path.name} is not cleared methodology"
+                        + (
+                            " - it was cleared once, but not this version of it"
+                            if any(row.name == path.name for row in self.methodology.cleared())
+                            else ""
+                        ),
+                        locator=path.name,
+                        expected="a digest recorded in the methodology register",
+                        found=digest,
+                    )
+                )
+            parts.append(("foundations", path.name, body))
 
         # 4. Precedents, from a scope-built query, checked on the way in.
         query = self.query_for(request, resolved)

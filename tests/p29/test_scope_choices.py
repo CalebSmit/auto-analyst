@@ -140,17 +140,19 @@ def test_a_fully_defined_setup_passes_the_check(console: AdminConsole, henderson
     assert check.failures == ()
 
 
-def test_the_check_is_the_blueprints_eleventh(console: AdminConsole, henderson: Any) -> None:
-    """It joins the table beside the one that resolves scopes, and the blueprint says
-    eleven rather than ten."""
-    assert len(CHECKS) == 11
+def test_the_check_sits_beside_the_one_that_resolves_scopes(
+    console: AdminConsole, henderson: Any
+) -> None:
+    """Position, not count. This check reports on what `scope_resolves` just resolved, so
+    it reads immediately after it; the number of checks is the blueprint's, and tests/p30
+    is where the two are compared."""
     ids = [c[0] for c in CHECKS]
     assert ids.index("scope_defined") == ids.index("scope_resolves") + 1
 
     blueprint = (Path(__file__).resolve().parents[2] / "docs" / "architecture.html").read_text(
         encoding="utf-8"
     )
-    assert "Eleven checks over a proposed or live configuration" in blueprint
+    assert "checks over a proposed or live configuration" in blueprint
     assert "practice group and segment that are actually defined" in blueprint
 
     report = console.check(HEND)

@@ -133,6 +133,49 @@ class AdminConsole:
             "paths": paths,
         }
 
+    def methodology(self) -> dict[str, Any]:
+        """Every methodology file, and what the register says about it.
+
+        What a dashboard shows somebody before they clear anything: which files are
+        cleared and by whom, which have never been read, and which were edited after they
+        were cleared - the third being the case worth seeing, because it is the one that
+        looks fine on disk.
+        """
+        register = self.preflight.methodology
+        return {
+            "root": register.root.name,
+            "files": [
+                {
+                    "name": found.name,
+                    "digest": found.digest,
+                    "state": found.state,
+                    "cleared_by": found.cleared_by,
+                    "cleared_at": found.cleared_at,
+                }
+                for found in register.review()
+            ],
+        }
+
+    def clear_methodology(self, name: str, *, who: str) -> dict[str, Any]:
+        """Record that a person read this file and cleared this exact content.
+
+        The scan runs here, and a refusal is the answer rather than a warning beside a
+        success. `who` is required by the register itself; this passes it through rather
+        than defaulting it, because a default is how "cleared by nobody" gets back in.
+        """
+        register = self.preflight.methodology
+        path = next((p for p in register.files() if p.name == name), None)
+        if path is None:
+            raise KeyError(f"{name} is not a methodology file in {register.root.name}/")
+        record = register.clear(path, cleared_by=who)
+        return {
+            "name": record.name,
+            "digest": record.digest,
+            "cleared_by": record.cleared_by,
+            "cleared_at": record.cleared_at,
+            "size_bytes": record.size_bytes,
+        }
+
     def resolve_model(self, scope_path: str) -> dict[str, Any]:
         """Which model this scope builds into and which layer said so - the same
         five-layer walk the skills use."""

@@ -109,13 +109,23 @@ def resolve(cmd: str) -> str:
     starts with the project venv, which has no uv, and every check fails with "No module
     named uv". A red phase that is actually green is the worst answer this tool can give,
     so the prefix is resolved rather than trusted.
+
+    The same applies to `pytest`, which resolves to a generated launcher executable that
+    an Application Control policy can refuse to start. It runs as a module instead.
     """
     if not cmd.startswith(UV_PREFIX):
         return cmd
+    rest = cmd[len(UV_PREFIX) :]
+    if rest.startswith("pytest "):
+        # Through the interpreter rather than through `.venv/Scripts/pytest.exe`, which is
+        # generated at install time and which a Windows Application Control policy refuses
+        # to start - "os error 4551", on a machine where the suite is otherwise fine. A
+        # managed corporate laptop is more likely to have that policy than this one.
+        rest = "python -m " + rest
     exe = shutil.which("uv")
     if exe is None:
         return cmd
-    return f'"{exe}" run ' + cmd[len(UV_PREFIX) :]
+    return f'"{exe}" run ' + rest
 
 
 def run(cmd: str) -> tuple[bool, str]:

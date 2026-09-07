@@ -538,3 +538,15 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - human check: 'You clone the repo onto the work machine, run the suite in the container, and confirm nothing but .env had to change.' -> 'You confirm the container proof done here is enough to call v1 portable: the image built from a clean clone on an OCI runtime that is not Docker Desktop, and the whole suite green inside it. The clone onto the work machine is a task deferred to the work machine, not a condition of this phase.'
 - task added: On the work machine: clone the repo, run the suite in the container, and confirm nothing but .env had to change
+
+## 2026-09-06 - P30 Registered methodology: cleared once, checked every run
+
+**Why:** Methodology gets two diagnostic codes, so two public surfaces move. CONFIG.METHODOLOGY_UNCLEARED is the run-time refusal when foundations/ holds a file that is not the cleared version; CONFIG.METHODOLOGY_UNSAFE is the clearance refusal when a file carries something shaped like an engagement's data or an instruction to the model reading it. Both are config-owned, because both are somebody re-reading a document rather than a bug. The blueprint's CONFIG row and the preflight node were updated in the same change, and the preflight count went from ten to twelve there - it had said ten since P29 added the eleventh and nothing read that line.
+
+- task added: Two diagnostic codes and the blueprint rows that carry them
+
+## 2026-09-06 - P30 Registered methodology: cleared once, checked every run
+
+**Why:** The register lives in registries/ rather than governance/, where the plan assumed it. Two reasons, both about the run-time path: the Context Builder consults this on every model call, and importing the governance package would pull the whole eleven-stage chain - including its edge back into harness.door - into that path; and registries/ is where the things a run reads live, beside contracts, scopes, skills and constraints. The clearance act still uses governance's scanners, imported inside the method that scans, so the dependency exists only when somebody is clearing something. The phase check gains registries so the phase type-checks its own code.
+
+- check added: python -m uv run mypy registries

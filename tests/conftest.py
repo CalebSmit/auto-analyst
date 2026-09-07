@@ -83,6 +83,36 @@ def synthetic_templates() -> None:
     )
 
 
+@pytest.fixture(scope="session", autouse=True)
+def cleared_methodology() -> None:
+    """Clear the repo's own methodology files, if this checkout has not cleared them.
+
+    `foundations/cleared.yaml` is gitignored, like the templates and for a related
+    reason: a clearance is a record of somebody at the firm having read a file, and
+    shipping one in the repo would be recording a decision nobody made. So a clone has
+    nothing cleared, which is the honest starting state and the one preflight reports.
+
+    That leaves the suite needing the files cleared before anything can build a context.
+    This does it through the real API rather than by writing the register directly, so
+    every session actually runs both scanners over the three files the firm ships - if
+    somebody adds a worked example with a real engagement id in it, the suite refuses to
+    start rather than clearing it and moving on.
+    """
+    from registries.methodology import ClearanceRefused, MethodologyRegister
+
+    register = MethodologyRegister()
+    uncleared = [f for f in register.review() if not f.attachable]
+    if not uncleared:
+        return
+    for path in register.files():
+        try:
+            register.clear(path, cleared_by="tests: the repo's own foundations")
+        except ClearanceRefused as refused:  # pragma: no cover - the whole point is that
+            raise AssertionError(  # this does not happen on the files the repo ships
+                f"the repo's own methodology will not clear: {refused.diagnostic.detail}"
+            ) from refused
+
+
 def needs_a_checkout(what: str) -> None:
     """Skip when this is not a git checkout.
 

@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:29ef079b4a9137a73b6d0fd2341fae1bccb46f4a7db0030e47fda762726f4bb9",
+  "source_digest": "sha256:89308b47209026a107d480cc41e85c4aa1932c5f5629335b31f1c7362a4fa5fd",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -1358,7 +1358,7 @@
       "group": "ops",
       "exec": "code",
       "now": true,
-      "desc": "Eleven checks over a proposed or live configuration: path readable · credential present and unexpired · no two watches claiming one path · every active engagement has a resolving scope, a practice group and segment that are actually defined, a complete engagement profile, a template pin, a destination, a review policy and a budget · template hash matches the registered version · template declares every required input · destination writable · named recipe exists · headroom.",
+      "desc": "Twelve checks over a proposed or live configuration: path readable · credential present and unexpired · no two watches claiming one path · every active engagement has a resolving scope, a practice group and segment that are actually defined, a complete engagement profile, a template pin, a destination, a review policy and a budget · template hash matches the registered version · template declares every required input · destination writable · named recipe exists · headroom · every methodology file cleared, and the version that was cleared.",
       "impl": "Runs on demand and on every config write (<span class=\"mono\">admin/preflight.py</span>). Emits the standard diagnostic — code, owner, expected, found, and <span class=\"mono\">what_now</span> — with the owner set to <span class=\"mono\">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run: the console’s <span class=\"mono\">activate</span> runs preflight for that engagement and refuses with every failing check, each a diagnostic. Not part of any run, so it emits into no event stream.",
       "full": "A setup error found here costs a minute. The same error found at run time costs a halted run, a diagnostic somebody has to read, and a client waiting. Deliberately not part of any run — it is a setup-time activity, so it never appears in a run’s event stream and never colours a node on the trace."
     },

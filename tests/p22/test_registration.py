@@ -74,14 +74,34 @@ def test_an_unshipped_skill_a_blank_approver_and_a_repeat_are_all_refused(
 
 
 def test_registration_is_the_only_writer_of_the_record() -> None:
+    """One module writes `skills/registered.yaml`, so there is one place a version can
+    become live and one place to read to know how.
+
+    Measured over code with the docstrings stripped out. Prose that names the file is
+    describing it, not writing to it - a sibling register saying "append-only, like
+    skills/registered.yaml" is documentation, and counting it as a writer would make this
+    test a reason not to explain things.
+    """
+    import ast
+
     from tests.p22.conftest import ROOT
+
+    def code_only(source: str) -> str:
+        """The source with every docstring removed."""
+        holds_a_docstring = (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)
+        for node in ast.walk(ast.parse(source)):
+            if isinstance(node, holds_a_docstring):
+                text = ast.get_docstring(node, clean=False)
+                if text:
+                    source = source.replace(text, "")
+        return source
 
     writers = []
     for path in ROOT.rglob("*.py"):
         rel = path.relative_to(ROOT).as_posix()
         if rel.startswith((".venv/", "tests/")):
             continue
-        if "registered.yaml" in path.read_text(encoding="utf-8"):
+        if "registered.yaml" in code_only(path.read_text(encoding="utf-8")):
             writers.append(rel)
     assert writers == ["evals/registration.py"]
     metric = Metric  # the type registration reads; nothing else constructs a record

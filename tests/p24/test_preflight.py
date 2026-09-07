@@ -15,11 +15,15 @@ from registries.diagnostics import DiagnosticsRegistry
 from tests.p24.conftest import HEND, NOVK, WHO, Clock, entry, profile_for
 
 
-def test_the_eleven_checks_are_the_blueprints_and_a_clean_setup_passes_them_all(
+def test_every_check_in_the_table_runs_and_a_clean_setup_passes_them_all(
     console: AdminConsole, henderson: Any
 ) -> None:
+    """The report is the table, in order. How many there are is the blueprint's business,
+    asserted once in tests/p30 - here what matters is that none of them is declared and
+    then not run, which is how a check quietly stops covering anything."""
     report = console.check(HEND)
-    assert [c.id for c in report.checks] == [c[0] for c in CHECKS] and len(CHECKS) == 11
+    assert [c.id for c in report.checks] == [c[0] for c in CHECKS]
+    assert len(set(CHECKS)) == len(CHECKS), "a check id is declared twice"
     assert report.passed, report.report()
     assert all(c.status == "pass" for c in report.checks), report.report()
     by_id = {c.id: c for c in report.checks}

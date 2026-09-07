@@ -1,31 +1,30 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-05.*
+*Last written 2026-09-06.*
 
 ## Where the build is
 
-- **29 of 33 phases closed**
+- **30 of 33 phases closed**
 - Last green checkpoint: **C10**
-- Current phase: **P30 - Registered methodology: cleared once, checked every run** (gate: auto)
+- Current phase: **P31 - Methodology per practice group** (gate: auto)
 
 ## The next action
 
-Work P30. Its full definition is in [BUILD/phases/P30.md](phases/P30.md).
+Work P31. Its full definition is in [BUILD/phases/P31.md](phases/P31.md).
 
-> Methodology is evidence-free reference material that reaches every call, so it is cleared by a person before it can, and checked by a hash after.
+> Each group's way of working is attached to its own runs and to no others, through the same layer walk that already decides which skills a run has.
 
 Tasks:
 
-- [ ] A methodology registry: digest, who cleared it, when - written only on a clearance
-- [ ] Clearance scans with the conformance patterns and the untrusted boundary
-- [ ] The Context Builder refuses to attach a file whose digest is not cleared
-- [ ] Preflight reports uncleared or edited methodology at setup
+- [ ] foundations/ resolved through LAYER_ORDER, the existing files moving to _firm
+- [ ] A size ceiling per layer in constraints.yaml, reported by preflight
+- [ ] A foundations group in BUILD/surfaces.json: layer, files, digest
 
 Then:
 
-    python tools/gate.py check P30
-    python tools/gate.py close P30
+    python tools/gate.py check P31
+    python tools/gate.py close P31
 
 ## Before you start
 
@@ -66,4 +65,5 @@ Then:
 - **P27** The governance chain (2026-09-04)
 - **P28** Docker, portability, handoff packet (2026-09-05) - Caleb: podman 6.1.1 here, image built from a clean clone, 1711 passed / 78 skipped inside it. Nothing but .env changes. Work-machine clone still to do.
 - **P29** Scope choices in the admin surface (2026-09-05)
+- **P30** Registered methodology: cleared once, checked every run (2026-09-06)
 

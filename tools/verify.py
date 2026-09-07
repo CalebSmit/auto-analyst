@@ -171,13 +171,13 @@ def build_steps(args: argparse.Namespace) -> list[Step]:
     ]
     if not args.fast:
         steps.append(Step("tests", f"the suite: {' '.join(targets)}",
-                          [*uv, "pytest", *pytest_flags, *targets]))
+                          [*uv, "python", "-m", "pytest", *pytest_flags, *targets]))
         for n in range(args.repeat - 1):
             steps.append(
                 Step(
                     "flake",
                     f"the suite again ({n + 2} of {args.repeat}): order and timing luck",
-                    [*uv, "pytest", *pytest_flags, *targets],
+                    [*uv, "python", "-m", "pytest", *pytest_flags, *targets],
                 )
             )
     return steps

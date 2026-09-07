@@ -167,6 +167,8 @@ GROUP_UNDEFINED = "SCOPE.GROUP_UNDEFINED"
 GATE_SKIPPED = "SKILL.GATE_SKIPPED"
 CLIENT_DATA_IN_DRAFT = "SKILL.CLIENT_DATA_IN_DRAFT"
 SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
+METHODOLOGY_UNCLEARED = "CONFIG.METHODOLOGY_UNCLEARED"
+METHODOLOGY_UNSAFE = "CONFIG.METHODOLOGY_UNSAFE"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 WORKER_LOST = "PROCESS.WORKER_LOST"
@@ -408,6 +410,27 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "real runs, so it cannot be promoted. Either it disagrees with the registered "
         "version too often, or it has not yet run beside it enough times. Neither is "
         "fixed by approving it again: let it keep shadowing.",
+    ),
+    METHODOLOGY_UNCLEARED: (
+        "config",
+        "A methodology file in foundations/ is not cleared, or is not the version that "
+        "was cleared. It is not attached and the run stops rather than proceeding "
+        "without the firm's reference material, because a run that quietly drops half "
+        "its methodology answers a different question from the one that was asked. "
+        "Methodology reaches every model call, so it is read by a person once and "
+        "recorded by digest; editing a file after it was cleared is what this catches, "
+        "and it catches it by the hash changing rather than by anybody remembering. "
+        "Clear it from the admin surface, or restore the version that was cleared.",
+    ),
+    METHODOLOGY_UNSAFE: (
+        "config",
+        "A methodology file cannot be cleared because it carries something shaped like a "
+        "real engagement's data, or something shaped like an instruction to the model "
+        "reading it. Both matter more here than in a skill draft: this content goes into "
+        "every prompt of every run, for every client, and the outbound scan only knows "
+        "the current engagement's identifiers - so a worked example quoting a real deal "
+        "would travel everywhere and trip nothing. Take the example out, or mask it the "
+        "way a precedent is masked.",
     ),
     BELOW_GATE: (
         "model",
