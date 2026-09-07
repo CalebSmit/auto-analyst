@@ -34,14 +34,16 @@ Read this before anything else, because the honest answer matters more than a de
 | **Setting up** — engagements, practice groups, folder labels, methodology, budgets, review levels | Works |
 | **Intake** — a watched folder is swept, files are bound to an engagement, held until the set is complete, and released as a run | Works |
 | **Watching** — runs, steps, cost, the review queue, alerts | Works |
-| **Executing a run** — actually doing the analysis | **Not wired yet** |
+| **Running one step** — context, masking, the model call, the guards | Works |
+| **Carrying a whole run to a deliverable** | **Not wired yet** |
 
 Every component of the analysis is built and tested — the planner, the masker, the skills,
-the guards, the model door, the deliverable writer. What is missing is one join between
-two of them, called `StepRunner` in the code: the thing that takes a step of a plan and
-hands it to the harness. It is phases **P34** and **P35** in
-[`../BUILD/PLAN.md`](../BUILD/PLAN.md), and until it is built, a run released by intake
-sits and waits.
+the guards, the model door, the deliverable writer — and a single step of a plan now runs
+through all of it. What is missing is the half that carries a *whole* run: the worker pool
+takes a driver it has never been given, so a run released by intake sits with its lock
+taken. That is phase **P35** in [`../BUILD/PLAN.md`](../BUILD/PLAN.md): the pool takes a
+`PassRunner`, and `graph.execute.StepRunner` - the step half, which P34 built - is what it
+would call.
 
 You can check this yourself at any time; it is derived from the code, not from this page:
 

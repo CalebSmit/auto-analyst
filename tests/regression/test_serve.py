@@ -123,16 +123,24 @@ def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> 
     joins are made, and the one that is not is named with what is missing behind it.
     """
     seams = {seam.name: seam for seam in readiness()}
-    assert set(seams) == {"admin", "ops console", "intake", "execution"}
+    assert set(seams) == {
+        "admin",
+        "ops console",
+        "intake",
+        "step execution",
+        "run execution",
+    }
     assert all(isinstance(s, Seam) for s in seams.values())
 
     assert seams["admin"].ready and seams["ops console"].ready and seams["intake"].ready
-    assert not seams["execution"].ready, (
-        "if this now passes, a StepRunner exists: update this test, BUILD/OPEN.md and "
-        "docs/USING.md, because the system can suddenly do something they say it cannot"
+    assert seams["step execution"].ready, "P34 joined the executor to the dispatcher"
+    assert not seams["run execution"].ready, (
+        "if this now passes, something drives a whole run: update this test, "
+        "BUILD/OPEN.md and docs/USING.md, because the system can suddenly do something "
+        "they say it cannot"
     )
-    assert "StepRunner" in seams["execution"].detail
-    assert "BUILD/OPEN.md" in seams["execution"].detail
+    assert "PassRunner" in seams["run execution"].detail
+    assert "BUILD/OPEN.md" in seams["run execution"].detail
 
     over_http = TestClient(served.app).get("/api/readiness").json()
     assert over_http["ready"] is False
@@ -146,8 +154,9 @@ def test_readiness_is_derived_from_the_code_not_declared() -> None:
     import tools.serve as serve
 
     source = Path(serve.__file__).read_text(encoding="utf-8")
-    assert "import_module" in source, "asked at run time, not written down"
-    assert serve.execution_is_wired() is False
+    assert source.count("import_module") == 2, "both seams asked at run time"
+    assert serve.steps_are_wired() is True, "P34 built one"
+    assert serve.runs_are_wired() is False, "P35 has not built the other"
 
 
 def test_the_sweep_loop_survives_a_bad_sweep(served: Any, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -184,7 +193,7 @@ def test_the_command_reports_without_starting_anything(tmp_path: Path) -> None:
         check=False,
     )
     assert "Chartwell Automated Analyst" in result.stdout
-    assert "NOT WIRED] execution" in result.stdout
+    assert "NOT WIRED] run execution" in result.stdout
     assert result.returncode == 1, "an unconfigured machine cannot take work"
 
 

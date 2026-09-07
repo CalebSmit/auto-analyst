@@ -5,24 +5,27 @@
 
 ## Where the build is
 
-- **33 of 36 phases closed**
+- **34 of 36 phases closed**
 - Last green checkpoint: **C12**
-- Current phase: **P34 - The run executes: the executor meets the dispatcher** (gate: auto)
+- Current phase: **P35 - A released run is driven to an ending** (gate: auto)
 
 ## The next action
 
-Work P34. Its full definition is in [BUILD/phases/P34.md](phases/P34.md).
+Work P35. Its full definition is in [BUILD/phases/P35.md](phases/P35.md).
 
-> A step of a compiled plan is executed through the harness by something other than a test, so a created run can move.
+> From a file landing in a watched folder to a deliverable in the outbox, with nothing in the path that only exists in a test.
 
 Tasks:
 
-- [ ] Implement graph.execute.StepRunner in harness/runner.py - the seam P08 built against and P09 was meant to fill
+- [ ] A PassRunner that drives one pass of a run through the StepExecutor
+- [ ] tools/serve.py starts the worker pool alongside the sweep
+- [ ] Delivery on a finished run, and a halted run that says why
+- [ ] The C13 integration test: a file in the inbox becomes a workbook in the outbox
 
 Then:
 
-    python tools/gate.py check P34
-    python tools/gate.py close P34
+    python tools/gate.py check P35
+    python tools/gate.py close P35
 
 ## Before you start
 
@@ -67,4 +70,5 @@ Then:
 - **P31** Methodology per practice group (2026-09-06)
 - **P32** The recipe belongs to the engagement (2026-09-07)
 - **P33** Registered recipes (2026-09-07)
+- **P34** The run executes: the executor meets the dispatcher (2026-09-07)
 

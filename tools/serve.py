@@ -14,12 +14,16 @@ missing, and `readiness()` is the part of it that refuses to overstate what it s
 system together and prints what is ready and what is not, without opening a port.
 
 **What this starts and what it does not.** Intake is joined: a file landing in a watched
-folder is bound to an engagement, fingerprinted, held through its quiet period and
-released as a run with the engagement lock taken. Execution is not: nothing yet takes a
-created run and drives its compiled plan through the harness, because the seam between
-the executor and the dispatcher - `graph.execute.StepRunner` - has no production
-implementation. `readiness()` derives that rather than asserting it, so the day somebody
-writes one, this stops saying so on its own.
+folder is bound to an engagement, fingerprinted, held through its quiet period and released
+as a run with the engagement lock taken. A step of a compiled plan runs through the harness
+- context, masking, the model door, the guards. What is missing is the half between them:
+nothing takes a released run and carries it to an ending, because the worker pool takes a
+`PassRunner` it has never been given.
+
+`readiness()` derives each of those by asking the code rather than asserting it, so a seam
+stops being reported as open the day somebody writes the missing piece. That is not a
+hypothetical: "step execution" flipped to joined on its own the moment the runner existed,
+while "run execution" did not.
 """
 
 from __future__ import annotations
@@ -60,7 +64,7 @@ class Seam:
         return f"  [{'ok' if self.ready else 'NOT WIRED'}] {self.name}: {self.detail}"
 
 
-def execution_is_wired() -> bool:
+def steps_are_wired() -> bool:
     """Whether anything in the harness implements `graph.execute.StepRunner`.
 
     Derived by import rather than declared by a constant, so this answer changes when the
@@ -81,9 +85,26 @@ def execution_is_wired() -> bool:
     )
 
 
+def runs_are_wired() -> bool:
+    """Whether anything drives a released run: a `PassRunner` the pool can be given.
+
+    Asked the same way and for the same reason - a step running through the harness and a
+    run being carried to an ending are two different claims, and the first was true for a
+    while before the second was.
+    """
+    import importlib  # noqa: PLC0415
+
+    try:
+        driver = importlib.import_module("workers.driver")
+    except ModuleNotFoundError:
+        return False
+    return hasattr(driver, "RunDriver")
+
+
 def readiness() -> tuple[Seam, ...]:
     """What is joined, in the order a piece of work passes through it."""
-    wired = execution_is_wired()
+    steps = steps_are_wired()
+    runs = runs_are_wired()
     return (
         Seam(
             "admin",
@@ -98,13 +119,23 @@ def readiness() -> tuple[Seam, ...]:
             "their quiet period, and a complete set is released as a run",
         ),
         Seam(
-            "execution",
-            wired,
-            "a released run is driven through its compiled plan"
-            if wired
-            else "nothing implements graph.execute.StepRunner, so a released run waits. "
-            "Every component behind this seam is built and tested; what is missing is the "
-            "join between the executor and the dispatcher. See BUILD/OPEN.md",
+            "step execution",
+            steps,
+            "a step of a compiled plan runs through the harness - context, masking, the "
+            "model door, the guards"
+            if steps
+            else "nothing implements graph.execute.StepRunner, so no step can run. See "
+            "BUILD/OPEN.md",
+        ),
+        Seam(
+            "run execution",
+            runs,
+            "a released run is picked up and driven to an ending"
+            if runs
+            else "nothing drives a run: the worker pool takes a PassRunner it has never "
+            "been given, so a run released by intake sits with its lock taken. The step "
+            "half of this is joined; what is missing is the half that carries a whole "
+            "run. See BUILD/OPEN.md",
         ),
     )
 

@@ -1146,7 +1146,7 @@
       "title": "The run executes: the executor meets the dispatcher",
       "block": "Block I - The system runs",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "A step of a compiled plan is executed through the harness by something other than a test, so a created run can move.",
       "builds": [],
       "tasks": [
@@ -1163,7 +1163,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy harness graph workers"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-07"
     },
     {
       "id": "P35",
