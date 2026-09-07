@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**31 of 36 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**32 of 36 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -89,7 +89,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P30** Registered methodology: cleared once, checked every run | auto | A methodology file carrying something shaped like client data cannot be cleared | 2026-09-06 |
 | [x] | **P31** Methodology per practice group | auto | A valuation run carries the firm and valuation methodology and not consulting's | 2026-09-06 |
 | [x] | **C11 - A group's methodology, and nobody else's** | integration | An engagement is set up by choosing its practice group, and carries that group's cleared methodology and no other group's | 2026-09-06 |
-| [ ] | **P32** The recipe belongs to the engagement | auto | Two engagements under one watch run different recipes |  |
+| [x] | **P32** The recipe belongs to the engagement | auto | Two engagements under one watch run different recipes | 2026-09-07 |
 | [ ] | **P33** Registered recipes | auto | An unregistered recipe cannot run on client work |  |
 | [ ] | **C12 - A group's workflow, and only approved ones** | integration | An engagement runs its own group's workflow, and a workflow nobody approved does not run at all |  |
 

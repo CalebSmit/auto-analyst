@@ -24,11 +24,12 @@ from dataclasses import replace
 from typing import Any
 
 from admin.preflight import Preflight, PreflightReport, resolve_model
+from graph.recipes import load_recipe
 from graph.resolve import TemplateBinding
-from intake.config import ConfigStore, Destination, Watch
+from intake.config import CONTRACT, ConfigStore, Destination, Watch
 from intake.roster import ProjectRoster, RosterEntry, RosterState
 from registries.constraints import ConstraintRegistry
-from registries.errors import ADMIN_FORBIDDEN, DiagnosticError, diagnose
+from registries.errors import ADMIN_FORBIDDEN, RECIPE_INVALID, DiagnosticError, diagnose
 from registries.scopes import ScopePath
 
 __all__ = ["REVIEW_LEVELS", "AdminConsole", "AdminRefused"]
@@ -280,6 +281,53 @@ class AdminConsole:
                 )
             )
         return self.roster.update(engagement_id, who=who, reason=reason, review_level=level)
+
+    def set_recipe(self, engagement_id: str, recipe: str, *, who: str, reason: str) -> int:
+        """Choose the recipe this engagement runs, or clear it back to the watch's.
+
+        Refused if the recipe does not load. A name that resolves to nothing would sweep
+        cleanly and then fail every run it released, at which point the person who typed
+        it is somewhere else - so it is checked here, where they are still reading.
+
+        An empty name is not an error: it means inherit, which is where every engagement
+        started and is the right way to undo this.
+        """
+        entry = self.roster.get(engagement_id)
+        if entry is None:
+            raise KeyError(f"{engagement_id} is not on the roster")
+
+        chosen = recipe.strip()
+        if chosen:
+            try:
+                load_recipe(chosen)
+            except Exception as unloadable:
+                raise AdminRefused(
+                    (
+                        diagnose(
+                            RECIPE_INVALID,
+                            f"{engagement_id} cannot run recipe {chosen!r}: {unloadable}",
+                            locator=f"engagements/{engagement_id}/recipe",
+                            expected="a recipe that loads",
+                            found=chosen,
+                        ),
+                    )
+                ) from unloadable
+
+        doc = self.config.document()
+        engagements = dict(doc.get("engagements") or {})
+        over = dict(engagements.get(engagement_id) or {})
+        if chosen:
+            over["recipe"] = chosen
+        else:
+            over.pop("recipe", None)
+        engagements[engagement_id] = over
+        doc["engagements"] = engagements
+
+        # A recipe has no home in 1.1.0, so writing one upgrades the document. Nothing
+        # else does: a configuration that names no recipe stays the version it was.
+        if chosen and doc.get("schema_version") != CONTRACT:
+            doc["schema_version"] = CONTRACT
+        return self._write(doc, who, reason)
 
     def bind_engagement(
         self,
@@ -564,6 +612,7 @@ class AdminConsole:
             "folder": entry.folder,
             "destination_id": entry.destination_id,
             "template_pin": entry.template_pin or self.preflight.template_pin_for(entry),
+            "recipe": entry.recipe,
             "budget_usd": entry.budget_usd,
             "review_level": entry.review_level,
             "note": entry.note,

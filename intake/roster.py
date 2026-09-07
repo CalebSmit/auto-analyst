@@ -19,6 +19,7 @@ is no delete here, and nothing here touches a run.
 
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, replace
 from enum import StrEnum
 from typing import Any
@@ -50,6 +51,11 @@ class RosterEntry:
     """Relative to the watch root, for a pattern watch: "Henderson Manufacturing/2026
     ESOP". Empty for a bound watch, which names the engagement itself."""
     template_pin: str = ""
+    recipe: str = ""
+    """The recipe this engagement runs. Empty means inherit the watch's, which is what
+    every engagement did before P32 - so an engagement that names none behaves exactly as
+    it always has. Read from the configuration document rather than stored here, because
+    it is a per-engagement override like the quiet period and the budget."""
     budget_usd: float | None = None
     review_level: str = "standard"
     note: str = ""
@@ -72,7 +78,7 @@ class ProjectRoster:
             stmt = select(RosterRow).order_by(RosterRow.engagement_id)
             if state is not None:
                 stmt = stmt.where(RosterRow.state == str(state))
-            return tuple(_as_entry(r) for r in session.scalars(stmt))
+            return tuple(self._with_recipe(_as_entry(r)) for r in session.scalars(stmt))
 
     def active(self) -> tuple[RosterEntry, ...]:
         return self.entries(RosterState.ACTIVE)
@@ -80,7 +86,17 @@ class ProjectRoster:
     def get(self, engagement_id: str) -> RosterEntry | None:
         with self._store._session() as session:  # noqa: SLF001
             row = session.get(RosterRow, engagement_id)
-            return _as_entry(row) if row else None
+            return self._with_recipe(_as_entry(row)) if row else None
+
+    def _with_recipe(self, entry: RosterEntry) -> RosterEntry:
+        """Fill in the recipe from the configuration beside the roster row.
+
+        The row holds what the engagement *is*; the configuration holds what has been
+        chosen for it, which is where the quiet period and the budget already live. One
+        home each, so nothing has to be kept in step with anything.
+        """
+        chosen = self._config.recipe(entry.engagement_id)
+        return entry if not chosen else dataclasses.replace(entry, recipe=chosen)
 
     def is_active(self, engagement_id: str) -> bool:
         entry = self.get(engagement_id)

@@ -624,6 +624,27 @@ class Preflight:
                         engagement_ids=self._engagements_on_watch(watch.id),
                     )
                 )
+        # And the recipe each engagement actually runs, which is its own when it names one.
+        for entry in entries:
+            if not entry.recipe:
+                continue  # it inherits the watch's, checked just above
+            try:
+                self._recipes(entry.recipe)
+            except Exception as failure:  # noqa: BLE001 - a recipe that does not load
+                failures.append(
+                    Failure(
+                        "recipes_and_budgets",
+                        diagnose(
+                            RECIPE_INVALID,
+                            f"{entry.engagement_id} names recipe {entry.recipe!r}: {failure}",
+                            locator=f"engagements/{entry.engagement_id}/recipe",
+                            expected="a recipe that loads",
+                            found=entry.recipe,
+                        ),
+                        engagement_ids=(entry.engagement_id,),
+                    )
+                )
+
         ceiling = float(self.constraints.ceilings["per_run"]["usd_max"])
         for entry in entries:
             if entry.budget_usd is not None and entry.budget_usd > ceiling:
@@ -642,11 +663,13 @@ class Preflight:
                     )
                 )
         budgets = [e.budget_usd for e in entries if e.budget_usd is not None]
+        own = len([e for e in entries if e.recipe])
         return _check(
             "recipes_and_budgets",
             failures,
-            f"{len(self.config.watches())} recipes, {len(budgets)} run budgets, "
-            f"max ${max(budgets) if budgets else 0:.2f}, firm ceiling ${ceiling:.2f}",
+            f"{len(self.config.watches())} watch recipes, {own} engagement(s) with their "
+            f"own, {len(budgets)} run budgets, max ${max(budgets) if budgets else 0:.2f}, "
+            f"firm ceiling ${ceiling:.2f}",
         )
 
     # -- plumbing

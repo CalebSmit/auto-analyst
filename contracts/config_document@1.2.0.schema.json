@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chartwell.invalid/contracts/config_document@1.2.0",
+  "title": "Configuration document",
+  "description": "The versioned record behind the Admin tab, one per environment: where to look (watches and their subfolder patterns), when a run starts (intake timing), where deliverables go, and per-engagement overrides. Validated on every write; every write appends to the Config Change Log. Configuration writes the engagement record and never reaches into a run - there is no field here a guard reads. 1.1.0 (P24) adds what the Admin tab edits beyond watches: delivery destinations with their adapter and credential, the model bound to each scope layer, the credentials the environment expects (name and expiry - never a value), and per-engagement review level and engagement profile. 1.2.0 adds the per-engagement recipe.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "environment",
+    "watches",
+    "intake",
+    "document_type_conventions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "config_document@1.2.0"
+    },
+    "environment": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "watches": {
+      "type": "array",
+      "description": "Places to look. A bound watch names one engagement and infers nothing; a pattern watch covers a parent client folder and maps subfolders to engagements through the roster. No two watches may claim the same path.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "root",
+          "recipe"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "kind": {
+            "enum": [
+              "bound",
+              "pattern"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "root": {
+            "type": "string",
+            "description": "A prefix relative to the storage port's root, never an absolute path. Empty means the port root itself.",
+            "pattern": "^(?!/)(?!.*(^|/)\\.\\.(/|$)).*$"
+          },
+          "recipe": {
+            "type": "string",
+            "minLength": 1
+          },
+          "engagement_id": {
+            "type": "string",
+            "pattern": "^[A-Z0-9]+(-[A-Z0-9]+)*$",
+            "description": "Bound watches only: the one engagement this folder belongs to."
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4,
+            "description": "Pattern watches only: how many path segments under the root identify an engagement folder (<Client>/<Year Engagement> is 2)."
+          }
+        }
+      }
+    },
+    "intake": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "quiet_period_minutes",
+        "max_wait_hours",
+        "lock_timeout_hours"
+      ],
+      "properties": {
+        "quiet_period_minutes": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "max_wait_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "lock_timeout_hours": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "document_type_conventions": {
+      "type": "object",
+      "x-open-by-design": "Keyed by intake document type id, whose vocabulary is the Contract Registry's intake_document_types and is versioned there, not here. Every key is checked against that vocabulary when the config is written.",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": "Filename tokens (case-insensitive) that bind an arriving file to this type. A filename matching none is held, never guessed."
+      }
+    },
+    "destinations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "path"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "adapter": {
+            "enum": [
+              "local_folder",
+              "box_mcp",
+              "box_client_credentials"
+            ],
+            "description": "Which Delivery Port adapter serves this destination. Local through P24."
+          },
+          "credential": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The name of the credential the adapter reads, from the Secrets Port. A name, never a value."
+          }
+        }
+      }
+    },
+    "engagements": {
+      "type": "object",
+      "x-open-by-design": "Keyed by engagement id; the engagements are the roster's, not this document's. Each value may only tighten what the environment sets.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "quiet_period_minutes": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "max_wait_hours": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "budget_usd": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "review_level": {
+            "enum": [
+              "standard",
+              "elevated"
+            ],
+            "description": "An admin may raise this and never lower it below what the engagement started at."
+          },
+          "profile": {
+            "type": "object",
+            "description": "The engagement profile (engagement_profile@1.0.0), validated against that contract on every write. Configuration writes the engagement record; three skills read it as a required input (finding F1).",
+            "x-open-by-design": "Its shape is engagement_profile@1.0.0, pinned and validated separately so the profile contract can version on its own."
+          },
+          "recipe": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The recipe this engagement runs, overriding the watch's. Empty or absent means it inherits the watch's, which is what every engagement did before 1.2.0. Two engagements under one watch can therefore run different work without a second watch over the same tree."
+          }
+        }
+      }
+    },
+    "model_bindings": {
+      "type": "array",
+      "description": "Which Excel model each scope layer builds into, resolved through the same five-layer walk as the skills - deepest binding wins, a layer bound to nothing falls through. Written once at the shallowest layer where it is true.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "layer",
+          "file",
+          "template_version"
+        ],
+        "properties": {
+          "layer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "file": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_.-]+[.]xlsx$"
+              }
+            ],
+            "description": "Null declares the layer with nothing bound: visible, and falls through."
+          },
+          "template_version": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ]
+          },
+          "why": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "credentials": {
+      "type": "array",
+      "description": "The credentials this environment expects to find in the Secrets Port: a name, what it is for, and when it expires. Presence is checked through the port; the value never appears here or anywhere the admin can read.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "purpose"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expires_on": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}

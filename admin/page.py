@@ -116,12 +116,22 @@ function roster(setup){
  const rows=setup.roster||[];
  $('roster').innerHTML=rows.map(r=>`<div class="row"><span>${esc(r.engagement_id)}</span>
   <span class="mono muted">${esc(r.scope_path)}</span>
+  <span class="mono ${r.recipe?'':'muted'}" title="what order the work happens in"
+   >${esc(r.recipe||'(watch default)')}</span>
   <span class="${r.state==='active'?'pass':'muted'}">${esc(r.state)}</span>
-  <span><button onclick="editProfile('${esc(r.engagement_id)}')">profile</button>
+  <span><button onclick="setRecipe('${esc(r.engagement_id)}','${esc(r.recipe||'')}')">recipe</button>
+   <button onclick="editProfile('${esc(r.engagement_id)}')">profile</button>
    ${r.state==='active'
    ?`<button onclick="move('${esc(r.engagement_id)}','pause')">pause</button>`
    :`<button onclick="move('${esc(r.engagement_id)}','activate')">activate</button>`}</span>
   </div>`).join('')||'<i class="muted">no engagements yet</i>';
+}
+function setRecipe(id,current){
+ const chosen=prompt('Which recipe does '+id+' run?\n\nBlank inherits the watch default.',current);
+ if(chosen===null)return;
+ act(()=>post(`/api/admin/engagements/${id}/recipe`,
+  {who:who(),reason:'recipe chosen from the admin page',recipe:chosen.trim()}),
+  chosen.trim()?id+' runs '+chosen.trim()+'.':id+' inherits the watch default.');
 }
 async function editProfile(id){
  const t=await j(`/api/admin/engagements/${id}/profile/template`);

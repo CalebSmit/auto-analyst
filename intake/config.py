@@ -30,7 +30,12 @@ from registries.errors import UNKNOWN_TYPE, WATCH_OVERLAP, RegistryError, diagno
 
 __all__ = ["ChangeRecord", "ConfigStore", "Credential", "Destination", "IntakeTiming", "Watch"]
 
-CONTRACT = "config_document@1.1.0"
+CONTRACT = "config_document@1.2.0"
+SUPPORTED = ("config_document@1.2.0", "config_document@1.1.0")
+"""Every version this store can read. A document written against 1.1.0 says what it always
+said - 1.2.0 only adds the per-engagement recipe, and absent means inherit - so an older
+document is read rather than migrated. It is written back at the current version, which is
+the only moment it changes."""
 PROFILE_CONTRACT = "engagement_profile@1.0.0"
 
 
@@ -102,6 +107,23 @@ class ConfigStore:
                 raise KeyError(f"no configuration written for environment {self.environment!r}")
             return dict(row.body)
 
+    @staticmethod
+    def _contract_for(body: dict[str, Any]) -> str:
+        """The contract a document is checked against is the one it declares.
+
+        Checking every document against the newest version would make each new version
+        retroactively invalidate every document already written, which is the opposite of
+        leaving the old one listed. A document that says it is 1.1.0 is a 1.1.0 document
+        and means what 1.1.0 said.
+        """
+        declared = str(body.get("schema_version") or CONTRACT)
+        if declared not in SUPPORTED:
+            raise ValueError(
+                f"{declared} is not a configuration version this store reads "
+                f"(supported: {', '.join(SUPPORTED)})"
+            )
+        return declared
+
     def version(self) -> int:
         with self._store._session() as session:  # noqa: SLF001
             row = session.get(ConfigDocument, self.environment)
@@ -111,7 +133,7 @@ class ConfigStore:
         """Validate, then replace the whole document and log what changed, field by
         field. Returns the new version. An invalid document is refused before anything
         is written; a document with two watches on one path is refused the same way."""
-        self._contracts.validate(CONTRACT, body)
+        self._contracts.validate(self._contract_for(body), body)
         self._check_conventions(body)
         self._check_profiles(body)
         _check_no_overlap(tuple(_watch(w) for w in body["watches"]))
@@ -204,6 +226,15 @@ class ConfigStore:
     def engagement(self, engagement_id: str) -> dict[str, Any]:
         """The per-engagement overrides, or an empty dict."""
         return dict((self.document().get("engagements") or {}).get(engagement_id) or {})
+
+    def recipe(self, engagement_id: str) -> str:
+        """The recipe this engagement runs, or empty meaning inherit the watch's.
+
+        Empty rather than the watch's name, because the two answers are different and the
+        caller is the only one that knows which it needs: the sweep planner wants the
+        effective recipe, and the admin surface wants to show whether anybody chose one.
+        """
+        return str(self.engagement(engagement_id).get("recipe") or "")
 
     def profile(self, engagement_id: str) -> dict[str, Any] | None:
         found = self.engagement(engagement_id).get("profile")

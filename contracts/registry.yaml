@@ -120,6 +120,16 @@ contracts:
       the model bound to each scope layer, the credentials the environment expects
       (names and expiry, never values), per-engagement review level and profile.
 
+  - id: config_document
+    version: 1.2.0
+    file: config_document@1.2.0.schema.json
+    kind: configuration
+    note: >-
+      P32: the recipe an engagement runs, overriding the watch's. Absent means inherit,
+      so a document written against 1.1.0 means exactly what it meant. 1.1.0 stays
+      listed: a version is never edited in place, and a document already written is
+      still a document that has to be readable.
+
   - id: participant_census
     version: 1.0.0
     file: participant_census.schema.json

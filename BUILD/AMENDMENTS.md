@@ -629,3 +629,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The foundations digest moves, and the reason is a portability bug the container proof caught. A methodology file was hashed with read_bytes, so the same three files gave one digest on a Windows checkout and another inside a Linux image - a byte per line. That is worse than a moving snapshot: a file cleared at the firm on a laptop would read as edited the moment the same repo ran in a container, stopping every run for a change nobody made, and the assembled context would differ byte for byte between the two, which is two idempotency keys for one question. The rest of the system already avoided this without saying so, because a skill body reaches context through read_text and Python translates newlines. registries.methodology.body_of is now the one place that decides what a methodology file is: decoded as text, encoded back with newlines as LF, which is also the byte sequence the model is shown.
 
 - task added: One definition of a methodology file's bytes, so a clearance travels between a laptop and a container
+
+## 2026-09-07 - P32 The recipe belongs to the engagement
+
+**Why:** The contract registry gains config_document@1.2.0, so two public surfaces move: the id list and the schema digest. 1.1.0 stays listed and stays readable - a document is now validated against the version it declares rather than against one constant, because checking every document against the newest version would make each new version retroactively invalidate every document already written, which is the opposite of leaving the old one listed.
+
+- task added: config_document@1.2.0 in the registry, and a document validated against the version it declares

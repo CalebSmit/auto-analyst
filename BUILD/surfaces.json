@@ -99,6 +99,7 @@
   "ids": [
    "config_document@1.0.0",
    "config_document@1.1.0",
+   "config_document@1.2.0",
    "engagement_profile@1.0.0",
    "event@1.0.0",
    "event@1.1.0",
@@ -132,6 +133,7 @@
   "schemas": {
    "config_document@1.0.0": "sha256:ba3325f94ec720baf097286d1ca5873a",
    "config_document@1.1.0": "sha256:759457bf68f85b58b80e502c4fc4b976",
+   "config_document@1.2.0": "sha256:2b42dd2ddd147c26f4c64fd060942cc2",
    "engagement_profile@1.0.0": "sha256:1ae3c76e19ad166727a225018b51fabf",
    "event@1.0.0": "sha256:226fe38211d99436b60a12fc5647788c",
    "event@1.1.0": "sha256:3bc238c289b1e8b798cfaa99cb8db4ef",

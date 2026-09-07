@@ -1083,7 +1083,7 @@
       "title": "The recipe belongs to the engagement",
       "block": "Block H - Practice groups and their workflows",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "What order the work happens in is a property of the engagement, not of the folder it was found in.",
       "builds": [
         "project_roster",
@@ -1094,7 +1094,8 @@
         "RosterEntry.recipe, empty meaning inherit the watch's",
         "config_document@1.2.0, with 1.1.0 left listed",
         "AdminConsole.set_recipe, logged like every other config write",
-        "Preflight checks the recipe the engagement actually runs"
+        "Preflight checks the recipe the engagement actually runs",
+        "config_document@1.2.0 in the registry, and a document validated against the version it declares"
       ],
       "exit": [
         "Two engagements under one watch run different recipes",
@@ -1106,7 +1107,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy intake admin registries"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-07"
     },
     {
       "id": "P33",

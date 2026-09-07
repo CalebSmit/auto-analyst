@@ -47,6 +47,11 @@ class Budget(Change):
     usd: float
 
 
+class RecipeChoice(Change):
+    recipe: str = ""
+    """Empty means inherit the watch's, which is how an engagement undoes a choice."""
+
+
 class Clearance(BaseModel):
     who: str
     """A clearance names a person and nothing else. There is no reason field, because the
@@ -201,6 +206,17 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
                     engagement_id, body.usd, who=body.who, reason=body.reason
                 ).__dict__
             )
+        )
+
+    @app.post("/api/admin/engagements/{engagement_id}/recipe")
+    def recipe(engagement_id: str, body: RecipeChoice) -> dict[str, Any]:
+        """What order the work happens in, for this engagement."""
+        return _guard(
+            lambda: {
+                "version": console.set_recipe(
+                    engagement_id, body.recipe, who=body.who, reason=body.reason
+                )
+            }
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/review-level")

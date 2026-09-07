@@ -5,27 +5,26 @@
 
 ## Where the build is
 
-- **31 of 36 phases closed**
+- **32 of 36 phases closed**
 - Last green checkpoint: **C11**
-- Current phase: **P32 - The recipe belongs to the engagement** (gate: auto)
+- Current phase: **P33 - Registered recipes** (gate: auto)
 
 ## The next action
 
-Work P32. Its full definition is in [BUILD/phases/P32.md](phases/P32.md).
+Work P33. Its full definition is in [BUILD/phases/P33.md](phases/P33.md).
 
-> What order the work happens in is a property of the engagement, not of the folder it was found in.
+> Which workflows may run on client work is a recorded decision with a name on it, the same as which skills may.
 
 Tasks:
 
-- [ ] RosterEntry.recipe, empty meaning inherit the watch's
-- [ ] config_document@1.2.0, with 1.1.0 left listed
-- [ ] AdminConsole.set_recipe, logged like every other config write
-- [ ] Preflight checks the recipe the engagement actually runs
+- [ ] A recipe registry: name, version, digest, approver - written only by the board
+- [ ] load_recipe refuses an unregistered recipe outside the test suite
+- [ ] The board's decision surface covers recipes as well as skills
 
 Then:
 
-    python tools/gate.py check P32
-    python tools/gate.py close P32
+    python tools/gate.py check P33
+    python tools/gate.py close P33
 
 ## Before you start
 
@@ -68,4 +67,5 @@ Then:
 - **P29** Scope choices in the admin surface (2026-09-05)
 - **P30** Registered methodology: cleared once, checked every run (2026-09-06)
 - **P31** Methodology per practice group (2026-09-06)
+- **P32** The recipe belongs to the engagement (2026-09-07)
 

@@ -21,10 +21,19 @@ VERSIONED_ID = re.compile(
 
 
 def test_every_registered_schema_is_itself_a_valid_schema(contracts: ContractRegistry) -> None:
-    # config_document (P16), timing proposal (P18), tagging proposal (P19), the EBITDA
-    # proposal and its verification proposal (P20), the model-load proposal and the
-    # workpaper narrative (P21), the run plan, its proposal and triage (P26)
-    assert len(contracts.self_check()) == 31
+    """All of them, not a number.
+
+    What has to hold is that every contract the registry lists is checked and none is
+    skipped. How many there are is meant to change - the registry grows every time the
+    system learns to say something new - and a literal here fails on the next one for a
+    reason that has nothing to do with what this guards.
+    """
+    checked = contracts.self_check()
+    assert sorted(checked) == sorted(contracts.ids()), {
+        "listed but not checked": sorted(set(contracts.ids()) - set(checked)),
+        "checked but not listed": sorted(set(checked) - set(contracts.ids())),
+    }
+    assert len(checked) >= 31, "the registry does not shrink by accident"
 
 
 def test_every_id_carries_a_version(contracts: ContractRegistry) -> None:

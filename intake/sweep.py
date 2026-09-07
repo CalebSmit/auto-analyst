@@ -32,6 +32,11 @@ __all__ = ["Skipped", "SweepPlan", "SweepPlanner", "SweepTarget", "Unclaimed"]
 
 
 @dataclass(frozen=True)
+# `entry.recipe or watch.recipe`: what order the work happens in belongs to the
+# engagement, and the watch is the default rather than the answer. Two engagements found
+# under one watch can run different work without a second watch over the same tree - which
+# the overlap check refuses, correctly, because two watches on one path is a filing
+# mistake rather than a way to express this.
 class SweepTarget:
     location: str
     """A prefix relative to the storage port root: the folder to list."""
@@ -97,7 +102,11 @@ class SweepPlanner:
                 if entry.state is RosterState.PAUSED:
                     skipped.append(Skipped(watch.root, entry.engagement_id, entry.state))
                     continue
-                targets.append(SweepTarget(watch.root, entry.engagement_id, watch.id, watch.recipe))
+                targets.append(
+                    SweepTarget(
+                        watch.root, entry.engagement_id, watch.id, entry.recipe or watch.recipe
+                    )
+                )
                 continue
 
             by_folder = {e.folder: e for e in entries if e.watch_id == watch.id and e.folder}
@@ -112,7 +121,12 @@ class SweepPlanner:
                         )
                 elif entry.state is RosterState.ACTIVE:
                     targets.append(
-                        SweepTarget(location, entry.engagement_id, watch.id, watch.recipe)
+                        SweepTarget(
+                            location,
+                            entry.engagement_id,
+                            watch.id,
+                            entry.recipe or watch.recipe,
+                        )
                     )
                 elif entry.state is RosterState.PAUSED:
                     skipped.append(Skipped(location, entry.engagement_id, entry.state))
