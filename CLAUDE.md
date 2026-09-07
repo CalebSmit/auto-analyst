@@ -61,6 +61,18 @@ python tools/gate.py close P18 --signoff "Caleb: checked the alignment on HEND-2
 
 That distinction exists so that "tested" never quietly means "it ran without crashing".
 
+## Running it
+
+```
+python tools/serve.py --check      # what is wired, what is not, what setup still needs
+python tools/serve.py              # admin at /admin, ops console at /
+```
+
+`readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
+need updating when a seam is filled - and it is the honest answer to "does this work yet".
+[`docs/USING.md`](docs/USING.md) is the guide for the people who use the tool rather than
+build it; keep it true, because a test holds it to the setup path it describes.
+
 ## What this project is
 
 An AI analyst pipeline for Chartwell: DDR extraction and tagging, financial statement
