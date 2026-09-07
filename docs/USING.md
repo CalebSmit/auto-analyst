@@ -34,16 +34,23 @@ Read this before anything else, because the honest answer matters more than a de
 | **Setting up** — engagements, practice groups, folder labels, methodology, budgets, review levels | Works |
 | **Intake** — a watched folder is swept, files are bound to an engagement, held until the set is complete, and released as a run | Works |
 | **Watching** — runs, steps, cost, the review queue, alerts | Works |
-| **Running one step** — context, masking, the model call, the guards | Works |
-| **Carrying a whole run to a deliverable** | **Not wired yet** |
+| **Running the work** — a released run is picked up and driven through its plan | Works |
+| **Finishing every job** — two skills have no mechanical half yet | **Not yet** |
 
-Every component of the analysis is built and tested — the planner, the masker, the skills,
-the guards, the model door, the deliverable writer — and a single step of a plan now runs
-through all of it. What is missing is the half that carries a *whole* run: the worker pool
-takes a driver it has never been given, so a run released by intake sits with its lock
-taken. That is phase **P35** in [`../BUILD/PLAN.md`](../BUILD/PLAN.md): the pool takes a
-`PassRunner`, and `graph.execute.StepRunner` - the step half, which P34 built - is what it
-would call.
+A file landing in a watched folder now becomes a run that is picked up and driven: the
+workbooks are read into rows, the payload is masked, the model is called through the door,
+the guards check what comes back, and anything the system is not sure about goes to a
+person. What it cannot yet do is *finish*, and the reason is specific rather than vague.
+
+Two of the skills the shipped recipes name have no mechanical half written yet —
+**`qc-tieout`**, which both recipes end with, and **`ddr-tagging`** in the full intake. A
+run that reaches one of those stops there, with the step named in the record. That is the
+system saying what it cannot do rather than delivering something nobody checked, and it is
+on [`../BUILD/OPEN.md`](../BUILD/OPEN.md) as skill work rather than plumbing.
+
+You will also see runs stop for a reason that is not a gap at all: a workbook whose scale
+is ambiguous — thousands or units — escalates to a person before any model sees it, rather
+than guessing. That is the design, and it is what most first runs on real files will do.
 
 You can check this yourself at any time; it is derived from the code, not from this page:
 

@@ -132,18 +132,20 @@ def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> 
     }
     assert all(isinstance(s, Seam) for s in seams.values())
 
-    assert seams["admin"].ready and seams["ops console"].ready and seams["intake"].ready
+    assert all(seam.ready for seam in seams.values()), [
+        s.name for s in seams.values() if not s.ready
+    ]
     assert seams["step execution"].ready, "P34 joined the executor to the dispatcher"
-    assert not seams["run execution"].ready, (
-        "if this now passes, something drives a whole run: update this test, "
-        "BUILD/OPEN.md and docs/USING.md, because the system can suddenly do something "
-        "they say it cannot"
-    )
-    assert "PassRunner" in seams["run execution"].detail
-    assert "BUILD/OPEN.md" in seams["run execution"].detail
+    assert seams["run execution"].ready, "P35 joined the pool to a released run"
+
+    # Every detail says what is joined rather than what is missing. If one starts naming
+    # a gap again, something regressed and this is where it shows.
+    for seam in seams.values():
+        assert "nothing implements" not in seam.detail, seam.name
+        assert "has never been given" not in seam.detail, seam.name
 
     over_http = TestClient(served.app).get("/api/readiness").json()
-    assert over_http["ready"] is False
+    assert over_http["ready"] is True
     assert [s["name"] for s in over_http["seams"]] == list(seams)
 
 
@@ -155,8 +157,11 @@ def test_readiness_is_derived_from_the_code_not_declared() -> None:
 
     source = Path(serve.__file__).read_text(encoding="utf-8")
     assert source.count("import_module") == 2, "both seams asked at run time"
-    assert serve.steps_are_wired() is True, "P34 built one"
-    assert serve.runs_are_wired() is False, "P35 has not built the other"
+    assert serve.steps_are_wired() is True and serve.runs_are_wired() is True
+
+    # Still derived rather than declared, which is what makes the answer worth reading:
+    # both flipped on their own as the phases landed, and both would flip back.
+    assert "return False" in source, "the absent case is still a real answer"
 
 
 def test_the_sweep_loop_survives_a_bad_sweep(served: Any, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -193,8 +198,9 @@ def test_the_command_reports_without_starting_anything(tmp_path: Path) -> None:
         check=False,
     )
     assert "Chartwell Automated Analyst" in result.stdout
-    assert "NOT WIRED] run execution" in result.stdout
-    assert result.returncode == 1, "an unconfigured machine cannot take work"
+    assert "NOT WIRED" not in result.stdout, "every seam is joined"
+    assert "no configuration document yet" in result.stdout
+    assert result.returncode == 1, "an unconfigured machine still cannot take work"
 
 
 def test_the_setup_path_in_the_guide_gets_an_engagement_activated(served: Any) -> None:
@@ -293,12 +299,15 @@ def test_the_guide_names_the_steps_the_walkthrough_takes() -> None:
 def test_what_is_not_wired_is_written_down_where_a_person_looks() -> None:
     """The gap is real, so it is on the register and in the guide rather than only in a
     seam nobody reads until they start the process."""
-    register = (ROOT / "BUILD" / "OPEN.md").read_text(encoding="utf-8")
-    assert "StepRunner" in register, "the unjoined seam is on the open register"
-
     guide = (ROOT / "docs" / "USING.md").read_text(encoding="utf-8")
     assert "python tools/serve.py" in guide
-    assert "StepRunner" in guide, "the guide does not promise what the system cannot do"
+
+    # Two skills in the shipped recipes have no mechanical half yet, so a run reaching one
+    # stops there. That is the honest limit now, and the guide has to carry it rather than
+    # implying the system finishes every job it starts.
+    assert "qc-tieout" in guide, "the guide names what the system still cannot finish"
+    register = (ROOT / "BUILD" / "OPEN.md").read_text(encoding="utf-8")
+    assert "qc-tieout" in register, "and it is somebody's work, on the register"
 
 
 def test_the_plan_owns_the_gap() -> None:

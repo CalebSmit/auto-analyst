@@ -913,6 +913,18 @@ class SqlRunStore:
     ) -> None:
         with self._session() as session:
             self._row(session, run_id)
+            existing = session.scalars(
+                select(ReviewItem).where(
+                    ReviewItem.run_id == run_id, ReviewItem.item_id == item_id
+                )
+            ).first()
+            if existing is not None:
+                # The same question, asked again. A resume re-reaches the step that
+                # escalated - nothing about the file changed - and an item id names the
+                # question rather than the asking, so this is the row that already exists.
+                # Left exactly as it is: somebody may have picked it up, and a resume must
+                # not quietly reopen what they are part-way through answering.
+                return
             session.add(
                 ReviewItem(
                     run_id=run_id,

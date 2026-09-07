@@ -5,27 +5,27 @@
 
 ## Where the build is
 
-- **34 of 36 phases closed**
+- **35 of 36 phases closed**
 - Last green checkpoint: **C12**
-- Current phase: **P35 - A released run is driven to an ending** (gate: auto)
+- Current phase: **P36 - Who is asking: identity on both surfaces** (gate: auto)
 
 ## The next action
 
-Work P35. Its full definition is in [BUILD/phases/P35.md](phases/P35.md).
+Work P36. Its full definition is in [BUILD/phases/P36.md](phases/P36.md).
 
-> From a file landing in a watched folder to a deliverable in the outbox, with nothing in the path that only exists in a test.
+> The name on a recorded change is one the system verified, not one the caller typed.
 
 Tasks:
 
-- [ ] A PassRunner that drives one pass of a run through the StepExecutor
-- [ ] tools/serve.py starts the worker pool alongside the sweep
-- [ ] Delivery on a finished run, and a halted run that says why
-- [ ] The C13 integration test: a file in the inbox becomes a workbook in the outbox
+- [ ] An identity port, with a local adapter that names the operating-system user and refuses outside a loopback bind
+- [ ] who taken from the authenticated identity on every write, and a client-supplied name refused
+- [ ] The review surface and the precedent store record the identity that decided
+- [ ] The blueprint gains identity: it does not mention it at all today
 
 Then:
 
-    python tools/gate.py check P35
-    python tools/gate.py close P35
+    python tools/gate.py check P36
+    python tools/gate.py close P36
 
 ## Before you start
 
@@ -71,4 +71,5 @@ Then:
 - **P32** The recipe belongs to the engagement (2026-09-07)
 - **P33** Registered recipes (2026-09-07)
 - **P34** The run executes: the executor meets the dispatcher (2026-09-07)
+- **P35** A released run is driven to an ending (2026-09-07)
 

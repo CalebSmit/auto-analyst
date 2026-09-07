@@ -151,6 +151,9 @@ class Served:
     store: Any
     config: Any
     roster: Any
+    pool: Any = None
+    """The worker pool, or None on a machine where the driver could not be built - most
+    often a vault with no key yet. `readiness()` says which."""
 
     def close(self) -> None:
         self.store.close()
@@ -258,8 +261,95 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
             "seams": [{"name": s.name, "ready": s.ready, "detail": s.detail} for s in seams],
         }
 
+    pool = _pool(store, bus, config, roster, intake_store, templates, contracts, constraints)
+
     return Served(app=app, admin=admin, ops=ops, intake=intake, store=store,
-                  config=config, roster=roster)
+                  config=config, roster=roster, pool=pool)
+
+
+def _pool(
+    store: Any,
+    bus: Any,
+    config: Any,
+    roster: Any,
+    intake_store: Any,
+    templates: Any,
+    contracts: Any,
+    constraints: Any,
+) -> Any:
+    """The worker pool, with the driver that carries a run.
+
+    Returns None rather than raising when something the driver needs is absent - a vault
+    that cannot be opened without a key, most often, on a machine where nobody has written
+    a `.env` yet. The readiness report says so, which is more use than a traceback at
+    startup on the one command somebody runs to find out what they have.
+    """
+    import ports  # noqa: PLC0415
+    from guards.untrusted import UntrustedBoundary  # noqa: PLC0415
+    from harness.budget import BudgetGovernor  # noqa: PLC0415
+    from harness.context import ContextBuilder  # noqa: PLC0415
+    from harness.dispatch import SkillDispatcher  # noqa: PLC0415
+    from harness.door import ModelDoor  # noqa: PLC0415
+    from harness.policy import PolicyGate  # noqa: PLC0415
+    from harness.runtime import GuardedRuntime  # noqa: PLC0415
+    from intake.lock import EngagementLock  # noqa: PLC0415
+    from ops.blobs import LocalContentStore  # noqa: PLC0415
+    from ops.cost import CostMeter  # noqa: PLC0415
+    from ops.source_parse import SourceParseStore  # noqa: PLC0415
+    from precedent.store import PrecedentStore  # noqa: PLC0415
+    from privacy.mask import Masker  # noqa: PLC0415
+    from privacy.payload_scan import PayloadScan  # noqa: PLC0415
+    from privacy.vault import open_vault  # noqa: PLC0415
+    from registries.skills import SkillTree  # noqa: PLC0415
+    from workers.driver import RunDriver, RunWiring  # noqa: PLC0415
+    from workers.pool import WorkerPool  # noqa: PLC0415
+
+    try:
+        vault = open_vault(ports.get_secrets())
+    except Exception as unopened:  # noqa: BLE001 - reported, not raised
+        print(f"  the pool did not start: {unopened.__class__.__name__}: {unopened}")
+        return None
+
+    blobs = LocalContentStore()
+    meter = CostMeter(store)
+    governor = BudgetGovernor(constraints, meter, bus, store)
+    tree = SkillTree.load()
+    runtime = GuardedRuntime(PolicyGate(constraints, bus), constraints, bus, {})
+    boundary = UntrustedBoundary(bus)
+
+    def dispatcher_for(_run_id: str) -> SkillDispatcher:
+        return SkillDispatcher(
+            tree=tree,
+            context=ContextBuilder(tree, blobs, bus, store=store),
+            door=ModelDoor(ports.get_llm(), PayloadScan(bus), governor, meter, bus),
+            runtime=runtime,
+            contracts=contracts,
+            boundary=boundary,
+            masker=Masker(vault),
+            bus=bus,
+            blobs=blobs,
+        )
+
+    driver = RunDriver(
+        RunWiring(
+            store=store,
+            bus=bus,
+            blobs=blobs,
+            contracts=contracts,
+            constraints=constraints,
+            config=config,
+            roster=roster,
+            intake_store=intake_store,
+            parse_store=SourceParseStore(store),
+            dispatcher_for=dispatcher_for,
+            templates=templates,
+            precedents=PrecedentStore(store),
+            delivery=ports.get_delivery(),
+            storage=ports.get_storage(),
+            boundary=boundary,
+        )
+    )
+    return WorkerPool(store, bus, EngagementLock(store, bus), driver)
 
 
 def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
@@ -275,10 +365,18 @@ def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
         except Exception as failed:  # noqa: BLE001 - a bad sweep is not a dead process
             print(f"  sweep failed: {failed.__class__.__name__}: {failed}", flush=True)
             continue
-        if result.runs:
-            when = datetime.now(tz=UTC).strftime("%H:%M:%S")
-            print(f"  {when} released {len(result.runs)} run(s): {', '.join(result.runs)}",
-                  flush=True)
+        if not result.runs:
+            continue
+        when = datetime.now(tz=UTC).strftime("%H:%M:%S")
+        print(f"  {when} released {len(result.runs)} run(s): {', '.join(result.runs)}", flush=True)
+        if served.pool is None:
+            print("  nothing to drive them: see the readiness report", flush=True)
+            continue
+        try:
+            served.pool.submit_all(result.runs)
+            served.pool.work()
+        except Exception as failed:  # noqa: BLE001 - one bad run is not a dead process
+            print(f"  a run did not finish: {failed.__class__.__name__}: {failed}", flush=True)
 
 
 def report(served: Served) -> int:

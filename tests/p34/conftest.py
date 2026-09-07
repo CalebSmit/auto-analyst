@@ -80,7 +80,7 @@ def facts(world: dict[str, Any], sources: tuple[SourceFile, ...]) -> RunFacts:
 
 @pytest.fixture
 def context(world: dict[str, Any], facts: RunFacts) -> RunContext:
-    from harness.door import ModelPin
+    from ports.llm import ModelPin
 
     return RunContext(
         run_id=RUN_ID,

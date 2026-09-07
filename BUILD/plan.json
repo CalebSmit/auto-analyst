@@ -1171,7 +1171,7 @@
       "title": "A released run is driven to an ending",
       "block": "Block I - The system runs",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "From a file landing in a watched folder to a deliverable in the outbox, with nothing in the path that only exists in a test.",
       "builds": [],
       "tasks": [
@@ -1191,7 +1191,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy workers harness tools/serve.py"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-07"
     },
     {
       "id": "P36",
