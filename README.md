@@ -7,6 +7,19 @@ the work.
 
 ## Start here
 
+To **use** it, or to see what it can currently do:
+
+```
+python tools/serve.py --check     # what is wired, what is not, and what setup needs
+python tools/serve.py             # the admin page at /admin, the ops console at /
+```
+
+[`docs/USING.md`](docs/USING.md) is the guide for the people it is for. **Execution is not
+wired yet** - `tools/serve.py --check` says so, derived from the code rather than from a
+sentence somebody has to remember to update, and phases P34 and P35 are the work.
+
+To **build** it:
+
 ```
 python tools/gate.py status
 ```
@@ -17,12 +30,13 @@ state lives in the repo, not in anybody's head or in a chat log:
 | File | What it is |
 |---|---|
 | [`BUILD/STATE.md`](BUILD/STATE.md) | **The cursor.** Read this first, every session. |
-| [`BUILD/PLAN.md`](BUILD/PLAN.md) | 28 phases and 10 checkpoints, with what is closed. |
+| [`BUILD/PLAN.md`](BUILD/PLAN.md) | Every phase and checkpoint, and what is closed. |
 | [`BUILD/LEDGER.md`](BUILD/LEDGER.md) | Dead ends, so they are walked once. |
 | [`BUILD/AMENDMENTS.md`](BUILD/AMENDMENTS.md) | Every plan change, and why. |
 | [`CLAUDE.md`](CLAUDE.md) | The rules a session works under. |
 | [`BUILD/OPEN.md`](BUILD/OPEN.md) | What is waiting on a person: approvals, decisions, evidence owed. |
 | [`CHANGING.md`](CHANGING.md) | **How to change it without breaking it.** Read before the first edit. |
+| [`docs/USING.md`](docs/USING.md) | **How to use it.** For an analyst, a managing director, or whoever runs it. |
 | [`HANDOFF.md`](HANDOFF.md) | What changes on the work machine, and what does not. |
 
 `PLAN.md` and `STATE.md` are **generated** from `BUILD/plan.json` by `tools/gate.py`.
@@ -112,7 +126,7 @@ Resolve it explicitly and record the resolution with `gate amend`.
 
 ## Where this is going
 
-Phases 1–24 run entirely on this machine: a watched local folder in, a local folder out,
+Phases 1–31 run entirely on this machine: a watched local folder in, a local folder out,
 SQLite, no cloud, no credentials beyond one API key. That is deliberate — the ports exist
 so the move to ShareFile intake, Box delivery and the firm's own Anthropic account is a
 `.env` change and three adapter classes, not a rewrite.

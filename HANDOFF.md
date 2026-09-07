@@ -73,6 +73,24 @@ not licensed here** and was never a dependency.
 
 ---
 
+## 2a. Before it is reachable by anybody else
+
+Two things are true on this laptop that stop being acceptable the moment the system is on
+a network the firm can reach, and both are phases rather than settings:
+
+- **Nothing executes yet.** `graph.execute.StepRunner` has no production implementation, so
+  a run released by intake sits with its lock taken. `python tools/serve.py --check` says
+  so. Phases P34 and P35.
+- **Neither surface has authentication**, and the `who` recorded against every change is a
+  string the caller supplies. Bound to `127.0.0.1` that is correct; bound to anything else
+  it makes the change log unverifiable. Phase P36, and it needs a decision from the firm
+  about which identity provider before it can be built.
+
+Neither is a surprise waiting to be found: both are on the open register, in
+[`docs/USING.md`](docs/USING.md), and reported by the command that starts the system.
+
+---
+
 ## 3. What is different about the work machine
 
 Everything in this table is configuration. None of it is a code change.

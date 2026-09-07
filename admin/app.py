@@ -11,9 +11,11 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from admin.console import AdminConsole, AdminRefused
+from admin.page import PAGE
 from intake.config import Destination, Watch
 from intake.roster import RosterEntry, RosterState
 from registries.errors import DiagnosticError
@@ -100,9 +102,23 @@ class CredentialBody(Change):
 def create_admin_app(console: AdminConsole) -> FastAPI:
     app = FastAPI(title="Chartwell Automated Analyst - admin", docs_url=None, redoc_url=None)
 
+    @app.get("/admin", response_class=HTMLResponse)
+    def dashboard() -> str:
+        """The page. Everything it does goes through the API below it, so there is
+        nothing it can do that is not also on the record."""
+        return PAGE
+
+    @app.post("/api/admin/initialise")
+    def initialise(body: Change) -> dict[str, Any]:
+        """The first configuration for this environment. Everything else needs one."""
+        return _guard(lambda: console.initialise(who=body.who, reason=body.reason))
+
     @app.get("/api/admin/setup")
     def setup() -> dict[str, Any]:
-        return console.setup()
+        # Through the guard: a machine nobody has configured yet raises rather than
+        # returning an empty setup, and that is the first request the page makes. A
+        # traceback there reads as "broken"; a diagnostic reads as "not set up".
+        return _guard(console.setup)
 
     @app.get("/api/admin/preflight")
     def preflight(engagement_id: str | None = None) -> dict[str, Any]:
@@ -196,6 +212,11 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
                 ).__dict__
             )
         )
+
+    @app.get("/api/admin/engagements/{engagement_id}/profile/template")
+    def profile_template(engagement_id: str) -> dict[str, Any]:
+        """A skeleton to fill in, and what preflight still says is missing."""
+        return _guard(lambda: console.profile_template(engagement_id))
 
     @app.post("/api/admin/engagements/{engagement_id}/profile")
     def profile(engagement_id: str, body: Profile) -> dict[str, Any]:

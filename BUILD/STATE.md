@@ -1,11 +1,11 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-06.*
+*Last written 2026-09-07.*
 
 ## Where the build is
 
-- **31 of 33 phases closed**
+- **31 of 36 phases closed**
 - Last green checkpoint: **C11**
 - Current phase: **P32 - The recipe belongs to the engagement** (gate: auto)
 

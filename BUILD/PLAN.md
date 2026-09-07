@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**31 of 33 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**31 of 36 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -92,4 +92,13 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [ ] | **P32** The recipe belongs to the engagement | auto | Two engagements under one watch run different recipes |  |
 | [ ] | **P33** Registered recipes | auto | An unregistered recipe cannot run on client work |  |
 | [ ] | **C12 - A group's workflow, and only approved ones** | integration | An engagement runs its own group's workflow, and a workflow nobody approved does not run at all |  |
+
+## Block I - The system runs
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [ ] | **P34** The run executes: the executor meets the dispatcher | auto | A skill step of a compiled plan executes through the SkillDispatcher, carrying the run's scope, engagement profile and identifiers |  |
+| [ ] | **P35** A released run is driven to an ending | auto | A run released by intake is picked up and driven to a delivered or halted ending, on a real store, with no test double in the path |  |
+| [ ] | **P36** Who is asking: identity on both surfaces | auto | Neither surface serves anything outside a loopback bind without an authenticated identity |  |
+| [ ] | **C13 - The system runs** | integration | A file landing in a watched folder becomes a deliverable in the outbox, with nothing in the path that exists only in a test |  |
 

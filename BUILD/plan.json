@@ -1135,6 +1135,84 @@
         "python -m uv run mypy governance graph evals"
       ],
       "notes": ""
+    },
+    {
+      "id": "P34",
+      "title": "The run executes: the executor meets the dispatcher",
+      "block": "Block I - The system runs",
+      "gate": "auto",
+      "status": "open",
+      "intent": "A step of a compiled plan is executed through the harness by something other than a test, so a created run can move.",
+      "builds": [],
+      "tasks": [
+        "Implement graph.execute.StepRunner in harness/runner.py - the seam P08 built against and P09 was meant to fill"
+      ],
+      "exit": [
+        "A skill step of a compiled plan executes through the SkillDispatcher, carrying the run's scope, engagement profile and identifiers",
+        "Which procedure a step runs is derived from the plan and the skill, in one place, never chosen per run by a caller",
+        "Blocked, RepairNeeded and TransportFailure each reach the executor meaning what the executor defines them to mean",
+        "Nothing under skills/ is imported by the runner, and the boundary test still passes"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p34 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy harness graph workers"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P35",
+      "title": "A released run is driven to an ending",
+      "block": "Block I - The system runs",
+      "gate": "auto",
+      "status": "open",
+      "intent": "From a file landing in a watched folder to a deliverable in the outbox, with nothing in the path that only exists in a test.",
+      "builds": [],
+      "tasks": [
+        "A PassRunner that drives one pass of a run through the StepExecutor",
+        "tools/serve.py starts the worker pool alongside the sweep",
+        "Delivery on a finished run, and a halted run that says why",
+        "The C13 integration test: a file in the inbox becomes a workbook in the outbox"
+      ],
+      "exit": [
+        "A run released by intake is picked up and driven to a delivered or halted ending, on a real store, with no test double in the path",
+        "tools/serve.py starts the pool and its readiness report says execution is wired",
+        "Two engagements progress at once while one engagement stays serialised behind its lock",
+        "A blocked run waits for a person and resumes from its frontier rather than restarting"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p35 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy workers harness tools/serve.py"
+      ],
+      "notes": ""
+    },
+    {
+      "id": "P36",
+      "title": "Who is asking: identity on both surfaces",
+      "block": "Block I - The system runs",
+      "gate": "auto",
+      "status": "open",
+      "intent": "The name on a recorded change is one the system verified, not one the caller typed.",
+      "builds": [],
+      "tasks": [
+        "An identity port, with a local adapter that names the operating-system user and refuses outside a loopback bind",
+        "who taken from the authenticated identity on every write, and a client-supplied name refused",
+        "The review surface and the precedent store record the identity that decided",
+        "The blueprint gains identity: it does not mention it at all today"
+      ],
+      "exit": [
+        "Neither surface serves anything outside a loopback bind without an authenticated identity",
+        "The who on every config write, activation, clearance and review decision is the authenticated identity, and a client-supplied name is refused rather than trusted",
+        "The identity provider is behind a port like every other deployment choice, so the local run stays a local run with no accounts",
+        "A review decision records the identity that made it, and the precedent store will not accept one without"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p36 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ports review"
+      ],
+      "notes": ""
     }
   ],
   "checkpoints": [
@@ -1268,6 +1346,16 @@
       "proves": "An engagement runs its own group's workflow, and a workflow nobody approved does not run at all",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c12 -q"
+      ]
+    },
+    {
+      "id": "C13",
+      "title": "The system runs",
+      "after": "P36",
+      "status": "open",
+      "proves": "A file landing in a watched folder becomes a deliverable in the outbox, with nothing in the path that exists only in a test",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c13 -q"
       ]
     }
   ]

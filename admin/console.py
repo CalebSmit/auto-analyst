@@ -337,6 +337,119 @@ class AdminConsole:
         }
         return self._edit_engagement(engagement_id, over, who, reason)
 
+    def profile_template(self, engagement_id: str) -> dict[str, Any]:
+        """A skeleton engagement profile, and what is still missing from the real one.
+
+        Registering an engagement is easy and activating it is not: three skills read the
+        profile as a required input, so preflight refuses until it is complete. Without a
+        starting point that refusal is correct and unactionable - the person is told
+        twelve fields are missing and left to find out their shapes.
+
+        What comes back is filled in where the system already knows the answer - the
+        engagement id, the practice, segment and disposition from the scope path it was
+        registered under - and blank where the answer is a judgment. `gaps` is preflight's
+        own list, so the page and the check cannot disagree about what is missing.
+        """
+        entry = self.roster.get(engagement_id)
+        if entry is None:
+            raise KeyError(f"no engagement {engagement_id}")
+        practice, segment, disposition = entry.scope_path.split("/")
+        current = self.config.document().get("engagements", {}).get(engagement_id) or {}
+        existing = current.get("profile") or {}
+
+        skeleton: dict[str, Any] = {
+            "schema_version": "engagement_profile@1.0.0",
+            "engagement_id": engagement_id,
+            "practice": practice,
+            "segment": segment,
+            "disposition": disposition,
+            "industry_classification": {"system": "NAICS", "code": "", "description": ""},
+            "size_band": {"metric": "revenue", "band": "", "as_of": ""},
+            "fiscal_calendar": {"basis": "calendar", "year_end_month": 12, "year_end_day": 31},
+            "scale_convention": 1,
+            "owner_compensation_baseline": {
+                "amount": 0,
+                "currency": "USD",
+                "basis": "survey_median",
+                "source": "",
+                "as_of": "",
+            },
+            "materiality_threshold": {"amount": 0, "currency": "USD"},
+            "checkpoint_policy": {
+                "owner": "",
+                "sla_hours": 24,
+                "auto_accept_confidence": 0.85,
+                "always_review_categories": ["owner_related"],
+            },
+            "recorded_by": "",
+            "recorded_at": "",
+        }
+        skeleton.update(existing)
+
+        from admin.preflight import _profile_gaps  # noqa: PLC0415 - one direction only
+
+        return {
+            "engagement_id": engagement_id,
+            "scope_path": entry.scope_path,
+            "profile": skeleton,
+            "gaps": _profile_gaps(existing or None, entry.scope_path),
+        }
+
+    def initialise(self, *, who: str, reason: str) -> dict[str, Any]:
+        """Write the first configuration document for this environment.
+
+        Every other write here reads the current document first, so on a machine that has
+        never been configured all of them fail and the dashboard is unusable on the one
+        day somebody most needs it. This is the way in.
+
+        What it writes is empty and valid: no watch, no destination, no engagement, and
+        the two credentials the system always needs named as expected rather than
+        supplied. Those are decisions, and a starter file that guessed at them would be
+        recording choices nobody made - the same reason the methodology register ships
+        with nothing cleared.
+
+        Refuses when a document already exists. Overwriting a live configuration is not
+        an initialisation, and the ordinary edits are the way to change one.
+        """
+        if self.config.version() > 0:
+            raise ValueError(
+                f"{self.config.environment} is already configured "
+                f"(version {self.config.version()}); edit it rather than initialising it"
+            )
+        document: dict[str, Any] = {
+            "schema_version": "config_document@1.1.0",
+            "environment": self.config.environment,
+            "watches": [],
+            "intake": {"quiet_period_minutes": 30, "max_wait_hours": 24, "lock_timeout_hours": 6},
+            "document_type_conventions": {
+                "trial_balance": ["tb_", "trial balance"],
+                "financial_statements": ["income statement", "balance sheet", "financials"],
+            },
+            "destinations": [],
+            "credentials": [],
+            "model_bindings": [],
+            "engagements": {},
+        }
+        version = self._write(document, who, reason)
+
+        # The model bindings come from `templates/bindings.yaml`, which is checked in and
+        # is the firm's record of which model each layer builds into. Without them the
+        # first engagement anybody registers cannot be activated - it resolves to no
+        # template - and the refusal is correct and unactionable. Seeding a record that
+        # already exists is not deciding anything; leaving it out was.
+        from graph.resolve import ScopeResolver  # noqa: PLC0415
+
+        bindings = ScopeResolver().bindings
+        if bindings:
+            version = self.seed_model_bindings(
+                bindings, who=who, reason="the checked-in model bindings, at initialisation"
+            )
+        return {
+            "environment": self.config.environment,
+            "version": version,
+            "model_bindings": len(bindings),
+        }
+
     def add_watch(self, watch: Watch, *, who: str, reason: str) -> int:
         doc = self.config.document()
         if any(w["id"] == watch.id for w in doc["watches"]):

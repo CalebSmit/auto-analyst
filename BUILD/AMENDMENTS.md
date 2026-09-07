@@ -556,3 +556,70 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** Three surfaces move. constraints.ceilings gains per_methodology_layer, a byte ceiling per layer of foundations/ - this is content on every model call of every run that walks through the layer, so unchecked growth is a standing cost nobody can attribute months later; its note says why the number is the number, which is why the note itself moves too. CONFIG.METHODOLOGY_TOO_LARGE is the refusal preflight raises for it. And the snapshot gains a foundations group - layer, filenames, bytes and one digest over the layer in the order the Context Builder attaches it - because nothing else in the snapshot moved when somebody added a paragraph to a document that every prompt carries, which is exactly the kind of change it exists to make visible.
 
 - task added: A byte ceiling per layer, its diagnostic, and the foundations group in the snapshot
+
+## 2026-09-07 - P34 The run executes: the executor meets the dispatcher
+
+**Why:** The build reached v1 with every component tested and nothing composed. There were app factories nobody called, a worker pool nobody started, and a sweep loop that only ran inside tests - and no test asked whether the parts added up to something a person could start, so nothing said so. tools/serve.py is the composition root that was missing and it starts what can be started: the admin surface, the ops console and the intake sweep. What it cannot start is execution, because graph.execute.StepRunner - the seam the executor was built against in P08 and that P09 was meant to fill - has no production implementation. Every component behind that seam is built and tested. This phase joins them, and names the gap so it stops being invisible.
+
+- phase added: P34 The run executes: the executor meets the dispatcher (Block I - The system runs, gate: auto)
+- exit criterion: A skill step of a compiled plan executes through the SkillDispatcher, carrying the run's scope, engagement profile and identifiers
+- exit criterion: Which procedure a step runs is derived from the plan and the skill, in one place, never chosen per run by a caller
+- exit criterion: Blocked, RepairNeeded and TransportFailure each reach the executor meaning what the executor defines them to mean
+- exit criterion: Nothing under skills/ is imported by the runner, and the boundary test still passes
+
+## 2026-09-07 - P35 A released run is driven to an ending
+
+**Why:** A joined StepRunner still needs something to call it on a real run. The worker pool takes a PassRunner it has never been given, and tools/serve.py starts the consoles and the sweep but not the pool - so a run released by intake sits with its lock taken and nothing driving it. This is the second half of the same gap: from a file landing in a watched folder to a deliverable in the outbox, with no test double anywhere in the path.
+
+- phase added: P35 A released run is driven to an ending (Block I - The system runs, gate: auto)
+- exit criterion: A run released by intake is picked up and driven to a delivered or halted ending, on a real store, with no test double in the path
+- exit criterion: tools/serve.py starts the pool and its readiness report says execution is wired
+- exit criterion: Two engagements progress at once while one engagement stays serialised behind its lock
+- exit criterion: A blocked run waits for a person and resumes from its frontier rather than restarting
+
+## 2026-09-07 - C13 The system runs
+
+**Why:** Block I joins the two halves that were never joined: the executor to the dispatcher, and the pool to a released run. Either alone leaves the system unable to do the thing it was built for, so they are checked together - and the check is the one thing the component suites cannot ask, which is whether a file landing in a folder becomes a deliverable without anybody in a test writing the middle.
+
+- checkpoint added: C13 after P35, covering P34, P35
+- proves: A file landing in a watched folder becomes a deliverable in the outbox, with nothing in the path that exists only in a test
+
+## 2026-09-07 - P34 The run executes: the executor meets the dispatcher
+
+**Why:** Naming the seam in the phase itself rather than only in the reason. An amendment explains a change to somebody reading the history; the phase file is what somebody reads when they pick the work up, and the one identifier that makes this findable in the code is the protocol's name.
+
+- task added: Implement graph.execute.StepRunner in harness/runner.py - the seam P08 built against and P09 was meant to fill
+
+## 2026-09-07 - P35 A released run is driven to an ending
+
+**Why:** A phase with no tasks is a phase nobody can pick up. The exit criteria say what has to be true; these say what to build.
+
+- task added: A PassRunner that drives one pass of a run through the StepExecutor
+- task added: tools/serve.py starts the worker pool alongside the sweep
+- task added: Delivery on a finished run, and a halted run that says why
+- task added: The C13 integration test: a file in the inbox becomes a workbook in the outbox
+
+## 2026-09-07 - P36 Who is asking: identity on both surfaces
+
+**Why:** The review found that neither surface has any authentication, and that the who on every recorded change is a string the client supplies. On a laptop bound to 127.0.0.1 that is correct and costs nothing. At the firm it means anybody who can reach the port can activate an engagement or clear methodology, and that the name on every entry in the change log is unverified - which makes the audit trail decorative exactly where it is supposed to be load-bearing. The blueprint does not mention identity at all, so this is a gap in the design of record rather than a disagreement with it. The exit criteria below do not presume an identity provider, because that decision is the firm's and Entra ID is only likely, not confirmed.
+
+- phase added: P36 Who is asking: identity on both surfaces (Block I - The system runs, gate: auto)
+- exit criterion: Neither surface serves anything outside a loopback bind without an authenticated identity
+- exit criterion: The who on every config write, activation, clearance and review decision is the authenticated identity, and a client-supplied name is refused rather than trusted
+- exit criterion: The identity provider is behind a port like every other deployment choice, so the local run stays a local run with no accounts
+- exit criterion: A review decision records the identity that made it, and the precedent store will not accept one without
+
+## 2026-09-07 - C13 The system runs
+
+**Why:** Identity belongs inside the same checkpoint. A system that runs and a system nobody unauthorised can drive are the same claim at the firm, and splitting them would let one pass while the other is open.
+
+- after: P35 -> P36
+
+## 2026-09-07 - P36 Who is asking: identity on both surfaces
+
+**Why:** Tasks, so the phase can be picked up by somebody who was not in this conversation.
+
+- task added: An identity port, with a local adapter that names the operating-system user and refuses outside a loopback bind
+- task added: who taken from the authenticated identity on every write, and a client-supplied name refused
+- task added: The review surface and the precedent store record the identity that decided
+- task added: The blueprint gains identity: it does not mention it at all today

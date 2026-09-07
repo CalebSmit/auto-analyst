@@ -19,9 +19,11 @@ date, rather than being deleted.
 
 | | What I need | Why it is blocked | When you answer |
 |---|---|---|---|
+| **The system cannot run work yet** | Nothing. This is mine to build, and it is now P34 and P35 in the plan. Listed here so it is not a surprise: `graph.execute.StepRunner` has no production implementation, so a run released by intake sits with its lock taken and nothing drives it. | Every component behind that seam is built and tested; the join between the executor and the dispatcher was never written, and no test asked whether the parts added up to something startable. | `python tools/serve.py --check` stops saying NOT WIRED against execution, and `gate checkpoint C13` goes green. |
 | **P28 sign-off** | Your word that the container proof is enough to call v1 portable. The image builds and the whole suite passes inside it on this machine (podman 6.1.1, 1711 passed, 78 skipped) - the clone onto the work machine is the part still outstanding. | P28 is `gate: human`. The gate refuses to close it on green tests alone, and I will not invent your words. | `gate close P28 --signoff "..."`, then `gate checkpoint C10`, and v1 is done. |
 | **The P26 sign-off wording** | Optional. The recorded sign-off reads "Caleb: it all looks good", which does not say what you checked. | Nothing is broken. It is a thin line in a permanent record, beside three others that name what was reviewed. | `gate amend P26 --reopen`, then close again with fuller words. The three checks re-run first. |
 | **Egress from Azure to the Anthropic API** | Confirmation from IT that a container in Azure may reach `api.anthropic.com`. | The 2026-09-05 decision is to call the Anthropic API directly from wherever the system runs. A refusal is the one thing that would force a provider-hosted route, and with it the model-pin change. | Nothing changes and the decision stands. If it is refused, the Foundry adapter and the platform-aware pin get scoped. |
+| **Who may use it, and how they prove it** | A decision, then the work: which identity provider the firm uses for this (Entra ID if Azure is confirmed), and who is allowed to activate an engagement, change a budget or clear methodology. | Neither surface has any authentication, and the `who` recorded against every change is a string the caller supplies. On this laptop, bound to 127.0.0.1, that is correct and costs nothing. At the firm it makes the change log decorative in exactly the place it is meant to be load-bearing. The blueprint does not mention identity at all. | P36 gets built against your answer. Until then, run it bound to loopback only - which is the default. |
 | **A real Redis** | A reachable server, once. | The queue adapter has only ever run against an in-memory fake. That proves its use of RQ, not Redis. | `pytest --redis` goes green and the session summary stops saying FAKED. |
 | **Clearing the firm's methodology** | Somebody at Chartwell reads `foundations/qc-conventions.md`, `tagging-policy.md` and `valuation-standards.md` and clears each one under their own name. | P30 made methodology cleared-once, checked-every-run, and a clone starts with nothing cleared on purpose - a clearance records that a person read a file, so shipping one would record a decision nobody made. The suite clears them for itself; a real install does not. | `POST /api/admin/methodology/{name}/clear` with your name, or `AdminConsole.clear_methodology`. Preflight stops saying every run is blocked. |
 
@@ -56,7 +58,20 @@ Three of those have a direct consequence in the code today:
 
 ---
 
-## 3. Evidence only the work machine can produce
+## 3. On this machine, before the work machine
+
+Small, and none of it blocked on anybody but you.
+
+| | What is owed | Why it is worth doing here |
+|---|---|---|
+| **Clear the methodology** | Read the three files in `foundations/_firm/` and clear each one at `/admin`. Ten minutes. | Until somebody does, preflight fails and no run can start. Doing it here is also the rehearsal for doing it at work. |
+| **Set up one engagement end to end** | Initialise the environment at `/admin`, add a watch, a destination and one engagement with a synthetic client folder. | It is the only way to find out whether the dashboard makes sense to somebody who did not build it - which is the question, and you are the closest available reader. |
+| **A real Redis, once** | Start a server and run `pytest --redis`. | The queue adapter has only ever run against an in-memory fake. |
+| **Postgres, once** | `pytest --postgres` against a local server. | Sixty-five store conformance tests are green on one backend of two. |
+
+---
+
+## 4. Evidence only the work machine can produce
 
 These are tasks on P28. They are not code waiting to be written; each is evidence
 somebody has to gather, and none of it can be gathered here. P28 closes on the proof
@@ -81,7 +96,7 @@ Two more, smaller:
 
 ---
 
-## 4. Questions I am holding
+## 5. Questions I am holding
 
 Not blocking anything today. Each would change what I build next.
 
@@ -103,7 +118,7 @@ Not blocking anything today. Each would change what I build next.
 
 ---
 
-## 5. New information, and what it changes
+## 6. New information, and what it changes
 
 **2026-09-04, from Caleb:** work will *probably* use **Microsoft Azure** for cloud
 hosting, and **Power Automate** is available. Nothing is confirmed, so the blueprint has
@@ -222,7 +237,7 @@ given a database connection string or write access to the outbox.
 
 ---
 
-## 6. Proposed next: routing by practice group
+## 7. Proposed next: routing by practice group
 
 **2026-09-05, from Caleb.** Label each watched folder with a practice group in the admin
 dashboard so the orchestrator only sees that group's skills. Then work with the MDs and

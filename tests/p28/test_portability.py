@@ -192,8 +192,15 @@ def owed_on_the_work_machine() -> tuple[list[str], list[str]]:
     p28 = next(p for p in plan["phases"] if p["id"] == "P28")
     tasks = [t for t in p28["tasks"] if t.startswith("On the work machine")]
 
+    # Found by its title, not its number. The register grew a section above this one
+    # during the review and every caller broke, which is what a number in a locator buys
+    # you: a rename nobody made and a failure that says nothing about what is wrong.
     register = (ROOT / "BUILD" / "OPEN.md").read_text(encoding="utf-8")
-    section = register[register.index("## 3. Evidence only the work machine") :]
+    heading = next(
+        line for line in register.splitlines()
+        if line.startswith("## ") and "Evidence only the work machine" in line
+    )
+    section = register[register.index(heading) :]
     section = section[: section.index("\n\nTwo more")]
     rows = [
         line for line in section.splitlines()
