@@ -7,7 +7,7 @@
 
 - **36 of 36 phases closed**
 - Last green checkpoint: **C13**
-- Every phase is closed.
+- **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
 

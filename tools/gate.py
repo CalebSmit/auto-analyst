@@ -169,7 +169,12 @@ def cmd_status(plan: dict[str, Any], _args: argparse.Namespace) -> int:
     )
 
     if cur is None:
-        print("\n  Every phase is closed. Run the final checkpoint.\n")
+        owed = [c for c in plan["checkpoints"] if c["status"] != "done"]
+        if owed:
+            print(f"\n  Every phase is closed. Run {owed[0]['id']}, the last checkpoint.\n")
+        else:
+            print("\n  Every phase is closed and every checkpoint is green.")
+            print("  What is left is on BUILD/OPEN.md, and it belongs to a person.\n")
         return 0
 
     blocking = blocking_checkpoint(plan, cur["id"])
@@ -639,7 +644,13 @@ def render(plan: dict[str, Any]) -> None:
     if cur:
         B(f"- Current phase: **{cur['id']} - {cur['title']}** (gate: {cur['gate']})")
     else:
-        B("- Every phase is closed.")
+        owed = [c for c in plan["checkpoints"] if c["status"] != "done"]
+        B(
+            f"- Every phase is closed. **{owed[0]['id']}** is owed."
+            if owed
+            else "- **Every phase is closed and every checkpoint is green.** "
+            "What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person."
+        )
     B("")
 
     if cur:
