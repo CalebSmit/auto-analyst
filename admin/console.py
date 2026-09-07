@@ -179,6 +179,30 @@ class AdminConsole:
             "size_bytes": record.size_bytes,
         }
 
+    def recipes(self) -> dict[str, Any]:
+        """Every recipe on disk, and whether the board approved this version of it.
+
+        Read-only. Approving a workflow is a board decision recorded in the governance
+        chain; a button here that skipped that would be the shortcut P33 exists to close.
+        What this is for is answering "why did that engagement not run" without anybody
+        having to read a register by hand.
+        """
+        from registries.recipes import RecipeRegister
+
+        register = RecipeRegister()
+        return {
+            "recipes": [
+                {
+                    "name": found.name,
+                    "state": found.state,
+                    "approved_by": found.approved_by,
+                    "registered_at": found.registered_at,
+                    "digest": found.digest,
+                }
+                for found in register.review()
+            ]
+        }
+
     def resolve_model(self, scope_path: str) -> dict[str, Any]:
         """Which model this scope builds into and which layer said so - the same
         five-layer walk the skills use."""

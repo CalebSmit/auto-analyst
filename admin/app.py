@@ -146,6 +146,11 @@ def create_admin_app(console: AdminConsole) -> FastAPI:
         """What an engagement may be scoped to, from the registry rather than by hand."""
         return console.scope_choices()
 
+    @app.get("/api/admin/recipes")
+    def recipes() -> dict[str, Any]:
+        """Which workflows the board approved, and which were edited afterwards."""
+        return console.recipes()
+
     @app.get("/api/admin/methodology")
     def methodology() -> dict[str, Any]:
         return console.methodology()

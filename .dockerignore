@@ -18,6 +18,7 @@ vault/
 *.sqlite3
 templates/*.xlsx
 foundations/cleared.yaml
+recipes/registered.yaml
 skills-intake/
 
 # local machine state

@@ -5,26 +5,24 @@
 
 ## Where the build is
 
-- **32 of 36 phases closed**
-- Last green checkpoint: **C11**
-- Current phase: **P33 - Registered recipes** (gate: auto)
+- **33 of 36 phases closed**
+- Last green checkpoint: **C12**
+- Current phase: **P34 - The run executes: the executor meets the dispatcher** (gate: auto)
 
 ## The next action
 
-Work P33. Its full definition is in [BUILD/phases/P33.md](phases/P33.md).
+Work P34. Its full definition is in [BUILD/phases/P34.md](phases/P34.md).
 
-> Which workflows may run on client work is a recorded decision with a name on it, the same as which skills may.
+> A step of a compiled plan is executed through the harness by something other than a test, so a created run can move.
 
 Tasks:
 
-- [ ] A recipe registry: name, version, digest, approver - written only by the board
-- [ ] load_recipe refuses an unregistered recipe outside the test suite
-- [ ] The board's decision surface covers recipes as well as skills
+- [ ] Implement graph.execute.StepRunner in harness/runner.py - the seam P08 built against and P09 was meant to fill
 
 Then:
 
-    python tools/gate.py check P33
-    python tools/gate.py close P33
+    python tools/gate.py check P34
+    python tools/gate.py close P34
 
 ## Before you start
 
@@ -68,4 +66,5 @@ Then:
 - **P30** Registered methodology: cleared once, checked every run (2026-09-06)
 - **P31** Methodology per practice group (2026-09-06)
 - **P32** The recipe belongs to the engagement (2026-09-07)
+- **P33** Registered recipes (2026-09-07)
 

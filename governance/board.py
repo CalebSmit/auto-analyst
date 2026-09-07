@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from governance.candidate import Stage
@@ -238,6 +239,55 @@ class SkillBoard:
                 "decision": decision,
                 "reason": recorded.reason,
                 "routed_to": routed,
+            },
+        )
+        return recorded
+
+    # -- recipes
+
+    def register_recipe(
+        self,
+        path: Path,
+        *,
+        version: int,
+        decision: Decision,
+        register: Any | None = None,
+    ) -> Any:
+        """Put an approved recipe into the register, and refuse anything else.
+
+        The decision is the object the board produced, not a name and a date somebody
+        typed: an approval that was returned for changes or rejected carries the same
+        fields and means the opposite, so it is the approval itself that is required
+        here rather than evidence of one.
+
+        This is the only place the recipe register is written. `registries.recipes`
+        cannot import the board - the board reaches back into the harness, and the
+        register sits on the path every run takes - so the constraint is held by a test
+        that asserts nothing else calls `register`.
+        """
+        from registries.recipes import RecipeRegister
+
+        if not decision.approved:
+            raise ValueError(
+                f"{path.stem} was {decision.decision}, not approved; only an approval "
+                f"registers a recipe"
+            )
+        recorded = (register or RecipeRegister()).register(
+            path,
+            version=version,
+            approved_by=decision.reviewer,
+            decision_ref=decision.candidate_id,
+        )
+        self.record.append(
+            decision.candidate_id,
+            Stage.REGISTERED,
+            actor=decision.reviewer,
+            ref=recorded.digest,
+            detail={
+                "node": NODE_BOARD,
+                "recipe": recorded.name,
+                "version": recorded.version,
+                "reason": decision.reason,
             },
         )
         return recorded

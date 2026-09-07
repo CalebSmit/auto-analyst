@@ -113,12 +113,46 @@ class Recipe:
         return next((i for i in self.inputs if i.name == name), None)
 
 
+REGISTER_STEM = "registered"
+"""The recipe register lives beside the recipes it is about. It is a record, not a
+workflow, and listing it as one would offer somebody a recipe that does not exist."""
+
+
 def recipe_names(recipes_dir: Path = RECIPES_DIR) -> tuple[str, ...]:
-    return tuple(sorted(p.stem for p in recipes_dir.glob("*.yaml")))
+    """The recipes in a folder. `registered.yaml` is the record of which of them the board
+    approved, and is not itself one of them."""
+    return tuple(
+        sorted(p.stem for p in recipes_dir.glob("*.yaml") if p.stem != REGISTER_STEM)
+    )
 
 
-def load_recipe(name: str, recipes_dir: Path = RECIPES_DIR) -> Recipe:
-    """Load one recipe by name. Shape only; the graph is the compiler's business."""
+def load_recipe(
+    name: str,
+    recipes_dir: Path = RECIPES_DIR,
+    register: Any | None = None,
+) -> Recipe:
+    """Load one recipe by name, and only one the board approved.
+
+    Shape only; the graph is the compiler's business. The registration check is here
+    rather than at a caller because this is the one door every run comes through - intake
+    plans a sweep with it, preflight checks with it, the compiler compiles what it
+    returns - and a gate that several callers have to remember is a gate that one of them
+    will not.
+
+    The check applies to the firm's recipe folder, and to any caller that hands over a
+    register - the firm's recipes always, anywhere else only if you asked. Both halves are
+    facts about the call rather than about who is making it: every production caller loads
+    from `RECIPES_DIR` with the default argument, and a test holds that, so a recipe from
+    anywhere else cannot reach client work because nothing on that path can ask for one.
+
+    What it buys is that the parser's shape checks can still be tested against
+    deliberately malformed files in a temp folder, without an exemption flag - and an
+    exemption flag is exactly how a guarantee becomes a property of which code path you
+    came down.
+
+    The suite registers the recipes the repo ships, the same way it clears the methodology
+    the repo ships, so what runs under test is what would run at the firm.
+    """
     path = recipes_dir / f"{name}.yaml"
     if not path.is_file():
         raise RegistryError(
@@ -128,6 +162,11 @@ def load_recipe(name: str, recipes_dir: Path = RECIPES_DIR) -> Recipe:
                 locator=str(path),
             )
         )
+    if recipes_dir == RECIPES_DIR or register is not None:
+        from registries.recipes import RecipeRegister, digest_of_recipe
+
+        (register or RecipeRegister()).require(name, digest_of_recipe(path))
+
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise RegistryError(diagnose(RECIPE_INVALID, "not a mapping", locator=str(path)))

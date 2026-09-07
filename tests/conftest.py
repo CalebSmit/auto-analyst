@@ -113,6 +113,35 @@ def cleared_methodology() -> None:
             ) from refused
 
 
+@pytest.fixture(scope="session", autouse=True)
+def registered_recipes() -> None:
+    """Register the recipes the repo ships, if this checkout has not.
+
+    `recipes/registered.yaml` is gitignored for the same reason `foundations/cleared.yaml`
+    is: a registration records that somebody at the firm approved a workflow, and shipping
+    one would be recording a decision nobody made. A clone has nothing registered and
+    `load_recipe` refuses, which is the honest starting state.
+
+    This writes to the register directly rather than through the board, and says so: a
+    board decision needs a governance record and a content store, and a session fixture
+    that built one would leave a firm's approval trail full of rows created by a test run.
+    The approver name says what it is. The rule that only `governance/board.py` writes here
+    is held over shipped code by a test in tests/p33, the same way the skill register's is
+    - a fixture standing in for a firm's approvals is not the thing that rule is about.
+    """
+    from registries.recipes import RecipeRegister, digest_of_recipe
+
+    register = RecipeRegister()
+    missing = [p for p in register.files() if not register.is_registered(digest_of_recipe(p))]
+    for path in missing:
+        register.register(
+            path,
+            version=1,
+            approved_by="tests: the recipes the repo ships",
+            decision_ref=f"test-suite/{path.stem}",
+        )
+
+
 def needs_a_checkout(what: str) -> None:
     """Skip when this is not a git checkout.
 

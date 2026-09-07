@@ -28,7 +28,6 @@ the firm has read these files yet - and preflight says so before a run finds out
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -37,6 +36,7 @@ from typing import Any
 
 import yaml
 
+from registries.digests import digest_of, text_bytes
 from registries.errors import (
     METHODOLOGY_UNSAFE,
     DiagnosticError,
@@ -63,25 +63,13 @@ SKIP = frozenset({"readme.md"})
 anything, so clearing one would be recording a decision nobody made."""
 
 
-def body_of(path: Path) -> bytes:
-    """The bytes of a methodology file, with line endings normalised to `\n`.
+body_of = text_bytes
+"""The bytes of a methodology file, with line endings normalised.
 
-    Read as text and encoded back rather than read raw, because a checkout on Windows and
-    the same checkout in a Linux container differ by a byte per line - and everything here
-    is a digest over those bytes. Raw reads would mean a file cleared on a laptop reads as
-    edited in the container, every run stopping for a change nobody made, and the same
-    methodology producing two different context hashes on two machines.
-
-    This is also the byte sequence the Context Builder frames and the model is shown, so
-    the digest keeps describing what was actually sent rather than what was on disk.
-    """
-    return path.read_text(encoding="utf-8").encode("utf-8")
-
-
-def digest_of(body: bytes) -> str:
-    """The same spelling the Context Builder frames each section with, so the register and
-    the assembled bytes agree by construction rather than by convention."""
-    return f"sha256:{hashlib.sha256(body).hexdigest()}"
+Named for what it is here and defined in `registries.digests`, because the recipe register
+asks the same question and two answers to it is one too many. See that module for what
+went wrong when methodology decided this on its own.
+"""
 
 
 class ClearanceRefused(DiagnosticError):

@@ -67,6 +67,9 @@ details summary{cursor:pointer;color:#8b93a1;font-size:12px}
 </div>
 <div>
  <section><h2>Practice groups</h2><div id="scopes"></div></section>
+ <section><h2>Workflows</h2><div id="recipes"></div>
+  <div class="muted" style="margin-top:6px">A workflow runs on client work only after the
+   board approves it. Editing one after approval un-approves it, which is the point.</div></section>
  <section><h2>Methodology</h2><div id="meth"></div>
   <div class="muted" style="margin-top:6px">Clearing records that <b>you</b> read the file.
    It reaches every model call, so it is checked by digest on every run.</div></section>
@@ -110,7 +113,7 @@ async function refresh(){
   ['credentials',(setup.credentials||[]).map(c=>esc(c.name)).join(', ')],
  ].map(([k,v])=>`<div class="row"><span>${k}</span><span class="mono">${v||'<i>none</i>'}</span></div>`).join('');
  roster(setup);
- preflight();scopes();methodology();seams();
+ preflight();scopes();methodology();workflows();seams();
 }
 function roster(setup){
  const rows=setup.roster||[];
@@ -181,6 +184,14 @@ async function methodology(){
   <span class="muted">${esc(f.cleared_by||'')}</span>
   <span>${f.state==='cleared'?'':`<button onclick="clearFile('${esc(f.name)}')">clear</button>`}</span>
   </div>`).join('')||'<i class="muted">no methodology files</i>';
+}
+async function workflows(){
+ const r=await j('/api/admin/recipes');
+ $('recipes').innerHTML=r.recipes.map(x=>`<div class="row">
+  <span class="mono">${esc(x.name)}</span>
+  <span class="${x.state==='registered'?'pass':x.state==='edited'?'fail':'warn'}">${esc(x.state)}</span>
+  <span class="muted">${esc(x.approved_by||'')}</span></div>`).join('')
+  ||'<i class="muted">no recipes</i>';
 }
 async function seams(){
  const r=await j('/api/readiness').catch(()=>null);

@@ -103,6 +103,17 @@ def test_registration_is_the_only_writer_of_the_record() -> None:
             continue
         if "registered.yaml" in code_only(path.read_text(encoding="utf-8")):
             writers.append(rel)
-    assert writers == ["evals/registration.py"]
+
+    # One writer per register, not one writer overall. P33 added a second register - the
+    # recipes approved to run on client work - and it owns its own file for exactly the
+    # reason this test exists: a register with two writers is a register whose history
+    # nobody can reconstruct.
+    assert sorted(writers) == ["evals/registration.py", "registries/recipes.py"]
+
+    from evals.registration import REGISTER_FILE as SKILLS
+    from registries.recipes import REGISTERED_FILE as RECIPES
+
+    assert SKILLS != RECIPES, "two registers, two files"
+    assert SKILLS.parent.name == "skills" and RECIPES.parent.name == "recipes"
     metric = Metric  # the type registration reads; nothing else constructs a record
     assert metric is not None

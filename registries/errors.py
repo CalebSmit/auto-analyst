@@ -170,6 +170,7 @@ SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
 METHODOLOGY_UNCLEARED = "CONFIG.METHODOLOGY_UNCLEARED"
 METHODOLOGY_UNSAFE = "CONFIG.METHODOLOGY_UNSAFE"
 METHODOLOGY_TOO_LARGE = "CONFIG.METHODOLOGY_TOO_LARGE"
+RECIPE_UNREGISTERED = "SCOPE.RECIPE_UNREGISTERED"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 WORKER_LOST = "PROCESS.WORKER_LOST"
@@ -422,6 +423,16 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "recorded by digest; editing a file after it was cleared is what this catches, "
         "and it catches it by the hash changing rather than by anybody remembering. "
         "Clear it from the admin surface, or restore the version that was cleared.",
+    ),
+    RECIPE_UNREGISTERED: (
+        "config",
+        "The recipe is not approved for client work, or is not the version that was "
+        "approved. A recipe is the order the work happens in - which skills run, against "
+        "which inputs, with which guards between them - so an unapproved one is a "
+        "sequence nobody reviewed running on a client engagement. A recipe edited after "
+        "the board saw it is the same problem wearing the name of something that was "
+        "approved, which is why the check is on the file and not on the name. Take it "
+        "through the board; approval is a decision and registration is a deployment.",
     ),
     METHODOLOGY_TOO_LARGE: (
         "config",

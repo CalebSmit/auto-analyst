@@ -635,3 +635,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The contract registry gains config_document@1.2.0, so two public surfaces move: the id list and the schema digest. 1.1.0 stays listed and stays readable - a document is now validated against the version it declares rather than against one constant, because checking every document against the newest version would make each new version retroactively invalidate every document already written, which is the opposite of leaving the old one listed.
 
 - task added: config_document@1.2.0 in the registry, and a document validated against the version it declares
+
+## 2026-09-07 - P33 Registered recipes
+
+**Why:** SCOPE.RECIPE_UNREGISTERED is the refusal when a recipe is not approved for client work, or is not the version that was approved. Config-owned, because the answer is to take the workflow through the board rather than to change any code. The blueprint's SCOPE row carries it too.
+
+- task added: SCOPE.RECIPE_UNREGISTERED, and the blueprint row that carries it

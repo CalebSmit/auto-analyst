@@ -1115,7 +1115,7 @@
       "title": "Registered recipes",
       "block": "Block H - Practice groups and their workflows",
       "gate": "auto",
-      "status": "open",
+      "status": "done",
       "intent": "Which workflows may run on client work is a recorded decision with a name on it, the same as which skills may.",
       "builds": [
         "skill_board",
@@ -1125,7 +1125,8 @@
       "tasks": [
         "A recipe registry: name, version, digest, approver - written only by the board",
         "load_recipe refuses an unregistered recipe outside the test suite",
-        "The board's decision surface covers recipes as well as skills"
+        "The board's decision surface covers recipes as well as skills",
+        "SCOPE.RECIPE_UNREGISTERED, and the blueprint row that carries it"
       ],
       "exit": [
         "An unregistered recipe cannot run on client work",
@@ -1137,7 +1138,8 @@
         "python -m uv run ruff check .",
         "python -m uv run mypy governance graph evals"
       ],
-      "notes": ""
+      "notes": "",
+      "closed": "2026-09-07"
     },
     {
       "id": "P34",
@@ -1345,11 +1347,12 @@
       "id": "C12",
       "title": "A group's workflow, and only approved ones",
       "after": "P33",
-      "status": "open",
+      "status": "done",
       "proves": "An engagement runs its own group's workflow, and a workflow nobody approved does not run at all",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c12 -q"
-      ]
+      ],
+      "closed": "2026-09-07"
     },
     {
       "id": "C13",
