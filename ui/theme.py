@@ -181,6 +181,32 @@ select{width:auto;padding:5px 9px;margin:0}
 .step .d{font-size:12.5px;color:var(--ink-3);margin-top:2px}
 .step .go{margin-left:auto}
 
+/* ---------------------------------------------------------------- node map */
+.map-groups{display:flex;flex-direction:column;gap:11px}
+.map-group>h3{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4);
+ margin:0 0 6px;font-weight:500}
+.map{display:flex;flex-wrap:wrap;gap:4px}
+.node{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:var(--radius-sm);
+ font-size:11.5px;line-height:1.3;background:transparent;color:var(--ink-4);
+ box-shadow:inset 0 0 0 1px var(--line-soft);cursor:default;transition:background .15s ease}
+.node .id{font-family:var(--mono);font-size:11px}
+.node[title]{cursor:help}
+.node.used{color:var(--ink-2);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
+.node.passed{color:var(--good);background:var(--good-soft);box-shadow:inset 0 0 0 1px rgba(91,189,138,.26)}
+.node.failed{color:var(--bad);background:var(--bad-soft);box-shadow:inset 0 0 0 1px rgba(217,114,122,.34);font-weight:500}
+.node.active{color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px rgba(201,168,106,.34)}
+.node .ring{width:9px;height:9px;border-radius:99px;flex:none;
+ border:1.5px solid currentColor;border-top-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 12px;font-size:11.5px;color:var(--ink-3)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.diag{margin-top:12px}
+.diag .d-row{padding:9px 11px;border-radius:var(--radius-sm);background:var(--bad-soft);
+ box-shadow:inset 0 0 0 1px rgba(217,114,122,.24);margin-bottom:6px}
+.diag .d-row .code{font-family:var(--mono);font-size:11.5px;color:var(--bad);font-weight:500}
+.diag .d-row .msg{display:block;margin-top:3px;color:var(--ink-2);font-size:12.5px}
+
 details>summary{cursor:pointer;color:var(--ink-3);font-size:12.5px;list-style:none;
  padding:4px 0;user-select:none}
 details>summary::-webkit-details-marker{display:none}

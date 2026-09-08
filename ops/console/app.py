@@ -255,6 +255,31 @@ def create_app(console: Console) -> FastAPI:
         _known(console, run_id)
         return [_event_dict(e) for e in console.events(run_id, since)]
 
+    @app.get("/api/graph")
+    def graph() -> dict[str, Any]:
+        """The nodes a trace refers to, so the console can paint all of them.
+
+        Read from `graph/architecture.json`, which is exported from the blueprint - so the
+        picture is of the design of record rather than of a diagram somebody kept beside
+        it. Labels and plain-language descriptions only: the console draws what a run did,
+        and the reasoning behind each node lives in the blueprint.
+        """
+        from graph.architecture_assertions import load_graph
+
+        loaded = load_graph()
+        return {
+            "nodes": [
+                {
+                    "id": n["id"],
+                    "label": n.get("label", n["id"]),
+                    "group": n.get("group", ""),
+                    "plain": n.get("plain", ""),
+                    "runtime": n.get("runtime", ""),
+                }
+                for n in loaded.nodes.values()
+            ]
+        }
+
     @app.get("/api/runs/{run_id}/trace")
     def trace(run_id: str) -> dict[str, Any]:
         _known(console, run_id)
@@ -456,8 +481,27 @@ PAGE = f"""<!doctype html>
     <header><h2>Run detail</h2>
      <p class="why" id="detail-why">Nothing selected.</p></header>
     <div class="body">
-     <div id="card"><div class="empty"><b>Choose a run</b>Its scorecard, its steps and its live activity appear here.</div></div>
-     <div id="nodes" style="margin-top:14px"></div>
+     <div id="card"><div class="empty"><b>Choose a run</b>Its scorecard, its trace and its live activity appear here.</div></div>
+    </div>
+   </section>
+
+   <section class="card">
+    <header><h2>Run trace</h2>
+     <p class="why">Every node in the design, painted with what this run actually did.
+      Green passed, red failed with its diagnostic below, a ring on whatever is running,
+      and everything the run never touched left neutral &mdash; because <i>never ran</i>
+      and <i>passed</i> are the two answers it matters most not to confuse.</p></header>
+    <div class="body">
+     <div class="legend">
+      <span><i style="background:var(--good)"></i>passed</span>
+      <span><i style="background:var(--bad)"></i>failed</span>
+      <span><i style="background:var(--accent)"></i>running</span>
+      <span><i style="background:var(--ink-3)"></i>touched</span>
+      <span><i style="box-shadow:inset 0 0 0 1px var(--line)"></i>never reached</span>
+      <span style="margin-left:auto" id="map-count"></span>
+     </div>
+     <div id="map"><div class="empty"><b>Choose a run</b>The graph is painted from its event stream.</div></div>
+     <div class="diag" id="diag"></div>
     </div>
    </section>
 
@@ -517,12 +561,52 @@ async function refresh() {{
    : '<div class="empty"><b>Nothing raised</b>No run is silent and no review is overdue.</div>';
 }}
 
-function paint(trace) {{
-  const tone = {{passed: 'good', failed: 'bad', active: 'accent', used: '', notreached: ''}};
-  $('nodes').innerHTML = '<div class="r head"><span class="lbl">Step</span><span class="sub">State</span></div>' +
-    Object.entries(trace.nodes).map(([n, s]) => `<div class="r">
-      <span class="lbl mono">${{esc(n)}}</span>
-      <span class="pill ${{tone[s] ?? ''}}">${{esc(s)}}</span></div>`).join('');
+/* The 118 nodes of the design, loaded once. The trace says what a run did to some of
+   them; the rest are the ones it never touched, which is most of what a trace tells you. */
+let GRAPH = null;
+const GROUP_ORDER = ['entry', 'intake', 'source', 'privacy', 'orch', 'skill', 'tool',
+  'guard', 'hitl', 'out', 'data', 'pref', 'gov', 'ops', 'notice', 'port'];
+const GROUP_NAME = {{
+  entry: 'The engagement', intake: 'Files come in', source: 'Reading them',
+  privacy: 'Masking', orch: 'Planning the work', skill: 'Skills', tool: 'Tools',
+  guard: 'Guards', hitl: 'People', out: 'Deliverables', data: 'What it knows',
+  pref: 'Precedent', gov: 'Governance', ops: 'Watching it work', notice: 'Notices',
+  port: 'Ports',
+}};
+
+async function loadGraph() {{
+  if (!GRAPH) GRAPH = await get('/api/graph').catch(() => ({{nodes: []}}));
+  return GRAPH;
+}}
+
+async function paint(trace) {{
+  const g = await loadGraph();
+  const seen = trace.nodes || {{}};
+  const groups = new Map();
+  for (const n of g.nodes) {{
+    if (!groups.has(n.group)) groups.set(n.group, []);
+    groups.get(n.group).push(n);
+  }}
+  const ordered = GROUP_ORDER.filter(k => groups.has(k))
+    .concat([...groups.keys()].filter(k => !GROUP_ORDER.includes(k)));
+
+  $('map').innerHTML = '<div class="map-groups">' + ordered.map(key => `
+    <div class="map-group"><h3>${{esc(GROUP_NAME[key] || key)}}</h3><div class="map">` +
+    groups.get(key).map(n => {{
+      const state = seen[n.id] || '';
+      const running = state === 'active';
+      return `<span class="node ${{esc(state)}}" title="${{esc(n.plain || n.label)}}">
+        ${{running ? '<i class="ring"></i>' : ''}}<span class="id">${{esc(n.id)}}</span></span>`;
+    }}).join('') + '</div></div>').join('') + '</div>';
+
+  const touched = Object.keys(seen).length;
+  $('map-count').textContent = touched + ' of ' + g.nodes.length + ' touched';
+
+  const failed = Object.entries(trace.diagnostics || {{}});
+  $('diag').innerHTML = failed.length ? failed.map(([node, d]) => `<div class="d-row">
+     <span class="code">${{esc(node)}} &mdash; ${{esc(d.code || d.type || 'failed')}}</span>
+     <span class="msg">${{esc(d.message || '')}}${{d.step_id ? ' <span style="color:var(--ink-4)">at step ' + esc(d.step_id) + '</span>' : ''}}</span>
+    </div>`).join('') : '';
 }}
 
 async function open_(id) {{

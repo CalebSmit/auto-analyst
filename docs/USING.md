@@ -205,9 +205,13 @@ what to do about it; a failure with no engagement named blocks everything.
 
 ### When something is wrong
 
-- **The ops console** shows every run, every step, cost against budget, and the review
-  queue. If the console is down, runs continue — it reads the event log, it does not drive
-  anything.
+- **The activity page** shows every run, its scorecard, the review queue and alerts. If it
+  is down, runs continue — it reads the event log and drives nothing.
+- **The run trace**, on that page, paints the whole design with what one run actually did:
+  green where a node passed, red where one failed with its diagnostic underneath, a ring on
+  whatever is running, and everything the run never touched left neutral. *Never ran* and
+  *passed* are the two answers it matters most not to confuse, which is why the untouched
+  nodes are shown rather than omitted.
 - **The analytics page** answers the four questions that decide whether this is worth
   continuing: is it healthy (first-pass yield, where runs stop), what to fix first
   (failures ranked, each with the owner the diagnostics registry gives it — the largest

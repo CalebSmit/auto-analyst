@@ -137,6 +137,38 @@ def test_the_three_pages_are_served_and_reach_each_other(served: Any) -> None:
         assert all(f'href="{other}"' in page.text for other in others), path
 
 
+def test_the_run_trace_can_paint_every_node_in_the_design(served: Any) -> None:
+    """The blueprint: the Run trace paints *this whole graph*, not the handful of nodes a
+    run happened to touch.
+
+    A list of six green rows cannot tell you the tie-out gate never ran, and *never ran*
+    and *passed* are the two answers it matters most not to confuse - which is why the
+    nodes a run did not reach are the ones this had to add.
+    """
+    client = TestClient(served.app)
+    graph = client.get("/api/graph")
+
+    assert graph.status_code == 200
+    nodes = graph.json()["nodes"]
+    assert len(nodes) == 118, "the design of record, exported from the blueprint"
+    assert all({"id", "label", "group", "plain"} <= set(n) for n in nodes)
+    assert {n["id"] for n in nodes} >= {"tieout_gate", "event_bus", "analytics"}
+
+
+def test_the_trace_view_says_each_thing_the_blueprint_says_it_does(served: Any) -> None:
+    """Four clauses, four checks. The blueprint is the design of record; a page that
+    quietly does three of them is a page and a blueprint that disagree."""
+    page = TestClient(served.app).get("/").text
+
+    assert "/api/graph" in page, "it paints the whole graph"
+    assert "class=\"ring\"" in page, "a ring on whatever is executing"
+    assert "trace.diagnostics" in page, "failed, with its diagnostic on screen"
+    assert "never reached" in page, "everything the run never touched, left neutral"
+
+    blueprint = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
+    assert "green passed, red failed with its diagnostic on screen" in blueprint
+
+
 def test_the_analytics_page_renders_what_the_analytics_module_computes(served: Any) -> None:
     """The page and the data have to agree about the field names, or the dashboard shows
     blanks the first time somebody renames one - and a blank on a dashboard reads as a
