@@ -238,12 +238,27 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
     )
     admin = AdminConsole(config, roster, preflight, constraints=constraints)
     ops = Console(store, bus, constraints=constraints)
+    def planner(engagement_id: str, recipe: Any) -> dict[str, Any]:
+        """What a launch records on the run: the plan hash it will execute under, and the
+        version pins. Computed by the same function the driver compiles with, so the two
+        cannot disagree."""
+        from precedent.store import PrecedentStore  # noqa: PLC0415
+        from workers.driver import plan_for  # noqa: PLC0415
+
+        entry = roster.get(engagement_id)
+        plan, versions = plan_for(
+            entry, recipe, config=config, precedents=PrecedentStore(store),
+            contracts=contracts, constraints=constraints,
+        )
+        return {"plan_hash": plan.plan_hash, "versions": versions}
+
     intake = Intake(
         ports.get_storage(),
         roster,
         config,
         intake_store,
         RunLauncher(store, bus, EngagementLock(store, bus), intake_store),
+        launch_planner=planner,
     )
 
     # One app carrying both routers rather than two mounted sub-applications: mounting
@@ -369,6 +384,8 @@ def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
         except Exception as failed:  # noqa: BLE001 - a bad sweep is not a dead process
             print(f"  sweep failed: {failed.__class__.__name__}: {failed}", flush=True)
             continue
+        for engagement_id, why in getattr(result, "not_launched", ()):
+            print(f"  {engagement_id} did not launch: {why[:160]}", flush=True)
         if not result.runs:
             continue
         when = datetime.now(tz=UTC).strftime("%H:%M:%S")

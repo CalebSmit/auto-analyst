@@ -160,6 +160,14 @@ build* — that is the conversation to have, and it becomes a recipe with your n
 its own, or learn from its own unreviewed output. Only a decision a person actually made
 becomes precedent.
 
+**What reaches the model, and what does not.** The client's name is masked before any
+model sees it — the full name and each distinctive word of it on its own, so
+"Henderson Income Statement.xlsx" names nobody. Anything shaped like a social security
+number or an EIN stops the run before it leaves, whether or not anyone declared it. The
+firm's own names — the reviewer on the engagement profile — are not client data and are
+not masked. A file with a sentence aimed at the model in it is refused at intake, and the
+run ends halted with that refusal as its reason.
+
 **What to do when it stops.** It stops rather than guesses, and it says why in words with
 a code — `CONFIG.METHODOLOGY_UNCLEARED`, `PRIVACY.UNMASKED_IDENTIFIER`. Every code carries
 a "what to do now". If the answer is not obvious, the code is the thing to quote.
@@ -184,7 +192,8 @@ Then, on the admin page, in this order:
 2. **Add a watch** — the folder tree to sweep — and a **destination** for deliverables.
 3. **Clear the methodology.** Preflight fails until somebody has.
 4. **Register an engagement** — its id, the client, the practice group picked from the
-   list, the watch, the destination and its folder. It starts paused.
+   list, the watch, the destination and its folder. It starts paused. A rush job can be
+   given a shorter quiet period than the environment's, never a longer one.
 5. **Complete its engagement profile.** The page offers a skeleton with everything the
    system already knows filled in; the blanks are judgments — the industry code, the size
    band, the owner-compensation benchmark, who reviews and how quickly. Three skills read

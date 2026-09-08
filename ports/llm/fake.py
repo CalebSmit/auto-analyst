@@ -22,6 +22,19 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DIR = REPO_ROOT / "fixtures" / "llm"
 
 
+def _relative(path: Path) -> str:
+    """The fixture path as it appears in the repo, never as it appears on one machine.
+
+    This message lands in the run record when a call has no recording, and a run record
+    that says `C:/dev/...` is a fact about a laptop inside a document that is meant to
+    travel.
+    """
+    try:
+        return path.resolve().relative_to(FIXTURE_DIR.resolve().parents[1]).as_posix()
+    except ValueError:
+        return path.name
+
+
 class FixtureMissing(LookupError):
     """No recording for this call. Says which one, and what to do about it."""
 
@@ -31,7 +44,7 @@ class FixtureMissing(LookupError):
         super().__init__(
             f"no LLM fixture for {request.content_hash()} "
             f"({request.pin.model}, {len(request.messages)} message(s)). "
-            f"Record one at {path}, or fix the prompt if the change was not intended - "
+            f"Record one at {_relative(path)}, or fix the prompt if the change was not intended - "
             f"a changed prompt is a different call, not the same one."
         )
 

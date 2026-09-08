@@ -57,6 +57,11 @@ class SweepResult:
     """(path, code) for every file that failed to bind or to read. Nothing read it."""
     verdicts: dict[str, Verdict] = field(default_factory=dict)
     launched: list[Launched] = field(default_factory=list)
+    not_launched: list[tuple[str, str]] = field(default_factory=list)
+    """(engagement_id, why) for every engagement whose window released and whose launch
+    failed anyway - a workflow its group cannot run, most often. Recorded rather than
+    raised, because a sweep is a pass over every active engagement and one of them being
+    misconfigured is that engagement's problem, not the tick's."""
 
     @property
     def runs(self) -> list[str]:
@@ -73,6 +78,7 @@ class Intake:
         launcher: RunLauncher,
         clock: Callable[[], datetime] | None = None,
         recipes: Callable[[str], Recipe] = load_recipe,
+        launch_planner: Callable[[str, Recipe], dict[str, Any]] | None = None,
     ) -> None:
         self.port = port
         self.roster = roster
@@ -81,6 +87,13 @@ class Intake:
         self.launcher = launcher
         self._clock = clock or (lambda: datetime.now(tz=UTC))
         self._recipes = recipes
+        self.launch_planner = launch_planner
+        """`(engagement_id, recipe) -> {plan_hash, versions}`: what a launch records on
+        the run. Per engagement, because the hash covers the scope and the precedent
+        snapshot and two engagements under one watch can differ on both. A sweep given
+        no explicit context asks this; a sweeper with neither refuses to launch rather
+        than raising a TypeError three calls down, which is what it did until the front
+        door was stood up for real."""
         self.planner = SweepPlanner(roster, config, port, intake_store, clock=self._clock)
         self.source = LocalIntake(port)
         self.binder = EngagementBinder(roster, config)
@@ -111,8 +124,25 @@ class Intake:
             recipe = self._recipes(recipe_name)
             verdict = self.window.evaluate(engagement_id, recipe)
             result.verdicts[engagement_id] = verdict
-            if verdict.release:
+            if not verdict.release:
+                continue
+            try:
+                context = launch_context or self._context_for(engagement_id, recipe)
                 result.launched.append(
-                    self.launcher.launch(engagement_id, recipe, verdict, **(launch_context or {}))
+                    self.launcher.launch(engagement_id, recipe, verdict, **context)
                 )
+            except DiagnosticError as refused:
+                # This engagement cannot launch as configured. The others still can, and
+                # the reason is on the result for whoever reads it - preflight will have
+                # said the same thing, in the same words, if anybody ran it.
+                result.not_launched.append((engagement_id, str(refused.diagnostic)))
         return result
+
+    def _context_for(self, engagement_id: str, recipe: Recipe) -> dict[str, Any]:
+        if self.launch_planner is None:
+            raise RuntimeError(
+                f"{engagement_id} is ready to launch and this sweeper has no launch planner: a "
+                f"run has to be recorded under the plan hash it will execute under, and nothing "
+                f"here can compute one. Give Intake a launch_planner, or pass a launch_context."
+            )
+        return self.launch_planner(engagement_id, recipe)

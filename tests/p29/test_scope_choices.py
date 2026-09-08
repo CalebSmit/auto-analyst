@@ -117,13 +117,25 @@ def test_an_undefined_group_does_not_block_activation(
 ) -> None:
     """A warning blocks nothing. The firm may onboard an engagement before its practice
     group has been described, and the alternative - refusing - would make the tool the
-    reason the work waits."""
+    reason the work waits.
+
+    What does block is a workflow the group cannot run. `monthly-refresh` needs the EBITDA
+    skill, which lives at the valuation group layer, so a consulting engagement on it
+    cannot compile - and P32 found that at a sweep, not at setup. Preflight compiles now.
+    The undefined group still does not block: on a workflow made of firm-layer skills,
+    which `full-ddr-intake` is, the same engagement activates.
+    """
     console.register_engagement(
         entry(NOVK, client="Novak Advisory", scope_path=CONSULTING, folder="Novak Advisory/2026"),
         profile=profile_for(NOVK, CONSULTING),
         who=WHO,
         reason="consulting pilot",
     )
+    refused = console.check(NOVK).blocking(NOVK)
+    assert [f.diagnostic.code for f in refused] == ["SCOPE.RECIPE_INVALID"], refused
+    assert NOVK in refused[0].diagnostic.detail, "named, so the person who chose it hears"
+
+    console.set_recipe(NOVK, "full-ddr-intake", who=WHO, reason="a workflow of firm skills")
     report = console.check(NOVK)
     assert report.blocking(NOVK) == ()
     assert console.activate(NOVK, who=WHO, reason="go").state is RosterState.ACTIVE

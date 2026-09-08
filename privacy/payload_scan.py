@@ -31,6 +31,16 @@ __all__ = ["IdentifierList", "PayloadScan", "ScanFailed", "ScanResult"]
 # recognise them, and the shape is fixed here so the two cannot disagree about it.
 TOKEN_PATTERN = re.compile(r"\[\[[A-Z]+_[0-9]+\]\]")
 
+# Two shapes that re-identify a person or a business on their own, whichever engagement
+# they belong to, and that no identifier list would ever contain because nobody typed them
+# into a profile: a social security number and an employer identification number. Both
+# are precise enough to fail closed on. The account-number pattern the draft scanner uses
+# is not - it would match every `2025-12` period label - so it stays where it is.
+SHAPED_LIKE_PII: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("social security number", re.compile(r"\b\d{3}-\d{2}-\d{4}\b")),
+    ("employer identification number", re.compile(r"\b\d{2}-\d{7}\b")),
+)
+
 
 @dataclass(frozen=True)
 class IdentifierList:
@@ -119,17 +129,25 @@ class PayloadScan:
         hits = tuple(ident for ident in identifiers.identifiers if ident.lower() in lowered)
         missing = tuple(t for t in identifiers.expected_tokens if t not in text)
         seen = len(TOKEN_PATTERN.findall(text))
+        shaped = tuple(
+            f"{kind} x{len(found)}"
+            for kind, pattern in SHAPED_LIKE_PII
+            if (found := pattern.findall(text))
+        )
         reasons: list[str] = []
         if hits:
             # Never echo the identifier itself into an event or an error - that would
             # be the leak the scan exists to prevent, one level up.
             reasons.append(f"{len(hits)} identifier(s) from the vault appear unmasked")
+        if shaped:
+            # Counted and named by kind, never quoted, for the same reason.
+            reasons.append("something shaped like a " + ", ".join(shaped) + " is in the payload")
         if missing:
             reasons.append(f"{len(missing)} expected token(s) were never substituted")
         return ScanResult(
-            passed=not hits and not missing,
+            passed=not hits and not missing and not shaped,
             checked=len(identifiers.identifiers) + len(identifiers.expected_tokens),
-            hits=hits,
+            hits=hits + shaped,
             missing_tokens=missing,
             tokens_seen=seen,
             reasons=tuple(reasons),

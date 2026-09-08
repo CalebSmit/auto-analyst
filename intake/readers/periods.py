@@ -24,7 +24,9 @@ __all__ = ["PeriodDetection", "detect_periods"]
 _SCALE_CUES: tuple[tuple[re.Pattern[str], int, str], ...] = (
     (
         re.compile(
-            r"\bin thousands\b|\$\s?000s?\b|\(\s?000s?\s?\)|\b000s? omitted\b|\bthousands of\b|\$\s?k\b",
+            r"\bin thousands\b|\$\s?000s?\b|\(\s?000s?\s?\)|\b000s? omitted\b|\bthousands of\b|\$\s?k\b"
+            r"|\b(?:amounts?|figures?|stated|expressed|presented)\s+in\s+(?:\$\s?)?000s?\b"
+            r"|\b(?:USD|CAD|GBP|EUR|dollars?)\s+(?:in\s+)?thousands\b",
             re.I,
         ),
         1000,

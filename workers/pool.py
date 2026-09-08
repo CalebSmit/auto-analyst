@@ -296,7 +296,25 @@ class WorkerPool:
                 "max_parallelism": self.target.max_parallelism,
             },
         )
-        report = self.passes(run_id)
+        try:
+            report = self.passes(run_id)
+        except Exception as failed:
+            # Whatever the driver did wrong, the lock is this pool's to let go of. A
+            # worker that died holding it would strand every later run for the client
+            # behind a run that was never going to move - which is exactly what happened
+            # the first time a hostile file was refused at intake.
+            self._emit(
+                run_id,
+                engagement,
+                "worker.failed",
+                f"attempt {job.attempts} raised {failed.__class__.__name__}: {failed}"[:400],
+                level="error",
+                job_id=job.id,
+                attempt=job.attempts,
+                error=failed.__class__.__name__,
+            )
+            self._release(run_id, engagement)
+            raise
         ended = self.store.run(run_id)
         self._emit(
             run_id,

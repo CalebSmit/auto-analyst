@@ -624,22 +624,30 @@ class Preflight:
                         engagement_ids=self._engagements_on_watch(watch.id),
                     )
                 )
-        # And the recipe each engagement actually runs, which is its own when it names one.
+        # And the recipe each engagement actually runs - compiled for its group, not just
+        # loaded. A recipe is a file; whether this engagement can run it depends on which
+        # skills its practice group resolves to, and a consulting engagement on a valuation
+        # workflow loads perfectly and cannot compile. That is the question, and the
+        # person who chose the workflow is the one who should hear the answer.
+        watches = {w.id: w for w in self.config.watches()}
         for entry in entries:
-            if not entry.recipe:
-                continue  # it inherits the watch's, checked just above
+            on_watch = watches.get(entry.watch_id)
+            name = entry.recipe or (on_watch.recipe if on_watch else "")
+            if not name:
+                continue
             try:
-                self._recipes(entry.recipe)
-            except Exception as failure:  # noqa: BLE001 - a recipe that does not load
+                self._compile_for(entry, self._recipes(name))
+            except Exception as failure:  # noqa: BLE001 - loads or compiles, either way
                 failures.append(
                     Failure(
                         "recipes_and_budgets",
                         diagnose(
                             RECIPE_INVALID,
-                            f"{entry.engagement_id} names recipe {entry.recipe!r}: {failure}",
+                            f"{entry.engagement_id} cannot run recipe {name!r} as "
+                            f"{entry.scope_path}: {failure}",
                             locator=f"engagements/{entry.engagement_id}/recipe",
-                            expected="a recipe that loads",
-                            found=entry.recipe,
+                            expected="a recipe that compiles for this engagement's group",
+                            found=name,
                         ),
                         engagement_ids=(entry.engagement_id,),
                     )
@@ -690,6 +698,24 @@ class Preflight:
     def _engagements_on_pin(self, entries: tuple[RosterEntry, ...], pin: str) -> tuple[str, ...]:
         return tuple(e.engagement_id for e in entries if self.template_pin_for(e) == pin)
 
+
+    def _compile_for(self, entry: RosterEntry, recipe: Any) -> Any:
+        """Compile the way a launch will, so setup and launch cannot disagree.
+
+        The precedent snapshot is a placeholder here: the check is whether the skills
+        resolve for this group, and the snapshot is part of the hash, not of that answer.
+        """
+        from graph.compile import PlanContext, compile_recipe  # noqa: PLC0415
+
+        return compile_recipe(
+            recipe,
+            PlanContext(
+                engagement_id=entry.engagement_id,
+                scope=self._resolver().resolve(entry.scope_path),
+                taxonomy_version="coa-taxonomy@1.0.0",
+                precedent_snapshot="preflight",
+            ),
+        )
 
     def _methodology(self) -> Check:
         """Whether the firm's reference material is cleared, and is what was cleared.

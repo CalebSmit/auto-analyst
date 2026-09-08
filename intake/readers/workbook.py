@@ -41,7 +41,12 @@ __all__ = [
     "survey_workbook",
 ]
 
-HEADER_ROWS = 3
+HEADER_ROWS = 12
+"""How far down a sheet the title block may run. An accountant\'s statement opens with the
+company, the statement, the period and the scale - four or five rows - and the scale cue
+is the one that matters most and sits lowest. Header collection stops at the first row
+with a number in it, so this is a cap rather than a count.
+"""
 
 
 @dataclass(frozen=True)
@@ -228,12 +233,26 @@ def survey_workbook(data: bytes) -> WorkbookSurvey:
     for ws in book.worksheets:
         headers: list[str] = []
         numeric = 0
+        in_title_block = True
         for r, row in enumerate(ws.iter_rows(values_only=True), start=1):
+            row_has_number = any(
+                isinstance(c, int | float) and not isinstance(c, bool) for c in row
+            )
             for cell in row:
                 if isinstance(cell, int | float) and not isinstance(cell, bool):
                     numeric += 1
-                elif r <= HEADER_ROWS and isinstance(cell, str) and cell.strip():
+                elif (
+                    in_title_block
+                    and not row_has_number
+                    and r <= HEADER_ROWS
+                    and isinstance(cell, str)
+                    and cell.strip()
+                ):
                     headers.append(cell.strip())
+            # The title block ends at the first row with a figure in it. Everything above
+            # is where the company, the statement, the period and the scale are stated.
+            if row_has_number:
+                in_title_block = False
         sheets.append(
             SheetInfo(
                 name=ws.title,
@@ -280,18 +299,24 @@ def normalize_workbook(data: bytes, sheets: list[str]) -> list[NormalizedSheet]:
             continue
         width = max(len(r) for r in grid)
         label_col = _label_column(grid, width)
+        code_col = _code_column(grid, label_col)
         sheet = NormalizedSheet(sheet=name, label_column=get_column_letter(label_col + 1))
         for c in range(width):
-            if c == label_col:
+            if c in (label_col, code_col):
                 continue
             rows: list[Row] = []
             for r, values in enumerate(grid, start=1):
                 cell = values[c] if c < len(values) else None
                 if isinstance(cell, int | float) and not isinstance(cell, bool):
                     label = values[label_col] if label_col < len(values) else None
+                    text = str(label).strip() if label is not None else ""
+                    if code_col is not None and code_col < len(values):
+                        code = values[code_col]
+                        if code is not None and str(code).strip():
+                            text = f"{_code_text(code)} {text}".strip()
                     rows.append(
                         Row(
-                            label=str(label).strip() if label is not None else "",
+                            label=text,
                             value=float(cell),
                             raw=_display(cell),
                             ordinal=r,
@@ -309,12 +334,53 @@ def normalize_workbook(data: bytes, sheets: list[str]) -> list[NormalizedSheet]:
 
 
 def _label_column(grid: list[tuple[Any, ...]], width: int) -> int:
-    """The leftmost column that is mostly text."""
+    """The leftmost column that is mostly text, voted over the data rows.
+
+    Over the data rows and not the title block: a short trial balance with three title
+    rows in column A and three account numbers below them voted A "mostly text", read every
+    row as `6000 = 265,000`, and dropped the account-name column - which is the one thing
+    every skill downstream needs, and the one place a hostile sentence would sit. The
+    title rows say what the sheet is; they do not say which column names the lines.
+    """
+    data = [row for row in grid if _has_number(row)] or grid
     for c in range(width):
-        values = [row[c] for row in grid if c < len(row) and row[c] is not None]
+        values = [row[c] for row in data if c < len(row) and row[c] is not None]
         if values and sum(isinstance(v, str) for v in values) >= len(values) / 2:
             return c
     return 0
+
+
+def _code_column(grid: list[tuple[Any, ...]], label_col: int) -> int | None:
+    """An account-number column immediately left of the label column, if there is one.
+
+    `Account # | Account name | Debit | Credit` is the shape a trial balance nearly always
+    arrives in. The number is not the label, but an analyst writes the two together -
+    `6000 Officer compensation` - and so does this.
+    """
+    if label_col == 0:
+        return None
+    c = label_col - 1
+    data = [row for row in grid if _has_number(row)]
+    values = [row[c] for row in data if c < len(row) and row[c] is not None]
+    if not values:
+        return None
+    codes = sum(
+        1 for v in values
+        if (isinstance(v, int | float) and not isinstance(v, bool) and float(v).is_integer())
+        or (isinstance(v, str) and v.strip().isdigit())
+    )
+    return c if codes >= len(values) * 0.8 else None
+
+
+def _has_number(row: tuple[Any, ...]) -> bool:
+    return any(isinstance(c, int | float) and not isinstance(c, bool) for c in row)
+
+
+def _code_text(code: Any) -> str:
+    """An account number as written - `6000`, never `6,000`. It is a code, not a figure."""
+    if isinstance(code, int | float) and not isinstance(code, bool) and float(code).is_integer():
+        return str(int(code))
+    return str(code).strip()
 
 
 def _display(value: float) -> str:

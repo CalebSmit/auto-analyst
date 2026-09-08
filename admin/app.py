@@ -56,6 +56,13 @@ class Budget(Change):
     usd: float
 
 
+class IntakeTiming(Change):
+    quiet_period_minutes: float | None = None
+    max_wait_hours: float | None = None
+    """Tighten only. The environment sets the floor; an engagement may wait less, never
+    more, and the lock timeout is not per engagement at all."""
+
+
 class RecipeChoice(Change):
     recipe: str = ""
     """Empty means inherit the watch's, which is how an engagement undoes a choice."""
@@ -290,6 +297,22 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
                     engagement_id, body.usd, who=who(request, body.who), reason=body.reason
                 ).__dict__
             )
+        )
+
+    @app.post("/api/admin/engagements/{engagement_id}/intake")
+    def intake_timing(engagement_id: str, request: Request, body: IntakeTiming) -> dict[str, Any]:
+        """How long to hold this engagement's files before a run starts. A rush job waits
+        less; nothing waits longer than the environment allows."""
+        return _guard(
+            lambda: {
+                "version": console.set_intake_override(
+                    engagement_id,
+                    who=who(request, body.who),
+                    reason=body.reason,
+                    quiet_period_minutes=body.quiet_period_minutes,
+                    max_wait_hours=body.max_wait_hours,
+                )
+            }
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/recipe")

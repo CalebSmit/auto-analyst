@@ -45,9 +45,10 @@ from intake.readers import read_source
 from ops.blobs import ContentRef, ContentStore, put_json
 from ports.llm import ModelPin
 from ports.storage import FileRef
+from registries.errors import DiagnosticError
 from review import CheckpointPolicy
 
-__all__ = ["RunDriver", "RunWiring"]
+__all__ = ["RunDriver", "RunWiring", "plan_for"]
 
 READ_STEP = "intake"
 MASK_STEP = "mask"
@@ -86,6 +87,81 @@ class RunWiring:
     tier: str = "mid"
 
 
+def plan_for(
+    entry: Any,
+    recipe: Any,
+    *,
+    config: Any,
+    precedents: Any,
+    contracts: Any,
+    constraints: Any,
+    tier: str = "mid",
+    taxonomy_version: str = "coa-taxonomy@1.0.0",
+    precedent_snapshot: str | None = None,
+) -> tuple[Any, dict[str, Any]]:
+    """The compiled plan for an engagement, and the version pins a run records.
+
+    Used at two moments that have to agree: when intake launches a run and writes its
+    plan hash, and when the driver executes it. One function, so they cannot drift - a run
+    recorded under one hash and executed under another would be a manifest that describes
+    a different run from the one that happened.
+
+    The versions are what the manifest requires and nothing invented: the model pin for
+    the tier, the skills the scope resolved to at their versions, the contract and
+    constraint registry versions, the taxonomy, and the template the scope binds.
+    """
+    resolver = ScopeResolver(bindings=config.model_bindings())
+    scope = resolver.resolve(entry.scope_path)
+    snapshot = precedent_snapshot or str(precedents.snapshot_id())
+    plan = compile_recipe(
+        recipe,
+        PlanContext(
+            engagement_id=entry.engagement_id,
+            scope=scope,
+            taxonomy_version=taxonomy_version,
+            precedent_snapshot=snapshot,
+        ),
+    )
+    versions: dict[str, Any] = {
+        "model_pin": str(ModelPin.for_tier(tier)),
+        "skills": [s.skill.key for s in scope.skills],
+        "contracts": str(getattr(contracts, "version", "") or "1.0.0"),
+        "constraints": str(constraints.version),
+        "taxonomy": taxonomy_version,
+        "precedent_snapshot": snapshot,
+    }
+    if scope.template is not None and scope.template.file:
+        versions["template_version"] = (
+            f"{scope.template.file.removesuffix('.xlsx')}@{scope.template.template_version}"
+        )
+    return plan, versions
+
+
+GENERIC_NAME_WORDS = frozenset(
+    w.lower() for w in (
+        "Inc", "Incorporated", "LLC", "LLP", "Ltd", "Limited", "Corp", "Corporation", "Co",
+        "Company", "Group", "Holdings", "Partners", "Partnership", "Associates", "Enterprises",
+        "International", "Industries", "Industrial", "Services", "Solutions", "Systems",
+        "Manufacturing", "Fabrication", "Logistics", "Consulting", "Capital", "Ventures",
+        "Technologies", "Technology", "Medical", "Dental", "Health", "Healthcare", "Financial",
+        "Management", "Trust", "Family", "Brothers", "Sons", "and", "of", "the",
+    )
+)
+"""Words that appear in thousands of company names and identify none of them. A word of
+the client's name that is not one of these is masked on its own, so the name cannot reach
+a model by way of a filename or a column heading."""
+
+
+def _distinctive_words(name: str) -> tuple[str, ...]:
+    """The words of a client's name that would identify it alone."""
+    seen: list[str] = []
+    for raw in name.replace("&", " ").replace(",", " ").split():
+        word = raw.strip(".()'\"-")
+        if len(word) >= 4 and word.lower() not in GENERIC_NAME_WORDS and word not in seen:
+            seen.append(word)
+    return tuple(seen)
+
+
 class RunDriver:
     """One pass of one run. Satisfies `workers.pool.PassRunner`."""
 
@@ -103,21 +179,29 @@ class RunDriver:
                 f"{run_id} belongs to {run.engagement_id}, which is not on the roster"
             )
 
-        resolver = ScopeResolver(bindings=w.config.model_bindings())
-        scope = resolver.resolve(entry.scope_path)
         watch = next(x for x in w.config.watches() if x.id == entry.watch_id)
-        plan = compile_recipe(
+        plan, _versions = plan_for(
+            entry,
             load_recipe(entry.recipe or watch.recipe),
-            PlanContext(
-                engagement_id=run.engagement_id,
-                scope=scope,
-                taxonomy_version=str(run.versions.get("taxonomy", "coa-taxonomy@1.0.0")),
-                precedent_snapshot=self._snapshot(run),
-            ),
+            config=w.config,
+            precedents=w.precedents,
+            contracts=w.contracts,
+            constraints=w.constraints,
+            tier=w.tier,
+            taxonomy_version=str(run.versions.get("taxonomy", "coa-taxonomy@1.0.0")),
+            precedent_snapshot=self._snapshot(run),
         )
+        scope = plan.context.scope
 
         profile = w.config.profile(run.engagement_id) or {}
-        facts = self._facts(run_id, run.engagement_id, scope, profile)
+        try:
+            facts = self._facts(run_id, run.engagement_id, scope, profile)
+        except DiagnosticError as refused:
+            # A file the readers refused - an injection, an unreadable workbook - is not a
+            # pass that failed, it is a run that cannot start. It ends here, halted, with
+            # the reason on the record and the manifest written, rather than escaping as
+            # an exception and leaving a queued run holding the client's lock.
+            return self._halt(run, plan.plan_hash, refused)
         profile_ref = put_json(w.blobs, profile, name="engagement_profile")
 
         context = RunContext(
@@ -157,6 +241,35 @@ class RunDriver:
         """
         named = str(run.versions.get("precedent_snapshot") or "")
         return named or str(self.wiring.precedents.snapshot_id())
+
+    def _halt(self, run: Any, plan_hash: str, refused: DiagnosticError) -> ExecutionReport:
+        """End a run that cannot start, with the refusal as its reason."""
+        from ops.manifest import close_out
+        from ops.models import Outcome, RunState
+
+        w = self.wiring
+        if run.state is RunState.QUEUED:
+            w.store.transition(run.run_id, RunState.RUNNING, reason="taken up, to be halted")
+        w.bus.emit(
+            run_id=run.run_id,
+            engagement_id=run.engagement_id,
+            node_id="run_driver",
+            type="run.refused",
+            message=f"cannot start: {refused.diagnostic}"[:400],
+            level="error",
+            payload={"code": refused.diagnostic.code},
+        )
+        close_out(
+            w.store,
+            run.run_id,
+            RunState.HALTED,
+            Outcome.HALTED,
+            w.delivery,
+            bus=w.bus,
+            contracts=w.contracts,
+            reason=str(refused.diagnostic)[:400],
+        )
+        return ExecutionReport(run_id=run.run_id, plan_hash=plan_hash, state=RunState.HALTED)
 
     # -- the two kinds of step
 
@@ -317,13 +430,18 @@ class RunDriver:
 
         The classification and the period detection are not re-derived: they were part of
         reading, and re-deriving them on a resume would mean a run could change its mind
-        about what a file is between passes.
+        about what a file is between passes. They come from the `intake.read` event the
+        first pass emitted - which is the record, and which a person reads for the same
+        reason. Until the event carried them, a resume rebuilt every source with no scale
+        and the timing skill escalated "has no settled scale" on a file whose header said
+        `($000s)`. A resume that changes the answer is not a resume.
         """
         w = self.wiring
+        detected = self._detection_for(run_id, row.source_id)
         return SourceFile(
             source_id=row.source_id,
             filename=row.filename,
-            document_type=row.document_type or "other",
+            document_type=str(detected.get("document_type") or row.document_type or "other"),
             blocks={
                 locator: [
                     dataclasses.asdict(r)
@@ -331,12 +449,25 @@ class RunDriver:
                 ]
                 for locator in locators
             },
-            scale=None,
-            currency=None,
-            period_type=None,
-            period_ends=(),
+            scale=detected.get("scale"),
+            currency=detected.get("currency"),
+            period_type=detected.get("period_type"),
+            period_ends=tuple(detected.get("period_ends") or ()),
+            ambiguous=tuple(detected.get("ambiguous") or ()),
             source_version=row.source_version,
         )
+
+    def _detection_for(self, run_id: str, source_id: str) -> dict[str, Any]:
+        """What the reader decided about a source, from the event it emitted saying so.
+
+        The latest read wins, for the case where a source was read on more than one pass
+        before this was fixed.
+        """
+        found: dict[str, Any] = {}
+        for event in self.wiring.store.events(run_id):
+            if event.type == "intake.read" and (event.payload or {}).get("source_id") == source_id:
+                found = dict(event.payload)
+        return found
 
     def _intake_set(self, run_id: str, engagement_id: str) -> tuple[Any, ...]:
         """The files this run consumed.
@@ -360,14 +491,26 @@ class RunDriver:
         From the engagement rather than from a step, because a step that assembled its own
         would be a step that could miss one - and the one it missed would be the one that
         reached a model.
+
+        Client identifiers only. The first version of this also listed the engagement's
+        reviewer - the firm's own person, from the checkpoint policy - and since the
+        profile travels to the model verbatim as context, the outbound scan found that
+        address unmasked on every run and quarantined all of them. The scan was right; the
+        list was wrong. A firm employee's work address is not what the masker exists to
+        protect, and listing it made the guard fire on the firm's own metadata.
         """
         from privacy.mask import Identifier
 
-        found = [Identifier("CLIENT", entry.client)]
-        owner = (profile.get("checkpoint_policy") or {}).get("owner")
-        if owner:
-            found.append(Identifier("PERSON", str(owner)))
-        return tuple(found)
+        del profile  # nothing in the profile is a client identifier today
+        # The full name first, then its distinctive words on their own. The masker matches
+        # a declared string exactly, and a client's name reaches the model in more shapes
+        # than the one on the engagement letter - "Henderson Income Statement FY2025.xlsx"
+        # names the client as surely as "Henderson Manufacturing" does. Generic words are
+        # left alone: masking "Manufacturing" would mask nothing about anybody.
+        return (
+            Identifier("CLIENT", entry.client),
+            *(Identifier("CLIENT", word) for word in _distinctive_words(entry.client)),
+        )
 
     def _run_scope(self, run_id: str, entry: Any, scope: Any) -> Any:
         from harness.policy import RunScope
