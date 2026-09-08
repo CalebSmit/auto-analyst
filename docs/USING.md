@@ -182,8 +182,17 @@ a "what to do now". If the answer is not obvious, the code is the thing to quote
 uv sync                                   # install
 cp .env.example .env                      # then add the Anthropic API key
 python tools/serve.py --check             # what is ready, what is not
+python tools/simulate_firm.py             # a generated firm through the real thing
 python tools/serve.py                     # start it
 ```
+
+**Run the rehearsal before the first real engagement.** `tools/simulate_firm.py` starts
+the real server, sets up three invented clients through the same API the page uses, puts
+randomly generated workbooks shaped like an accountant's through it, drops a hostile file
+and a stray folder, and tries the edge cases against the live surface. It prints what
+happened at every step and ends with a list of findings — which should be empty. It found
+nine bugs the test suite could not, because every fixture the suite had was shaped like a
+test. Nothing in it is a real client.
 
 Then, on the admin page, in this order:
 
