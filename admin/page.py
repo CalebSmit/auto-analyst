@@ -34,7 +34,12 @@ __all__ = ["PAGE"]
 PAGE = f"""<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Setup - Automated Analyst</title>
-<style>{CSS}</style>
+<style>{CSS}
+.board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
+ grid-template-rows:repeat(6,minmax(0,1fr));
+ grid-template-areas:"steps pre scopes" "steps pre scopes" "steps pre recipes"
+  "eng meth recipes" "eng meth seams" "eng meth seams"}}
+</style>
 {shell("Setup", "/admin")}
 <div class="wrap">
  <div class="page-head">
@@ -44,95 +49,93 @@ PAGE = f"""<!doctype html>
    reason given.</p>
  </div>
 
- <div class="cols side">
-  <div>
-   <section class="card">
-    <header><h2>Getting set up</h2>
-     <p class="why">Six steps, in order. Each is checked against the live configuration, so
-      this cannot tell you something is done when it is not.</p></header>
-    <div class="body"><div id="checklist"><div class="skel"></div><div class="skel"></div></div></div>
-   </section>
+ <div class="board">
+  <section class="card" style="grid-area:steps">
+   <header><h2>Getting set up</h2>
+    <p class="why">Six steps, in order. Each is checked against the live configuration, so
+     this cannot tell you something is done when it is not.</p></header>
+   <div class="body"><div id="checklist"><div class="skel"></div><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Engagements</h2>
-     <p class="why">One per piece of client work. The practice group you give it decides
-      which skills it gets, which methodology it carries and which model it builds into.</p></header>
-    <div class="body"><div id="roster"><div class="skel"></div></div></div>
-    <div class="foot">
-     <button onclick="showAdd()">Add an engagement</button>
-     <span class="note" style="margin:0">It starts paused. Nothing is read until you activate it.</span>
-    </div>
-   </section>
+  <section class="card" style="grid-area:eng">
+   <header><h2>Engagements</h2>
+    <p class="why">One per piece of client work. The practice group you give it decides
+     which skills it gets, which methodology it carries and which model it builds into.</p></header>
+   <div class="body"><div id="roster"><div class="skel"></div></div></div>
+   <div class="foot">
+    <button onclick="showAdd()">Add an engagement</button>
+    <span class="note" style="margin:0">It starts paused. Nothing is read until you activate it.</span>
+   </div>
+  </section>
 
-   <section class="card" id="add-card" style="display:none">
-    <header><h2>New engagement</h2>
-     <p class="why">The seven things the system cannot work out for itself.</p></header>
-    <div class="body">
-     <div class="cols two" style="gap:0 16px">
-      <div>
-       <label for="e_id">Engagement id</label>
-       <input id="e_id" placeholder="HEND-2026-04">
-       <label for="e_client">Client</label>
-       <input id="e_client" placeholder="Henderson Manufacturing">
-       <label for="e_scope">Practice group</label>
-       <select id="e_scope" style="width:100%;margin-bottom:8px"></select>
-      </div>
-      <div>
-       <label for="e_watch">Watched folder</label>
-       <select id="e_watch" style="width:100%;margin-bottom:8px"></select>
-       <label for="e_dest">Deliverables go to</label>
-       <select id="e_dest" style="width:100%;margin-bottom:8px"></select>
-       <label for="e_folder">Their folder, under the watch root</label>
-       <input id="e_folder" placeholder="Henderson Manufacturing/2026 ESOP">
-      </div>
-     </div>
-     <label for="e_pin">Model template <span style="color:var(--ink-4)">&mdash; optional</span></label>
-     <input id="e_pin" placeholder="Leave blank to use the practice group&rsquo;s default">
-    </div>
-    <div class="foot">
-     <button class="primary" onclick="addEngagement()">Register</button>
-     <button class="quiet" onclick="hideAdd()">Cancel</button>
-    </div>
-   </section>
-  </div>
+  <section class="card" style="grid-area:pre">
+   <header><h2>Preflight</h2>
+    <p class="why">Fourteen checks over the live configuration. A setup mistake found here
+     is one that does not stop a run at three in the afternoon.</p></header>
+   <div class="body"><div id="pre"><div class="skel"></div></div></div>
+   <div class="foot"><button onclick="refresh()">Run again</button></div>
+  </section>
 
-  <div>
-   <section class="card">
-    <header><h2>Preflight</h2>
-     <p class="why">Thirteen checks over the live configuration. A setup mistake found here
-      is one that does not stop a run at three in the afternoon.</p></header>
-    <div class="body"><div id="pre"><div class="skel"></div></div></div>
-    <div class="foot"><button onclick="refresh()">Run again</button></div>
-   </section>
+  <section class="card" style="grid-area:meth">
+   <header><h2>Methodology</h2>
+    <p class="why">How the firm does the work. It reaches <b>every</b> model call, so
+     somebody has to read each file and clear it. Editing a cleared file un-clears it.</p></header>
+   <div class="body"><div id="meth"><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Methodology</h2>
-     <p class="why">How the firm does the work. It reaches <b>every</b> model call, so
-      somebody has to read each file and clear it. Editing a cleared file un-clears it.</p></header>
-    <div class="body"><div id="meth"><div class="skel"></div></div></div>
-   </section>
+  <section class="card" style="grid-area:scopes">
+   <header><h2>Practice groups</h2>
+    <p class="why">What an engagement can be labelled with, and what each label gets you
+     today.</p></header>
+   <div class="body"><div id="scopes"><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Practice groups</h2>
-     <p class="why">What an engagement can be labelled with, and what each label gets you
-      today.</p></header>
-    <div class="body"><div id="scopes"><div class="skel"></div></div></div>
-   </section>
+  <section class="card" style="grid-area:recipes">
+   <header><h2>Workflows</h2>
+    <p class="why">The order the work happens in. One runs on client work only after the
+     board approves it; editing it afterwards un-approves it.</p></header>
+   <div class="body"><div id="recipes"><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Workflows</h2>
-     <p class="why">The order the work happens in. One runs on client work only after the
-      board approves it; editing it afterwards un-approves it.</p></header>
-    <div class="body"><div id="recipes"><div class="skel"></div></div></div>
-   </section>
-
-   <section class="card">
-    <header><h2>What is wired</h2>
-     <p class="why">Derived from the code, not from this sentence.</p></header>
-    <div class="body"><div id="seams"><div class="skel"></div></div></div>
-   </section>
-  </div>
+  <section class="card" style="grid-area:seams">
+   <header><h2>What is wired</h2>
+    <p class="why">Derived from the code, not from this sentence.</p></header>
+   <div class="body"><div id="seams"><div class="skel"></div></div></div>
+  </section>
  </div>
+</div>
+
+<div class="modal" id="add-card" style="display:none">
+ <section class="card">
+  <header><h2>New engagement</h2>
+   <p class="why">The seven things the system cannot work out for itself.</p></header>
+  <div class="body">
+   <div class="cols two" style="gap:0 1rem">
+    <div>
+     <label for="e_id">Engagement id</label>
+     <input id="e_id" placeholder="HEND-2026-04">
+     <label for="e_client">Client</label>
+     <input id="e_client" placeholder="Henderson Manufacturing">
+     <label for="e_scope">Practice group</label>
+     <select id="e_scope" style="width:100%;margin-bottom:.55rem"></select>
+    </div>
+    <div>
+     <label for="e_watch">Watched folder</label>
+     <select id="e_watch" style="width:100%;margin-bottom:.55rem"></select>
+     <label for="e_dest">Deliverables go to</label>
+     <select id="e_dest" style="width:100%;margin-bottom:.55rem"></select>
+     <label for="e_folder">Their folder, under the watch root</label>
+     <input id="e_folder" placeholder="Henderson Manufacturing/2026 ESOP">
+    </div>
+   </div>
+   <label for="e_pin">Model template <span style="color:var(--ink-4);text-transform:none;letter-spacing:0">&mdash; optional</span></label>
+   <input id="e_pin" placeholder="Leave blank to use the practice group&rsquo;s default">
+  </div>
+  <div class="foot">
+   <button class="primary" onclick="addEngagement()">Register</button>
+   <button class="quiet" onclick="hideAdd()">Cancel</button>
+  </div>
+ </section>
 </div>
 <div id="toast"></div>
 {SHELL}
@@ -202,7 +205,7 @@ async function refresh() {{
     (SETUP ? esc(SETUP.environment) + ' &middot; configuration v' + esc(SETUP.version)
            : '<span class="pill warn"><i class="dot"></i>not set up</span>') +
     (ME ? ' &middot; <span title="Every change is recorded against this name. It is who the '
-        + 'system resolved you as, not something typed here.">acting as <b style="color:var(--ink-2)">'
+        + 'system resolved you as, not something typed here.">acting as <b>'
         + esc(ME.name) + '</b></span>' : '');
 
   METH = await get('/api/admin/methodology').catch(() => ({{files: []}}));
@@ -333,7 +336,6 @@ function showAdd() {{
   $('e_watch').innerHTML = opts(SETUP ? SETUP.watches || [] : [], w => w.id, w => w.id + ' \\u2014 ' + (w.root || '/'));
   $('e_dest').innerHTML = opts(SETUP ? SETUP.destinations || [] : [], d => d.id, d => d.id + ' \\u2014 ' + (d.name || d.path || ''));
   $('add-card').style.display = '';
-  $('add-card').scrollIntoView({{behavior: 'smooth', block: 'center'}});
   $('e_id').focus();
 }}
 function hideAdd() {{ $('add-card').style.display = 'none'; }}
@@ -355,9 +357,9 @@ async function editProfile(id) {{
   let t;
   try {{ t = await get(`/api/admin/engagements/${{id}}/profile/template`); }}
   catch (e) {{ return say(e.text || String(e), 'bad', e.code); }}
-  const box = document.createElement('section');
-  box.className = 'card';
-  box.innerHTML = `<header><h2>Engagement profile &mdash; ${{esc(id)}}</h2>
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.innerHTML = `<section class="card"><header><h2>Engagement profile &mdash; ${{esc(id)}}</h2>
     <p class="why">${{t.gaps.length
       ? 'Still missing: ' + t.gaps.map(esc).join('; ')
       : 'Complete. Saving writes a new version; the old one stays on the record.'}}</p></header>
@@ -365,19 +367,20 @@ async function editProfile(id) {{
     <p class="note" style="margin-top:0">Everything the system already knows is filled in.
      The blanks are judgements: the industry code, the size band, the owner-compensation
      benchmark, and who reviews this engagement and how quickly.</p>
-    <textarea id="p_body" style="height:340px;font-family:var(--mono);font-size:12.5px">${{esc(JSON.stringify(t.profile, null, 2))}}</textarea>
+    <textarea id="p_body" style="height:min(24rem,50vh);font-family:var(--mono);font-size:.86rem">${{esc(JSON.stringify(t.profile, null, 2))}}</textarea>
    </div>
    <div class="foot"><button class="primary" onclick="saveProfile('${{esc(id)}}')">Save profile</button>
-    <button class="quiet" onclick="this.closest('section').remove()">Cancel</button></div>`;
-  $('roster').closest('section').after(box);
-  box.scrollIntoView({{behavior: 'smooth', block: 'center'}});
+    <button class="quiet" onclick="this.closest('.modal').remove()">Cancel</button></div></section>`;
+  document.body.appendChild(box);
+  $('p_body').focus();
 }}
 function saveProfile(id) {{
   let body;
   try {{ body = JSON.parse($('p_body').value); }}
   catch (e) {{ return say('That is not valid JSON: ' + e, 'bad'); }}
   act(() => post(`/api/admin/engagements/${{id}}/profile`,
-    {{who: who(), reason: 'profile completed from the setup page', profile: body}}),
+    {{who: who(), reason: 'profile completed from the setup page', profile: body}}).then(
+      () => $('p_body').closest('.modal').remove()),
     'Profile saved for ' + id + '.');
 }}
 

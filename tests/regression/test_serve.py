@@ -166,7 +166,7 @@ def test_the_trace_view_says_each_thing_the_blueprint_says_it_does(served: Any) 
     assert "never reached" in page, "everything the run never touched, left neutral"
 
     blueprint = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
-    assert "green passed, red failed with its diagnostic on screen" in blueprint
+    assert "one colour for passed, another for failed with its diagnostic on screen" in blueprint
 
 
 def test_the_analytics_page_renders_what_the_analytics_module_computes(served: Any) -> None:

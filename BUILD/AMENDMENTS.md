@@ -654,3 +654,9 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - task added: Round two of the final review, with something answering for the model: the review loop closes, decisions become precedent, the ledger names the run, the engagement budget is enforced, held files are reported, and the rehearsal walks the whole loop with --scripted (tests/p35/test_round_two.py)
 - check added: python -m pytest tests/p35/test_round_two.py -q
+
+## 2026-09-08 - P36 Who is asking: identity on both surfaces
+
+**Why:** The three consoles now carry Chartwell's brand tokens and fit one screen each; the blueprint's trace wording no longer names traffic-light colours, because the colours are the firm's
+
+- task added: Consoles styled from the brand sheet (Chartwell Templates/shared/brand.css) and laid out to fit one screen per page, panels scrolling inside themselves

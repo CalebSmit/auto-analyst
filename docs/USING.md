@@ -246,9 +246,12 @@ what to do about it; a failure with no engagement named blocks everything.
 ### When something is wrong
 
 - **The activity page** shows every run, its scorecard, the review queue and alerts. If it
-  is down, runs continue — it reads the event log and drives nothing.
+  is down, runs continue — it reads the event log and drives nothing. Every page fits one
+  screen: nothing is below the fold, and a panel with more than fits scrolls inside itself.
+  Opening a run puts it in the address bar, so the link can be pasted to a colleague and
+  opens on that run.
 - **The run trace**, on that page, paints the whole design with what one run actually did:
-  green where a node passed, red where one failed with its diagnostic underneath, a ring on
+  mint where a node passed, plum where one failed with its diagnostic underneath, a ring on
   whatever is running, and everything the run never touched left neutral. *Never ran* and
   *passed* are the two answers it matters most not to confuse, which is why the untouched
   nodes are shown rather than omitted.

@@ -671,71 +671,71 @@ OPS_SHELL = shell("Activity", "/")
 PAGE = f"""<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Activity - Automated Analyst</title>
-<style>{CSS}</style>
+<style>{CSS}
+.board{{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.95fr);
+ grid-template-rows:minmax(0,1.05fr) minmax(0,.7fr) minmax(0,1fr);
+ grid-template-areas:"runs detail inbox" "trace trace alerts" "trace trace feed"}}
+</style>
 {OPS_SHELL}
 <div class="wrap">
  <div class="page-head">
   <h1>Activity</h1>
-  <p>What is happening right now. This reads the event log and drives
-   nothing &mdash; console down, runs continue.</p>
+  <p>What is happening right now. This reads the event log and drives nothing &mdash;
+   console down, runs continue.</p>
  </div>
 
- <div class="cols side">
-  <div>
-   <section class="card">
-    <header><h2>Runs</h2>
-     <p class="why">Pick one to see what it did, step by step, as it happened.</p></header>
-    <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
-   </section>
+ <div class="board">
+  <section class="card" style="grid-area:runs">
+   <header><h2>Runs</h2>
+    <p class="why">Pick one to see what it did, step by step, as it happened.</p></header>
+   <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Run detail</h2>
-     <p class="why" id="detail-why">Nothing selected.</p></header>
-    <div class="body">
-     <div id="card"><div class="empty"><b>Choose a run</b>Its scorecard, its trace and its live activity appear here.</div></div>
+  <section class="card" style="grid-area:detail">
+   <header><h2>Run detail</h2>
+    <p class="why" id="detail-why">Nothing selected.</p></header>
+   <div class="body">
+    <div id="card"><div class="empty"><b>Choose a run</b>Its scorecard, its trace and its live activity appear here.</div></div>
+   </div>
+  </section>
+
+  <section class="card" style="grid-area:inbox">
+   <header><h2>Waiting on a person</h2>
+    <p class="why">Anything the system was not sure enough about to decide alone.</p></header>
+   <div class="body"><div id="inbox"><div class="skel"></div></div></div>
+  </section>
+
+  <section class="card" style="grid-area:trace">
+   <header><h2>Run trace</h2>
+    <p class="why">Every node in the design, painted with what this run actually did.
+     Mint passed, plum failed with its diagnostic below, a ring on whatever is running,
+     and everything the run never touched left neutral &mdash; because <i>never ran</i>
+     and <i>passed</i> are the two answers it matters most not to confuse.</p></header>
+   <div class="body">
+    <div class="legend">
+     <span><i style="background:var(--good-soft);box-shadow:inset 0 0 0 1px var(--good)"></i>passed</span>
+     <span><i style="background:var(--bad)"></i>failed</span>
+     <span><i style="background:var(--accent)"></i>running</span>
+     <span><i style="background:var(--ink-3)"></i>touched</span>
+     <span><i style="box-shadow:inset 0 0 0 1px var(--line)"></i>never reached</span>
+     <span style="margin-left:auto" id="map-count"></span>
     </div>
-   </section>
+    <div id="map"><div class="empty"><b>Choose a run</b>The graph is painted from its event stream.</div></div>
+    <div class="diag" id="diag"></div>
+   </div>
+  </section>
 
-   <section class="card">
-    <header><h2>Run trace</h2>
-     <p class="why">Every node in the design, painted with what this run actually did.
-      Green passed, red failed with its diagnostic below, a ring on whatever is running,
-      and everything the run never touched left neutral &mdash; because <i>never ran</i>
-      and <i>passed</i> are the two answers it matters most not to confuse.</p></header>
-    <div class="body">
-     <div class="legend">
-      <span><i style="background:var(--good)"></i>passed</span>
-      <span><i style="background:var(--bad)"></i>failed</span>
-      <span><i style="background:var(--accent)"></i>running</span>
-      <span><i style="background:var(--ink-3)"></i>touched</span>
-      <span><i style="box-shadow:inset 0 0 0 1px var(--line)"></i>never reached</span>
-      <span style="margin-left:auto" id="map-count"></span>
-     </div>
-     <div id="map"><div class="empty"><b>Choose a run</b>The graph is painted from its event stream.</div></div>
-     <div class="diag" id="diag"></div>
-    </div>
-   </section>
+  <section class="card" style="grid-area:alerts">
+   <header><h2>Alerts</h2>
+    <p class="why">Runs that have gone quiet, reviews past their SLA, guards repeating.</p></header>
+   <div class="body"><div id="alerts"><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Live activity</h2>
-     <p class="why" id="feed-src">Events arrive as they happen, newest first.</p></header>
-    <div class="body"><div id="feed" style="max-height:44vh;overflow:auto"></div></div>
-   </section>
-  </div>
-
-  <div>
-   <section class="card">
-    <header><h2>Waiting on a person</h2>
-     <p class="why">Anything the system was not sure enough about to decide alone.</p></header>
-    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
-   </section>
-
-   <section class="card">
-    <header><h2>Alerts</h2>
-     <p class="why">Runs that have gone quiet, reviews past their SLA, guards repeating.</p></header>
-    <div class="body"><div id="alerts"><div class="skel"></div></div></div>
-   </section>
-  </div>
+  <section class="card" style="grid-area:feed">
+   <header><h2>Live activity</h2>
+    <p class="why" id="feed-src">Events arrive as they happen, newest first.</p></header>
+   <div class="body"><div id="feed"></div></div>
+  </section>
  </div>
 </div>
 <div id="toast"></div>
@@ -748,7 +748,7 @@ const STATE_TONE = {{delivered: 'good', halted: 'bad', blocked: 'warn', queued: 
 async function refresh() {{
   const runs = await get('/api/runs').catch(() => []);
   $('chrome-right').textContent = runs.length ? plural(runs.length, 'run', 'runs') : '';
-  $('runs').innerHTML = runs.length ? runs.map(r => `<div class="r link" onclick="open_('${{r.run_id}}')">
+  $('runs').innerHTML = runs.length ? runs.map(r => `<div class="r link${{r.run_id === current ? ' on' : ''}}" onclick="open_('${{r.run_id}}')">
      <span class="lbl"><b class="mono">${{esc(r.run_id)}}</b><br>
       <span class="sub">${{esc(r.engagement_id)}}</span></span>
      <span class="pill ${{STATE_TONE[r.state] ?? ''}}"><i class="dot"></i>${{esc(r.state)}}</span>${{r.state === 'quarantined' ? `
@@ -861,6 +861,7 @@ async function paint(trace) {{
 async function open_(id) {{
   if (source) source.close();
   current = id;
+  history.replaceState(null, '', '#' + encodeURIComponent(id));
   let run;
   try {{ run = await get('/api/runs/' + id); }}
   catch (e) {{ return say(e.text || String(e), 'bad', e.code); }}
@@ -897,9 +898,9 @@ async function open_(id) {{
     const line = document.createElement('div');
     line.className = 'r';
     line.innerHTML = `<span class="sub mono">${{esc((ev.ts || '').slice(11, 19))}}</span>
-      <span class="lbl mono" style="color:${{bad ? 'var(--bad)' : 'var(--ink-2)'}}">${{esc(ev.type)}}</span>
-      <span class="sub">${{esc(ev.node_id || '')}}</span>
-      <span class="sub">${{esc(ev.message || '')}}</span>`;
+      <span class="lbl"><span class="mono" style="color:${{bad ? 'var(--bad)' : 'var(--navy)'}}">${{esc(ev.type)}}</span>
+       ${{ev.node_id ? `<span class="sub">&middot; ${{esc(ev.node_id)}}</span>` : ''}}
+       ${{ev.message ? `<span class="d">${{esc(ev.message)}}</span>` : ''}}</span>`;
     $('feed').prepend(line);
     paint(d.trace);
   }};
@@ -912,7 +913,12 @@ async function open_(id) {{
   for (const t of types) source.addEventListener(t, handler);
 }}
 
-refresh();
+/* A link to a run is a link to this page with the run in the fragment, so one can be
+   pasted into a message and open on the right run. */
+refresh().then(() => {{
+  const wanted = decodeURIComponent(location.hash.slice(1));
+  if (wanted) open_(wanted);
+}});
 setInterval(refresh, 5000);
 </script>
 """

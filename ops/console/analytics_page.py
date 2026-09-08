@@ -33,16 +33,18 @@ __all__ = ["PAGE"]
 PAGE = f"""<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Analytics - Automated Analyst</title>
-<style>{CSS}</style>
+<style>{CSS}
+.board{{grid-template-columns:repeat(3,minmax(0,1fr));
+ grid-template-rows:auto minmax(0,1fr) minmax(0,1fr);
+ grid-template-areas:"head head head" "funnel failures stuck" "outcomes skills trends"}}
+</style>
 {shell("Analytics", "/analytics")}
 <div class="wrap">
- <div class="page-head" style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap">
-  <div style="flex:1;min-width:280px">
-   <h1>Analytics</h1>
-   <p>Across every run rather than any one of them: whether this is working, and what to
-    fix first. Read it weekly, not while something is on fire.</p>
-  </div>
-  <div style="display:flex;align-items:center;gap:9px;padding-bottom:4px">
+ <div class="page-head">
+  <h1>Analytics</h1>
+  <p>Across every run rather than any one of them: whether this is working, and what to
+   fix first. Read it weekly, not while something is on fire.</p>
+  <div class="tools">
    <label for="days" style="margin:0">Period</label>
    <select id="days" onchange="refresh()">
     <option value="7">Last 7 days</option>
@@ -53,56 +55,52 @@ PAGE = f"""<!doctype html>
   </div>
  </div>
 
- <div class="metrics" id="head" style="margin-bottom:16px">
-  <div class="metric"><span class="k">Loading</span><span class="v">&mdash;</span></div>
- </div>
-
- <div class="cols side">
-  <div>
-   <section class="card">
-    <header><h2>Where runs stop</h2>
-     <p class="why">Every run passes through these in order. The drop at each stage is
-      where the work actually goes &mdash; and where a person is being asked for something.</p></header>
-    <div class="body"><div id="funnel"><div class="skel"></div><div class="skel"></div></div></div>
-   </section>
-
-   <section class="card">
-    <header><h2>What to fix first</h2>
-     <p class="why">Ranked by how often it happened, each with the owner the diagnostics
-      registry gives it. The largest class is usually client data, and no amount of
-      engineering removes that &mdash; which is worth knowing before anybody plans a sprint.</p></header>
-    <div class="body"><div id="failures"><div class="skel"></div></div></div>
-   </section>
-
-   <section class="card">
-    <header><h2>Outcomes by week</h2>
-     <p class="why">The mix, not the total. A rising share of clean runs is the thing to
-      watch; a rising share of halted ones is the thing to act on.</p></header>
-    <div class="body"><div id="outcomes"><div class="skel"></div></div></div>
-   </section>
+ <div class="board">
+  <div class="metrics" id="head" style="grid-area:head">
+   <div class="metric"><span class="k">Loading</span><span class="v">&mdash;</span></div>
   </div>
 
-  <div>
-   <section class="card">
-    <header><h2>Anything stuck?</h2>
-     <p class="why">Work that has stopped and is waiting on somebody.</p></header>
-    <div class="body"><div id="stuck"><div class="skel"></div></div></div>
-   </section>
+  <section class="card" style="grid-area:funnel">
+   <header><h2>Where runs stop</h2>
+    <p class="why">Every run passes through these in order. The drop at each stage is
+     where the work actually goes &mdash; and where a person is being asked for something.</p></header>
+   <div class="body"><div id="funnel"><div class="skel"></div><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>Is it getting better?</h2>
-     <p class="why">Auto-accept and override rates over the period, beside the human
-      baseline they have to be judged against.</p></header>
-    <div class="body"><div id="trends"><div class="skel"></div></div></div>
-   </section>
+  <section class="card" style="grid-area:failures">
+   <header><h2>What to fix first</h2>
+    <p class="why">Ranked by how often it happened, each with the owner the diagnostics
+     registry gives it. The largest class is usually client data, and no amount of
+     engineering removes that &mdash; which is worth knowing before anybody plans a sprint.</p></header>
+   <div class="body"><div id="failures"><div class="skel"></div></div></div>
+  </section>
 
-   <section class="card">
-    <header><h2>By skill</h2>
-     <p class="why">Which skills are carrying the work, how much of it goes to a person,
-      and whether any has drifted from what it was approved at.</p></header>
-    <div class="body"><div id="skills"><div class="skel"></div></div></div>
-   </section>
-  </div>
+  <section class="card" style="grid-area:stuck">
+   <header><h2>Anything stuck?</h2>
+    <p class="why">Work that has stopped and is waiting on somebody.</p></header>
+   <div class="body"><div id="stuck"><div class="skel"></div></div></div>
+  </section>
+
+  <section class="card" style="grid-area:outcomes">
+   <header><h2>Outcomes by week</h2>
+    <p class="why">The mix, not the total. A rising share of clean runs is the thing to
+     watch; a rising share of halted ones is the thing to act on.</p></header>
+   <div class="body"><div id="outcomes"><div class="skel"></div></div></div>
+  </section>
+
+  <section class="card" style="grid-area:skills">
+   <header><h2>By skill</h2>
+    <p class="why">Which skills are carrying the work, how much of it goes to a person,
+     and whether any has drifted from what it was approved at.</p></header>
+   <div class="body"><div id="skills"><div class="skel"></div></div></div>
+  </section>
+
+  <section class="card" style="grid-area:trends">
+   <header><h2>Is it getting better?</h2>
+    <p class="why">Auto-accept and override rates over the period, beside the human
+     baseline they have to be judged against.</p></header>
+   <div class="body"><div id="trends"><div class="skel"></div></div></div>
+  </section>
  </div>
 </div>
 <div id="toast"></div>
