@@ -84,9 +84,10 @@ nothing you can do in the browser that is not also on the record. Every change a
 your name and keeps it.
 
 > **Who a change is recorded against.** The name in the change log is the one the system
-> resolved, not one the browser sent - a request that claims a different name is refused
-> rather than corrected. On this machine that name is the operating-system user, and there
-> are no accounts, because a machine with one person on it does not need them.
+> resolved, not one the browser sent. The page does not ask you for it — it shows it, in
+> the top right, so you can see whose name is going on what you are about to do. On this
+> machine that name is the operating-system user, and there are no accounts, because a
+> machine with one person on it does not need them.
 >
 > That is also why it binds to `127.0.0.1`. The local-user adapter **refuses any request
 > that did not come from this machine**, so binding the surface to a network address does

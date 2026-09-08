@@ -174,6 +174,44 @@ def test_a_request_that_sends_no_name_is_recorded_against_the_identity(
     assert console.changes()[-1].who == "R. Partner"
 
 
+def test_the_surface_says_who_it_resolved(console: Any) -> None:
+    """The page reads this rather than asking. Found by using it: a page that asks for a
+    name invites somebody to type one that disagrees with the identity, and a disagreement
+    is refused - which reads like a broken button rather than a mismatch they could fix."""
+    client = TestClient(create_admin_app(console, identity=Somebody("R. Partner")))
+    me = client.get("/api/admin/whoami")
+
+    assert me.status_code == 200
+    assert me.json() == {"name": "R. Partner", "method": "test", "verified": True}
+
+
+def test_sending_no_name_is_the_ordinary_case(console: Any, henderson: Any) -> None:
+    """`who` is optional and checked, not required and ignored.
+
+    Required would reject the correct behaviour - a caller letting the system fill in the
+    name - before the identity was ever consulted, which is what it did until somebody
+    tried it.
+    """
+    client = TestClient(create_admin_app(console, identity=Somebody("R. Partner")))
+    made = client.post(
+        "/api/admin/engagements/HEND-2026-04/pause", json={"reason": "no name sent"}
+    )
+
+    assert made.status_code == 200
+    assert console.changes()[-1].who == "R. Partner"
+
+
+def test_the_page_shows_the_identity_and_does_not_ask_for_one() -> None:
+    """A page that keeps a name in local storage is a page that will disagree with the
+    server the first time somebody uses a different machine."""
+    from admin.page import PAGE
+
+    assert "/api/admin/whoami" in PAGE
+    assert "acting as" in PAGE
+    assert "prompt(" not in PAGE.split("function who()")[0], "it does not ask for a name"
+    assert "localStorage" not in PAGE, "and does not remember one"
+
+
 def test_the_check_is_installed_where_the_app_is_assembled() -> None:
     """A router does not carry its application's middleware, and the front door puts both
     consoles on one app. This is the mistake that made, found by a test rather than by a

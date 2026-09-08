@@ -44,7 +44,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TYPED_PACKAGES = [
     "admin", "deliver", "evals", "governance", "graph", "guards", "harness", "intake",
     "ops", "orchestrate", "ports", "precedent", "privacy", "registries", "review",
-    "tools", "workers",
+    "tools", "ui", "workers",
 ]
 
 # Which test suites cover which package, for --changed. A package with no entry runs the
@@ -68,6 +68,9 @@ COVERAGE: dict[str, tuple[str, ...]] = {
     "governance": ("tests/p27",),
     "precedent": ("tests/p19",),
     "tools": ("tests/p01", "tests/p22", "tests/regression"),
+    # The three pages share one design language, and the tests that hold each page to
+    # the data it renders live beside the front door.
+    "ui": ("tests/p23", "tests/p24", "tests/regression"),
 }
 
 

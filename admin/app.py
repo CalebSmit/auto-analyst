@@ -25,7 +25,15 @@ __all__ = ["create_admin_app", "install_identity", "who"]
 
 
 class Change(BaseModel):
-    who: str
+    who: str = ""
+    """Optional, and checked when it is there.
+
+    The name recorded is the identity the system resolved; a caller that sends one that
+    disagrees is refused rather than corrected, and a caller that sends none - which is
+    what the pages do - simply is not arguing. Required would mean rejecting the correct
+    behaviour before the identity was ever consulted.
+    """
+
     reason: str
 
 
@@ -54,9 +62,11 @@ class RecipeChoice(Change):
 
 
 class Clearance(BaseModel):
-    who: str
-    """A clearance names a person and nothing else. There is no reason field, because the
-    reason for clearing methodology is always the same one: somebody read it."""
+    who: str = ""
+    """A clearance names a person and nothing else - and the person is the identity the
+    system resolved, so this is optional and checked, like every other `who`. There is no
+    reason field: the reason for clearing methodology is always the same one, which is
+    that somebody read it."""
 
 
 class ReviewLevel(Change):
@@ -172,6 +182,17 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
     def initialise(request: Request, body: Change) -> dict[str, Any]:
         """The first configuration for this environment. Everything else needs one."""
         return _guard(lambda: console.initialise(who=who(request, body.who), reason=body.reason))
+
+    @app.get("/api/admin/whoami")
+    def whoami(request: Request) -> dict[str, Any]:
+        """Who this request is, as the system resolved it.
+
+        The surfaces read it rather than asking a person to type their own name: the name
+        on a recorded change is the system\'s answer, and a page that asked for one would
+        be inviting somebody to disagree with it by accident.
+        """
+        found = request.state.identity
+        return {"name": found.name, "method": found.method, "verified": found.verified}
 
     @app.get("/api/admin/setup")
     def setup() -> dict[str, Any]:

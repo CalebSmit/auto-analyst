@@ -113,7 +113,9 @@ def test_the_admin_page_is_a_page_a_person_can_use(served: Any) -> None:
         "/profile/template",
     ):
         assert offered in body, offered
-    assert "every change here is recorded against it" in body, "who did it travels with it"
+    # The intent, not the sentence: the page has to tell somebody their name goes on
+    # what they do. A copy edit should not fail this; dropping the promise should.
+    assert "recorded against it" in body.lower(), "who did it travels with it"
 
 
 def test_the_three_pages_are_served_and_reach_each_other(served: Any) -> None:
@@ -165,7 +167,7 @@ def test_the_analytics_page_renders_what_the_analytics_module_computes(served: A
 
     # The baseline is the one number the dashboard must not invent.
     assert "unmeasured" in page
-    assert "two analysts, 200 real line items" in page
+    assert "200 real line items" in page, "the baseline says how it would be measured"
 
 
 def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> None:

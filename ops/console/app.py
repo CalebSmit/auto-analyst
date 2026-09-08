@@ -34,6 +34,8 @@ from ops.run_store import EventRecord, RunRecord, RunStore
 from ops.scorecard import RunScorecard
 from ops.stall import StallDetector
 from registries.constraints import ConstraintRegistry
+from ui import CSS, SHELL
+from ui.theme import shell
 
 __all__ = ["Console", "create_app"]
 
@@ -428,56 +430,156 @@ def _known(console: Console, run_id: str) -> None:
         raise HTTPException(status_code=404, detail=f"no run {run_id!r}") from unknown
 
 
-PAGE = """<!doctype html>
-<meta charset="utf-8"><title>Automated Analyst - ops console</title>
-<style>
-body{font:13px/1.45 system-ui,sans-serif;margin:0;background:#0f1216;color:#d7dbe0}
-header{padding:12px 18px;border-bottom:1px solid #262b33;display:flex;gap:18px;align-items:baseline}
-h1{font-size:15px;margin:0}main{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px}
-section{border:1px solid #262b33;border-radius:6px;padding:10px 12px;margin-bottom:14px}
-h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#8b93a1;margin:0 0 8px}
-.mono{font-family:ui-monospace,monospace;font-size:12px}.row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid #1a1f26}
-.passed{color:#5fcf8a}.failed{color:#ff6b6b}.active{color:#f0b64a}.used{color:#8b93a1}.notreached{color:#4a515c}
-.pass{color:#5fcf8a}.fail{color:#ff6b6b}.not_measured{color:#4a515c}
-#feed{max-height:52vh;overflow:auto}a{color:#7cb7ff}
-</style>
-<header><h1>Ops console</h1><span id="status" class="mono">reader of the event bus - console down, runs continue</span><span style="margin-left:auto"><a href="/analytics">analytics</a> &middot; <a href="/admin">admin</a></span></header>
-<main>
-<div>
-<section><h2>Runs</h2><div id="runs"></div></section>
-<section><h2>Review inbox</h2><div id="inbox"></div></section>
-<section><h2>Alerts</h2><div id="alerts"></div></section>
+OPS_SHELL = shell("Activity", "/")
+
+PAGE = f"""<!doctype html>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Activity - Automated Analyst</title>
+<style>{CSS}</style>
+{OPS_SHELL}
+<div class="wrap">
+ <div class="page-head">
+  <h1>Activity</h1>
+  <p>What is happening right now. This reads the event log and drives
+   nothing &mdash; console down, runs continue.</p>
+ </div>
+
+ <div class="cols side">
+  <div>
+   <section class="card">
+    <header><h2>Runs</h2>
+     <p class="why">Pick one to see what it did, step by step, as it happened.</p></header>
+    <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
+   </section>
+
+   <section class="card">
+    <header><h2>Run detail</h2>
+     <p class="why" id="detail-why">Nothing selected.</p></header>
+    <div class="body">
+     <div id="card"><div class="empty"><b>Choose a run</b>Its scorecard, its steps and its live activity appear here.</div></div>
+     <div id="nodes" style="margin-top:14px"></div>
+    </div>
+   </section>
+
+   <section class="card">
+    <header><h2>Live activity</h2>
+     <p class="why" id="feed-src">Events arrive as they happen, newest first.</p></header>
+    <div class="body"><div id="feed" style="max-height:44vh;overflow:auto"></div></div>
+   </section>
+  </div>
+
+  <div>
+   <section class="card">
+    <header><h2>Waiting on a person</h2>
+     <p class="why">Anything the system was not sure enough about to decide alone.</p></header>
+    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
+   </section>
+
+   <section class="card">
+    <header><h2>Alerts</h2>
+     <p class="why">Runs that have gone quiet, reviews past their SLA, guards repeating.</p></header>
+    <div class="body"><div id="alerts"><div class="skel"></div></div></div>
+   </section>
+  </div>
+ </div>
 </div>
-<div>
-<section><h2>Run scorecard</h2><div id="card"></div></section>
-<section><h2>Node state <span class="mono" id="trace-src"></span></h2><div id="nodes" class="mono"></div></section>
-<section><h2>Live activity</h2><div id="feed" class="mono"></div></section>
-</div>
-</main>
+<div id="toast"></div>
+{SHELL}
 <script>
-const $=id=>document.getElementById(id);let source=null;
-async function j(u){const r=await fetch(u);return r.json()}
-function esc(s){return String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
-async function refresh(){
- const runs=await j('/api/runs');$('runs').innerHTML=runs.map(r=>`<div class="row"><a href="#" onclick="open_('${r.run_id}');return false">${r.run_id}</a><span>${r.engagement_id}</span><span class="${r.state==='halted'?'failed':r.state==='delivered'?'passed':'active'}">${r.state}${r.queue&&r.queue.waiting_on?' · #'+r.queue.position+' behind the '+r.queue.waiting_on:''}</span></div>`).join('')||'<i>no runs</i>';
- const inbox=await j('/api/review');$('inbox').innerHTML=inbox.map(i=>`<div class="row"><span>${esc(i.item_id)}</span><span>${esc(i.owner||'unassigned')}</span><span>${esc(i.due_at||'')}</span></div>`).join('')||'<i>nothing waiting</i>';
- const alerts=await j('/api/alerts');$('alerts').innerHTML=alerts.map(a=>`<div class="row failed"><span>${esc(a.kind)}</span><span>${esc(a.run_id)}/${esc(a.subject)}</span><span>${esc(a.code)}</span></div>`).join('')||'<i>none</i>';
-}
-function paint(trace){$('nodes').innerHTML=Object.entries(trace.nodes).map(([n,s])=>`<div class="row"><span>${esc(n)}</span><span class="${s}">${s}</span></div>`).join('')}
-async function open_(id){
- if(source){source.close()}
- const run=await j('/api/runs/'+id);
- const c=run.scorecard;$('card').innerHTML=`<div class="row"><b>${c.in_progress?'IN PROGRESS':esc(c.verdict).toUpperCase()}</b><span class="mono">${esc(c.criteria_version)}</span></div>`+c.criteria.map(x=>`<div class="row"><span class="${x.status}">${x.status==='pass'?'&#10003;':x.status==='fail'?'&#10007;':'&middot;'} ${esc(x.label)}</span><span class="mono">${esc(x.measured)}</span></div>`).join('');
- $('feed').innerHTML='';$('trace-src').textContent='replaying '+id+' from the event stream';paint(run.trace);
- source=new EventSource('/api/runs/'+id+'/stream');
- source.onmessage=null;
- source.addEventListener('replayed',e=>{$('trace-src').textContent='replayed through seq '+JSON.parse(e.data).event.through+(run.ended_at?' - run ended':' - following live')});
- for(const t of ['step','skill','guard','hitl','run','release','model','loop','alert','budget','tool','policy','intake','context','lock']){}
- source.onerror=()=>{$('status').textContent='stream closed - the run ended or the console lost the bus; runs continue either way'};
- const handler=e=>{const d=JSON.parse(e.data);const ev=d.event;if(!ev.type)return;const line=document.createElement('div');line.className='row';line.innerHTML=`<span>${esc(ev.ts||'')}</span><span>${esc(ev.node_id||'')}</span><span class="${ev.type.endsWith('fail')||ev.type.startsWith('alert.')?'failed':''}">${esc(ev.type)}</span><span>${esc(ev.message||'')}</span>`;$('feed').prepend(line);paint(d.trace)};
- const es=source;const orig=es.addEventListener.bind(es);
- fetch('/api/runs/'+id+'/events').then(r=>r.json()).then(list=>{const types=new Set(list.map(e=>e.type));for(const t of types)orig(t,handler);for(const t of ['step.started','step.completed','skill.dispatched','skill.completed','hitl.item.queued','hitl.item.decided','release.written','run.scored','run.manifest.written','budget.ceiling_crossed','alert.run_silent','alert.review_overdue','alert.step_overdue','alert.guard_repeating'])if(!types.has(t))orig(t,handler)});
-}
-refresh();setInterval(refresh,5000);
+let source = null, current = null;
+
+const STATE_TONE = {{delivered: 'good', halted: 'bad', blocked: 'warn', queued: '', running: 'accent'}};
+
+async function refresh() {{
+  const runs = await get('/api/runs').catch(() => []);
+  $('chrome-right').textContent = runs.length ? plural(runs.length, 'run', 'runs') : '';
+  $('runs').innerHTML = runs.length ? runs.map(r => `<div class="r link" onclick="open_('${{r.run_id}}')">
+     <span class="lbl"><b class="mono">${{esc(r.run_id)}}</b><br>
+      <span class="sub">${{esc(r.engagement_id)}}</span></span>
+     <span class="pill ${{STATE_TONE[r.state] ?? ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
+     ${{r.queue && r.queue.waiting_on
+        ? `<span class="sub">#${{r.queue.position}} behind ${{esc(r.queue.waiting_on)}}</span>` : ''}}
+    </div>`).join('')
+   : '<div class="empty"><b>No runs yet</b>A run starts when a complete set of files settles in a watched folder.</div>';
+
+  const inbox = await get('/api/review').catch(() => []);
+  $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r">
+     <span class="lbl mono">${{esc(i.item_id)}}</span>
+     <span class="sub">${{esc(i.owner || 'unassigned')}}</span>
+     <span class="sub">${{esc(i.due_at || '')}}</span></div>`).join('')
+   : '<div class="empty"><b>Nothing waiting</b>Everything the system proposed was inside its confidence bar.</div>';
+
+  const alerts = await get('/api/alerts').catch(() => []);
+  $('alerts').innerHTML = alerts.length ? alerts.map(a => `<div class="r">
+     <span class="lbl"><b>${{esc(a.kind.replace(/_/g, ' '))}}</b><br>
+      <span class="sub mono">${{esc(a.run_id)}} &middot; ${{esc(a.subject)}}</span></span>
+     <span class="pill bad">${{esc(a.code || 'alert')}}</span></div>`).join('')
+   : '<div class="empty"><b>Nothing raised</b>No run is silent and no review is overdue.</div>';
+}}
+
+function paint(trace) {{
+  const tone = {{passed: 'good', failed: 'bad', active: 'accent', used: '', notreached: ''}};
+  $('nodes').innerHTML = '<div class="r head"><span class="lbl">Step</span><span class="sub">State</span></div>' +
+    Object.entries(trace.nodes).map(([n, s]) => `<div class="r">
+      <span class="lbl mono">${{esc(n)}}</span>
+      <span class="pill ${{tone[s] ?? ''}}">${{esc(s)}}</span></div>`).join('');
+}}
+
+async function open_(id) {{
+  if (source) source.close();
+  current = id;
+  let run;
+  try {{ run = await get('/api/runs/' + id); }}
+  catch (e) {{ return say(e.text || String(e), 'bad', e.code); }}
+
+  const c = run.scorecard;
+  $('detail-why').textContent = id + ' \u2014 ' + (run.engagement_id || '');
+  $('card').innerHTML =
+    `<div class="r" style="border:0;padding:0 0 10px">
+      <span class="lbl"><span class="pill ${{c.in_progress ? 'accent' : c.verdict === 'clean' ? 'good' : c.verdict === 'halted' ? 'bad' : 'warn'}}">
+       <i class="dot"></i>${{c.in_progress ? 'in progress' : esc(c.verdict)}}</span></span>
+      <span class="sub mono">${{esc(c.criteria_version)}}</span></div>` +
+    c.criteria.map(x => `<div class="r">
+      <span class="lbl">${{esc(x.label)}}</span>
+      <span class="sub mono">${{esc(x.measured)}}</span>
+      <span class="pill ${{x.status === 'pass' ? 'good' : x.status === 'fail' ? 'bad' : ''}}">${{esc(x.status.replace('_', ' '))}}</span>
+     </div>`).join('');
+
+  $('feed').innerHTML = '';
+  $('feed-src').textContent = 'Replaying ' + id + ' from the event stream.';
+  paint(run.trace);
+
+  source = new EventSource('/api/runs/' + id + '/stream');
+  source.addEventListener('replayed', e => {{
+    $('feed-src').textContent = 'Replayed through event ' + JSON.parse(e.data).event.through +
+      (run.ended_at ? ' \u2014 the run has ended.' : ' \u2014 following live.');
+  }});
+  source.onerror = () => {{
+    $('feed-src').textContent = 'Stream closed. The run ended, or the console lost the bus \u2014 runs continue either way.';
+  }};
+  const handler = e => {{
+    const d = JSON.parse(e.data), ev = d.event;
+    if (!ev.type) return;
+    const bad = ev.type.endsWith('fail') || ev.type.startsWith('alert.');
+    const line = document.createElement('div');
+    line.className = 'r';
+    line.innerHTML = `<span class="sub mono">${{esc((ev.ts || '').slice(11, 19))}}</span>
+      <span class="lbl mono" style="color:${{bad ? 'var(--bad)' : 'var(--ink-2)'}}">${{esc(ev.type)}}</span>
+      <span class="sub">${{esc(ev.node_id || '')}}</span>
+      <span class="sub">${{esc(ev.message || '')}}</span>`;
+    $('feed').prepend(line);
+    paint(d.trace);
+  }};
+  const known = ['step.started', 'step.completed', 'skill.dispatched', 'skill.completed',
+    'hitl.item.queued', 'hitl.item.decided', 'release.written', 'run.scored',
+    'run.manifest.written', 'budget.ceiling_crossed', 'alert.run_silent',
+    'alert.review_overdue', 'alert.step_overdue', 'alert.guard_repeating'];
+  const events = await get('/api/runs/' + id + '/events').catch(() => []);
+  const types = new Set(events.map(e => e.type).concat(known));
+  for (const t of types) source.addEventListener(t, handler);
+}}
+
+refresh();
+setInterval(refresh, 5000);
 </script>
 """
