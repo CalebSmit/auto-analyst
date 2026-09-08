@@ -17,6 +17,7 @@ Two bindings, both by convention and both closed:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from intake.config import ConfigStore
@@ -82,6 +83,17 @@ def bind_document_type(filename: str, conventions: dict[str, tuple[str, ...]]) -
     may match; two matching types is an ambiguity, and an ambiguity is not a binding."""
     name = filename.lower()
     matched = sorted(
-        doc_type for doc_type, tokens in conventions.items() if any(t in name for t in tokens)
+        doc_type
+        for doc_type, tokens in conventions.items()
+        if any(_token_in(t.lower(), name) for t in tokens)
     )
     return matched[0] if len(matched) == 1 else None
+
+
+def _token_in(token: str, name: str) -> bool:
+    """A short token - `tb`, `is`, `bs`, `fs` - matches only as a whole word, so `is` does
+    not claim `analysis.xlsx` and `bs` does not claim `subs.xlsx`. Anything longer is what
+    people actually write out, and matches anywhere in the name as it always has."""
+    if len(token) <= 3 and token.isalnum():
+        return re.search(rf"(?<![a-z0-9]){re.escape(token)}(?![a-z0-9])", name) is not None
+    return token in name

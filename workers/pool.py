@@ -313,6 +313,12 @@ class WorkerPool:
                 attempt=job.attempts,
                 error=failed.__class__.__name__,
             )
+            if self.store.run(run_id).state is RunState.QUEUED:
+                # It was taken up; the record should say so, or `stranded()` - which
+                # reads running runs with a failed job - never reports it.
+                self.store.transition(
+                    run_id, RunState.RUNNING, reason="taken up; the worker failed"
+                )
             self._release(run_id, engagement)
             raise
         ended = self.store.run(run_id)

@@ -176,9 +176,7 @@ def test_the_ceiling_is_per_layer_not_per_tree(
     """Per layer, because that is the unit a run actually carries. A firm with ten
     practice groups does not have ten groups' worth of methodology on any one call."""
     for layer in ("_firm", "valuation/_group", "consulting/_group"):
-        assert register.bytes_at(layer) == len(
-            body_of(foundations / layer / "how-we-work.md")
-        )
+        assert register.bytes_at(layer) == len(body_of(foundations / layer / "how-we-work.md"))
     assert register.bytes_at("corporate-finance/_group") == 0, "a layer with no folder"
 
 
@@ -278,5 +276,5 @@ def test_the_blueprint_describes_the_layered_tree() -> None:
     assert "never consulting" in blueprint
     assert "size ceiling per layer" in blueprint
     assert "METHODOLOGY_TOO_LARGE" in blueprint
-    assert len(CHECKS) == 13
-    assert "Thirteen checks over a proposed or live configuration" in blueprint
+    assert len(CHECKS) == 14
+    assert "Fourteen checks over a proposed or live configuration" in blueprint

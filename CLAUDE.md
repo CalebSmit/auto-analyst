@@ -64,9 +64,17 @@ That distinction exists so that "tested" never quietly means "it ran without cra
 ## Running it
 
 ```
-python tools/serve.py --check      # what is wired, what is not, what setup still needs
-python tools/serve.py              # admin at /admin, ops console at /
+python tools/serve.py --check              # what is wired, what is not, what setup still needs
+python tools/serve.py                      # admin at /admin, ops console at /
+python tools/simulate_firm.py              # a generated firm through the real server, no key
+python tools/simulate_firm.py --scripted   # the same, with the review loop walked end to end
 ```
+
+The two rehearsals are the tests the suite cannot be: real process, real HTTP, files
+shaped like an accountant's, and (with `--scripted`) a stand-in answering for the model so
+runs reach the review queue, get answered, resume and write precedent. Between them they
+found twenty-three bugs the suite passed over. Run both after any change that touches
+intake, the driver, the guards or the consoles; a line marked FINDING is something to fix.
 
 `readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
 need updating when a seam is filled - and it is the honest answer to "does this work yet".

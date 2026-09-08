@@ -23,6 +23,7 @@ import io
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import Any, Protocol
 
 from ops.source_parse import Row
@@ -245,10 +246,9 @@ def survey_workbook(data: bytes) -> WorkbookSurvey:
                     in_title_block
                     and not row_has_number
                     and r <= HEADER_ROWS
-                    and isinstance(cell, str)
-                    and cell.strip()
+                    and _header_text(cell)
                 ):
-                    headers.append(cell.strip())
+                    headers.append(_header_text(cell))
             # The title block ends at the first row with a figure in it. Everything above
             # is where the company, the statement, the period and the scale are stated.
             if row_has_number:
@@ -277,6 +277,9 @@ class NormalizedSheet:
     label_column: str
     blocks: dict[str, tuple[Row, ...]] = field(default_factory=dict)
     first_rows: list[str] = field(default_factory=list)
+    block_headers: dict[str, str] = field(default_factory=dict)
+    """locator -> the text above the column's first figure: the period the column is
+    for, as the sheet labels it. What the timing skill has to know and cannot guess."""
 
     def as_text(self) -> str:
         lines = [f"[sheet {self.sheet}]"]
@@ -327,6 +330,9 @@ def normalize_workbook(data: bytes, sheets: list[str]) -> list[NormalizedSheet]:
             col = get_column_letter(c + 1)
             locator = f"{_quote(name)}!{col}{rows[0].ordinal}:{col}{rows[-1].ordinal}"
             sheet.blocks[locator] = tuple(rows)
+            header = _column_header(grid, c, rows[0].ordinal)
+            if header:
+                sheet.block_headers[locator] = header
             if not sheet.first_rows:
                 sheet.first_rows = [f"{r.label} {r.raw}".strip() for r in rows[:5]]
         out.append(sheet)
@@ -365,7 +371,8 @@ def _code_column(grid: list[tuple[Any, ...]], label_col: int) -> int | None:
     if not values:
         return None
     codes = sum(
-        1 for v in values
+        1
+        for v in values
         if (isinstance(v, int | float) and not isinstance(v, bool) and float(v).is_integer())
         or (isinstance(v, str) and v.strip().isdigit())
     )
@@ -374,6 +381,31 @@ def _code_column(grid: list[tuple[Any, ...]], label_col: int) -> int | None:
 
 def _has_number(row: tuple[Any, ...]) -> bool:
     return any(isinstance(c, int | float) and not isinstance(c, bool) for c in row)
+
+
+def _column_header(grid: list[tuple[Any, ...]], column: int, first_ordinal: int) -> str:
+    """The nearest text above a column's first figure - "FY2025", "Dec-24", a date cell -
+    which is how the sheet says what period the column holds."""
+    for index in range(first_ordinal - 2, -1, -1):
+        row = grid[index]
+        cell = row[column] if column < len(row) else None
+        text = _header_text(cell)
+        if text:
+            return text
+    return ""
+
+
+def _header_text(cell: Any) -> str:
+    """A title-block cell as the period detector should read it. Text as written; a real
+    date cell as its ISO date, because accountants' exports carry period ends as dates
+    and a date the detector never sees is a period it never finds."""
+    if isinstance(cell, datetime):
+        return cell.date().isoformat()
+    if isinstance(cell, date):
+        return cell.isoformat()
+    if isinstance(cell, str):
+        return cell.strip()
+    return ""
 
 
 def _code_text(code: Any) -> str:

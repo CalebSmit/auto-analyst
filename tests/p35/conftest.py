@@ -37,6 +37,11 @@ from tests.checkpoints.c07 import test_c7_deliverable as c7
 from tests.checkpoints.c08 import test_c8_self_service as c8
 from tests.p16.conftest import LAUNCH, Clock, drop
 from tests.p24.conftest import WHO, config_document, profile_for
+from tools.coa import chart_of_accounts_lookup
+from tools.normalize import timing_normalizer
+from tools.precedent import precedent_lookup_tool
+from tools.recompute import recompute
+from tools.template_schema import template_schema_lookup
 from workers.driver import RunDriver, RunWiring
 
 world = c8.world
@@ -75,9 +80,27 @@ def wiring(
     blobs = LocalContentStore(tmp_path / "blobs")
     vault = open_vault(ports.get_secrets(), f"sqlite:///{(tmp_path / 'vault.db').as_posix()}")
     meter = CostMeter(store)
-    governor = BudgetGovernor(constraints, meter, bus, store)
+    governor = BudgetGovernor(
+        constraints,
+        meter,
+        bus,
+        store,
+        budget_for=lambda e: getattr(world["roster"].get(e), "budget_usd", None),
+    )
     tree = SkillTree.load()
-    runtime = GuardedRuntime(PolicyGate(constraints, bus), constraints, bus, {})
+    precedents = PrecedentStore(store)
+    runtime = GuardedRuntime(
+        PolicyGate(constraints, bus),
+        constraints,
+        bus,
+        {
+            "timing_normalizer": timing_normalizer,
+            "recompute": recompute,
+            "chart_of_accounts_lookup": chart_of_accounts_lookup,
+            "precedent_lookup": precedent_lookup_tool(precedents),
+            "template_schema_lookup": template_schema_lookup,
+        },
+    )
     boundary = UntrustedBoundary(bus)
 
     def make(port: Any) -> Any:
@@ -106,7 +129,7 @@ def wiring(
             parse_store=SourceParseStore(store),
             dispatcher_for=dispatcher_for,
             templates=world["templates"],
-            precedents=PrecedentStore(store),
+            precedents=precedents,
             delivery=ports.get_delivery(),
             storage=ports.get_storage(),
             boundary=boundary,
@@ -123,5 +146,14 @@ def driver_for(wiring: Any) -> Any:
     return build
 
 
-__all__ = ["FOLDER", "HEND", "LAUNCH", "WHO", "Clock", "Replayed", "config_document",
-           "drop", "profile_for"]
+__all__ = [
+    "FOLDER",
+    "HEND",
+    "LAUNCH",
+    "WHO",
+    "Clock",
+    "Replayed",
+    "config_document",
+    "drop",
+    "profile_for",
+]

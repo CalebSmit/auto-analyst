@@ -1,6 +1,8 @@
 # Worked examples
 
-Synthetic, from the Henderson Manufacturing fixture. Each shows the candidate as
+Synthetic, and naming nobody: a reference reaches the model beside every client's
+payload, so a client's name in it - even a fixture's - is that name in front of the
+model, and the outbound scan stops the run for that client. Each shows the candidate as
 proposed and what the procedure made of it.
 
 ## Officer salary, three years

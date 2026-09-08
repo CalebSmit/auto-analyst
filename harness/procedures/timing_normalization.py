@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from harness.runtime import BoundTools
+from review.router import Item
 
 __all__ = ["SourceFile", "TimingInputs", "TimingNormalization"]
 
@@ -59,7 +60,51 @@ class TimingNormalization:
                 return f"{f.filename} is ambiguous: " + "; ".join(flags)
             if f.scale not in (1, 1000, 1_000_000):
                 return f"{f.filename} has no settled scale"
+            if not f.currency:
+                # Nothing stated one and the profile declared none. A figure without a
+                # currency is not a figure; a person settles it, not a default.
+                return f"{f.filename} has no settled currency"
         return None
+
+    def review_items(self, output: dict[str, Any], inputs: dict[str, Any]) -> list[Item]:
+        """A line with no counterpart, and sources that disagree: a person places them."""
+        report = output.get("alignment_report") or {}
+        items: list[Item] = []
+        for u in report.get("unmatched", ()):
+            loc = str(u.get("locator") or "")
+            label = str(u.get("label") or loc)
+            items.append(
+                Item(
+                    item_id=f"unmatched:{loc or label}",
+                    skill=self.name,
+                    question=(
+                        f"{label} ({loc}) has no counterpart: {u.get('reason') or 'unmatched'}. "
+                        f"A new line, a rename, or left out?"
+                    ),
+                    source_excerpt=f"{loc} {label}".strip(),
+                    proposal={"treatment": "unmatched", "reason": u.get("reason")},
+                    confidence=None,
+                    review_required=True,
+                    locator=loc,
+                )
+            )
+        for c in report.get("conflicts", ()):
+            label = str(c.get("canonical_label") or c.get("label") or "conflict")
+            items.append(
+                Item(
+                    item_id=f"conflict:{label}",
+                    skill=self.name,
+                    question=(
+                        f"{label}: the sources disagree. {c.get('why') or c.get('reason') or ''}"
+                    ).strip(),
+                    source_excerpt=label,
+                    proposal=dict(c),
+                    confidence=None,
+                    review_required=True,
+                    locator=str(c.get("locator") or ""),
+                )
+            )
+        return items
 
     def payload(self, inputs: TimingInputs) -> str:
         """Labels and locators. No values: the model matches, it does not read figures."""
@@ -123,13 +168,16 @@ class TimingNormalization:
     def summary(self, output: dict[str, Any]) -> dict[str, Any]:
         """What the scorecard reads for period coverage: the periods the table spans
         and every gap the skill reported. Labels and counts only, never a figure."""
+        table = output.get("normalized_historicals") or {}
+        report = output.get("alignment_report") or {}
         return {
-            "periods": [str(p.get("label", p)) for p in output.get("periods", ())],
+            "periods": [str(p.get("label", p)) for p in table.get("periods", ())],
             "period_gaps": [
                 {"period_label": g.get("period_label"), "why": g.get("why")}
-                for g in output.get("period_gaps", ())
+                for g in report.get("period_gaps", ())
             ],
-            "unmatched": len(output.get("unmatched", ())),
+            "unmatched": len(report.get("unmatched", ())),
+            "line_items": len(table.get("line_items", ())),
         }
 
 

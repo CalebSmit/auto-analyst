@@ -51,6 +51,11 @@
           "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }],
           "description": "Null on a run that produced no workbook. 'Why does this model look different from that one' should not be archaeology."
         },
+        "precedent_snapshot": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The precedent store snapshot the plan was compiled against. Two runs sharing a plan hash while seeing different examples would legitimately disagree; this is how the manifest says which examples these were."
+        },
         "prompt_version": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
       }
     },

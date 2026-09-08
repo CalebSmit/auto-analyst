@@ -139,8 +139,8 @@
    "event@1.1.0": "sha256:3bc238c289b1e8b798cfaa99cb8db4ef",
    "figure@1.0.0": "sha256:056ec7b7c6643252ae40f17a6e8c4b8d",
    "participant_census@1.0.0": "sha256:1a3a755858d312a5cee12754f44308f6",
-   "run_manifest@1.0.0": "sha256:bca7bf3919ea1bdf5959db282c202e23",
-   "run_manifest@1.1.0": "sha256:4de71f14ef0d9034779c52c924b449c1",
+   "run_manifest@1.0.0": "sha256:0e811d807d090da6c5af9c5136c531c3",
+   "run_manifest@1.1.0": "sha256:ecaac5269fb82f28cab0ff5c18e40f6d",
    "run_plan@1.0.0": "sha256:649791e4ac5deaa775f6093da9bc2e5f",
    "run_plan_proposal@1.0.0": "sha256:48b131c438ea6a0410b7669435d27e1a",
    "skills/cost-of-capital@1.0.0": "sha256:535d200a196ef6532ab5eddca399c651",
@@ -733,7 +733,8 @@
   "llm": {
    "adapters": [
     "anthropic_messages",
-    "fake"
+    "fake",
+    "scripted"
    ],
    "contracts": [],
    "default": "fake",

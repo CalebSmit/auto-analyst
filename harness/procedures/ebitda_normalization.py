@@ -37,6 +37,8 @@ from harness.procedures.line_item_tagging import line_item_ref
 from harness.runtime import BoundTools
 from ops.source_parse import SheetRange, parse_locator
 from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
+from review import Money
+from review.router import Item
 
 __all__ = [
     "Benchmark",
@@ -200,6 +202,56 @@ class EbitdaNormalization:
 
     def terms(self, inputs: EbitdaInputs) -> tuple[str, ...]:
         return tuple(ln.description for ln in inputs.lines)
+
+    def review_items(self, output: dict[str, Any], inputs: dict[str, Any]) -> list[Item]:
+        """Every add-back the policy marked for a person: material, owner-related, below
+        the confidence bar. The amount travels so the router can apply its thresholds."""
+        items: list[Item] = []
+        for s in output.get("addback_schedule", ()):
+            if not s.get("review_required"):
+                continue
+            amount = dict(s.get("amount") or {})
+            period = dict(amount.get("period") or {})
+            money: Money | None
+            try:
+                money = Money(
+                    abs(float(str(amount.get("value")))) * float(amount.get("scale") or 1),
+                    str(amount.get("currency") or ""),
+                )
+            except (TypeError, ValueError):
+                money = None
+            cid = str(s["candidate_id"])
+            what = str(s.get("description") or s.get("line_item_ref") or cid)
+            when = str(period.get("label") or period.get("end") or "the period")
+            items.append(
+                Item(
+                    item_id=f"addback:{cid}",
+                    skill=self.name,
+                    question=f"Add back {what} for {when}? ({s.get('category')})",
+                    source_excerpt=" | ".join(
+                        str(e.get("excerpt", "")) for e in (s.get("evidence") or [])[:2]
+                    ),
+                    proposal={
+                        "description": what,
+                        **{
+                            k: s.get(k)
+                            for k in (
+                                "category",
+                                "line_item_ref",
+                                "recurs_in_all_periods",
+                                "above_materiality",
+                            )
+                        },
+                        "amount": amount,
+                    },
+                    confidence=amount.get("confidence"),
+                    amount=money,
+                    category=str(s.get("category") or "") or None,
+                    review_required=True,
+                    locator=str(amount.get("locator") or ""),
+                )
+            )
+        return items
 
     def payload(self, inputs: EbitdaInputs) -> str:
         """Lines, tags, periods present, and the benchmark's provenance. No values: an

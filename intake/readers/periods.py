@@ -89,6 +89,19 @@ class PeriodDetection:
         return not self.ambiguous
 
 
+def _spacing(gaps: list[int]) -> str | None:
+    """What period a run of end dates ends, from the days between them."""
+    if not gaps:
+        return None
+    if all(350 <= g <= 380 for g in gaps):
+        return "annual"
+    if all(85 <= g <= 95 for g in gaps):
+        return "quarterly"
+    if all(28 <= g <= 31 for g in gaps):
+        return "monthly"
+    return None
+
+
 def detect_periods(text: str) -> PeriodDetection:
     ambiguous: list[str] = []
     cues: dict[str, list[str]] = {}
@@ -141,7 +154,7 @@ def detect_periods(text: str) -> PeriodDetection:
     month_year = [
         (_MONTH_INDEX[m.group("m")[:3].lower()], _year(m.group("y")))
         for m in _MONTH_YEAR.finditer(text)
-        if not _LONG.match(text, m.start())
+        if not _LONG.match(text, m.start()) and not _is_a_day(m, text)
     ]
     for month, year in month_year:
         ends.add(date(year, month, calendar.monthrange(year, month)[1]))
@@ -156,6 +169,18 @@ def detect_periods(text: str) -> PeriodDetection:
     if fys:
         types.add("annual")
         cues.setdefault("period", []).append(", ".join(m.group(0) for m in fys[:4]))
+    if not types and len(ends) >= 2:
+        # Real dates in the header row and no word beside them. The spacing says what
+        # kind of period they end: a year apart is annual, a month apart monthly, a
+        # quarter apart quarterly. Anything else stays unsettled.
+        ordered = sorted(ends)
+        gaps = [(b - a).days for a, b in zip(ordered, ordered[1:], strict=False)]
+        spacing = _spacing(gaps)
+        if spacing:
+            types.add(spacing)
+            cues.setdefault("period", []).append(
+                f"{len(ordered)} dated columns, {spacing} by their spacing"
+            )
     if len(types) == 1:
         period_type: str | None = next(iter(types))
     elif types:
@@ -186,6 +211,21 @@ def detect_periods(text: str) -> PeriodDetection:
         ambiguous=tuple(ambiguous),
         cues=cues,
     )
+
+
+def _is_a_day(m: re.Match[str], text: str) -> bool:
+    """Two digits after a written-out month and a space are a day, not a year:
+    "December 31" in "for the years ended December 31" is the 31st, and reading it as
+    2031 gave every statement a period end six years out. "Dec-25", "Dec'25", "Dec/25"
+    and the abbreviated "Dec 25" keep their year."""
+    year = m.group("y")
+    if len(year) != 2:
+        return False
+    between = text[m.end("m") : m.start("y")]
+    if any(ch in between for ch in "'-/"):
+        return False
+    written_out = between.rstrip(". ").isalpha() and between.rstrip(". ") != ""
+    return written_out and int(year) <= 31
 
 
 def _year(text: str) -> int:

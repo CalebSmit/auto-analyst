@@ -39,6 +39,7 @@ from intake.store import IntakeRow
 from ops.events import EventBus
 from ops.run_store import SqlRunStore
 from ops.source_parse import Row, SourceParseStore
+from registries.errors import UNREADABLE_FILE, DiagnosticError, diagnose
 
 __all__ = ["ReadReport", "read_source"]
 
@@ -58,6 +59,8 @@ class ReadReport:
     wrapped: Wrapped | None = None
     hidden_text: tuple[str, ...] = ()
     review_item_id: str | None = None
+    block_headers: dict[str, str] = field(default_factory=dict)
+    """locator -> the header above the block's column, for the timing skill's period hint."""
 
     @property
     def locators(self) -> tuple[str, ...]:
@@ -87,7 +90,21 @@ def read_source(
     sheet_names: list[str] = []
 
     if row.kind == "spreadsheet":
-        survey = survey_workbook(data)
+        try:
+            survey = survey_workbook(data)
+        except Exception as broken:  # noqa: BLE001 - openpyxl raises a zoo, all meaning "not a workbook"
+            # A zero-byte file, a text file with the wrong extension, a workbook still
+            # being written, an encrypted one. None is a pass that failed; each is a file
+            # that cannot be read, named, so the person replaces it.
+            raise DiagnosticError(
+                diagnose(
+                    UNREADABLE_FILE,
+                    f"{row.filename} cannot be opened as a workbook "
+                    f"({broken.__class__.__name__}: {str(broken)[:100]})",
+                    locator=row.filename,
+                    found=f"{len(data)} bytes",
+                )
+            ) from broken
         selection = (selector or StructuralSelector()).select(survey)
         selection = selection.accounting_for(survey)
         report.selection = selection
@@ -97,6 +114,7 @@ def read_source(
         for table in normalize_workbook(data, [s.sheet for s in selection.selected]):
             for locator, rows in table.blocks.items():
                 report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
+            report.block_headers.update(table.block_headers)
             first_rows.extend(table.first_rows)
             text_for_model.append(table.as_text())
     else:
@@ -167,6 +185,7 @@ def read_source(
                     {"sheet": s.sheet, "reason": s.reason}
                     for s in (report.selection.skipped if report.selection else ())
                 ],
+                "block_headers": dict(report.block_headers),
                 "document_type": report.classification.document_type,
                 "scale": report.periods.scale,
                 "currency": report.periods.currency,

@@ -20,6 +20,7 @@ from admin.page import PAGE
 from intake.config import Destination, Watch
 from intake.roster import RosterEntry, RosterState
 from registries.errors import ADMIN_FORBIDDEN, DiagnosticError, diagnose  # noqa: F401
+from ui.who import who
 
 __all__ = ["create_admin_app", "install_identity", "who"]
 
@@ -138,41 +139,12 @@ def install_identity(app: FastAPI, identity: Any | None = None) -> None:
     @app.middleware("http")
     async def _who_is_asking(request: Request, call_next: Any) -> Any:
         try:
-            request.state.identity = port.resolve(
-                request.client.host if request.client else None
-            )
+            request.state.identity = port.resolve(request.client.host if request.client else None)
         except DiagnosticError as refused:
             return JSONResponse(
                 status_code=401, content={"detail": {"refused": [refused.diagnostic.as_dict()]}}
             )
         return await call_next(request)
-
-
-def who(request: Request, claimed: str | None) -> str:
-    """The name that goes in the record.
-
-    The system\'s answer, and a refusal when the caller sent a different one. Not ignored -
-    refused - because a request that disagrees about who is making it is either a bug or an
-    attempt, and silently correcting it hides both.
-    """
-    resolved = request.state.identity
-    if claimed and claimed.strip() and claimed.strip() != resolved.name:
-        raise HTTPException(
-            status_code=403,
-            detail={
-                "refused": [
-                    diagnose(
-                        ADMIN_FORBIDDEN,
-                        f"this change would be recorded against {claimed.strip()!r}, and "
-                        f"the identity behind the request is {resolved.name!r}",
-                        locator="identity",
-                        expected=resolved.name,
-                        found=claimed.strip(),
-                    ).as_dict()
-                ]
-            },
-        )
-    return str(resolved.name)
 
 
 def create_admin_app(console: AdminConsole, identity: Any | None = None) -> FastAPI:
@@ -271,22 +243,31 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
     @app.post("/api/admin/engagements/{engagement_id}/activate")
     def activate(engagement_id: str, request: Request, body: Change) -> dict[str, Any]:
         return _guard(
-            lambda: console.activate(engagement_id, who=who(request, body.who),
-                reason=body.reason).__dict__
+            lambda: (
+                console.activate(
+                    engagement_id, who=who(request, body.who), reason=body.reason
+                ).__dict__
+            )
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/pause")
     def pause(engagement_id: str, request: Request, body: Change) -> dict[str, Any]:
         return _guard(
-            lambda: console.pause(engagement_id, who=who(request, body.who),
-                reason=body.reason).__dict__
+            lambda: (
+                console.pause(
+                    engagement_id, who=who(request, body.who), reason=body.reason
+                ).__dict__
+            )
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/archive")
     def archive(engagement_id: str, request: Request, body: Change) -> dict[str, Any]:
         return _guard(
-            lambda: console.archive(engagement_id, who=who(request, body.who),
-                reason=body.reason).__dict__
+            lambda: (
+                console.archive(
+                    engagement_id, who=who(request, body.who), reason=body.reason
+                ).__dict__
+            )
         )
 
     @app.post("/api/admin/engagements/{engagement_id}/budget")
@@ -388,8 +369,9 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
             body.id, body.kind, body.name, body.root, body.recipe, body.engagement_id, body.depth
         )
         return _guard(
-            lambda: {"version": console.add_watch(watch, who=who(request, body.who),
-                reason=body.reason)}
+            lambda: {
+                "version": console.add_watch(watch, who=who(request, body.who), reason=body.reason)
+            }
         )
 
     @app.post("/api/admin/destinations")
@@ -397,8 +379,9 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
         destination = Destination(body.id, body.name, body.path, body.adapter, body.credential)
         return _guard(
             lambda: {
-                "version": console.add_destination(destination, who=who(request, body.who),
-                    reason=body.reason)
+                "version": console.add_destination(
+                    destination, who=who(request, body.who), reason=body.reason
+                )
             }
         )
 

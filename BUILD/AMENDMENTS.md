@@ -647,3 +647,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The ports surface gains identity: a seventh port, with a local_user adapter that answers with the operating-system user and refuses any request that did not come from this machine. That refusal is the safety of the whole arrangement - binding the surface to a network address without a provider that authenticates does not quietly work - and it is why identity is a port rather than a check in the admin app: which provider vouches for a name at the firm is a deployment choice, and the surface must not know which.
 
 - task added: The identity port and its local_user adapter, in the ports surface
+
+## 2026-09-08 - P36 Who is asking: identity on both surfaces
+
+**Why:** Round two of the final review: a scripted analyst behind the model door found the review queue unfed, the precedent write-back uncalled, the served runtime without tools, a ledger key that let one client's steps satisfy another's, the manifest refusing its own precedent snapshot, an engagement budget nothing enforced, and files held in silence. Public surfaces changed: decision, resume and halt routes on the ops console, a fourteenth preflight check, the scripted LLM adapter, the rehearsal's --scripted flag, and the manifest contract admitting precedent_snapshot.
+
+- task added: Round two of the final review, with something answering for the model: the review loop closes, decisions become precedent, the ledger names the run, the engagement budget is enforced, held files are reported, and the rehearsal walks the whole loop with --scripted (tests/p35/test_round_two.py)
+- check added: python -m pytest tests/p35/test_round_two.py -q

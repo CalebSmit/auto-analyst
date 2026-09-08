@@ -60,6 +60,7 @@ from registries.errors import (
     TEMPLATE_HASH_MISMATCH,
     TEMPLATE_INPUTS_MISSING,
     TEMPLATE_UNREGISTERED,
+    UNKNOWN_TYPE,
     UNRESOLVED_SCOPE,
     Diagnostic,
     DiagnosticError,
@@ -78,6 +79,7 @@ CHECKS: tuple[tuple[str, str], ...] = (
     ("credentials", "Credentials present and unexpired"),
     ("watch_overlap", "No two watches claim the same path"),
     ("unclaimed_folders", "Every swept subfolder maps to an engagement"),
+    ("held_files", "Every file seen under an engagement carries a document type"),
     ("scope_resolves", "Every active engagement resolves to at least one skill"),
     ("scope_defined", "Every active engagement's practice group and segment are defined"),
     ("profile_complete", "Every active engagement has a complete engagement profile"),
@@ -229,6 +231,7 @@ class Preflight:
             self._credentials(),
             self._watch_overlap(),
             self._unclaimed(),
+            self._held(entries),
             self._scopes(entries),
             self._scope_defined(entries),
             self._profiles(entries),
@@ -376,6 +379,43 @@ class Preflight:
             f"{len(rows)} unclaimed - routed to a person, never guessed"
             if rows
             else "every swept folder maps to an engagement",
+        )
+
+    def _held(self, entries: tuple[RosterEntry, ...]) -> Check:
+        """Files seen under an engagement that no declared document type claims. Held is
+        correct - nothing is guessed - but a held file starts no clock and launches
+        nothing, so unless somebody is told, the client's files sit there while everyone
+        waits for a run. This is where they are told."""
+        rows: list[tuple[str, Any]] = []
+        if self.intake_store is not None:
+            for entry in entries:
+                rows.extend(
+                    (entry.engagement_id, row)
+                    for row in self.intake_store.held(entry.engagement_id)
+                )
+        warnings = [
+            Failure(
+                "held_files",
+                diagnose(
+                    UNKNOWN_TYPE,
+                    f"{eid}: {row.filename} is held - no declared document type claims that "
+                    f"name, and a held file starts no clock",
+                    locator=f"{eid}/{row.filename}",
+                    expected="a name carrying a convention token: tb, trial balance, "
+                    "income statement, balance sheet, financials, is, bs, fs",
+                    found=row.filename,
+                ),
+                severity="warn",
+            )
+            for eid, row in rows
+        ]
+        return _check(
+            "held_files",
+            warnings,
+            f"{len(rows)} file(s) held with no document type - rename them, or add the "
+            f"name's token to the conventions"
+            if rows
+            else "every file seen carries a document type",
         )
 
     # -- 5. scopes
@@ -698,7 +738,6 @@ class Preflight:
     def _engagements_on_pin(self, entries: tuple[RosterEntry, ...], pin: str) -> tuple[str, ...]:
         return tuple(e.engagement_id for e in entries if self.template_pin_for(e) == pin)
 
-
     def _compile_for(self, entry: RosterEntry, recipe: Any) -> Any:
         """Compile the way a launch will, so setup and launch cannot disagree.
 
@@ -755,7 +794,6 @@ class Preflight:
             failures,
             f"{len(files) - len(failures)} of {len(files)} methodology files cleared",
         )
-
 
     def _methodology_size(self) -> Check:
         """What each layer adds to every prompt of every run that walks through it.

@@ -19,6 +19,7 @@ from typing import Any
 
 from harness.runtime import BoundTools
 from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
+from review.router import Item
 
 __all__ = [
     "CONTRACT",
@@ -144,6 +145,33 @@ class ModelLoad:
 
     def terms(self, inputs: ModelLoadInputs) -> tuple[str, ...]:
         return ()
+
+    def review_items(self, output: dict[str, Any], inputs: dict[str, Any]) -> list[Item]:
+        """A required template input with nothing bound to it. The workbook is not built
+        around a hole a person has not seen."""
+        mapping = output.get("template_mapping") or {}
+        required = {str(n) for n in (inputs.get("required") or ())}
+        items: list[Item] = []
+        for u in mapping.get("unmapped_template_inputs", ()):
+            name = str(u.get("named_range") or "")
+            if required and name not in required:
+                continue
+            items.append(
+                Item(
+                    item_id=f"unmapped:{name}",
+                    skill=self.name,
+                    question=(
+                        f"Template input {name} has no upstream figure: {u.get('why') or ''}. "
+                        f"Leave it empty, or name the figure?"
+                    ),
+                    source_excerpt=name,
+                    proposal={"named_range": name, "why": u.get("why")},
+                    confidence=None,
+                    review_required=True,
+                    locator=name,
+                )
+            )
+        return items
 
     def payload(self, inputs: ModelLoadInputs) -> str:
         """Template inputs and the catalogue. Names, lines, periods; no values."""

@@ -76,6 +76,10 @@ class ModelDoor:
         _require_single_turn(request, step_id)
 
         # 2. The scan, over everything that leaves: the system prompt and every message.
+        # One scan, one event. The false positive this once produced - a client whose
+        # name contains an ordinary word, quarantined on that word in the firm's own
+        # skill text - is handled where the identifier list is built: a word the firm's
+        # methodology uses is not treated as identifying on its own.
         outbound = "\n".join([request.system, *(m.content for m in request.messages)])
         scanned = self.scan.scan(outbound, identifiers, run_id=run_id, step_id=step_id)
 

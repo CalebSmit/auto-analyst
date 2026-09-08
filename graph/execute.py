@@ -80,6 +80,10 @@ class TransportFailure(Exception):
     """
 
 
+ReviewHook = Callable[[str, "Step", ContentRef], int]
+"""`(run_id, step, output_ref) -> open review items on the run`."""
+
+
 class Blocked(Exception):
     """The step needs a person before the run can go further.
 
@@ -169,9 +173,13 @@ class ExecutionReport:
     @property
     def finished(self) -> bool:
         """Every step reached a completed ending, so the run has nothing left to do."""
-        return not self.quarantined and self.blocked_on is None and all(
-            outcome in (StepOutcome.EXECUTED, StepOutcome.SATISFIED_FROM_LEDGER)
-            for outcome in self.outcomes.values()
+        return (
+            not self.quarantined
+            and self.blocked_on is None
+            and all(
+                outcome in (StepOutcome.EXECUTED, StepOutcome.SATISFIED_FROM_LEDGER)
+                for outcome in self.outcomes.values()
+            )
         )
 
     def __str__(self) -> str:
@@ -187,6 +195,7 @@ def step_key(
     step: Step,
     inputs: Mapping[str, ContentRef],
     context_ref: str,
+    run_id: str = "",
 ) -> str:
     """The idempotency key. Everything that could change this step's answer, hashed.
 
@@ -197,12 +206,20 @@ def step_key(
 
     Inputs are sorted by name, so the key is a property of the step rather than of the
     order a dictionary happened to iterate in.
+
+    And the run. Without it, two engagements on the same recipe whose step had the same
+    declared inputs - the timing step's only input is the mask step, whose output says
+    nothing about which client - shared one ledger entry, and the second client received
+    the first client's normalized table. A resumed run still replays its own entries,
+    which is what the ledger is for; no other run's ever match.
     """
     parts = [
         *step.key_material(),
         context_ref,
         *(f"{name}={inputs[name].content_hash}" for name in sorted(inputs)),
     ]
+    if run_id:
+        parts.append(f"run={run_id}")
     body = "\n".join(parts).encode("utf-8")
     return f"sha256:{hashlib.sha256(body).hexdigest()}"
 
@@ -219,10 +236,15 @@ class StepExecutor:
         constraints: ConstraintRegistry | None = None,
         clock: Callable[[], float] | None = None,
         loops: LoopController | None = None,
+        review: ReviewHook | None = None,
     ) -> None:
         self.store = store
         self.bus = bus
         self.runner = runner
+        self.review = review
+        """Called with a skill step's output once it exists. Routes what the step
+        proposed, queues what a person must answer, and returns how many items on the
+        run are still open. While any is, the pass ends at that step."""
         self.blobs = blobs or LocalContentStore()
         self.constraints = constraints or ConstraintRegistry.load()
         self._ceilings = self.constraints.ceilings["per_step"]
@@ -282,6 +304,30 @@ class StepExecutor:
             elif outcome is StepOutcome.BLOCKED:
                 report.blocked_on = step_id
 
+            if (
+                self.review is not None
+                and step.kind == "skill"
+                and outcome in (StepOutcome.EXECUTED, StepOutcome.SATISFIED_FROM_LEDGER)
+                and not report.blocked_on
+            ):
+                # What the step proposed goes past the router before anything builds on
+                # it. Items a person must answer are queued; while any is open the pass
+                # ends here, the run waits, and the next pass resumes at the step after.
+                # On that pass this step is satisfied from the ledger and the hook finds
+                # its items already recorded and decided.
+                waiting = self.review(run_id, step, available[step.id])
+                if waiting:
+                    report.blocked_on = step_id
+                    self._emit(
+                        run_id,
+                        plan,
+                        step,
+                        "hitl.pass.paused",
+                        f"{waiting} item(s) waiting on a person after {step_id}",
+                        "",
+                        open_items=waiting,
+                    )
+
         return self._close_pass(run_id, report)
 
     def _take_up(self, run_id: str) -> None:
@@ -311,7 +357,7 @@ class StepExecutor:
         iteration = 0
 
         while True:
-            key = step_key(step, inputs, context_ref)
+            key = step_key(step, inputs, context_ref, run_id)
 
             entry = self.store.ledger_entry(key)
             if entry is not None:
@@ -328,7 +374,11 @@ class StepExecutor:
             # exists: it needs the content hashes of the inputs, which needed the
             # producers to have run.
             self.store.ensure_step(
-                run_id, step.id, key, step.kind, skill=step.skill,
+                run_id,
+                step.id,
+                key,
+                step.kind,
+                skill=step.skill,
                 loop=step.loops[0] if step.loops else None,
             )
             try:
@@ -337,18 +387,27 @@ class StepExecutor:
                 )
             except RepairNeeded as repair:
                 next_inputs = {**base, repair.feedback_name: repair.feedback}
-                next_key = step_key(step, next_inputs, context_ref)
+                next_key = step_key(step, next_inputs, context_ref, run_id)
                 admission = self.loops.admit(
-                    run_id, plan, step, repair.loop, key, next_key, next_inputs,
+                    run_id,
+                    plan,
+                    step,
+                    repair.loop,
+                    key,
+                    next_key,
+                    next_inputs,
                     repair.diagnostic,
                 )
                 if not admission.allowed:
-                    record = self.loops.exhaust(
-                        run_id, plan, step, repair, admission, key, inputs
-                    )
+                    record = self.loops.exhaust(run_id, plan, step, repair, admission, key, inputs)
                     return self._quarantine(
-                        run_id, plan, step, record.reason, key,
-                        diagnostic_code=record.code, review_item_id=record.review_item_id,
+                        run_id,
+                        plan,
+                        step,
+                        record.reason,
+                        key,
+                        diagnostic_code=record.code,
+                        review_item_id=record.review_item_id,
                     )
                 inputs = next_inputs
                 iteration = admission.iteration
@@ -381,8 +440,14 @@ class StepExecutor:
                 iteration=iteration,
             )
             self._emit(
-                run_id, plan, step, "step.started", f"attempt {attempt_number}", key,
-                attempt=attempt_number, iteration=iteration,
+                run_id,
+                plan,
+                step,
+                "step.started",
+                f"attempt {attempt_number}",
+                key,
+                attempt=attempt_number,
+                iteration=iteration,
             )
             try:
                 result = self.runner(attempt)
@@ -396,7 +461,12 @@ class StepExecutor:
                 # Every attempt writes an event, including the ones that succeeded first
                 # time - so "it worked eventually" is visible rather than inferred.
                 self._emit(
-                    run_id, plan, step, "step.transport_failed", str(failure), key,
+                    run_id,
+                    plan,
+                    step,
+                    "step.transport_failed",
+                    str(failure),
+                    key,
                     attempt=attempt_number,
                 )
                 continue
@@ -405,36 +475,57 @@ class StepExecutor:
 
             try:
                 self.store.commit_step(
-                    run_id, step.id, key, result.content_hash, attempt_number,
-                    media_type=result.media_type, size_bytes=result.size_bytes,
+                    run_id,
+                    step.id,
+                    key,
+                    result.content_hash,
+                    attempt_number,
+                    media_type=result.media_type,
+                    size_bytes=result.size_bytes,
                 )
             except LateResult as late:
                 # The result is not wrong, it is simply not the one that counts. Nothing
                 # is overwritten, and the run continues on what the ledger holds.
                 self._emit(
-                    run_id, plan, step, "step.result_discarded",
-                    str(late.diagnostic.detail), key, attempt=attempt_number,
+                    run_id,
+                    plan,
+                    step,
+                    "step.result_discarded",
+                    str(late.diagnostic.detail),
+                    key,
+                    attempt=attempt_number,
                     diagnostic_code=late.diagnostic.code,
                 )
                 held = self.store.ledger_entry(key)
                 if held is None:
                     return self._quarantine(run_id, plan, step, str(late), key)
                 available[step.id] = ContentRef(
-                    content_hash=held.result_ref, media_type=held.media_type,
-                    size_bytes=held.size_bytes, name=step.id,
+                    content_hash=held.result_ref,
+                    media_type=held.media_type,
+                    size_bytes=held.size_bytes,
+                    name=step.id,
                 )
                 return StepOutcome.EXECUTED
 
             available[step.id] = result
             self._emit(
-                run_id, plan, step, "step.completed", str(result), key,
-                attempt=attempt_number, iteration=iteration,
+                run_id,
+                plan,
+                step,
+                "step.completed",
+                str(result),
+                key,
+                attempt=attempt_number,
+                iteration=iteration,
             )
             return StepOutcome.EXECUTED
 
         return self._quarantine(
-            run_id, plan, step,
-            f"{allowed + 1} transport attempt(s) failed: {last}", key,
+            run_id,
+            plan,
+            step,
+            f"{allowed + 1} transport attempt(s) failed: {last}",
+            key,
         )
 
     # -- endings
@@ -446,7 +537,12 @@ class StepExecutor:
         self.store.open_review_item(run_id, blocked.item_id, blocked.kind, blocked.subject)
         self.store.finish_step(run_id, step.id, StepStatus.NOT_REACHED)
         self._emit(
-            run_id, plan, step, "hitl.item.queued", blocked.subject, key,
+            run_id,
+            plan,
+            step,
+            "hitl.item.queued",
+            blocked.subject,
+            key,
             item_id=blocked.item_id,
         )
         return StepOutcome.BLOCKED
@@ -486,9 +582,7 @@ class StepExecutor:
 
     # -- plumbing
 
-    def _inputs_for(
-        self, step: Step, available: Mapping[str, ContentRef]
-    ) -> dict[str, ContentRef]:
+    def _inputs_for(self, step: Step, available: Mapping[str, ContentRef]) -> dict[str, ContentRef]:
         """Refs, by the name the step calls them.
 
         A missing input is a defect in the compiler or the caller rather than a runtime

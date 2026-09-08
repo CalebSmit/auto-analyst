@@ -151,9 +151,20 @@ build* — that is the conversation to have, and it becomes a recipe with your n
 2. **Wait.** The system holds a set until it stops changing (30 minutes by default), so
    half-uploaded folders do not start half-runs.
 3. **Answer what it asks.** Anything below its confidence floor, anything material, and
-   anything a guard flagged comes to you as a review item — with the number, where it came
-   from, and what it is proposing. You approve, correct, or reject.
-4. **Check the deliverable.** It arrives in the output folder as a workbook built from the
+   anything a guard flagged comes to you as a review item on the Activity page — with the
+   question, where it came from, and (on request) what it is proposing. The run stops at
+   that step and waits; nothing after it is built on an answer nobody gave. **Accept** it
+   or **Reject** it with a reason; a rejection or a correction without a reason is refused,
+   and so is a decision on an item somebody else already decided. When the last open item
+   on a run is answered, the run resumes on the next sweep — usually within a minute — from
+   the step after the one it stopped at, replaying what it already did rather than paying
+   for it twice.
+4. **What your answer does.** An accepted or corrected tag or add-back becomes precedent:
+   masked, and shown to the model on a later engagement in the same practice group as an
+   example of how the firm decides. Only a decision a person made gets there; an item the
+   system has no example shape for yet (a template input with nothing to bind) is refused
+   on the record, not learned.
+5. **Check the deliverable.** It arrives in the output folder as a workbook built from the
    firm's template. Every figure traces back to a source file, sheet and cell.
 
 **What it will never do**: conclude a value, sign anything, decide something material on
@@ -183,6 +194,7 @@ uv sync                                   # install
 cp .env.example .env                      # then add the Anthropic API key
 python tools/serve.py --check             # what is ready, what is not
 python tools/simulate_firm.py             # a generated firm through the real thing
+python tools/simulate_firm.py --scripted  # the same, with the review loop walked end to end
 python tools/serve.py                     # start it
 ```
 
@@ -193,6 +205,16 @@ and a stray folder, and tries the edge cases against the live surface. It prints
 happened at every step and ends with a list of findings — which should be empty. It found
 nine bugs the test suite could not, because every fixture the suite had was shaped like a
 test. Nothing in it is a real client.
+
+**Run it again with `--scripted`.** Without a key the runs stop at the model door. With
+`--scripted`, a scripted analyst answers every skill from the request — not analysis,
+a stand-in shaped like it — so the runs go through timing, tagging, EBITDA and model-load,
+stop for a person at each step with something to decide, are answered the way a reviewer
+would answer on the Activity page, resume, and write precedent. That walk found fourteen
+more bugs, among them a step the second client had "already done" because it was the first
+client's, and a review queue nothing fed. It costs nothing and needs no key. It refuses to
+run outside a rehearsal: the front door will not start on the scripted adapter unless
+`AA_REHEARSAL=1` is set beside it, which the flag does for you.
 
 Then, on the admin page, in this order:
 
@@ -239,13 +261,36 @@ what to do about it; a failure with no engagement named blocks everything.
 - **Every run has a manifest**: what was in context, which model, which skill versions,
   which template, what each guard said. "Why did it do that" is a lookup, not an
   investigation.
+- **A quarantined run** — one that stopped on itself, a step that failed in a way retrying
+  will not fix — has two buttons on the Activity page. **Resume** picks it up again from
+  where it stopped, replaying what it already did, once the cause is fixed: a corrected
+  file, a cleared methodology, a key. **Halt** ends it, with a reason that is recorded, and
+  writes its manifest. Neither touches a run a worker is holding, and neither works on a
+  run a newer run has already replaced.
+- **A file that launches nothing.** Files are typed from their names — `TB`, `trial
+  balance`, `income statement`, `balance sheet`, `financials`, `IS`, `BS`, `FS` and the
+  like, whole words only, so `IS 2025.xlsx` counts and `analysis.xlsx` does not. A name no
+  convention claims is *held*: recorded, never guessed at, and it starts no clock. The Setup
+  page's preflight names every held file and what to do — rename it, or add the name's
+  token to the conventions on the Setup page. Nothing that is not cleared here can
+  contribute a figure.
+- **A run that stops on the client's name.** The client's name and its distinctive words
+  are masked before the model sees anything, and the outbound scan stops any run in which
+  one still appears — including inside the firm's own text. A worked example or a
+  methodology file that names a client, even a synthetic one, will stop every run for that
+  client; the fix is the file, not the guard. Ordinary words in a client's name — *Case*,
+  *Summit*, *General* — are not treated as identifying on their own, so the firm's own
+  vocabulary cannot trip it.
 - **Nothing is deleted.** The event log is append-only and the run store keeps every
   version.
 
 ### What it costs
 
-Each run has a budget ceiling and each step has one. A run that would cross its ceiling
-halts and asks rather than continuing and billing. Cost per run is on the ops console.
+Each run has a budget ceiling and each step has one, from the firm's constraints; and an
+engagement can carry its own, set on the Setup page, checked against everything that
+engagement has spent across its runs. A run that would cross any of them halts and asks
+rather than continuing and billing, and says which ceiling. Cost per run and per engagement
+is on the Activity page.
 
 ---
 

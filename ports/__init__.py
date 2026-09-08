@@ -107,6 +107,10 @@ PORTS: dict[str, PortSpec] = {
         adapters={
             "fake": "ports.llm.fake",
             "anthropic_messages": "ports.llm.anthropic_messages",
+            # Answers every skill from the request. Builds only with AA_REHEARSAL=1:
+            # it is how a rehearsal walks the review loop without a key, and never
+            # how a run reaches a model.
+            "scripted": "ports.llm.scripted",
         },
     ),
     "compute": PortSpec(

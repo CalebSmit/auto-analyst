@@ -31,7 +31,11 @@ when it lands.
 from __future__ import annotations
 
 import dataclasses
+import functools
+import json
+import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from graph.compile import PlanContext, compile_recipe
@@ -39,6 +43,7 @@ from graph.execute import Attempt, ExecutionReport, StepExecutor
 from graph.recipes import load_recipe
 from graph.resolve import ScopeResolver
 from harness.inputs import InputsUnavailable, RunFacts
+from harness.procedures import procedure_for
 from harness.procedures.timing_normalization import SourceFile
 from harness.runner import RunContext, SkillStepRunner
 from intake.readers import read_source
@@ -46,7 +51,7 @@ from ops.blobs import ContentRef, ContentStore, put_json
 from ports.llm import ModelPin
 from ports.storage import FileRef
 from registries.errors import DiagnosticError
-from review import CheckpointPolicy
+from review import CheckpointPolicy, ConfidenceRouter, ReviewQueue
 
 __all__ = ["RunDriver", "RunWiring", "plan_for"]
 
@@ -138,13 +143,51 @@ def plan_for(
 
 
 GENERIC_NAME_WORDS = frozenset(
-    w.lower() for w in (
-        "Inc", "Incorporated", "LLC", "LLP", "Ltd", "Limited", "Corp", "Corporation", "Co",
-        "Company", "Group", "Holdings", "Partners", "Partnership", "Associates", "Enterprises",
-        "International", "Industries", "Industrial", "Services", "Solutions", "Systems",
-        "Manufacturing", "Fabrication", "Logistics", "Consulting", "Capital", "Ventures",
-        "Technologies", "Technology", "Medical", "Dental", "Health", "Healthcare", "Financial",
-        "Management", "Trust", "Family", "Brothers", "Sons", "and", "of", "the",
+    w.lower()
+    for w in (
+        "Inc",
+        "Incorporated",
+        "LLC",
+        "LLP",
+        "Ltd",
+        "Limited",
+        "Corp",
+        "Corporation",
+        "Co",
+        "Company",
+        "Group",
+        "Holdings",
+        "Partners",
+        "Partnership",
+        "Associates",
+        "Enterprises",
+        "International",
+        "Industries",
+        "Industrial",
+        "Services",
+        "Solutions",
+        "Systems",
+        "Manufacturing",
+        "Fabrication",
+        "Logistics",
+        "Consulting",
+        "Capital",
+        "Ventures",
+        "Technologies",
+        "Technology",
+        "Medical",
+        "Dental",
+        "Health",
+        "Healthcare",
+        "Financial",
+        "Management",
+        "Trust",
+        "Family",
+        "Brothers",
+        "Sons",
+        "and",
+        "of",
+        "the",
     )
 )
 """Words that appear in thousands of company names and identify none of them. A word of
@@ -153,13 +196,50 @@ a model by way of a filename or a column heading."""
 
 
 def _distinctive_words(name: str) -> tuple[str, ...]:
-    """The words of a client's name that would identify it alone."""
+    """The words of a client's name that would identify it alone.
+
+    Not every word does. "Case", "Summit", "General", "Premier" are names of real firms
+    and ordinary words in the firm's own methodology, and the context a model sees
+    carries that methodology beside the masked payload. Listing such a word masked
+    nothing useful and quarantined every run for that client on its own name appearing
+    in a skill file. A word the firm's own text uses is not distinctive; the full name
+    is always masked and always scanned for, whatever its words.
+    """
     seen: list[str] = []
+    ordinary = _firm_words()
     for raw in name.replace("&", " ").replace(",", " ").split():
         word = raw.strip(".()'\"-")
-        if len(word) >= 4 and word.lower() not in GENERIC_NAME_WORDS and word not in seen:
-            seen.append(word)
+        lowered = word.lower()
+        if len(word) < 4 or lowered in GENERIC_NAME_WORDS or word in seen:
+            continue
+        if lowered in ordinary:
+            continue
+        seen.append(word)
     return tuple(seen)
+
+
+@functools.lru_cache(maxsize=1)
+def _firm_words() -> frozenset[str]:
+    """Every ordinary word of four letters or more in the firm's own text: skill bodies,
+    references, methodology, and the registries the payloads quote. Read once."""
+    words: set[str] = set()
+    root = Path(__file__).resolve().parent.parent
+    for folder in ("skills", "methodology", "registries"):
+        base = root / folder
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
+            if path.suffix.lower() not in {".md", ".yaml", ".yml", ".txt"}:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            # Lowercase occurrences only. A word the firm writes mid-sentence - "case",
+            # "summit", "general" - is ordinary; a name that only ever appears capitalised
+            # in a worked example is still a name, and still masked on its own.
+            words.update(re.findall(r"(?<![A-Za-z])[a-z]{4,}(?![A-Za-z])", text))
+    return frozenset(words)
 
 
 class RunDriver:
@@ -194,6 +274,7 @@ class RunDriver:
         scope = plan.context.scope
 
         profile = w.config.profile(run.engagement_id) or {}
+        self._write_precedents(run_id, entry, profile)
         try:
             facts = self._facts(run_id, run.engagement_id, scope, profile)
         except DiagnosticError as refused:
@@ -211,23 +292,27 @@ class RunDriver:
             scope=scope,
             engagement_profile=profile_ref,
             identifiers=self._identifiers(entry, profile),
-            run_scope=self._run_scope(run_id, entry, scope),
+            run_scope=self._run_scope(run_id, entry, scope, run.versions),
             pin=ModelPin.for_tier(w.tier),
             facts=facts,
         )
         skills = SkillStepRunner(w.dispatcher_for(run_id), w.blobs, context)
 
         executor = StepExecutor(
-            w.store, w.bus, self._route(skills, context), blobs=w.blobs,
+            w.store,
+            w.bus,
+            self._route(skills, context),
+            blobs=w.blobs,
             constraints=w.constraints,
+            review=self._reviewer(context),
         )
         return executor.execute(
             plan,
             run_id,
             run_inputs={
                 "engagement_profile": profile_ref,
-                "source_documents": put_json(w.blobs, 
-                    {"source_ids": [f.source_id for f in facts.sources]}, name="sources"
+                "source_documents": put_json(
+                    w.blobs, {"source_ids": [f.source_id for f in facts.sources]}, name="sources"
                 ),
             },
         )
@@ -271,6 +356,113 @@ class RunDriver:
         )
         return ExecutionReport(run_id=run.run_id, plan_hash=plan_hash, state=RunState.HALTED)
 
+    def _write_precedents(self, run_id: str, entry: Any, profile: dict[str, Any]) -> None:
+        """Every decision on this run that writes precedent, into the store, once.
+
+        At the start of a pass because a decision is what enqueues the next pass: this
+        is the moment after a person answered. The write-back reads the decision by id
+        and masks the example itself; a decision with no example shape yet, or one whose
+        example will not clear the scan, is refused on the record and skipped - the pass
+        goes on, and the example stays un-learned until somebody corrects it.
+        """
+        from precedent import PrecedentWriteback, WritebackRefused  # noqa: PLC0415
+        from privacy.payload_scan import PayloadScan  # noqa: PLC0415
+
+        w = self.wiring
+        pending = [d for d in w.store.decisions(run_id) if d.writes_precedent]
+        if not pending:
+            return
+        writeback = PrecedentWriteback(
+            w.store, w.precedents, w.dispatcher_for(run_id).masker, PayloadScan(w.bus), w.bus
+        )
+        identifiers = list(self._identifiers(entry, profile))
+        already = {
+            str(e.payload.get("item_id"))
+            for e in w.store.events(run_id)
+            if e.type in ("precedent.written", "precedent.writeback.refused")
+        }
+        for decision in pending:
+            if decision.item_id in already:
+                continue
+            try:
+                writeback.write(
+                    run_id,
+                    decision.item_id,
+                    client_id=entry.client,
+                    scope_path=entry.scope_path,
+                    identifiers=identifiers,
+                )
+            except WritebackRefused as refused:
+                # Not this pass's failure - but not silent either. Once per decision.
+                w.bus.emit(
+                    run_id=run_id,
+                    engagement_id=entry.engagement_id,
+                    node_id="precedent_writeback",
+                    type="precedent.writeback.refused",
+                    message=f"{decision.item_id}: {refused.diagnostic}"[:400],
+                    level="warn",
+                    payload={"item_id": decision.item_id, "code": refused.diagnostic.code},
+                )
+
+    def _reviewer(self, context: RunContext) -> Any:
+        """The review hook for one run: the engagement's checkpoint policy, the router
+        that applies it, and the queue that records what it routes to a person."""
+        w = self.wiring
+        policy = context.facts.policy
+        router = ConfidenceRouter(policy, bus=w.bus)
+        queue = ReviewQueue(w.store, w.bus, policy_for=lambda _engagement: policy)
+
+        def review_after(run_id: str, step: Any, output_ref: Any) -> int:
+            try:
+                procedure = procedure_for(step.skill)
+            except KeyError:
+                procedure = None
+            items_of = getattr(procedure, "review_items", None)
+            if items_of is not None:
+                output = json.loads(w.blobs.get(output_ref).decode("utf-8"))
+                inputs = self._inputs_json(run_id, step.id)
+                existing = {i.item_id for i in w.store.review_items(run_id)}
+                try:
+                    declared = str(context.scope.skill(step.skill.split("@", 1)[0]).hitl)
+                except Exception:  # noqa: BLE001 - a skill the scope does not name
+                    declared = ""
+                for item in items_of(output, inputs):
+                    if item.item_id in existing:
+                        continue
+                    routing = router.route(
+                        item,
+                        declared,
+                        run_id=run_id,
+                        engagement_id=context.engagement_id,
+                        step_id=step.id,
+                    )
+                    if routing.needs_a_person:
+                        queue.enqueue(run_id, context.engagement_id, item, routing, step_id=step.id)
+            return sum(1 for i in w.store.review_items(run_id) if i.state == "open")
+
+        return review_after
+
+    def _inputs_json(self, run_id: str, step_id: str) -> dict[str, Any]:
+        """The inputs a skill step was given, as the dispatcher recorded them."""
+        w = self.wiring
+        for event in reversed(w.store.events(run_id)):
+            if (
+                event.type == "skill.completed"
+                and event.step_id == step_id
+                and event.payload.get("inputs_ref")
+            ):
+                ref = ContentRef(
+                    content_hash=str(event.payload["inputs_ref"]),
+                    media_type="application/json",
+                    size_bytes=0,
+                    name="",
+                )
+                try:
+                    return dict(json.loads(w.blobs.get(ref).decode("utf-8")))
+                except Exception:  # noqa: BLE001 - a missing blob is no reason to skip review
+                    return {}
+        return {}
+
     # -- the two kinds of step
 
     def _route(self, skills: SkillStepRunner, context: RunContext) -> Any:
@@ -291,7 +483,8 @@ class RunDriver:
         w = self.wiring
         step = attempt.step
         if step.id == READ_STEP:
-            return put_json(w.blobs, 
+            return put_json(
+                w.blobs,
                 {
                     "sources": [
                         {"source_id": f.source_id, "filename": f.filename, "kind": f.document_type}
@@ -305,14 +498,12 @@ class RunDriver:
             # The masking itself happens per step, inside the dispatcher, where the
             # payload is built - masking here would mask nothing, because nothing has been
             # assembled yet. What this records is what the masker will be looking for.
-            return put_json(w.blobs, 
-                {"identifiers": [i.kind for i in context.identifiers]}, name="mask"
+            return put_json(
+                w.blobs, {"identifiers": [i.kind for i in context.identifiers]}, name="mask"
             )
         if step.id == RELEASE_STEP:
             return self._release(attempt, context)
-        raise InputsUnavailable(
-            f"{step.id} is an io step this driver does not know how to run"
-        )
+        raise InputsUnavailable(f"{step.id} is an io step this driver does not know how to run")
 
     def _release(self, attempt: Attempt, context: RunContext) -> ContentRef:
         """Build the workbook from the mapping the model proposed, and deliver it once.
@@ -342,7 +533,8 @@ class RunDriver:
             template_version=template.template_version,
             expected=built.writes,
         )
-        return put_json(w.blobs, 
+        return put_json(
+            w.blobs,
             {
                 "delivered": built.name,
                 "writes": len(built.writes),
@@ -356,7 +548,9 @@ class RunDriver:
     def _facts(
         self, run_id: str, engagement_id: str, scope: Any, profile: dict[str, Any]
     ) -> RunFacts:
-        sources = self._read_sources(run_id, engagement_id)
+        sources = self._settle_currency(
+            run_id, engagement_id, self._read_sources(run_id, engagement_id), profile
+        )
         template = None
         if scope.template is not None:
             try:
@@ -372,6 +566,45 @@ class RunDriver:
             template=template,
             periods=("FY1", "FY2", "FY3"),
         )
+
+    def _settle_currency(
+        self,
+        run_id: str,
+        engagement_id: str,
+        sources: tuple[SourceFile, ...],
+        profile: dict[str, Any],
+    ) -> tuple[SourceFile, ...]:
+        """A US file rarely says "USD". The readers leave the currency unsettled rather
+        than guess, and the engagement profile is where a person declared it - so a
+        source with no cue takes the profile's, on the record, and one that stated a
+        currency keeps it. Nothing here overrides a cue."""
+        declared = (profile.get("materiality_threshold") or {}).get("currency") or (
+            profile.get("owner_compensation_baseline") or {}
+        ).get("currency")
+        if not declared:
+            return sources
+        settled: list[SourceFile] = []
+        for source in sources:
+            if source.currency is not None:
+                settled.append(source)
+                continue
+            self.wiring.bus.emit(
+                run_id=run_id,
+                engagement_id=engagement_id,
+                node_id="run_driver",
+                type="intake.currency.assumed",
+                message=f"{source.filename}: no currency cue; the engagement profile "
+                f"declares {declared}",
+                payload={"source_id": source.source_id, "currency": str(declared)},
+            )
+            settled.append(
+                dataclasses.replace(
+                    source,
+                    currency=str(declared),
+                    ambiguous=tuple(a for a in source.ambiguous if not a.startswith("currency")),
+                )
+            )
+        return tuple(settled)
 
     def _read_sources(self, run_id: str, engagement_id: str) -> tuple[SourceFile, ...]:
         """Every file in the run's intake set, read once into the parse store.
@@ -410,11 +643,13 @@ class RunDriver:
                     # how many went in; a second copy of them travelling beside the store
                     # would be a second thing to keep true.
                     blocks={
-                        locator: [dataclasses.asdict(r) for r in w.parse_store.rows(
-                            run_id, report.source_id, locator
-                        )]
+                        locator: [
+                            dataclasses.asdict(r)
+                            for r in w.parse_store.rows(run_id, report.source_id, locator)
+                        ]
                         for locator in report.blocks
                     },
+                    block_periods=dict(report.block_headers),
                     scale=periods.scale if periods else None,
                     currency=periods.currency if periods else None,
                     period_type=periods.period_type if periods else None,
@@ -449,6 +684,7 @@ class RunDriver:
                 ]
                 for locator in locators
             },
+            block_periods=dict(detected.get("block_headers") or {}),
             scale=detected.get("scale"),
             currency=detected.get("currency"),
             period_type=detected.get("period_type"),
@@ -512,15 +748,21 @@ class RunDriver:
             *(Identifier("CLIENT", word) for word in _distinctive_words(entry.client)),
         )
 
-    def _run_scope(self, run_id: str, entry: Any, scope: Any) -> Any:
+    def _run_scope(self, run_id: str, entry: Any, scope: Any, versions: Any) -> Any:
         from harness.policy import RunScope
 
+        # What the lookups are pinned to. The run recorded its taxonomy and template at
+        # launch; a tool call that asks for any other version is refused by the gate, and
+        # a scope that pins nothing makes every such call a refusal.
+        pins = {"chart_of_accounts_lookup": str(versions.get("taxonomy", "coa-taxonomy@1.0.0"))}
+        if versions.get("template_version"):
+            pins["template_schema_lookup"] = str(versions["template_version"])
         return RunScope(
             run_id=run_id,
             engagement_id=entry.engagement_id,
             engagement_root=f"engagements/{entry.engagement_id}",
             scope_path=entry.scope_path,
-            versions={},
+            versions=pins,
             budget_remaining_usd=entry.budget_usd or 0.0,
         )
 

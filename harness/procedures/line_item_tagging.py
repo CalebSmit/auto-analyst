@@ -30,6 +30,7 @@ from typing import Any
 from harness.runtime import BoundTools
 from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
 from registries.taxonomy import UNMAPPED, load_taxonomy
+from review.router import Item
 
 __all__ = [
     "CONTRACT",
@@ -155,6 +156,49 @@ class LineItemTagging:
 
     def terms(self, inputs: TaggingInputs) -> tuple[str, ...]:
         return tuple(i.description for i in inputs.items)
+
+    def review_items(self, output: dict[str, Any], inputs: dict[str, Any]) -> list[Item]:
+        """What a person decides before EBITDA builds on the tags: every item the policy
+        marked review_required, and every one the model could not place."""
+        items: list[Item] = []
+        for t in output.get("tagged_line_items", ()):
+            if not (t.get("review_required") or t.get("uncategorisable")):
+                continue
+            ref = str(t["line_item_ref"])
+            description = str(t.get("description") or ref)
+            category = str(t.get("category") or "")
+            question = (
+                f"{description}: the model could not place this line in the taxonomy"
+                if t.get("uncategorisable")
+                else f"{description}: tag as {category}?"
+            )
+            items.append(
+                Item(
+                    item_id=f"tag:{ref}",
+                    skill=self.name,
+                    question=question,
+                    source_excerpt=description,
+                    proposal={
+                        "description": description,
+                        "line_item_ref": ref,
+                        **{
+                            k: t.get(k)
+                            for k in (
+                                "category",
+                                "excluded_from_al",
+                                "include_in_nwc",
+                                "rationale",
+                                "precedent_ref",
+                            )
+                        },
+                    },
+                    confidence=t.get("confidence"),
+                    category=category or None,
+                    review_required=True,
+                    locator=ref,
+                )
+            )
+        return items
 
     def payload(self, inputs: TaggingInputs) -> str:
         """The taxonomy at the pinned version and the items. Descriptions, labels,

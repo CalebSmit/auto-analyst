@@ -189,6 +189,21 @@ class SkillDispatcher:
             for term in procedure.terms(inputs)
         )
 
+        # The profile travels beside the payload and was not masked with it: an engagement
+        # id that carries a client's word, or a name typed into a free-text field, reached
+        # the scan unmasked and quarantined the run. Same masker, same identifiers, same
+        # tokens - so the scan sees one consistent text.
+        profile_text = self.blobs.get(engagement_profile).decode("utf-8")
+        masked_profile = self.masker.mask(
+            profile_text, engagement_id, list(identifiers), run_id=run_id
+        )
+        if masked_profile.substitutions:
+            engagement_profile = self.blobs.put(
+                masked_profile.text.encode("utf-8"),
+                media_type="application/json",
+                name="engagement_profile",
+            )
+
         # 3. The context, assembled and hashed by the one place that may.
         built = self.context.build(
             ContextRequest(
@@ -243,7 +258,12 @@ class SkillDispatcher:
             pin=pin,
             system=system,
             messages=(Message("user", wrapped.text),),
-            metadata={"context_ref": built.context_ref, "step_id": step.id, "skill": caller},
+            metadata={
+                "run_id": run_id,
+                "context_ref": built.context_ref,
+                "step_id": step.id,
+                "skill": caller,
+            },
         )
         call = self.door.send(
             request, masked.identifiers, run_id, step_id=step.id, estimated_cost_usd=0.05

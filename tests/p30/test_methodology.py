@@ -77,7 +77,7 @@ def test_a_file_carrying_client_data_or_an_instruction_cannot_be_cleared(
 
 
 def test_a_clearance_names_a_person(register: MethodologyRegister, foundations: Path) -> None:
-    """"Cleared by nobody" is the state this register exists to make impossible, so there
+    """ "Cleared by nobody" is the state this register exists to make impossible, so there
     is no default and a blank is refused rather than recorded."""
     path = foundations / "_firm" / "qc-conventions.md"
     for blank in ("", "   "):
@@ -288,9 +288,9 @@ def test_the_check_joins_the_table_and_the_blueprint_agrees(
     )
     assert [c.id for c in preflight.run().checks] == ids
 
-    written = {10: "Ten", 11: "Eleven", 12: "Twelve", 13: "Thirteen"}
+    written = {10: "Ten", 11: "Eleven", 12: "Twelve", 13: "Thirteen", 14: "Fourteen"}
     blueprint = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
-    assert len(CHECKS) == 13
+    assert len(CHECKS) == 14
     assert f"{written[len(CHECKS)]} checks over a proposed or live configuration" in blueprint
     assert f"{written[len(CHECKS)].lower()} checks, then what an admin may" in blueprint
     assert "every methodology file cleared, and the version that was cleared" in blueprint
@@ -317,9 +317,7 @@ def test_a_person_clears_a_file_through_the_admin_surface(console: Any, foundati
         console.clear_methodology("not-a-file.md", who="C. Smit")
 
 
-def test_the_surface_refuses_over_http_with_a_diagnostic(
-    console: Any, foundations: Path
-) -> None:
+def test_the_surface_refuses_over_http_with_a_diagnostic(console: Any, foundations: Path) -> None:
     """A refusal a dashboard can render, not a stack trace."""
     from fastapi.testclient import TestClient
 
@@ -363,7 +361,10 @@ def test_a_clone_has_nothing_cleared() -> None:
 
     tracked = subprocess.run(  # noqa: S603
         ["git", "ls-files", "foundations/"],
-        cwd=ROOT, capture_output=True, text=True, check=True,
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
     ).stdout.split()
     assert tracked, "the methodology itself is tracked"
     assert "foundations/cleared.yaml" not in tracked, "a clearance is not something to ship"

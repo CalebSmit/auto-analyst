@@ -383,8 +383,9 @@ def wait_for(api: Api, seconds: int = 60) -> None:
 
 
 def refused_codes(body: Any) -> list[str]:
-    if isinstance(body, dict):
-        return [d.get("code", "") for d in (body.get("detail") or {}).get("refused", [])]
+    detail = body.get("detail") if isinstance(body, dict) else None
+    if isinstance(detail, dict):
+        return [d.get("code", "") for d in detail.get("refused", [])]
     return []
 
 
@@ -484,7 +485,7 @@ def set_up(api: Api, out: Report) -> None:
             )
 
 
-def run_the_firm(api: Api, inbox: Path, out: Report) -> dict[str, Any]:
+def run_the_firm(api: Api, inbox: Path, out: Report, *, scripted: bool = False) -> dict[str, Any]:
     out.say("\n=== client files land")
     generate(inbox)
     stray = inbox / "Clients" / "Somebody Else LLC" / "2026" / "TB.xlsx"
@@ -502,7 +503,11 @@ def run_the_firm(api: Api, inbox: Path, out: Report) -> dict[str, Any]:
         if len(seen) >= len(runnable):
             break
     out.check(len(seen) == len(runnable), f"{len(runnable)} runs released", f"saw {len(seen)}")
-    time.sleep(8)
+    if scripted:
+        decided = walk_the_loop(api, out)
+        out.say(f"  {decided} review item(s) accepted, as a reviewer would on the Activity page")
+    else:
+        time.sleep(8)
     _, runs = api.get("/api/runs")
     for r in runs:
         _, detail = api.get(f"/api/runs/{r['run_id']}")
@@ -514,10 +519,9 @@ def run_the_firm(api: Api, inbox: Path, out: Report) -> dict[str, Any]:
         )
         for node, d in failed.items():
             out.say(f"      {node}: {d.get('code') or ''} {str(d.get('message'))[:110]}")
-        reached_model = any(
-            e["type"] == "model.called"
-            for e in (api.get(f"/api/runs/{r['run_id']}/events")[1] or [])
-        )
+        events = api.get(f"/api/runs/{r['run_id']}/events")[1] or []
+        kinds = {e["type"] for e in events}
+        reached_model = "model.called" in kinds
         out.check(
             reached_model,
             f"  {r['engagement_id']} reached the model door",
@@ -525,6 +529,21 @@ def run_the_firm(api: Api, inbox: Path, out: Report) -> dict[str, Any]:
             if reached_model
             else "stopped before the model - read the trace above",
         )
+        if scripted:
+            completed = {e.get("step_id") for e in events if e["type"] == "skill.completed"}
+            out.check(
+                {"timing", "tagging", "ebitda", "model"} <= completed,
+                f"  {r['engagement_id']} went through timing, tagging, EBITDA and model-load",
+                f"completed: {sorted(s for s in completed if s)}",
+            )
+            out.check(
+                "hitl.pass.paused" in kinds and "run.resumed" in kinds,
+                f"  {r['engagement_id']} paused for a person and resumed after the answer",
+            )
+            out.check(
+                "precedent.written" in kinds,
+                f"  {r['engagement_id']} wrote precedent from the decisions",
+            )
     _, pre = api.get("/api/admin/preflight")
     unclaimed = next(c for c in pre["checks"] if c["id"] == "unclaimed_folders")
     out.check(
@@ -533,6 +552,33 @@ def run_the_firm(api: Api, inbox: Path, out: Report) -> dict[str, Any]:
         unclaimed["detail"],
     )
     return seen
+
+
+def walk_the_loop(api: Api, out: Report, rounds: int = 12) -> int:
+    """What a reviewer does on the Activity page, done through the same routes: read
+    each open item, accept it at the version shown, and let the next sweep resume the
+    run. Until every run has ended or nothing is waiting on anyone."""
+    decided = 0
+    for _ in range(rounds):
+        time.sleep(4)
+        _, inbox = api.get("/api/review")
+        for item in inbox:
+            code, view = api.get(f"/api/runs/{item['run_id']}/review/{item['item_id']}")
+            if code != 200:
+                out.finding(f"show {item['item_id']} -> {code}")
+                continue
+            code, r = api.post(
+                f"/api/runs/{item['run_id']}/review/{item['item_id']}/decide",
+                {"decision": "accepted", "expected_version": view["version"]},
+            )
+            if code != 200:
+                out.finding(f"accept {item['item_id']} -> {code} {str(r)[:120]}")
+            decided += 1
+        _, runs = api.get("/api/runs")
+        ended = ("delivered", "halted", "quarantined", "superseded")
+        if runs and all(r["state"] in ended for r in runs):
+            break
+    return decided
 
 
 def edge_cases(api: Api, out: Report) -> None:
@@ -651,6 +697,12 @@ def main(argv: list[str] | None = None) -> int:
         "--keep", action="store_true", help="leave the folders and databases behind"
     )
     parser.add_argument(
+        "--scripted",
+        action="store_true",
+        help="answer for the model with the scripted analyst, so the runs reach the "
+        "review queue and the rehearsal walks the whole loop - no key, no spend",
+    )
+    parser.add_argument(
         "--where",
         default=str(ROOT / "runs" / "_rehearsal"),
         help="where the simulated firm lives (gitignored under runs/)",
@@ -671,12 +723,12 @@ def main(argv: list[str] | None = None) -> int:
     env = {
         **os.environ,
         "AA_DB_URL": f"sqlite:///{(runs / 'rehearsal.db').as_posix()}",
-        "AA_VAULT_DB_URL": f"sqlite:///{(runs / 'vault.db').as_posix()}",
         "AA_INBOX_ROOT": str(inbox),
         "AA_OUTBOX_ROOT": str(outbox),
         "AA_VAULT_KEY": key,
         "ANTHROPIC_API_KEY": os.environ.get("ANTHROPIC_API_KEY", "not-a-real-key"),
-        "AA_LLM_ADAPTER": os.environ.get("AA_LLM_ADAPTER", "fake"),
+        "AA_LLM_ADAPTER": "scripted" if args.scripted else os.environ.get("AA_LLM_ADAPTER", "fake"),
+        **({"AA_REHEARSAL": "1"} if args.scripted else {}),
         "AA_IDENTITY_NAME": os.environ.get("AA_IDENTITY_NAME", "rehearsal"),
         "PYTHONIOENCODING": "utf-8",
     }
@@ -707,7 +759,7 @@ def main(argv: list[str] | None = None) -> int:
         for seam in ready["seams"]:
             out.check(seam["ready"], f"wired: {seam['name']}")
         set_up(api, out)
-        seen = run_the_firm(api, inbox, out)
+        seen = run_the_firm(api, inbox, out, scripted=args.scripted)
         edge_cases(api, out)
         hostile_file(api, inbox, seen, out)
     finally:

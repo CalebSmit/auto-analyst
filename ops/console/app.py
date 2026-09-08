@@ -15,6 +15,7 @@ on the next tick. Neither reaches the run.
 from __future__ import annotations
 
 import asyncio
+import dataclasses
 import json
 from collections.abc import AsyncIterator, Callable
 from datetime import datetime
@@ -22,7 +23,9 @@ from typing import Any, Protocol
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
+from pydantic import BaseModel
 
+import ports
 from ops.analytics import Analytics
 from ops.blobs import ContentRef, ContentStore
 from ops.console.analytics_page import PAGE as ANALYTICS_PAGE
@@ -30,12 +33,16 @@ from ops.console.trace import Trace, TraceReducer
 from ops.cost import CostMeter
 from ops.drift import DriftMonitor
 from ops.events import EventBus
+from ops.models import Outcome, RunState
 from ops.run_store import EventRecord, RunRecord, RunStore
 from ops.scorecard import RunScorecard
 from ops.stall import StallDetector
 from registries.constraints import ConstraintRegistry
+from registries.contracts import ContractRegistry
+from review.surface import ReviewRefused, ReviewSurface, StaleDecision
 from ui import CSS, SHELL
 from ui.theme import shell
+from ui.who import who
 
 __all__ = ["Console", "create_app"]
 
@@ -234,8 +241,42 @@ class Console:
         ]
 
 
-def create_app(console: Console) -> FastAPI:
+class Claimed(BaseModel):
+    who: str | None = None
+
+
+class Decision(BaseModel):
+    decision: str
+    expected_version: int
+    rationale: str = ""
+    answer: dict[str, Any] | None = None
+    who: str | None = None
+
+
+class Ask(BaseModel):
+    reason: str = ""
+    who: str | None = None
+
+
+def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any = None) -> FastAPI:
+    """The ops console's routes. `surface` is the review surface a person answers through;
+    without one the reading routes work and the writing ones say so."""
     app = FastAPI(title="Chartwell Automated Analyst - ops console", docs_url=None, redoc_url=None)
+
+    def _surface() -> ReviewSurface:
+        if surface is None:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "refused": [
+                        {
+                            "code": "REVIEW.NOT_WIRED",
+                            "message": "no review surface is wired on this server",
+                        }
+                    ]
+                },
+            )
+        return surface
 
     @app.get("/", response_class=HTMLResponse)
     def index() -> str:
@@ -326,6 +367,176 @@ def create_app(console: Console) -> FastAPI:
     @app.get("/api/review")
     def review(engagement_id: str | None = None) -> list[dict[str, Any]]:
         return console.inbox(engagement_id)
+
+    # -- one review item: read it, reveal the proposal, answer it. The order is the
+    # surface's: the question first, the proposal only on request and on the record, and
+    # the decision once, at the version the reviewer saw.
+
+    @app.get("/api/runs/{run_id}/review/{item_id}")
+    def review_item(run_id: str, item_id: str) -> dict[str, Any]:
+        try:
+            return dataclasses.asdict(_surface().show(run_id, item_id))
+        except KeyError as missing:
+            raise HTTPException(status_code=404, detail=str(missing)) from missing
+
+    @app.post("/api/runs/{run_id}/review/{item_id}/reveal")
+    def reveal(
+        run_id: str, item_id: str, request: Request, body: Claimed | None = None
+    ) -> dict[str, Any]:
+        viewer = who(request, body.who if body else None)
+        try:
+            return dataclasses.asdict(_surface().reveal(run_id, item_id, viewer=viewer))
+        except KeyError as missing:
+            raise HTTPException(status_code=404, detail=str(missing)) from missing
+
+    @app.post("/api/runs/{run_id}/review/{item_id}/decide")
+    def decide(run_id: str, item_id: str, body: Decision, request: Request) -> dict[str, Any]:
+        decided_by = who(request, body.who)
+        try:
+            record = _surface().decide(
+                run_id,
+                item_id,
+                decided_by=decided_by,
+                decision=body.decision,  # type: ignore[arg-type]
+                expected_version=body.expected_version,
+                rationale=body.rationale,
+                answer=body.answer,
+            )
+        except StaleDecision as stale:
+            raise HTTPException(
+                status_code=409, detail={"refused": [stale.diagnostic.as_dict()]}
+            ) from stale
+        except ReviewRefused as refused:
+            raise HTTPException(
+                status_code=422, detail={"refused": [refused.diagnostic.as_dict()]}
+            ) from refused
+        except KeyError as missing:
+            raise HTTPException(status_code=404, detail=str(missing)) from missing
+        except ValueError as bad:
+            raise HTTPException(
+                status_code=422,
+                detail={"refused": [{"code": "REVIEW.INVALID", "message": str(bad)}]},
+            ) from bad
+        out = dataclasses.asdict(record)
+        out["decision"] = str(record.decision)
+        out["run_state"] = str(console.store.run(run_id).state)
+        out["open_items"] = sum(1 for i in console.store.review_items(run_id) if i.state == "open")
+        return out
+
+    # -- a stuck run: picked back up, or ended by a person with a reason. Both on the
+    # record with who asked. Neither touches a run a worker is holding.
+
+    def _stuck(run_id: str) -> Any:
+        try:
+            run = console.store.run(run_id)
+        except KeyError as missing:
+            raise HTTPException(status_code=404, detail=str(missing)) from missing
+        if run.is_finished:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "refused": [
+                        {
+                            "code": "RUN.ENDED",
+                            "message": f"{run_id} has ended ({run.state}); nothing to do",
+                        }
+                    ]
+                },
+            )
+        if getattr(run, "superseded_by", None):
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "refused": [
+                        {
+                            "code": "RUN.SUPERSEDED",
+                            "message": f"{run_id} was superseded by {run.superseded_by}; "
+                            f"act on that run instead",
+                        }
+                    ]
+                },
+            )
+        if (
+            run.state is RunState.RUNNING
+            and pool is not None
+            and not any(s.run_id == run_id for s in pool.stranded(emit=False))
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "refused": [
+                        {"code": "RUN.HELD", "message": f"{run_id} is running under a worker"}
+                    ]
+                },
+            )
+        return run
+
+    @app.post("/api/runs/{run_id}/resume")
+    def resume_run(run_id: str, body: Ask, request: Request) -> dict[str, Any]:
+        by = who(request, body.who)
+        if pool is None:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "refused": [{"code": "POOL.NOT_WIRED", "message": "no pool on this server"}]
+                },
+            )
+        run = _stuck(run_id)
+        console.bus.emit(
+            run_id=run_id,
+            engagement_id=run.engagement_id,
+            node_id="ops_console",
+            type="run.resume.requested",
+            message=f"{by}: {body.reason or 'resume'}"[:400],
+            payload={"who": by, "reason": body.reason},
+        )
+        placement = pool.resume(run_id)
+        return {
+            "run_id": run_id,
+            "waiting_on": getattr(placement, "waiting_on", None),
+            "state": str(console.store.run(run_id).state),
+        }
+
+    @app.post("/api/runs/{run_id}/halt")
+    def halt_run(run_id: str, body: Ask, request: Request) -> dict[str, Any]:
+        by = who(request, body.who)
+        if not body.reason.strip():
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "refused": [
+                        {
+                            "code": "REVIEW.RATIONALE_REQUIRED",
+                            "message": "ending a run needs a reason",
+                        }
+                    ]
+                },
+            )
+        _stuck(run_id)
+        from ops.manifest import close_out  # noqa: PLC0415
+        from ops.scorecard import RunScorecard, Verdict  # noqa: PLC0415
+
+        # The outcome is what the record supports, not what the caller claims: a run
+        # something refused ended halted; one that only ever waited on a person ended
+        # blocked. The close-out would refuse a claim the scorecard contradicts.
+        verdict = (
+            RunScorecard(console.store, console.bus)
+            .score(run_id, ending=(RunState.HALTED, Outcome.HALTED))
+            .verdict
+        )
+        outcome = Outcome.HALTED if verdict is Verdict.HALTED else Outcome.BLOCKED
+        close_out(
+            console.store,
+            run_id,
+            RunState.HALTED,
+            outcome,
+            ports.get_delivery(),
+            bus=console.bus,
+            contracts=ContractRegistry.load(),
+            reason=f"{by}: {body.reason.strip()}"[:400],
+        )
+        run = console.store.run(run_id)
+        return {"run_id": run_id, "state": str(run.state), "outcome": str(run.outcome), "by": by}
 
     @app.get("/api/alerts")
     def alerts(engagement_id: str | None = None) -> list[dict[str, Any]]:
@@ -540,7 +751,9 @@ async function refresh() {{
   $('runs').innerHTML = runs.length ? runs.map(r => `<div class="r link" onclick="open_('${{r.run_id}}')">
      <span class="lbl"><b class="mono">${{esc(r.run_id)}}</b><br>
       <span class="sub">${{esc(r.engagement_id)}}</span></span>
-     <span class="pill ${{STATE_TONE[r.state] ?? ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
+     <span class="pill ${{STATE_TONE[r.state] ?? ''}}"><i class="dot"></i>${{esc(r.state)}}</span>${{r.state === 'quarantined' ? `
+     <span class="sub"><button class="btn small" onclick="event.stopPropagation();runAction('${{esc(r.run_id)}}','resume')">Resume</button>
+      <button class="btn small ghost" onclick="event.stopPropagation();runAction('${{esc(r.run_id)}}','halt')">Halt</button></span>` : ''}}
      ${{r.queue && r.queue.waiting_on
         ? `<span class="sub">#${{r.queue.position}} behind ${{esc(r.queue.waiting_on)}}</span>` : ''}}
     </div>`).join('')
@@ -548,9 +761,13 @@ async function refresh() {{
 
   const inbox = await get('/api/review').catch(() => []);
   $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r">
-     <span class="lbl mono">${{esc(i.item_id)}}</span>
+     <span class="lbl"><span class="mono">${{esc(i.item_id)}}</span><br>
+      <span class="sub">${{esc(i.subject || '')}}</span></span>
      <span class="sub">${{esc(i.owner || 'unassigned')}}</span>
-     <span class="sub">${{esc(i.due_at || '')}}</span></div>`).join('')
+     <span class="sub">
+      <button class="btn small" onclick="decideItem('${{esc(i.run_id)}}','${{esc(i.item_id)}}','accepted')">Accept</button>
+      <button class="btn small ghost" onclick="decideItem('${{esc(i.run_id)}}','${{esc(i.item_id)}}','rejected')">Reject</button>
+     </span></div>`).join('')
    : '<div class="empty"><b>Nothing waiting</b>Everything the system proposed was inside its confidence bar.</div>';
 
   const alerts = await get('/api/alerts').catch(() => []);
@@ -559,6 +776,38 @@ async function refresh() {{
       <span class="sub mono">${{esc(a.run_id)}} &middot; ${{esc(a.subject)}}</span></span>
      <span class="pill bad">${{esc(a.code || 'alert')}}</span></div>`).join('')
    : '<div class="empty"><b>Nothing raised</b>No run is silent and no review is overdue.</div>';
+}}
+
+/* A quarantined run stopped on itself. Resume replays it from the frontier; halt ends it,
+   with a reason, and writes its manifest. Both are recorded against whoever asked. */
+async function runAction(runId, action) {{
+  let reason = '';
+  if (action === 'halt') {{
+    reason = window.prompt('Why end this run? The reason is recorded.') || '';
+    if (!reason.trim()) return;
+  }}
+  try {{
+    const r = await post(`/api/runs/${{runId}}/${{action}}`, {{reason}});
+    say(`${{runId}}: ${{action === 'halt' ? 'halted' : 'resuming'}} (${{r.state}})`);
+  }} catch (e) {{ refusal(e); }}
+  refresh();
+}}
+
+/* A decision is recorded once, at the version the reviewer saw. Approving needs no reason;
+   anything else does, and the server refuses a silent override. */
+async function decideItem(runId, itemId, decision) {{
+  const item = await get(`/api/runs/${{runId}}/review/${{itemId}}`);
+  let rationale = '';
+  if (decision !== 'accepted') {{
+    rationale = window.prompt(`Why ${{decision}}? The reason is recorded with the decision.`) || '';
+    if (!rationale.trim()) return;
+  }}
+  try {{
+    const r = await post(`/api/runs/${{runId}}/review/${{itemId}}/decide`,
+      {{decision, expected_version: item.version, rationale}});
+    say(`${{itemId}}: ${{decision}}` + (r.open_items ? ` (${{r.open_items}} still open)` : ' - the run resumes on the next sweep'));
+  }} catch (e) {{ refusal(e); }}
+  refresh();
 }}
 
 /* The 118 nodes of the design, loaded once. The trace says what a run did to some of

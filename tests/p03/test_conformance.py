@@ -47,9 +47,7 @@ PROTOCOLS: dict[str, Any] = {
     "compute": ComputePort,
 }
 
-ALL_ADAPTERS = [
-    (port, adapter) for port in sorted(ports.PORTS) for adapter in ports.ready(port)
-]
+ALL_ADAPTERS = [(port, adapter) for port in sorted(ports.PORTS) for adapter in ports.ready(port)]
 CONTRACT_ADAPTERS = [
     (port, adapter) for port in sorted(ports.PORTS) for adapter in ports.contracts(port)
 ]
@@ -316,6 +314,7 @@ def test_a_job_runs_and_reports_its_result(queue: Any) -> None:
 def test_a_failing_job_is_recorded_not_raised(queue: Any) -> None:
     """One job blowing up must not take the drain with it - the other engagements in a
     nightly sweep still have to run."""
+
     def explode(job: Any) -> None:
         raise RuntimeError("the trial balance does not foot")
 
@@ -390,6 +389,23 @@ def _prepare_llm(adapter: str, tmp_path: Path) -> tuple[Any, LLMRequest]:
             ),
         )
         return port, request
+
+    if adapter == "scripted":
+        # Answers from the request only where nothing was recorded; a recording wins,
+        # replayed exactly as the fake replays it. Same canned answer, same assertions.
+        from ports.llm.scripted import ScriptedAnalyst  # noqa: PLC0415 - adapter under test
+
+        scripted = ScriptedAnalyst(tmp_path)
+        scripted.record(
+            request,
+            LLMResponse(
+                text="aligned",
+                model="claude-sonnet-5",
+                stop_reason="end_turn",
+                usage=Usage(input_tokens=120, output_tokens=8),
+            ),
+        )
+        return scripted, request
 
     if adapter == "anthropic_messages":
         from ports.llm.anthropic_messages import AnthropicMessagesLLM  # noqa: PLC0415
@@ -467,12 +483,8 @@ def test_a_missing_fixture_is_an_error_naming_what_to_record(tmp_path: Path) -> 
 
 def test_a_changed_prompt_is_a_different_call(tmp_path: Path) -> None:
     """A cache miss, not a stale answer quietly reused."""
-    one = LLMRequest(
-        pin=ModelPin.for_tier("mid"), system="s", messages=(Message("user", "a"),)
-    )
-    two = LLMRequest(
-        pin=ModelPin.for_tier("mid"), system="s", messages=(Message("user", "b"),)
-    )
+    one = LLMRequest(pin=ModelPin.for_tier("mid"), system="s", messages=(Message("user", "a"),))
+    two = LLMRequest(pin=ModelPin.for_tier("mid"), system="s", messages=(Message("user", "b"),))
     assert one.content_hash() != two.content_hash()
 
     effort_changed = LLMRequest(

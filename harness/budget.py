@@ -16,6 +16,8 @@ the event carries the code and the owner. The person who raises a ceiling does i
 
 from __future__ import annotations
 
+import dataclasses
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from ops.cost import CostMeter, Spend
@@ -73,12 +75,19 @@ class BudgetGovernor:
         meter: CostMeter,
         bus: EventBus,
         store: RunStore,
+        budget_for: Callable[[str], float | None] | None = None,
     ) -> None:
         self.constraints = constraints
         self.meter = meter
         self.bus = bus
         self.store = store
         self._limits = {c.key: float(constraints.ceilings["per_run"][c.key]) for c in CEILINGS}
+        self.budget_for = budget_for
+        """The engagement's own budget, in dollars, when the roster set one. Checked
+        against the engagement's spend across every run it has had - a budget is the
+        engagement's, not a run's - beside the firm's per-run ceilings. Set on the
+        Setup page, shown by preflight, and until this hook existed enforced by
+        nothing."""
 
     def limit(self, ceiling: Ceiling) -> float:
         return self._limits[ceiling.key]
@@ -114,6 +123,21 @@ class BudgetGovernor:
             limit = self._limits[ceiling.key]
             if position > limit:
                 self._halt(run_id, engagement_id, ceiling, limit, position, step_id)
+        budget = self.budget_for(engagement_id) if self.budget_for is not None else None
+        if budget is not None and budget > 0:
+            total = self.meter.rollup(engagement_id).as_dict().get("total_usd", 0.0)
+            across_runs = float(total) if isinstance(total, int | float) else 0.0
+            position = across_runs + about_to_spend_usd
+            if position > budget:
+                usd = next(c for c in CEILINGS if c.dimension == "usd")
+                self._halt(
+                    run_id,
+                    engagement_id,
+                    dataclasses.replace(usd, key="engagement_budget_usd"),
+                    float(budget),
+                    position,
+                    step_id,
+                )
         return spend
 
     def _halt(
