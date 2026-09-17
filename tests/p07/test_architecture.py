@@ -85,12 +85,17 @@ def test_the_exported_graph_is_current() -> None:
 
 
 def test_the_digest_covers_the_source_blocks(graph: ArchGraph) -> None:
-    """The recorded digest is of the exact JS the export was taken from."""
+    """The recorded digest is of the exact JS the export was taken from - the three arrays
+    the assertions run over, and the four layout tables the console draws the design from.
+    A blueprint moved on the canvas without a re-export is the same kind of drift as a node
+    added without one, and it fails here."""
     import hashlib
+
+    from tools.export_architecture import LAYOUT_ARRAYS
 
     html = BLUEPRINT.read_text(encoding="utf-8")
     digest = hashlib.sha256()
-    for name in ARRAYS:
+    for name in (*ARRAYS, *LAYOUT_ARRAYS):
         digest.update(source_block(html, name).encode("utf-8"))
     assert graph.source_digest == f"sha256:{digest.hexdigest()}"
 

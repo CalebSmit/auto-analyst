@@ -1563,6 +1563,36 @@
       ],
       "notes": "",
       "closed": "2026-09-17"
+    },
+    {
+      "id": "P48",
+      "title": "The whole design, painted with one run",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "From any run, a person can open the design of record at full size, see which of its 118 nodes that run went through and what happened in each, and read a difference between the system and its blueprint rather than have it hidden.",
+      "builds": [],
+      "tasks": [
+        "The blueprint's own geometry exported beside its graph - node positions, bands and column labels - and covered by the same digest, so the console draws the design of record rather than a second layout of it",
+        "A full-screen map from the run detail and from a #map= link: every node placed where the blueprint places it, edges drawn, each node bordered by what this run did there",
+        "Pan, zoom, fit, a view that opens on the part the run went through, ids legible when zoomed out, and the keyboard for all of it",
+        "A node says what happened in it: its state, what the blueprint says it is for, and every event this run recorded against it",
+        "A name a run records that the design has no node for is named as a difference, not dropped"
+      ],
+      "exit": [
+        "Every node of the blueprint is drawn, at the position the blueprint gives it",
+        "A node's border is the state the run's trace recorded for it, and a node the run never reached is drawn as never reached",
+        "What a run recorded against a node is readable from the node",
+        "A node the run names and the blueprint does not have is reported on the map rather than discarded"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p48 -q",
+        "python -m uv run pytest tests/p07 tests/p23 tests/p42 tests/p44 tests/p45 tests/p46 tests/p47 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ui tools ports"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
     }
   ],
   "checkpoints": [
@@ -1817,6 +1847,17 @@
       "proves": "The analytics route carries the count behind every rate, and every served page carries its counts, the shadow at a cut edge, and a board that gives the run's own detail two rows of three",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c23 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C24",
+      "title": "The whole design, painted with one run",
+      "after": "P48",
+      "status": "done",
+      "proves": "The console serves every node of the blueprint at the position the blueprint gives it, the Activity page carries the map and a way into it, and a run's trace can be laid over that drawing - including the name it records that the design has no node for",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c24 -q"
       ],
       "closed": "2026-09-17"
     }

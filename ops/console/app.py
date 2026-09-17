@@ -32,6 +32,7 @@ from ops.analytics import Analytics
 from ops.blobs import ContentRef, ContentStore
 from ops.console.analytics_page import PAGE as ANALYTICS_PAGE
 from ops.console.help_page import PAGE as HELP_PAGE
+from ops.console.map_view import MAP_HTML, MAP_JS, MAP_STYLE
 from ops.console.trace import Trace, TraceReducer
 from ops.cost import CostMeter
 from ops.drift import DriftMonitor
@@ -397,9 +398,15 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
         it. Labels and plain-language descriptions only: the console draws what a run did,
         and the reasoning behind each node lives in the blueprint.
         """
-        from graph.architecture_assertions import load_graph
+        import json as _json  # noqa: PLC0415
+
+        from graph.architecture_assertions import (
+            GRAPH_FILE,  # noqa: PLC0415
+            load_graph,
+        )
 
         loaded = load_graph()
+        raw = _json.loads(GRAPH_FILE.read_text(encoding="utf-8"))
         return {
             "nodes": [
                 {
@@ -408,9 +415,20 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
                     "group": n.get("group", ""),
                     "plain": n.get("plain", ""),
                     "runtime": n.get("runtime", ""),
+                    "exec": n.get("exec", ""),
+                    # Where the blueprint puts it. The console draws the design of record
+                    # rather than laying the same graph out a second time and hoping the
+                    # two agree.
+                    "x": n.get("x"),
+                    "y": n.get("y"),
                 }
                 for n in loaded.nodes.values()
-            ]
+            ],
+            "edges": [
+                {"from": e.src, "to": e.dst, "kind": e.kind, "label": e.label}
+                for e in loaded.edges
+            ],
+            "layout": raw.get("layout", {}),
         }
 
     @app.get("/api/runs/{run_id}/trace")
@@ -848,6 +866,7 @@ PAGE = (
 /* The run and the list of runs get two rows of the three: the detail is what a person
    reads, and it was being cut at its fifth line while the map of the architecture - the
    least actionable panel on the page - had the largest share of the screen. */
+{MAP_STYLE}
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr);
  grid-template-rows:minmax(0,1fr) minmax(0,.9fr) minmax(0,1fr);
  grid-template-areas:"runs detail inbox" "runs detail alerts" "trace trace feed"}}
@@ -917,6 +936,7 @@ PAGE = (
  </div>
 </div>
 <div id="toast"></div>
+{MAP_HTML}
 {SHELL}
 """
     + """<script>
@@ -1041,10 +1061,12 @@ async function refresh() {
 function actions(run) {
   const box = $('run-actions');
   if (!box) return;
-  box.innerHTML = run.state === 'quarantined'
-    ? `<button class="small primary" data-act="runAction" data-run="${esc(run.run_id)}" data-do="resume">Resume</button>
+  box.innerHTML =
+    `<button class="small" data-act="map" data-run="${esc(run.run_id)}" title="Every node of the design, painted with what this run did">See the whole design</button>`
+    + (run.state === 'quarantined'
+      ? ` <button class="small primary" data-act="runAction" data-run="${esc(run.run_id)}" data-do="resume">Resume</button>
        <button class="small ghost" data-act="runAction" data-run="${esc(run.run_id)}" data-do="halt">Halt</button>`
-    : '';
+      : '');
 }
 
 async function runAction(runId, action) {
@@ -1410,7 +1432,11 @@ async function open_(id) {
 refresh().then(() => {
   const wanted = decodeURIComponent(location.hash.slice(1));
   const first = RUNS.find(r => NEEDS_ATTENTION.has(r.state)) || RUNS[0];
-  if (wanted.startsWith('review=')) {
+  if (wanted.startsWith('map=')) {
+    const runId = wanted.slice(4);
+    open_(runId).then(() => openMap(runId));
+  }
+  else if (wanted.startsWith('review=')) {
     // A link to one review item - what a person pastes into a message asking for an answer.
     const [runId, ...rest] = wanted.slice(7).split('/');
     open_(runId);
@@ -1422,4 +1448,10 @@ refresh().then(() => {
 poll(refresh, 5000);
 </script>
 """
+    # Last, and in a block of its own: the map registers its actions on the shell's table
+    # and calls functions the page's own script declares, so both have to exist by the time
+    # it runs.
+    + "<script>"
+    + MAP_JS
+    + "</script>\n"
 )

@@ -875,3 +875,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C23 after P47, covering P47
 - proves: The analytics route carries the count behind every rate, and every served page carries its counts, the shadow at a cut edge, and a board that gives the run's own detail two rows of three
+
+## 2026-09-17 - P48 The whole design, painted with one run
+
+**Why:** Caleb asked for the thing he always wanted this to do: from a run, open the whole node system as the blueprint draws it - every node, its edges, in the dashboard's colours - with each node's border saying what happened there on that run. The Run trace panel lists the nodes a run touched, grouped and without edges, which answers what it did and not where in the system it happened.
+
+- phase added: P48 The whole design, painted with one run (Block J - Making it his, gate: auto)
+- exit criterion: Every node of the blueprint is drawn, at the position the blueprint gives it
+- exit criterion: A node's border is the state the run's trace recorded for it, and a node the run never reached is drawn as never reached
+- exit criterion: What a run recorded against a node is readable from the node
+- exit criterion: A node the run names and the blueprint does not have is reported on the map rather than discarded
+
+## 2026-09-17 - C24 The whole design, painted with one run
+
+**Why:** P48 changed the blueprint export, the graph route and the Activity page so a run can be laid over the design of record; the comparison between the two is what has to hold.
+
+- checkpoint added: C24 after P48, covering P48
+- proves: The console serves every node of the blueprint at the position the blueprint gives it, the Activity page carries the map and a way into it, and a run's trace can be laid over that drawing - including the name it records that the design has no node for

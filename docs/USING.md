@@ -212,6 +212,14 @@ firm's own names — the reviewer on the engagement profile — are not client d
 not masked. A file with a sentence aimed at the model in it is refused at intake, and the
 run ends halted with that refusal as its reason.
 
+**Seeing where a run went.** On a run's detail, **See the whole design** opens the
+blueprint at full size: all 118 nodes where the design of record puts them, the edges between
+them, and each node bordered by what this run did there - mint for passed, plum for failed,
+a hairline for touched, and a dashed outline for the ones it never reached. It opens on the
+part the run went through; **Fit all** shows the whole thing. Clicking a node says what the
+blueprint says that node is for and what this run recorded against it. The link in the
+address bar (`#map=run_...`) opens the same view on the same run for whoever you send it to.
+
 **What the run's own page tells you afterwards.** Under **Decided on this run**: every
 question a person answered, what the system had proposed, what they decided, their reason,
 and whether they revealed the proposal before deciding or not. That last one is there because

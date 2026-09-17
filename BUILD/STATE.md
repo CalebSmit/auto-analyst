@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **47 of 47 phases closed**
-- Last green checkpoint: **C23**
+- **48 of 48 phases closed**
+- Last green checkpoint: **C24**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -66,4 +66,5 @@
 - **P45** Safe to leave open (2026-09-17)
 - **P46** The design language, set properly (2026-09-17)
 - **P47** Panels that earn their space (2026-09-17)
+- **P48** The whole design, painted with one run (2026-09-17)
 

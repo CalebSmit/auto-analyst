@@ -24,6 +24,7 @@ GLOSSARY: tuple[tuple[str, str], ...] = (
     ("Workflow", "The order the work happens in - historicals, tagging, EBITDA, comps, cost of capital, DCF, model load, model checks. Only a workflow the board approved runs on client work."),
     ("Methodology", "How the firm does the work, written down. It reaches every model call, so a person reads each file and clears it once; editing it un-clears it."),
     ("Run", "One pass of the workflow over an engagement's files. It starts on its own once files stop changing for the quiet period."),
+    ("The whole design", "Every node of the system as the blueprint draws it, opened from a run, with each node bordered by what that run did there - and a dashed outline on everything it never reached."),
     ("Quiet period", "How long the system waits after the last file arrives before starting a run, so a half-uploaded folder does not start a half-run."),
     ("Preflight", "Checks over the setup before anything runs. A setup mistake found here does not stop a run in the middle of the afternoon."),
     ("Review item", "Something the system was not sure enough about to decide alone - an add-back, a tag, a period that does not line up. The run waits for your answer."),
@@ -59,7 +60,7 @@ PAGE = (
  <div class="board">
   <section class="card" style="grid-area:how">
    <header><h2>Putting an engagement through</h2>
-    <p class="why">Five steps. The first two are once per engagement.</p></header>
+    <p class="why">Six steps. The first two are once per engagement.</p></header>
    <div class="body"><div class="steps">
     <div class="step"><span class="mark">1</span><span><span class="t">Set up the engagement</span>
      <span class="d">On <a href="/admin">Setup</a>, <b>Add an engagement</b>: start with the client - the id and folder are suggested - and pick the practice group. Then open its <b>profile</b> and fill in the judgements the list says are missing.</span></span></div>
@@ -69,7 +70,9 @@ PAGE = (
      <span class="d">Once preflight passes. When the files stop changing for the quiet period, a run starts on its own and appears on <a href="/">Activity</a>.</span></span></div>
     <div class="step"><span class="mark">4</span><span><span class="t">Answer what it asks</span>
      <span class="d">The Activity tab shows a count when something waits on you. <b>Review</b> shows the question and the source first; <b>Show the proposal</b> when you are ready to judge it. Accept, correct, reject or escalate - anything but accept needs a reason. The run carries on by itself.</span></span></div>
-    <div class="step"><span class="mark">5</span><span><span class="t">Take the model</span>
+    <div class="step"><span class="mark">5</span><span><span class="t">Where it went, if you want it</span>
+     <span class="d">On a run, <b>See the whole design</b> opens the blueprint at full size with this run painted onto it. Useful when a run stops and the question is where in the system it stopped, and what it had already passed.</span></span></div>
+    <div class="step"><span class="mark">6</span><span><span class="t">Take the model</span>
      <span class="d">A released run lists what it delivered in its detail on Activity, with a download; the run manifest is beside it under <b>Record</b>. Every figure traces to a source file, sheet and cell, and <b>Decided on this run</b> is the list of what a person answered - which is what an associate reviewing it will ask for.</span></span></div>
    </div>
    <p class="note">Starting the tool on a machine: double-click <span class="mono">start.cmd</span> in the project folder. It sets up what is missing, checks everything, and opens this dashboard.</p>
