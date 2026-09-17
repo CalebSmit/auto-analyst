@@ -216,9 +216,19 @@ run ends halted with that refusal as its reason.
 blueprint at full size: all 118 nodes where the design of record puts them, the edges between
 them, and each node bordered by what this run did there - mint for passed, plum for failed,
 a hairline for touched, and a dashed outline for the ones it never reached. It opens on the
-part the run went through; **Fit all** shows the whole thing. Clicking a node says what the
-blueprint says that node is for and what this run recorded against it. The link in the
-address bar (`#map=run_...`) opens the same view on the same run for whoever you send it to.
+part the run went through; **Fit all** shows the whole thing.
+
+Each node the run touched carries the number of the step it was, in the order it happened,
+and the arrows beside that number walk the run a step at a time (`n` and `p` from the
+keyboard). Clicking a node says what the blueprint says it is for, what this run recorded
+against it, and - as links you can follow - what feeds it and what it feeds; the edges it
+sits on are drawn and the rest fall back, so the 240 edges stop being a thicket. The find
+box takes a name, an id or a practice group (`/` reaches it), and the swatches at the top
+show and hide by what happened, so "just the failures" is one click.
+
+All of it works from the keyboard, and the link in the address bar follows what you are
+looking at: `#map=run_...` for the run, `#map=run_.../node_id` for one node of it, which is
+what to paste into a message when the question is about that node.
 
 **What the run's own page tells you afterwards.** Under **Decided on this run**: every
 question a person answered, what the system had proposed, what they decided, their reason,

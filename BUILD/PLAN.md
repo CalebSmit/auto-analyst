@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**48 of 48 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**49 of 49 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -129,4 +129,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C23 - Panels that earn their space** | integration | The analytics route carries the count behind every rate, and every served page carries its counts, the shadow at a cut edge, and a board that gives the run's own detail two rows of three | 2026-09-17 |
 | [x] | **P48** The whole design, painted with one run | auto | Every node of the blueprint is drawn, at the position the blueprint gives it | 2026-09-17 |
 | [x] | **C24 - The whole design, painted with one run** | integration | The console serves every node of the blueprint at the position the blueprint gives it, the Activity page carries the map and a way into it, and a run's trace can be laid over that drawing - including the name it records that the design has no node for | 2026-09-17 |
+| [x] | **P49** The map, made to work with | auto | The order a run went through the design is on the map and in the list | 2026-09-17 |
+| [x] | **C25 - The map, made to work with** | integration | The order a run went through the design is derivable from what the console serves, a node's neighbours come from the blueprint's own edges, and the page serves the map's controls in one script namespace | 2026-09-17 |
 

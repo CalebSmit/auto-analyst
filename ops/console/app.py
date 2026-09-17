@@ -1433,8 +1433,10 @@ refresh().then(() => {
   const wanted = decodeURIComponent(location.hash.slice(1));
   const first = RUNS.find(r => NEEDS_ATTENTION.has(r.state)) || RUNS[0];
   if (wanted.startsWith('map=')) {
-    const runId = wanted.slice(4);
-    open_(runId).then(() => openMap(runId));
+    // `#map=run_x` is the whole design for that run; `#map=run_x/node_id` opens it on one
+    // node, which is what a person sends when the question is about that node.
+    const [runId, ...rest] = wanted.slice(4).split('/');
+    open_(runId).then(() => openMap(runId, rest.join('/') || null));
   }
   else if (wanted.startsWith('review=')) {
     // A link to one review item - what a person pastes into a message asking for an answer.

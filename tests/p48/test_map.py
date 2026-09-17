@@ -114,7 +114,8 @@ def test_the_map_says_what_happened_in_a_node() -> None:
 def test_it_opens_where_the_run_went_and_fits_on_request() -> None:
     assert "function mapFocus()" in MAP_JS and "function mapFit()" in MAP_JS
     assert 'data-act="mapFocus"' in MAP_HTML and 'data-act="mapFit"' in MAP_HTML
-    assert "mapFocus();\n  pickNode(null);" in MAP_JS, "it opens on the part the run touched"
+    # It opens on the part the run touched - and, when the link names one, on that node.
+    assert "mapFocus();\n  pickNode(nodeId" in MAP_JS
 
 
 def test_the_keyboard_can_work_it() -> None:

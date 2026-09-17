@@ -892,3 +892,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C24 after P48, covering P48
 - proves: The console serves every node of the blueprint at the position the blueprint gives it, the Activity page carries the map and a way into it, and a run's trace can be laid over that drawing - including the name it records that the design has no node for
+
+## 2026-09-17 - P49 The map, made to work with
+
+**Why:** A review of the map as a thing to work with rather than look at. It showed which nodes a run touched and not the order it touched them in, which is the first question anybody has of a run. Its 240 edges were drawn at one weight, so picking a node said nothing about what feeds it or what it feeds. There was no way to find one of 118 nodes by name. The legend was a picture of the colours rather than a way to use them. And the keyboard had 118 stops in it, none of which said what state the node it landed on was in.
+
+- phase added: P49 The map, made to work with (Block J - Making it his, gate: auto)
+- exit criterion: The order a run went through the design is on the map and in the list
+- exit criterion: Picking a node shows what it is joined to, and lets a person walk to it
+- exit criterion: A node can be found by name, and the states can be shown and hidden
+- exit criterion: The map can be worked entirely from the keyboard, and says what is selected
+
+## 2026-09-17 - C25 The map, made to work with
+
+**Why:** P49 is a browser view, and what it needs from the system - events with a node and a time, edges with their ends, one script namespace - is what a checkpoint can hold.
+
+- checkpoint added: C25 after P49, covering P49
+- proves: The order a run went through the design is derivable from what the console serves, a node's neighbours come from the blueprint's own edges, and the page serves the map's controls in one script namespace
