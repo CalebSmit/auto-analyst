@@ -843,3 +843,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C21 after P45, covering P44, P45
 - proves: A request under another name is refused before a route runs, reading the console writes nothing, a run's decisions are readable with the reveal beside each, an item on a replaced run is asked of nobody, and every served page says when it cannot reach the server
+
+## 2026-09-17 - P46 The design language, set properly
+
+**Why:** Caleb's words: it looks like an AI made it, and it needs to look professional and expensive. The stylesheet had grown by accretion - arbitrary gaps, one grey type size for nearly everything, a saturated badge on every row, and a hundred and eighteen bordered chips for a run that touches eight of them. The palette also failed its own promise: the grey the explanatory prose was set in sat at 3.4:1 on the paper behind it.
+
+- phase added: P46 The design language, set properly (Block J - Making it his, gate: auto)
+- exit criterion: Every ink token meets its stated contrast against the surface it is read on, computed rather than asserted
+- exit criterion: No page defines a colour or a type size of its own; both come from the tokens
+- exit criterion: The keyboard has a visible focus ring, and motion respects a reduced-motion preference
+
+## 2026-09-17 - C22 The design language
+
+**Why:** P46 rewrote the stylesheet every surface is built on and touched two pages' markup; what a browser is actually served is where that has to be proved.
+
+- checkpoint added: C22 after P46, covering P46
+- proves: Every served page carries the one stylesheet and its measured ink, none carries a colour or a type size of its own, and the keyboard's focus ring and a reduced-motion preference are served with it

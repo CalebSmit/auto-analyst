@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**45 of 45 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**46 of 46 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -123,4 +123,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P44** The dashboards tell the truth | auto | Every verdict the scorecard can emit maps to a tone, and a passing run is not painted as needing attention | 2026-09-17 |
 | [x] | **P45** Safe to leave open | auto | No page builds a script handler out of data, and esc() escapes every character that could close one | 2026-09-17 |
 | [x] | **C21 - The dashboards, reviewed** | integration | A request under another name is refused before a route runs, reading the console writes nothing, a run's decisions are readable with the reveal beside each, an item on a replaced run is asked of nobody, and every served page says when it cannot reach the server | 2026-09-17 |
+| [x] | **P46** The design language, set properly | auto | Every ink token meets its stated contrast against the surface it is read on, computed rather than asserted | 2026-09-17 |
+| [x] | **C22 - The design language** | integration | Every served page carries the one stylesheet and its measured ink, none carries a colour or a type size of its own, and the keyboard's focus ring and a reduced-motion preference are served with it | 2026-09-17 |
 

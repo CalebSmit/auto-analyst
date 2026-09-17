@@ -254,12 +254,12 @@ async function refresh() {{
 
 function roster() {{
   const rows = SETUP ? (SETUP.roster || []) : [];
-  $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r">
+  $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r engagement">
      <span class="lbl"><b>${{esc(r.client || r.engagement_id)}}</b><br>
       <span class="sub" style="white-space:normal">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>
       ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}</span>
      <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
-     <span>
+     <span class="acts">
       <button class="quiet" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</button>
       <button class="quiet" data-act="settings" data-id="${{esc(r.engagement_id)}}" title="Budget, review level and how long files are held before a run">settings</button>
       <button class="quiet" data-act="setRecipe" data-id="${{esc(r.engagement_id)}}" data-recipe="${{esc(r.recipe || '')}}">workflow</button>
@@ -290,7 +290,7 @@ async function preflight() {{
     (shown.length
       ? shown.map(f => `<div class="r">
           <span class="lbl"><b>${{esc(f.detail)}}</b>
-           <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:3px">${{esc(f.what_now || '')}}</span></span>
+           <span class="d">${{esc(f.what_now || '')}}</span></span>
           <span class="pill ${{f.severity === 'fail' ? 'bad' : 'warn'}}">${{f.severity === 'fail' ? 'blocks' : 'warning'}}</span>
          </div>`).join('')
       : '<div class="empty"><b>Nothing is in the way</b>Every check passed against the live configuration.</div>') +
@@ -342,7 +342,7 @@ async function seams() {{
   const r = await get('/api/readiness').catch(() => null);
   if (!r) {{ $('seams').innerHTML = '<div class="empty">Unavailable</div>'; return; }}
   $('seams').innerHTML = r.seams.map(s => `<div class="r">
-     <span class="lbl">${{esc(s.name)}}<span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">${{esc(s.detail)}}</span></span>
+     <span class="lbl">${{esc(s.name)}}<span class="d">${{esc(s.detail)}}</span></span>
      <span class="pill ${{s.ready ? 'good' : 'bad'}}"><i class="dot"></i>${{s.ready ? 'wired' : 'not wired'}}</span>
     </div>`).join('');
 }}

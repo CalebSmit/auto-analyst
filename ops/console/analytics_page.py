@@ -237,10 +237,10 @@ function stuck(s) {{
       <span class="pill ${{total || flagged.length ? 'warn' : 'good'}}"><i class="dot"></i>${{total || flagged.length ? 'Needs attention' : 'Nothing is stuck'}}</span>
      </span></div>` +
     lines.map(([k, v, why]) => `<div class="r">
-      <span class="lbl">${{k}}<span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">${{why}}</span></span>
+      <span class="lbl">${{k}}<span class="d">${{why}}</span></span>
       <span class="val" style="color:${{v ? 'var(--bad)' : 'var(--ink-3)'}}">${{v}}</span></div>`).join('') +
     `<div class="r"><span class="lbl">Skills flagged by drift
-       <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">Behaving differently from the version that was approved</span></span>
+       <span class="d">Behaving differently from the version that was approved</span></span>
       <span class="val">${{flagged.length
         ? '<span class="pill bad">' + flagged.map(esc).join('</span> <span class="pill bad">') + '</span>'
         : '<span style="color:var(--ink-3)">none</span>'}}</span></div>`;
@@ -257,18 +257,18 @@ function trends(t) {{
   }}
   $('trends').innerHTML =
     `<div class="r"><span class="lbl">Auto-accept rate
-       <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">Items the system was confident enough to decide</span></span>
+       <span class="d">Items the system was confident enough to decide</span></span>
       <span class="val">${{pct(t.auto_accept_rate)}}</span></div>
      <div class="r"><span class="lbl">Override rate
-       <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">Proposals a reviewer changed or rejected</span></span>
+       <span class="d">Proposals a reviewer changed or rejected</span></span>
       <span class="val">${{pct(t.override_rate)}}</span>${{verdict}}</div>
      <div class="r"><span class="lbl">Human baseline
-       <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">How often two analysts disagree with each other on the same work</span></span>
+       <span class="d">How often two analysts disagree with each other on the same work</span></span>
       <span class="val">${{measured ? pct(baseline)
         : '<span class="pill warn">unmeasured</span>'}}</span></div>
      ${{measured ? '' : '<p class="note">Until two analysts have measured it on 200 real line items, there is no honest number to compare the override rate against &mdash; so the dashboard says so rather than inventing one.</p>'}}
      <div class="r"><span class="lbl">Tie-out failure rate
-       <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">Proposals whose figures did not foot to the source</span></span>
+       <span class="d">Proposals whose figures did not foot to the source</span></span>
       <span class="val">${{pct(t.tieout_failure_rate)}}</span></div>
      <div class="r"><span class="lbl">Cost per engagement</span>
       <span class="val">${{money(t.cost_per_engagement_usd)}}</span></div>`;
@@ -284,7 +284,7 @@ function skills(rows) {{
     '<div class="r head"><span class="lbl">Skill</span><span class="sub">Runs</span><span class="sub">Auto</span><span class="sub">Override</span></div>' +
     rows.map(k => `<div class="r">
       <span class="lbl"><b>${{esc(k.skill)}}</b>
-       <span class="d" style="display:block;color:var(--ink-3);font-size:12.5px;margin-top:2px">${{esc(k.scope)}} &middot; ${{plural(k.items, 'item', 'items')}}</span></span>
+       <span class="d">${{esc(k.scope)}} &middot; ${{plural(k.items, 'item', 'items')}}</span></span>
       <span class="sub">${{k.runs}}</span>
       <span class="sub">${{pct(k.auto_accept_rate)}}</span>
       <span class="sub">${{pct(k.override_rate)}}</span>
