@@ -59,7 +59,7 @@ PAGE = f"""<!doctype html>
   </section>
 
   <section class="card" style="grid-area:eng">
-   <header><h2>Engagements</h2>
+   <header><h2>Engagements<span class="of" id="n-roster"></span></h2>
     <p class="why">One per piece of client work. The practice group you give it decides
      which skills it gets, which methodology it carries and which model it builds into.</p></header>
    <div class="body"><div id="roster"><div class="skel"></div></div></div>
@@ -254,6 +254,8 @@ async function refresh() {{
 
 function roster() {{
   const rows = SETUP ? (SETUP.roster || []) : [];
+  const n = $('n-roster');
+  if (n) n.textContent = rows.length ? String(rows.length) : '';
   $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r engagement">
      <span class="lbl"><b>${{esc(r.client || r.engagement_id)}}</b><br>
       <span class="sub" style="white-space:normal">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>

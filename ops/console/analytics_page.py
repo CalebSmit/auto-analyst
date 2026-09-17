@@ -140,11 +140,17 @@ function head(h) {{
     $('head').innerHTML = metric('Runs', '0', 'Nothing has run in this period yet');
     return;
   }}
-  const yieldTone = h.first_pass_yield === null ? '' : h.first_pass_yield >= 0.8 ? 'good' : h.first_pass_yield >= 0.5 ? 'warn' : 'bad';
+  // Green on one run out of one is the most flattering number this page could print,
+  // and the least earned. Under ten finished runs it is stated without a verdict.
+  const judgeable = h.finished >= 10;
+  const yieldTone = (!judgeable || h.first_pass_yield === null) ? ''
+    : h.first_pass_yield >= 0.8 ? 'good' : h.first_pass_yield >= 0.5 ? 'warn' : 'bad';
   $('head').innerHTML =
     metric('Runs', esc(h.runs), plural(h.finished, 'has finished', 'have finished')) +
     metric('First-pass yield', pct(h.first_pass_yield),
-           'Delivered with no guard failure', yieldTone) +
+           judgeable ? 'Delivered with no guard failure'
+                     : 'Delivered with no guard failure &middot; too few runs to judge',
+           yieldTone) +
     metric('To first reviewable',
            h.time_to_first_reviewable_min === null ? '&mdash;' : esc(h.time_to_first_reviewable_min) + '<small> min</small>',
            'Median, from the file landing') +
@@ -205,21 +211,25 @@ function outcomes(rows) {{
     return;
   }}
   $('outcomes').innerHTML =
-    '<div class="r head"><span class="lbl">Week</span><span class="sub">Clean</span><span class="sub">Reviewed</span><span class="sub">Blocked</span><span class="sub">Halted</span></div>' +
+    '<div class="r head"><span class="lbl">Week</span><span class="num">Clean run</span><span class="num">Reviewed</span><span class="num">Blocked</span><span class="num">Halted</span></div>' +
     rows.map(o => {{
       const total = o.clean + o.released_with_review + o.blocked + o.halted || 1;
       const seg = (n, colour) => n ? `<i style="display:block;height:100%;float:left;width:${{(n / total * 100).toFixed(1)}}%;background:${{colour}}"></i>` : '';
       return `<div style="padding:8px 0;border-bottom:1px solid var(--line-soft)">
         <div class="r" style="border:0;padding:0 0 6px">
          <span class="lbl mono">${{esc(o.week)}}</span>
-         <span class="sub" style="color:var(--good)">${{o.clean}}</span>
-         <span class="sub">${{o.released_with_review}}</span>
-         <span class="sub" style="color:var(--warn)">${{o.blocked}}</span>
-         <span class="sub" style="color:var(--bad)">${{o.halted}}</span>
+         <span class="num" style="color:var(--good)">${{o.clean}}</span>
+         <span class="num">${{o.released_with_review}}</span>
+         <span class="num" style="color:var(--warn)">${{o.blocked}}</span>
+         <span class="num" style="color:var(--bad)">${{o.halted}}</span>
         </div>
         <div class="bar">${{seg(o.clean, 'var(--good)')}}${{seg(o.released_with_review, 'var(--accent)')}}${{seg(o.blocked, 'var(--warn)')}}${{seg(o.halted, 'var(--bad)')}}</div>
        </div>`;
-    }}).join('');
+    }}).join('') +
+    (rows.length < 3
+      ? `<p class="note">${{plural(rows.length, 'week', 'weeks')}} so far. The mix is worth
+         reading once there are a few to compare.</p>`
+      : '');
 }}
 
 /* ------------------------------------------------------------ stuck */
@@ -246,6 +256,19 @@ function stuck(s) {{
         : '<span style="color:var(--ink-3)">none</span>'}}</span></div>`;
 }}
 
+/* A rate, with what it was computed from and a plain statement when that is too few to
+   judge. Twelve items and twelve hundred are the same percentage and not the same fact, and
+   a tone - good, bad - on a denominator of four is a claim the number cannot support. */
+const JUDGEABLE = 10;
+function rate(value, n, unit) {{
+  if (value === null || value === undefined) return pct(value);
+  const of = n === null || n === undefined ? '' :
+    `<span class="of-n">of ${{esc(n)}} ${{esc(unit)}}</span>`;
+  const shy = n !== null && n !== undefined && n < JUDGEABLE
+    ? `<span class="of-n" title="Too few to read anything into">too few to judge</span>` : '';
+  return pct(value) + of + shy;
+}}
+
 /* ------------------------------------------------------------ trends */
 function trends(t) {{
   const baseline = t.override_rate_human_baseline;
@@ -258,18 +281,20 @@ function trends(t) {{
   $('trends').innerHTML =
     `<div class="r"><span class="lbl">Auto-accept rate
        <span class="d">Items the system was confident enough to decide</span></span>
-      <span class="val">${{pct(t.auto_accept_rate)}}</span></div>
+      <span class="val">${{rate(t.auto_accept_rate, t.routed_items, 'items')}}</span></div>
      <div class="r"><span class="lbl">Override rate
-       <span class="d">Proposals a reviewer changed or rejected</span></span>
-      <span class="val">${{pct(t.override_rate)}}</span>${{verdict}}</div>
+       <span class="d">Proposals a reviewer changed or rejected &mdash; the system's error
+        rate, not the reviewer's</span></span>
+      <span class="val">${{rate(t.override_rate, t.decided_items, 'decided')}}</span>${{
+        t.decided_items >= JUDGEABLE ? verdict : ''}}</div>
      <div class="r"><span class="lbl">Human baseline
        <span class="d">How often two analysts disagree with each other on the same work</span></span>
       <span class="val">${{measured ? pct(baseline)
         : '<span class="pill warn">unmeasured</span>'}}</span></div>
      ${{measured ? '' : '<p class="note">Until two analysts have measured it on 200 real line items, there is no honest number to compare the override rate against &mdash; so the dashboard says so rather than inventing one.</p>'}}
      <div class="r"><span class="lbl">Tie-out failure rate
-       <span class="d">Proposals whose figures did not foot to the source</span></span>
-      <span class="val">${{pct(t.tieout_failure_rate)}}</span></div>
+       <span class="d">Runs whose stated totals did not re-add from the rows they cite</span></span>
+      <span class="val">${{rate(t.tieout_failure_rate, t.tieout_checked_runs, 'runs')}}</span></div>
      <div class="r"><span class="lbl">Cost per engagement</span>
       <span class="val">${{money(t.cost_per_engagement_usd)}}</span></div>`;
 }}
@@ -281,13 +306,13 @@ function skills(rows) {{
     return;
   }}
   $('skills').innerHTML =
-    '<div class="r head"><span class="lbl">Skill</span><span class="sub">Runs</span><span class="sub">Auto</span><span class="sub">Override</span></div>' +
+    '<div class="r head"><span class="lbl">Skill</span><span class="num">Runs</span><span class="num">Auto</span><span class="num">Override</span></div>' +
     rows.map(k => `<div class="r">
       <span class="lbl"><b>${{esc(k.skill)}}</b>
        <span class="d">${{esc(k.scope)}} &middot; ${{plural(k.items, 'item', 'items')}}</span></span>
-      <span class="sub">${{k.runs}}</span>
-      <span class="sub">${{pct(k.auto_accept_rate)}}</span>
-      <span class="sub">${{pct(k.override_rate)}}</span>
+      <span class="num">${{k.runs}}</span>
+      <span class="num">${{pct(k.auto_accept_rate)}}</span>
+      <span class="num">${{pct(k.override_rate)}}</span>
       ${{k.drift_flags.length ? `<span class="pill bad">drift: ${{k.drift_flags.map(esc).join(', ')}}</span>` : ''}}
      </div>`).join('');
 }}

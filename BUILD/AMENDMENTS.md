@@ -859,3 +859,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C22 after P46, covering P46
 - proves: Every served page carries the one stylesheet and its measured ink, none carries a colour or a type size of its own, and the keyboard's focus ring and a reduced-motion preference are served with it
+
+## 2026-09-17 - P47 Panels that earn their space
+
+**Why:** Looking at the rebuilt pages rather than reading them: the panel a person actually reads - the run's own detail - was being cut at its fifth line while the map of the architecture had the largest share of the screen, and a panel cut by the fold said nothing about there being more. The Analytics page printed rates with no denominators, so 0.0% on two runs and 0.0% on two hundred looked alike, and a green first-pass yield could be earned by a single run.
+
+- phase added: P47 Panels that earn their space (Block J - Making it his, gate: auto)
+- exit criterion: No rate on the Analytics page is rendered without the count it was computed from
+- exit criterion: A tone is not applied to a rate whose denominator is under ten
+- exit criterion: A panel whose content overflows shows it, and names its own count
+
+## 2026-09-17 - C23 Panels that earn their space
+
+**Why:** P47 changed what the analytics computation reports and how three pages lay out what they hold; the join between them is what a browser is served.
+
+- checkpoint added: C23 after P47, covering P47
+- proves: The analytics route carries the count behind every rate, and every served page carries its counts, the shadow at a cut edge, and a board that gives the run's own detail two rows of three

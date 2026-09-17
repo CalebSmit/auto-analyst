@@ -845,9 +845,12 @@ PAGE = (
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Activity - Automated Analyst</title>
 <style>{CSS}
+/* The run and the list of runs get two rows of the three: the detail is what a person
+   reads, and it was being cut at its fifth line while the map of the architecture - the
+   least actionable panel on the page - had the largest share of the screen. */
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr);
- grid-template-rows:minmax(0,1.05fr) minmax(0,.7fr) minmax(0,1fr);
- grid-template-areas:"runs detail inbox" "trace trace alerts" "trace trace feed"}}
+ grid-template-rows:minmax(0,1fr) minmax(0,.9fr) minmax(0,1fr);
+ grid-template-areas:"runs detail inbox" "runs detail alerts" "trace trace feed"}}
 </style>
 {OPS_SHELL}
 <div class="wrap">
@@ -860,7 +863,7 @@ PAGE = (
 
  <div class="board">
   <section class="card" style="grid-area:runs">
-   <header><h2>Runs</h2>
+   <header><h2>Runs<span class="of" id="n-runs"></span></h2>
     <p class="why">Newest first. Pick one to see what it did, step by step, as it happened.</p></header>
    <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
@@ -874,7 +877,7 @@ PAGE = (
   </section>
 
   <section class="card" style="grid-area:inbox">
-   <header><h2>Waiting on a person</h2>
+   <header><h2>Waiting on a person<span class="of" id="n-inbox"></span></h2>
     <p class="why">What the system was not sure enough about to decide alone. Open one to read the source first, then the proposal.</p></header>
    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
   </section>
@@ -901,7 +904,7 @@ PAGE = (
   </section>
 
   <section class="card" style="grid-area:alerts">
-   <header><h2>Alerts</h2>
+   <header><h2>Alerts<span class="of" id="n-alerts"></span></h2>
     <p class="why">Runs that have gone quiet, reviews past their SLA, guards repeating.</p></header>
    <div class="body"><div id="alerts"><div class="skel"></div></div></div>
   </section>
@@ -951,6 +954,12 @@ const VERDICT_SAYS = {
   halted: 'the run ended without delivering',
 };
 
+/* A count beside a panel's title, or nothing at all when there is nothing to count. */
+function count(id, n) {
+  const box = $(id);
+  if (box) box.textContent = n ? String(n) : '';
+}
+
 function runName(r) {
   return r.client ? esc(r.client) : esc(r.engagement_id);
 }
@@ -966,6 +975,11 @@ async function refresh() {
   }
   online();
   RUNS = runs;
+  // What each panel holds, in its own title: a list cut off by the fold is a known length
+  // rather than a surprise, and the number is the one thing you would count by hand.
+  count('n-runs', runs.length);
+  count('n-inbox', inbox.length);
+  count('n-alerts', alerts.length);
   RUNS.sort((a, b) => String(b.started_at || '').localeCompare(String(a.started_at || '')));
 
   const attention = RUNS.filter(r => NEEDS_ATTENTION.has(r.state)).length;
@@ -1233,7 +1247,8 @@ function steps(run) {
   if (!box) return;
   const rows = run.steps || [];
   box.innerHTML = rows.length ? `<div class="section-label">Steps</div>` + rows.map(x => `<div class="r">
-     <span class="lbl">${esc(x.step_id)}<span class="sub" style="display:block">${esc(x.skill || x.kind)}</span></span>
+     <span class="lbl"><b style="font-size:var(--t-sm)">${esc(x.step_id)}</b>
+      <span class="sub" style="margin-left:.45rem">${esc(x.skill || x.kind)}</span></span>
      ${x.attempts > 1 ? `<span class="sub" title="attempts">&times;${esc(x.attempts)}</span>` : ''}
      <span class="pill ${STEP_TONE[x.status] ?? ''}">${esc(String(x.status).replace('_', ' '))}</span>
     </div>`).join('') : '';

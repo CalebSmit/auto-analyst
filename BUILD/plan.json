@@ -1535,6 +1535,34 @@
       ],
       "notes": "",
       "closed": "2026-09-17"
+    },
+    {
+      "id": "P47",
+      "title": "Panels that earn their space",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Every panel shows what it holds and admits what it is hiding, and no figure on the Analytics page reads as more certain than the count behind it.",
+      "builds": [],
+      "tasks": [
+        "A cut panel says so: a scroll shadow drawn by the browser at whichever edge has more behind it, and a count of what the panel holds in its own title",
+        "The board rebalanced - the run detail and the runs list take two rows of three, the node map one - and the steps table set to read down",
+        "Every rate carries its denominator, and a rate computed on fewer than ten says so instead of being coloured; first-pass yield is stated without a verdict until ten runs have finished",
+        "Columns of figures set to one width and aligned right, and a week of outcomes says it is one week"
+      ],
+      "exit": [
+        "No rate on the Analytics page is rendered without the count it was computed from",
+        "A tone is not applied to a rate whose denominator is under ten",
+        "A panel whose content overflows shows it, and names its own count"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p47 -q",
+        "python -m uv run pytest tests/p23 tests/p42 tests/p44 tests/p45 tests/p46 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ui tools ports"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
     }
   ],
   "checkpoints": [
@@ -1778,6 +1806,17 @@
       "proves": "Every served page carries the one stylesheet and its measured ink, none carries a colour or a type size of its own, and the keyboard's focus ring and a reduced-motion preference are served with it",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c22 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C23",
+      "title": "Panels that earn their space",
+      "after": "P47",
+      "status": "done",
+      "proves": "The analytics route carries the count behind every rate, and every served page carries its counts, the shadow at a cut edge, and a board that gives the run's own detail two rows of three",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c23 -q"
       ],
       "closed": "2026-09-17"
     }

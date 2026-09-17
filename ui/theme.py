@@ -188,9 +188,20 @@ b,strong{font-weight:600}
 .card>header{flex:none;padding:var(--s4) var(--s5) .6rem}
 .card h2{font:400 1.16rem/1.25 var(--serif);margin:0;color:var(--navy);letter-spacing:-.012em}
 .card h2 small{font:400 var(--t-xs) var(--sans);color:var(--ink-3);margin-left:.5rem;letter-spacing:0}
+.card h2 .of{font:600 var(--t-label)/1 var(--sans);letter-spacing:.1em;color:var(--ink-3);
+ margin-left:.55rem;vertical-align:.12em;font-variant-numeric:tabular-nums}
 .card .why{margin:.25rem 0 0;font-size:var(--t-xs);color:var(--ink-3);line-height:1.5;max-width:74ch}
 .card .body{flex:1;min-height:0;overflow:auto;padding:var(--s2) var(--s5) var(--s4);
- scrollbar-gutter:stable}
+ scrollbar-gutter:stable;
+ /* Two pairs: the white ones scroll with the content and cover the shadows when there is
+    nothing past the edge; the shadows are fixed to the panel. So an edge with more behind
+    it is shaded, and an edge with nothing behind it is clean - the browser's own answer to
+    "is this cut off", with nothing for a script to keep in step with. */
+ background:
+  linear-gradient(var(--surface) 34%,rgba(255,255,255,0)) top/100% 1.6rem no-repeat local,
+  linear-gradient(rgba(255,255,255,0),var(--surface) 66%) bottom/100% 1.6rem no-repeat local,
+  radial-gradient(farthest-side at 50% 0,rgba(12,46,63,.13),rgba(12,46,63,0)) top/100% .55rem no-repeat scroll,
+  radial-gradient(farthest-side at 50% 100%,rgba(12,46,63,.13),rgba(12,46,63,0)) bottom/100% .55rem no-repeat scroll}
 .card .foot{flex:none;padding:var(--s3) var(--s5);border-top:1px solid var(--line-soft);
  background:var(--surface-2);display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
 
@@ -217,6 +228,14 @@ b,strong{font-weight:600}
 .r .lbl{flex:1;min-width:0;color:var(--ink-2);font-size:var(--t-sm)}
 .r .lbl b{color:var(--navy);font-weight:600;font-size:var(--t-body)}
 .r .val{font-weight:600;white-space:nowrap;color:var(--navy);font-variant-numeric:tabular-nums}
+/* A column of figures is read down, so it is set to one width and aligned on the right.
+   Ragged numbers are the difference between a table and a list of facts. */
+.r .num{flex:none;width:4.5rem;text-align:right;font-variant-numeric:tabular-nums;
+ color:var(--ink-2);font-size:var(--t-sm)}
+.r.head .num{color:var(--ink-3);font-size:var(--t-label);letter-spacing:.14em;
+ text-transform:uppercase;font-weight:600}
+.of-n{color:var(--ink-3);font-weight:400;font-size:var(--t-xs);margin-left:.35rem;
+ font-variant-numeric:tabular-nums}
 .r .sub{color:var(--ink-3);font-size:var(--t-xs);white-space:nowrap}
 .r .sub.mono{font-size:.74rem;letter-spacing:0;color:var(--ink-4)}
 .r .d{display:block;color:var(--ink-3);font-size:var(--t-xs);margin-top:.15rem;
@@ -296,6 +315,7 @@ label{display:block;font-size:var(--t-label);color:var(--ink-3);margin:0 0 .3rem
 select{width:auto;padding:.35rem .55rem;margin:0}
 
 /* ---------------------------------------------------------------- states */
+.card .body:has(>.empty:only-child){display:flex;align-items:center;justify-content:center}
 .empty{padding:var(--s6) var(--s4);text-align:center;color:var(--ink-3);font-size:var(--t-xs);
  line-height:1.55;max-width:44ch;margin:0 auto}
 .empty b{display:block;color:var(--navy);font:400 var(--t-subtitle)/1.3 var(--serif);

@@ -264,6 +264,11 @@ class Analytics:
             spends[r.engagement_id] = spends.get(r.engagement_id, 0.0) + r.cost_usd
         return {
             "auto_accept_rate": _ratio(auto, routed),
+            # The denominators, beside the rates they came from. A page that prints a
+            # percentage without them is asking to be read as more certain than it is.
+            "routed_items": routed,
+            "decided_items": len(decided),
+            "tieout_checked_runs": len(with_tieout),
             "override_rate": _ratio(overridden, len(decided)),
             "override_rate_human_baseline": (
                 self.human_baseline if self.human_baseline is not None else "unmeasured"
