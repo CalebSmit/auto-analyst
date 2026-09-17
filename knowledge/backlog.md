@@ -201,3 +201,37 @@ where it came from - not arithmetic, and it borders on the report, which is out 
 Needs a scope decision (BUILD/OPEN.md section 5, question 6) and the firm's approved sources
 before any design. Size: unknown.
 
+## B-026 An engagement view, and a way to find one client
+status: proposed
+2026-09-17, from five reviews of the dashboards. Everything on Activity is indexed by run; an
+analyst thinks in clients, and a repeat client has several runs behind one engagement. There
+is no filter, no search and no grouping: finding Northgate among ten engagements is scrolling.
+Needs: a filter on the runs panel (client, engagement, scope), rows collapsed by engagement
+with the newest run on top, and an engagement line - valuation date, what has arrived, what is
+open, last activity. `/api/runs?engagement_id=` already exists and no page uses it. Size:
+medium.
+
+## B-027 Documents: what has arrived and what the client still owes
+status: proposed
+2026-09-17. Historicals are the gate the whole job waits on, and nothing on any screen says
+what is in and what is missing - the files panel is behind a button on Setup. Needs the
+expected set per engagement type (B-009's coverage report), then a panel on the engagement and
+a "draft the follow-up list" button. Size: medium, after B-009.
+
+## B-028 Say "tie-out" in the analyst's sense, or stop saying it
+status: proposed
+2026-09-17. The scorecard's *tie-out* is footing: every stated total re-added from the rows it
+cites. The analyst's *tie-out* is net income ties, the balance sheet balances, cash flow ending
+cash equals balance sheet cash. A green tie-out pill will be read as the second. Needs:
+`tools/statement_checks.py` (already built) surfaced as a named **Model checks** panel, and the
+scorecard criterion renamed to **Totals re-add (footing)**. Blocked on B-004 so the checks run
+on a real run. Size: small.
+
+## B-029 Precedent, where it is used
+status: proposed
+2026-09-17. An answer given on one client is shown to the model on another in the same practice
+group. The dispatcher records `precedent_ids` on every dispatch; the review item never carries
+them, so a reviewer cannot see that a confident proposal is an echo of a precedent they set
+themselves. Needs: the ids on the item's detail, shown under the reveal, and a line in the
+modal saying the answer becomes precedent. Blocked on nothing but a decision about retiring a
+precedent that turns out to be wrong (BUILD/OPEN.md §5b). Size: medium.

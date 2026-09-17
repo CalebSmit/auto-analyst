@@ -45,7 +45,7 @@ from registries.contracts import ContractRegistry
 from review.surface import ReviewRefused, ReviewSurface, StaleDecision
 from ui import CSS, SHELL
 from ui.theme import shell
-from ui.who import who
+from ui.who import install_identity, who
 
 __all__ = ["Console", "create_app"]
 
@@ -87,6 +87,7 @@ class Console:
         self.queue = queue
         self.blobs = blobs
         constraints = constraints or ConstraintRegistry.load()
+        self.constraints = constraints
         self.scorecard = RunScorecard(store, bus, constraints)
         self.meter = CostMeter(store)
         self.stall = StallDetector(store, bus, constraints=constraints, clock=clock)
@@ -137,6 +138,7 @@ class Console:
                 "loop_iterations": spend.loop_iterations,
             },
             "cost": self.meter.breakdown(run_id).as_dict(),
+            "budget_usd": self._ceiling_usd(),
             "steps": [
                 {
                     "step_id": s.step_id,
@@ -150,6 +152,53 @@ class Console:
             "trace": self.replay(run_id).as_dict(),
             "queue": self._placement(run_id),
         }
+
+    def decisions(self, run_id: str) -> list[dict[str, Any]]:
+        """Every decision made on this run, with the proposal it was made against.
+
+        The queue shows what is outstanding; this is what was settled, which is the part a
+        reviewer, an associate or a challenge letter asks for a year later. `revealed_at`
+        comes from the `hitl.proposal.revealed` event the surface records precisely so that
+        "accepted without ever looking" is answerable - here it is answered on the page
+        rather than only in the database.
+        """
+        revealed: dict[str, dict[str, Any]] = {}
+        for event in self.store.events(run_id):
+            if event.type == "hitl.proposal.revealed":
+                item = str((event.payload or {}).get("item_id") or "")
+                if item and item not in revealed:
+                    revealed[item] = {
+                        "at": event.ts,
+                        "viewer": (event.payload or {}).get("viewer"),
+                    }
+        rows = []
+        for d in self.store.decisions(run_id):
+            seen = revealed.get(d.item_id)
+            rows.append(
+                {
+                    "item_id": d.item_id,
+                    "skill": d.skill,
+                    "decision": str(d.decision),
+                    "decided_by": d.decided_by,
+                    "decided_at": d.decided_at,
+                    "rationale": d.rationale,
+                    "writes_precedent": d.writes_precedent,
+                    "proposal": d.proposal,
+                    "answer": d.answer,
+                    "revealed_at": seen["at"] if seen else None,
+                    "revealed_to": seen["viewer"] if seen else None,
+                    "seconds_looking": _between(seen["at"], d.decided_at) if seen else None,
+                }
+            )
+        return rows
+
+    def _ceiling_usd(self) -> float | None:
+        """What one run may spend. A spend with no ceiling beside it is a number nobody
+        can judge, and the first anybody hears of a budget problem is a halted run."""
+        try:
+            return float(self.constraints.ceilings["per_run"]["usd_max"])
+        except (KeyError, TypeError, ValueError):
+            return None
 
     def queue_view(self) -> dict[str, Any]:
         """The pool: how full it is, and every run that is waiting with its position.
@@ -241,7 +290,13 @@ class Console:
         ]
 
     def alerts(self, engagement_id: str | None = None) -> list[dict[str, Any]]:
-        return [a.as_dict() for a in self.stall.scan(engagement_id)]
+        """What has stopped, read rather than raised.
+
+        `open_alerts` is `scan` without the emit: the page says it drives nothing, and a
+        page that wrote alert events would be the only thing raising them - so a weekend
+        with nobody watching would raise none. The sweep loop emits them instead.
+        """
+        return [a.as_dict() for a in self.stall.open_alerts(engagement_id)]
 
     def run_plan(self, run_id: str) -> dict[str, Any] | None:
         """The Run Plan artifact, read back from the content store.
@@ -294,6 +349,11 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
     """The ops console's routes. `surface` is the review surface a person answers through;
     without one the reading routes work and the writing ones say so."""
     app = FastAPI(title="Chartwell Automated Analyst - ops console", docs_url=None, redoc_url=None)
+    # On this app as well as on the combined one. `tools/serve.py` installs it on the app it
+    # serves - a router does not carry its application's middleware - but this factory is
+    # public, and an entry point that served it alone would have no check at all: every run,
+    # every review excerpt and every released workbook, to anything that asked.
+    install_identity(app)
 
     def _surface() -> ReviewSurface:
         if surface is None:
@@ -428,6 +488,18 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
     def review(engagement_id: str | None = None) -> list[dict[str, Any]]:
         return console.inbox(engagement_id)
 
+    @app.get("/api/runs/{run_id}/decisions")
+    def decisions(run_id: str) -> list[dict[str, Any]]:
+        """What was settled on this run, as against what is outstanding.
+
+        The queue empties as items are answered, and before this route nothing could say
+        afterwards who answered them, against what proposal, or whether they revealed it
+        before deciding. That is the question a reviewer, an associate or a challenge
+        letter asks, and the record has always held the answer.
+        """
+        _known(console, run_id)
+        return console.decisions(run_id)
+
     # -- one review item: read it, reveal the proposal, answer it. The order is the
     # surface's: the question first, the proposal only on request and on the record, and
     # the decision once, at the version the reviewer saw.
@@ -539,6 +611,21 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
                 status_code=503,
                 detail={
                     "refused": [{"code": "POOL.NOT_WIRED", "message": "no pool on this server"}]
+                },
+            )
+        if not (body.reason or "").strip():
+            # As halting one does. A quarantined run is one a guard refused; restarting it
+            # is a judgement - "the client sent a corrected trial balance", "the
+            # methodology was cleared" - and that belongs beside the refusal.
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "refused": [
+                        {
+                            "code": "REVIEW.RATIONALE_REQUIRED",
+                            "message": "resuming a run needs a reason: what changed",
+                        }
+                    ]
                 },
             )
         run = _stuck(run_id)
@@ -673,8 +760,16 @@ async def _sse(
             console.bus.unsubscribe(on_event)
 
 
+FRAME = "aa"
+"""The one frame name. A browser delivers a named SSE frame only to a listener registered for
+that exact name, and a page cannot know every event type this system will ever emit - so a
+type it had not seen before was dropped without a word. The type rides in the body, which is
+where the page reads it from anyway."""
+
+
 def _frame(event_type: str, event_id: str, data: dict[str, Any], reducer: TraceReducer) -> bytes:
     body = {
+        "type": event_type,
         "event": data,
         "trace": {
             "nodes": {k: str(v) for k, v in reducer.trace.nodes.items()},
@@ -684,7 +779,7 @@ def _frame(event_type: str, event_id: str, data: dict[str, Any], reducer: TraceR
         },
     }
     return (
-        f"event: {event_type}\nid: {event_id}\ndata: {json.dumps(body, sort_keys=True)}\n\n"
+        f"event: {FRAME}\nid: {event_id}\ndata: {json.dumps(body, sort_keys=True)}\n\n"
     ).encode()
 
 
@@ -704,6 +799,18 @@ def _event_dict(e: EventRecord) -> dict[str, Any]:
         "diagnostic_code": e.diagnostic_code,
         "cost_usd": e.cost_usd,
     }
+
+
+def _between(earlier: str, later: str) -> float | None:
+    """Seconds between two recorded timestamps, or None if either is unreadable. Used for
+    how long a proposal was on screen before it was decided - a number that only means
+    anything beside the decision it belongs to."""
+    try:
+        start = datetime.fromisoformat(earlier.replace("Z", "+00:00"))
+        end = datetime.fromisoformat(later.replace("Z", "+00:00"))
+    except (AttributeError, TypeError, ValueError):
+        return None
+    return round((end - start).total_seconds(), 1)
 
 
 def _run_row(run: RunRecord) -> dict[str, Any]:
@@ -744,6 +851,7 @@ PAGE = (
 </style>
 {OPS_SHELL}
 <div class="wrap">
+ <div id="offline"></div>
  <div class="page-head">
   <h1>Activity</h1>
   <p>What is happening right now. This reads the event log and drives nothing &mdash;
@@ -810,6 +918,16 @@ PAGE = (
 """
     + """<script>
 let source = null, current = null, RUNS = [], LAST_TRACE = null;
+/* The SSE frame name. One name for every event, so a type this page has never seen still
+   reaches the feed. It must match `FRAME` in ops/console/app.py, and a test says so. */
+const FRAME = 'aa';
+
+/* What a row does, by name. Registered once; the rows themselves carry only data, so a
+   client's apostrophe cannot break a handler and a client's file cannot write one. */
+ACTIONS.open = d => open_(d.run);
+ACTIONS.review = d => { open_(d.run); review(d.run, d.item); };
+ACTIONS.runAction = d => runAction(d.run, d.do);
+ACTIONS.reveal = d => revealProposal(d.run, d.item);
 
 /* The run states, in the three colours that carry meaning: fine, attention, problem. */
 const STATE_TONE = {delivered: 'good', released: 'good', halted: 'bad', quarantined: 'warn',
@@ -821,16 +939,34 @@ const STATE_SAYS = {
   running: 'working now', queued: 'waiting for a worker', superseded: 'replaced by a newer run',
 };
 const NEEDS_ATTENTION = new Set(['quarantined', 'waiting', 'blocked']);
+/* The scorecard's verdicts, which are not the run's states: pass, pass_with_exceptions,
+   partial, blocked, halted. Coloured here so the two vocabularies cannot drift apart. */
+const VERDICT_TONE = {pass: 'good', pass_with_exceptions: 'good', partial: 'warn',
+  blocked: 'warn', halted: 'bad'};
+const VERDICT_SAYS = {
+  pass: 'every criterion measured was met',
+  pass_with_exceptions: 'met, with exceptions recorded against the criteria',
+  partial: 'some criteria were never measured - the run did not reach them',
+  blocked: 'a criterion was not met and the run could not deliver',
+  halted: 'the run ended without delivering',
+};
 
 function runName(r) {
   return r.client ? esc(r.client) : esc(r.engagement_id);
 }
 
 async function refresh() {
-  RUNS = await get('/api/runs').catch(() => []);
+  let runs, inbox, alerts;
+  try {
+    [runs, inbox, alerts] = await Promise.all(
+      ['/api/runs', '/api/review', '/api/alerts'].map(u => get(u)));
+  } catch (e) {
+    // Not an empty dashboard: an empty dashboard is a claim that there is nothing to do.
+    return offline(e);
+  }
+  online();
+  RUNS = runs;
   RUNS.sort((a, b) => String(b.started_at || '').localeCompare(String(a.started_at || '')));
-  const inbox = await get('/api/review').catch(() => []);
-  const alerts = await get('/api/alerts').catch(() => []);
 
   const attention = RUNS.filter(r => NEEDS_ATTENTION.has(r.state)).length;
   $('chrome-right').innerHTML = RUNS.length
@@ -840,7 +976,7 @@ async function refresh() {
       + `</span>`
     : '';
 
-  $('runs').innerHTML = RUNS.length ? RUNS.map(r => `<div class="r pick${r.run_id === current ? ' on' : ''}" onclick="open_('${esc(r.run_id)}')">
+  $('runs').innerHTML = RUNS.length ? RUNS.map(r => `<div class="r pick${r.run_id === current ? ' on' : ''}" role="button" tabindex="0" data-act="open" data-run="${esc(r.run_id)}">
      <span class="lbl"><b>${runName(r)}</b>
       <span class="sub" style="display:block;white-space:normal">${esc(r.engagement_id)}${r.scope_path ? ' &middot; ' + esc(r.scope_path) : ''} &middot; <span class="mono" title="run id">${esc(r.run_id)}</span></span>
       ${r.state_reason && r.state !== 'delivered' ? `<span class="why-line" title="${esc(r.state_reason)}">${esc(r.state_reason)}</span>` : ''}
@@ -859,21 +995,25 @@ async function refresh() {
        <div class="step"><span class="mark">4</span><span><span class="t">Answer what it asks</span><span class="d">Items it is not sure about wait for you in <b>Waiting on a person</b>.</span></span></div>
       </div></div>`;
 
-  $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r pick" onclick="review('${esc(i.run_id)}','${esc(i.item_id)}')">
+  $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r pick" role="button" tabindex="0" data-act="review" data-run="${esc(i.run_id)}" data-item="${esc(i.item_id)}">
      <span class="lbl"><b>${esc(i.subject || i.item_id)}</b>
       <span class="sub" style="display:block;white-space:normal">${i.client ? esc(i.client) + ' &middot; ' : ''}${esc(i.skill || i.kind || '')}${i.due_at ? ' &middot; due ' + esc(i.due_at.slice(0, 16).replace('T', ' ')) : ''}</span></span>
      <span style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
       ${i.severity ? `<span class="pill ${i.severity === 'high' ? 'bad' : 'warn'}">${esc(i.severity)}</span>` : ''}
       <span class="sub">${esc(i.owner || 'unassigned')}</span>
-      <button class="small" onclick="event.stopPropagation();review('${esc(i.run_id)}','${esc(i.item_id)}')">Review</button>
+      <button class="small" data-act="review" data-run="${esc(i.run_id)}" data-item="${esc(i.item_id)}">Review</button>
      </span></div>`).join('')
-   : '<div class="empty"><b>Nothing waiting</b>Everything the system proposed was inside its confidence bar.</div>';
+   : (RUNS.length
+      ? '<div class="empty"><b>Nothing waiting</b>Nothing is open for a person on the runs so far.</div>'
+      : '<div class="empty"><b>Nothing waiting</b>No run has reached a proposal yet.</div>');
 
-  $('alerts').innerHTML = alerts.length ? alerts.map(a => `<div class="r pick" onclick="open_('${esc(a.run_id)}')">
+  $('alerts').innerHTML = alerts.length ? alerts.map(a => `<div class="r pick" role="button" tabindex="0" data-act="open" data-run="${esc(a.run_id)}">
      <span class="lbl"><b>${esc(a.kind.replace(/_/g, ' '))}</b><br>
       <span class="sub mono">${esc(a.run_id)} &middot; ${esc(a.subject)}</span></span>
      <span class="pill bad">${esc(a.code || 'alert')}</span></div>`).join('')
-   : '<div class="empty"><b>Nothing raised</b>No run is silent and no review is overdue.</div>';
+   : (RUNS.length
+      ? '<div class="empty"><b>Nothing raised</b>No run is silent and no review is overdue.</div>'
+      : '<div class="empty"><b>Nothing raised</b>Nothing has run yet.</div>');
 
   if (current) {
     const run = RUNS.find(r => r.run_id === current);
@@ -888,8 +1028,8 @@ function actions(run) {
   const box = $('run-actions');
   if (!box) return;
   box.innerHTML = run.state === 'quarantined'
-    ? `<button class="small primary" onclick="runAction('${esc(run.run_id)}','resume')">Resume</button>
-       <button class="small ghost" onclick="runAction('${esc(run.run_id)}','halt')">Halt</button>`
+    ? `<button class="small primary" data-act="runAction" data-run="${esc(run.run_id)}" data-do="resume">Resume</button>
+       <button class="small ghost" data-act="runAction" data-run="${esc(run.run_id)}" data-do="halt">Halt</button>`
     : '';
 }
 
@@ -908,7 +1048,7 @@ async function runAction(runId, action) {
     const answer = await ask({
       title: 'Resume this run', ok: 'Resume',
       why: 'It replays from where it stopped. Whatever made it stop should be fixed first, or it will stop again in the same place.',
-      fields: [{name: 'reason', label: 'What changed', kind: 'textarea', required: false}],
+      fields: [{name: 'reason', label: 'What changed', kind: 'textarea', required: true}],
     });
     if (!answer) return;
     reason = answer.reason;
@@ -940,7 +1080,7 @@ async function review(runId, itemId) {
      ${(item.reasons || []).length ? `<div class="section-label">Why it came to a person</div>
       <ul style="margin:.2rem 0 .8rem 1.1rem;padding:0;font-size:.9rem;color:var(--ink-2)">${item.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}
      <div id="rv-proposal"><div class="reveal"><p>Read the source first. The system's proposal and its confidence are shown when you ask, and the asking is recorded - so an answer given without looking is visible later.</p>
-      <button onclick="revealProposal('${esc(runId)}','${esc(itemId)}')">Show the proposal</button></div></div>
+      <button data-act="reveal" data-run="${esc(runId)}" data-item="${esc(itemId)}">Show the proposal</button></div></div>
      <div class="section-label">Your decision</div>
      <div class="decide" id="rv-choices">
       <button data-d="accepted" disabled title="Show the proposal first">Accept</button>
@@ -957,24 +1097,31 @@ async function review(runId, itemId) {
      <button class="quiet" data-close>Cancel</button>
      <button class="primary" id="rv-submit" disabled>Record decision</button></div>
   </section>`;
-  document.body.appendChild(box);
+  // One dialog at a time, focus moved in and handed back, Escape and the listener handled
+  // in the one place any of that is written.
+  const close = openModal(box);
   let decision = null;
-  const close = () => { box.remove(); document.removeEventListener('keydown', onKey); };
-  const onKey = e => { if (e.key === 'Escape') close(); };
-  document.addEventListener('keydown', onKey);
+  let sending = false;
+  // Inside this dialog only: two review items open at once carry the same ids, and the
+  // second one's fields would otherwise answer the first one's buttons.
+  const mine = sel => box.querySelector(sel);
   box.addEventListener('click', e => { if (e.target === box || e.target.dataset.close !== undefined) close(); });
   box.querySelectorAll('#rv-choices button').forEach(b => b.addEventListener('click', () => {
     decision = b.dataset.d;
     box.querySelectorAll('#rv-choices button').forEach(x => x.classList.toggle('on', x === b));
-    $('rv-reason').style.display = decision === 'accepted' ? 'none' : '';
+    mine('#rv-reason').style.display = decision === 'accepted' ? 'none' : '';
     box.querySelectorAll('.pv').forEach(i => { i.disabled = decision !== 'corrected'; });
-    $('rv-submit').disabled = false;
-    if (decision !== 'accepted') $('rv-rationale').focus();
+    mine('#rv-submit').disabled = false;
+    if (decision !== 'accepted') mine('#rv-rationale').focus();
   }));
-  $('rv-submit').addEventListener('click', async () => {
-    const rationale = $('rv-rationale').value;
+  mine('#rv-submit').addEventListener('click', async () => {
+    // A second click while the first is in flight sends the same decision at the same
+    // version: the surface refuses it as stale, and the person is shown a red refusal for
+    // work that succeeded.
+    if (sending) return;
+    const rationale = mine('#rv-rationale').value;
     if (decision !== 'accepted' && !rationale.trim()) {
-      $('rv-rationale').focus();
+      mine('#rv-rationale').focus();
       return say('A ' + decision + ' decision needs a reason - there is no silent override.', 'bad');
     }
     let answer = null;
@@ -986,12 +1133,18 @@ async function review(runId, itemId) {
           : was === 'boolean' ? raw === 'true' : was === 'json' ? JSON.parse(raw || 'null') : raw;
       });
     }
+    sending = true;
+    mine('#rv-submit').disabled = true;
     try {
-      const r = await post(`/api/runs/${runId}/review/${itemId}/decide`,
+      const r = await post(`/api/runs/${encodeURIComponent(runId)}/review/${encodeURIComponent(itemId)}/decide`,
         {decision, expected_version: item.version, rationale, answer});
       close();
       say(`${decision}: ${item.question || itemId}` + (r.open_items ? ` (${r.open_items} still open)` : ' - the run resumes on the next sweep'), 'good');
-    } catch (e) { say(e.text || String(e), 'bad', e.code); }
+    } catch (e) {
+      sending = false;
+      mine('#rv-submit').disabled = false;
+      say(e.text || String(e), 'bad', e.code);
+    }
     refresh();
   });
 }
@@ -1002,7 +1155,10 @@ async function revealProposal(runId, itemId) {
   catch (e) { return say(e.text || String(e), 'bad', e.code); }
   const entries = Object.entries(p.proposal || {});
   const typeOf = v => typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : (v !== null && typeof v === 'object') ? 'json' : 'text';
-  $('rv-proposal').innerHTML = `<div class="section-label">What the system proposes${p.confidence !== null && p.confidence !== undefined ? ' &middot; confidence ' + Math.round(p.confidence * 100) + '%' : ''}</div>
+  const open = document.querySelector('.modal');
+  const into = open ? open.querySelector('#rv-proposal') : null;
+  if (!into) return;
+  into.innerHTML = `<div class="section-label">What the system proposes${p.confidence !== null && p.confidence !== undefined ? ' &middot; confidence ' + Math.round(p.confidence * 100) + '%' : ''}</div>
     ${entries.length ? `<dl class="kv">${entries.map(([k, v]) => `<dt>${esc(k.replace(/_/g, ' '))}</dt><dd>
       <input class="pv" data-key="${esc(k)}" data-type="${typeOf(v)}" disabled
        value="${esc(typeOf(v) === 'json' ? JSON.stringify(v) : v)}"></dd>`).join('')}</dl>`
@@ -1064,33 +1220,81 @@ async function paint(trace) {
     </div>`).join('') : '';
 }
 
+/* The step statuses the record uses - completed, failed, skipped, quarantined,
+   not_reached. `not_reached` is neutral on purpose: a step the run never got to is not a
+   step that passed, and it is not a step that failed either. */
+const STEP_TONE = {completed: 'good', failed: 'bad', quarantined: 'warn', skipped: '',
+  not_reached: ''};
+
+/* The steps of the plan, in order, with what each one cost in attempts. A step that was
+   tried twice and a step that ran once are not the same event. */
+function steps(run) {
+  const box = $('steps');
+  if (!box) return;
+  const rows = run.steps || [];
+  box.innerHTML = rows.length ? `<div class="section-label">Steps</div>` + rows.map(x => `<div class="r">
+     <span class="lbl">${esc(x.step_id)}<span class="sub" style="display:block">${esc(x.skill || x.kind)}</span></span>
+     ${x.attempts > 1 ? `<span class="sub" title="attempts">&times;${esc(x.attempts)}</span>` : ''}
+     <span class="pill ${STEP_TONE[x.status] ?? ''}">${esc(String(x.status).replace('_', ' '))}</span>
+    </div>`).join('') : '';
+}
+
+/* What a person settled, against what the system proposed - and whether they revealed the
+   proposal before deciding. The queue shows what is outstanding; this is the record of what
+   was answered, which is what a reviewer asks for afterwards. */
+async function decisions(id) {
+  const box = $('decisions');
+  if (!box) return;
+  const rows = await get(`/api/runs/${encodeURIComponent(id)}/decisions`).catch(() => []);
+  box.innerHTML = rows.length ? `<div class="section-label">Decided on this run</div>` + rows.map(d => `<div class="r">
+     <span class="lbl"><b>${esc(d.item_id)}</b>
+      <span class="d" style="display:block;white-space:normal">${esc(d.decision)} by ${esc(d.decided_by)} &middot; ${esc(ago(d.decided_at))}${d.rationale ? ' &middot; ' + esc(d.rationale) : ''}</span>
+      <span class="sub" style="display:block;white-space:normal">${d.revealed_at
+        ? 'proposal revealed' + (d.seconds_looking !== null && d.seconds_looking !== undefined ? ` ${esc(d.seconds_looking)}s before the decision` : '')
+        : 'decided without the proposal being revealed'}${d.writes_precedent ? ' &middot; written to precedent' : ''}</span></span>
+     <span class="pill ${d.decision === 'accepted' ? 'good' : d.decision === 'rejected' ? 'bad' : 'warn'}">${esc(d.decision)}</span>
+    </div>`).join('') : '';
+}
+
 /* What the run delivered, where it went, and a download of exactly what was released. */
 async function deliverables(id) {
   const box = $('deliverables');
   if (!box) return;
-  const files = (await get(`/api/runs/${id}/artifacts`).catch(() => []))
-    .filter(a => a.path && !/manifest|\\.json$/i.test(a.name));
+  const all = await get(`/api/runs/${encodeURIComponent(id)}/artifacts`).catch(() => []);
+  const files = all.filter(a => a.path && !/manifest|\\.json$/i.test(a.name));
+  const record = all.filter(a => a.path && /manifest/i.test(a.name));
   box.innerHTML = files.length ? `<div class="section-label" style="margin-top:.2rem">Delivered</div>` + files.map(a => `<div class="r">
      <span class="lbl"><b>${esc(a.name)}</b><span class="sub" style="display:block;white-space:normal">${esc(a.path)} &middot; ${esc(ago(a.written_at))}</span></span>
      <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>`).join('') : '';
+  box.innerHTML += record.length ? `<div class="section-label" style="margin-top:.2rem">Record</div>` + record.map(a => `<div class="r">
+     <span class="lbl"><b>Run manifest</b><span class="sub" style="display:block;white-space:normal">what was in context, which model, which skill versions, what each guard said</span></span>
+     <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>`).join('') : '';
 }
 
+let OPENING = 0;
 async function open_(id) {
+  // Two clicks in quick succession used to leave the first run's stream open for ever - the
+  // second closed nothing, because the first had not assigned it yet - and could paint the
+  // first run's spend beside the second run's name.
+  const mine = ++OPENING;
   if (source) { source.close(); source = null; }
   current = id;
   history.replaceState(null, '', '#' + encodeURIComponent(id));
-  document.querySelectorAll('#runs .r').forEach(el => el.classList.toggle('on', el.getAttribute('onclick') === `open_('${id}')`));
+  // By the id the row carries, not by the text of a handler that no longer exists - and
+  // an id with an `&` in it used to match nothing, so the selection never moved.
+  document.querySelectorAll('#runs .r').forEach(el => el.classList.toggle('on', el.dataset.run === id));
   let run;
-  try { run = await get('/api/runs/' + id); }
+  try { run = await get('/api/runs/' + encodeURIComponent(id)); }
   catch (e) { return say(e.text || String(e), 'bad', e.code); }
   const row = RUNS.find(r => r.run_id === id) || {};
 
+  if (mine !== OPENING) return;
   const c = run.scorecard;
   $('detail-why').textContent = (row.client ? row.client + ' — ' : '') + (run.engagement_id || '') + ' — ' + id;
   $('card').innerHTML =
     `<div class="r" style="border:0;padding:0 0 .4rem">
       <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot"></i>${esc(run.state)}</span>
-       ${(c.in_progress ? 'in progress' : c.verdict) !== run.state ? `<span class="pill ${c.in_progress ? 'accent' : c.verdict === 'clean' ? 'good' : c.verdict === 'halted' ? 'bad' : 'warn'}" title="the scorecard's verdict">${c.in_progress ? 'in progress' : esc(c.verdict)}</span>` : ''}</span>
+       ${(c.in_progress ? 'in progress' : c.verdict) !== run.state ? `<span class="pill ${c.in_progress ? 'accent' : VERDICT_TONE[c.verdict] ?? ''}" title="${esc(c.in_progress ? 'still running' : (VERDICT_SAYS[c.verdict] || "the scorecard's verdict"))}">${c.in_progress ? 'in progress' : esc(c.verdict)}</span>` : ''}</span>
       <span id="run-actions"></span></div>
      ${run.state_reason ? `<p class="note" style="margin:.1rem 0 .2rem">${esc(STATE_SAYS[run.state] ? STATE_SAYS[run.state] + '.' : '')}</p>
       ${run.state_reason.length > 160
@@ -1099,17 +1303,24 @@ async function open_(id) {
      <dl class="kv" style="margin-bottom:.4rem">
       <dt>Started</dt><dd>${esc((run.started_at || '').slice(0, 16).replace('T', ' '))} <span class="sub">(${esc(ago(run.started_at))})</span></dd>
       ${run.ended_at ? `<dt>Ended</dt><dd>${esc(run.ended_at.slice(0, 16).replace('T', ' '))}</dd>` : ''}
-      <dt>Model spend</dt><dd>${esc(usd(run.spend ? run.spend.usd : run.cost_usd))} <span class="sub">&middot; ${esc(run.spend ? run.spend.model_calls : run.model_calls)} calls</span></dd>
+      ${(run.versions || {}).model_pin ? `<dt>Model</dt><dd class="mono" title="the pin this run holds">${esc(run.versions.model_pin)}</dd>` : ''}
+      <dt>Model spend</dt><dd>${esc(usd(run.spend ? run.spend.usd : run.cost_usd))}${run.budget_usd ? ` <span class="sub">of ${esc(usd(run.budget_usd))}</span>` : ''} <span class="sub">&middot; ${esc(run.spend ? run.spend.model_calls : run.model_calls)} calls</span></dd>
+      ${run.superseded_by ? `<dt>Replaced by</dt><dd><a href="#${encodeURIComponent(run.superseded_by)}" data-act="open" data-run="${esc(run.superseded_by)}">${esc(run.superseded_by)}</a> <span class="sub">&middot; a newer file covers this work</span></dd>` : ''}
       ${row.open_review_items ? `<dt>Waiting on you</dt><dd><span class="count">${row.open_review_items}</span></dd>` : ''}
      </dl>
+     <div id="steps"></div>
+     <div id="decisions"></div>
      <div id="deliverables"></div>
-     <details><summary>Scorecard &mdash; ${esc(c.criteria.filter(x => x.status === 'pass').length)} of ${esc(c.criteria.length)} criteria met <span class="mono">(${esc(c.criteria_version)})</span></summary>` +
+     <details><summary>Scorecard &mdash; ${esc(c.criteria.filter(x => x.status === 'pass').length)} passed &middot; ${esc(c.criteria.filter(x => x.status === 'fail').length)} failed &middot; ${esc(c.criteria.filter(x => x.status !== 'pass' && x.status !== 'fail').length)} never measured <span class="mono">(${esc(c.criteria_version)})</span></summary>` +
     c.criteria.map(x => `<div class="r">
-      <span class="lbl">${esc(x.label)}</span>
+      <span class="lbl">${esc(x.label)}
+       ${(x.exceptions || []).length ? `<span class="d" style="display:block;white-space:normal">${(x.exceptions || []).map(e => esc(typeof e === 'string' ? e : JSON.stringify(e))).join('<br>')}</span>` : ''}</span>
       <span class="sub mono">${esc(x.measured)}</span>
-      <span class="pill ${x.status === 'pass' ? 'good' : x.status === 'fail' ? 'bad' : ''}">${esc(x.status.replace('_', ' '))}</span>
+      <span class="pill ${x.status === 'pass' ? 'good' : x.status === 'fail' ? 'bad' : 'warn'}">${esc(x.status.replace('_', ' '))}</span>
      </div>`).join('') + '</details>';
   actions(row.run_id ? row : run);
+  steps(run);
+  decisions(id);
   deliverables(id);
 
   $('feed').innerHTML = '';
@@ -1119,24 +1330,26 @@ async function open_(id) {
   // The stream replays the record, then follows the bus while the run is live. A run
   // that has ended closes its stream - and a browser reconnects a closed EventSource on
   // its own, replaying the whole history into the feed again. So the page closes it.
-  const stream = new EventSource('/api/runs/' + id + '/stream');
-  source = stream;
   const seen = new Set();
-  stream.addEventListener('replayed', e => {
-    const ended = Boolean(run.ended_at) || ['halted', 'delivered', 'released', 'superseded'].includes(run.state);
-    $('feed-src').textContent = 'Replayed through event ' + JSON.parse(e.data).event.through +
-      (ended ? ' — the run has ended.' : ' — following live.');
-    if (ended) stream.close();
-  });
-  stream.onerror = () => {
-    stream.close();
-    if (source === stream) $('feed-src').textContent = 'Stream closed. The run ended, or the console lost the bus — runs continue either way.';
-  };
-  const handler = e => {
-    if (source !== stream) return;
+  const ended = () => Boolean(run.ended_at) || ['halted', 'delivered', 'released', 'superseded'].includes(run.state);
+  let through = 0, attempts = 0;
+
+  const handler = stream => e => {
+    if (source !== stream || mine !== OPENING) return;
     const d = JSON.parse(e.data), ev = d.event;
+    if (d.type === 'replayed') {
+      through = ev.through || through;
+      $('feed-src').textContent = 'Replayed through event ' + through +
+        (ended() ? ' — the run has ended.' : ' — following live.');
+      // A browser reconnects a closed EventSource by itself and replays the whole history
+      // into the feed again, so a run that has ended closes its own stream.
+      if (ended() && source) source.close();
+      return;
+    }
+    attempts = 0;
     if (!ev.type || seen.has(ev.event_id || ev.seq)) return;
     seen.add(ev.event_id || ev.seq);
+    if (ev.seq) through = Math.max(through, ev.seq);
     const bad = ev.type.endsWith('fail') || ev.type.startsWith('alert.');
     const line = document.createElement('div');
     line.className = 'r';
@@ -1145,15 +1358,35 @@ async function open_(id) {
        ${ev.node_id ? `<span class="sub">&middot; ${esc(ev.node_id)}</span>` : ''}
        ${ev.message ? `<span class="d">${esc(ev.message)}</span>` : ''}</span>`;
     $('feed').prepend(line);
+    // A long run emits thousands of events; the feed is what is happening now, not a log.
+    while ($('feed').childElementCount > 300) $('feed').lastElementChild.remove();
     paint(d.trace);
   };
-  const known = ['step.started', 'step.completed', 'skill.dispatched', 'skill.completed',
-    'hitl.item.queued', 'hitl.item.decided', 'release.written', 'run.scored',
-    'run.manifest.written', 'budget.ceiling_crossed', 'alert.run_silent',
-    'alert.review_overdue', 'alert.step_overdue', 'alert.guard_repeating'];
-  const events = await get('/api/runs/' + id + '/events').catch(() => []);
-  const types = new Set(events.map(e => e.type).concat(known));
-  for (const t of types) stream.addEventListener(t, handler);
+
+  const connect = () => {
+    const stream = new EventSource('/api/runs/' + encodeURIComponent(id) + '/stream?since=' + through);
+    source = stream;
+    stream.addEventListener(FRAME, handler(stream));
+    stream.onerror = () => {
+      stream.close();
+      if (source !== stream || mine !== OPENING) return;
+      if (ended()) {
+        $('feed-src').textContent = 'The run has ended; the feed is what it did.';
+        return;
+      }
+      // A restart, a sleeping laptop or a dropped connection. Resuming from the last event
+      // seen, rather than replaying the run from the top or going quietly still.
+      if (++attempts > 5) {
+        $('feed-src').textContent = 'Lost the live feed after ' + attempts +
+          ' attempts. The run carries on; reopen it to try again.';
+        return;
+      }
+      $('feed-src').textContent = 'Lost the live feed — trying again (' + attempts + ')…';
+      setTimeout(() => { if (source === stream && mine === OPENING) connect(); },
+        Math.min(1000 * Math.pow(2, attempts - 1), 10000));
+    };
+  };
+  connect();
 }
 
 /* A link to a run is a link to this page with the run in the fragment, so one can be
@@ -1171,7 +1404,7 @@ refresh().then(() => {
   else if (wanted) open_(wanted);
   else if (first) open_(first.run_id);
 });
-setInterval(refresh, 5000);
+poll(refresh, 5000);
 </script>
 """
 )

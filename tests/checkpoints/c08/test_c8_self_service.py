@@ -183,7 +183,9 @@ def test_a_new_engagement_is_set_up_without_code_and_its_run_is_observable_from_
     assert page["trace"]["nodes"] == {k: str(v) for k, v in replayed.nodes.items()}
     with api.stream("GET", f"/api/runs/{run_id}/stream") as response:
         body = "".join(response.iter_text())
-    assert body.rstrip().endswith("}") and "event: replayed" in body
+    # One frame name for every event, with the type in the body: a browser delivers a named
+    # frame only to a listener registered for that name, and no page can know every type.
+    assert body.rstrip().endswith("}") and '"type": "replayed"' in body
     assert body.count("event: ") == len(store.events(run_id)) + 1
 
     # ---- and the setup is recoverable from the record, not from anyone's memory ----

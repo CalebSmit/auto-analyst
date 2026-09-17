@@ -1442,6 +1442,70 @@
       ],
       "notes": "",
       "closed": "2026-09-17"
+    },
+    {
+      "id": "P44",
+      "title": "The dashboards tell the truth",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "What a person reads off a dashboard is what the record says - the right colour for the verdict, a denominator under every claim, the decisions that were made, the model that made them, and no question asked about work that has been superseded.",
+      "builds": [],
+      "tasks": [
+        "The scorecard verdict is coloured from the verdicts the scorecard actually emits (pass, pass_with_exceptions, partial, blocked, halted), from one table shared with the run states",
+        "Empty states branch on whether there is a denominator: no run has reached a proposal is not the same sentence as every proposal was inside the bar",
+        "A decision trail: GET /api/runs/{id}/decisions, and a panel on the run detail saying who decided what, what was proposed, the reason, and whether the proposal was revealed before the decision",
+        "Open review items on a superseded run leave the inbox, and the run says what replaced it",
+        "The run detail carries the model pin, the steps with their attempts, spend against the budget ceiling, and the run manifest as a record rather than a deliverable",
+        "Resuming a quarantined run requires a reason, as halting one does",
+        "The composition root passes the console its blobs, queue and scope, and the sweep loop - not a browser - raises stall alerts and escalates overdue review items"
+      ],
+      "exit": [
+        "Every verdict the scorecard can emit maps to a tone, and a passing run is not painted as needing attention",
+        "No empty state claims a rate or an absence that has no denominator behind it",
+        "A run's decisions are readable over HTTP and on the page, with the reveal recorded beside each",
+        "An item on a superseded run is not offered for answering",
+        "Alerts and SLA escalation happen with no browser open"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p44 -q",
+        "python -m uv run pytest tests/p23 tests/p24 tests/p42 tests/p43 tests/regression -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ui tools ports"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P45",
+      "title": "Safe to leave open",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The console can be left open on a working machine: nothing a client's file carries can run in it, nothing but this machine can drive it, and when something breaks it says so instead of looking idle.",
+      "builds": [],
+      "tasks": [
+        "esc() escapes the quote characters, ids reach handlers through data attributes rather than generated inline script, and every id in a URL is encoded",
+        "Identity middleware travels with the ops routes; the Host is checked; a cross-origin request is refused; the model door's scan covers everything the adapter sends",
+        "uvicorn is given proxy_headers=False, so the peer address cannot be rewritten by a header",
+        "A failed load says so and keeps what it had: no empty state stands in for a server that cannot be reached, and no panel is left shimmering",
+        "One modal helper in the theme: scoped ids, one dialog at a time, a submit that cannot be double-sent, Escape, focus in and back out, and its listener removed",
+        "Rows are reachable by keyboard, the toast is announced, and the layout has a breakpoint below which it scrolls in one column"
+      ],
+      "exit": [
+        "No page builds a script handler out of data, and esc() escapes every character that could close one",
+        "A request with a foreign Host or Origin is refused, and the ops routes carry the identity check on their own",
+        "When a load fails the page says so, and no empty state or skeleton stands in for it",
+        "A dialog opened over another does not take the first one's fields, and a decision cannot be sent twice"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p45 -q",
+        "python -m uv run pytest tests/p42 tests/p43 tests/p44 tests/p36 tests/regression -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ui tools ports"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
     }
   ],
   "checkpoints": [
@@ -1663,6 +1727,17 @@
       "proves": "A setting written only in .env reaches the composed server, a person sets up a watch and destination and adds a client's file from the page into the folder the sweep reads, recorded against them, and Help is served beside every console",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c20 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C21",
+      "title": "The dashboards, reviewed",
+      "after": "P45",
+      "status": "done",
+      "proves": "A request under another name is refused before a route runs, reading the console writes nothing, a run's decisions are readable with the reveal beside each, an item on a replaced run is asked of nobody, and every served page says when it cannot reach the server",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c21 -q"
       ],
       "closed": "2026-09-17"
     }

@@ -207,6 +207,32 @@ select{width:auto;padding:.3rem .5rem;margin:0}
  background-size:200% 100%;animation:sh 1.3s ease-in-out infinite;margin:.6rem 0}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
+/* --------------------------------------------------- narrower than a desk */
+/* One screen, no scrolling, is the rule at desk width. Below it the same rule hides
+   whatever does not fit, with no way to reach it: so the board becomes one column, the
+   cards take their own height, and the page scrolls like a page. */
+@media (max-width:1100px){
+ html,body{overflow:auto}
+ .wrap{overflow:visible}
+ .board{display:block!important}
+ .board>.card{margin-bottom:.9rem}
+ .card .body{max-height:none}
+ .chrome{flex-wrap:wrap;gap:.3rem .8rem}
+ .page-head{flex-direction:column;align-items:flex-start;gap:.2rem}
+}
+@media (max-width:640px){
+ .wrap{padding-left:16px;padding-right:16px}
+ .r{flex-wrap:wrap;gap:.3rem}
+ .modal .card{width:auto;max-width:none;margin:0 .6rem}
+}
+
+/* ------------------------------------------------------------- offline */
+#offline{display:none;margin:0 0 .7rem;padding:.55rem .8rem;border-radius:8px;
+ border:1px solid var(--brand-s2);background:color-mix(in srgb,var(--brand-s2) 12%,var(--paper));
+ color:var(--navy);font-size:.88rem}
+#offline.on{display:block}
+#offline .code{margin-left:.4rem;font-family:var(--mono);font-size:.78rem;color:var(--ink-3)}
+
 /* ---------------------------------------------------------------- toast */
 #toast{position:fixed;left:50%;bottom:1.6rem;transform:translate(-50%,14px);z-index:60;
  max-width:min(680px,92vw);padding:.7rem 1.1rem;border-radius:var(--radius);
@@ -312,18 +338,67 @@ details>summary:hover{color:var(--navy)}
 SHELL = """<script>
 // The three things every page does: escape, format, and say what happened.
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s ?? '').replace(/[&<>"'`]/g,
+  c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
 const pct = v => (v === null || v === undefined)
   ? '<span style="color:var(--ink-4)">not yet</span>' : (v * 100).toFixed(1) + '%';
 const num = (v, dash = 'not yet') => (v === null || v === undefined)
   ? '<span style="color:var(--ink-4)">' + dash + '</span>' : esc(v);
 const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+/* `data-` attributes from an object, escaped: how a value reaches a handler. */
+const data = o => Object.entries(o || {}).map(([k, v]) => ` data-${k}="${esc(v)}"`).join('');
+
+/* What a row or a button does, by name. A row carries `data-act` and its values in
+   other data attributes; nothing interpolates a value into script, so a client's
+   apostrophe cannot close anything and a client's file cannot open anything.
+
+   One listener on the document, so rows redrawn on the next poll keep working without
+   being rebound - and the same listener answers Enter and Space, which is how anybody
+   working from the keyboard reaches a row at all. */
+const ACTIONS = {};
+function _fire(ev) {
+  const el = ev.target.closest('[data-act]');
+  if (!el || !ACTIONS[el.dataset.act]) return;
+  if (ev.type === 'keydown') {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    if (ev.target.closest('input,textarea,select')) return;
+  }
+  ev.preventDefault();
+  ev.stopPropagation();
+  ACTIONS[el.dataset.act](el.dataset, el, ev);
+}
+document.addEventListener('click', _fire);
+document.addEventListener('keydown', _fire);
+
+/* The server, when a page cannot reach it. Said once and left standing - not toasted every
+   few seconds - and taken down as soon as a load succeeds. The page keeps whatever it had:
+   stale numbers with a date on them beat an empty page that reads as "nothing to do". */
+let OFFLINE_SINCE = null;
+function offline(err) {
+  if (OFFLINE_SINCE === null) OFFLINE_SINCE = new Date();
+  const bar = $('offline');
+  if (!bar) return;
+  const when = OFFLINE_SINCE.toTimeString().slice(0, 5);
+  bar.className = 'on';
+  bar.setAttribute('role', 'alert');
+  bar.innerHTML = `<b>This page cannot reach the server</b> &mdash; nothing below has changed
+    since ${esc(when)}. Runs carry on without it; this page only reads.
+    ${err && err.code ? `<span class="code">${esc(err.code)}</span>` : ''}`;
+}
+function online() {
+  OFFLINE_SINCE = null;
+  const bar = $('offline');
+  if (bar) { bar.className = ''; bar.innerHTML = ''; }
+}
 
 let toastTimer = null;
 function say(message, kind, code) {
   const box = $('toast');
   if (!box) return;
   box.className = kind || '';
+  // A refusal is the one signal that a form was rejected; announced, not only shown.
+  box.setAttribute('role', kind === 'bad' ? 'alert' : 'status');
+  box.setAttribute('aria-live', kind === 'bad' ? 'assertive' : 'polite');
   box.innerHTML = esc(message) + (code ? '<span class="code">' + esc(code) + '</span>' : '');
   box.classList.add('on');
   clearTimeout(toastTimer);
@@ -370,6 +445,28 @@ const usd = v => (v === null || v === undefined) ? '' : '$' + Number(v).toFixed(
 // A question asked in the page rather than in a browser pop-up: it can explain itself, it
 // can require a reason, and it does not block everything else on the screen. Resolves to
 // the answers by field name, or null if the person cancelled.
+/* Open a dialog: at most one, with the focus moved into it and given back afterwards.
+
+   Each modal used to add its own keydown listener to the document and some of its close
+   paths bypassed the cleanup, so cancelling a dialog ten times left ten dead listeners, each
+   holding a detached page. This is the one place any of that is written. */
+function openModal(box) {
+  document.querySelectorAll('.modal').forEach(m => m.remove());
+  const came_from = document.activeElement;
+  const onKey = e => { if (e.key === 'Escape') shut(); };
+  const shut = () => {
+    document.removeEventListener('keydown', onKey);
+    box.dispatchEvent(new CustomEvent('modal-closed'));
+    box.remove();
+    if (came_from && came_from.focus) came_from.focus();
+  };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(box);
+  const first = box.querySelector('input,textarea,select,button');
+  if (first) first.focus();
+  return shut;
+}
+
 function ask({title, why = '', body = '', fields = [], ok = 'Continue', danger = false, note = ''}) {
   return new Promise(resolve => {
     const box = document.createElement('div');
@@ -388,34 +485,60 @@ function ask({title, why = '', body = '', fields = [], ok = 'Continue', danger =
       <div class="foot"><button class="quiet" data-act="cancel">Cancel</button>
        <button class="primary" data-act="ok"${danger ? ' style="background:var(--bad);border-color:var(--bad)"' : ''}>${esc(ok)}</button></div>
     </section>`;
-    const finish = value => { box.remove(); document.removeEventListener('keydown', onKey); resolve(value); };
+    // Inside this dialog, never by document id: two dialogs carry the same field ids, and
+    // getElementById answers with whichever came first in the document - which is how the
+    // visible dialog ends up reading the hidden one's fields.
+    const field = n => box.querySelector('#ask_' + n);
+    let shut = null;
+    const finish = value => { if (shut) shut(); resolve(value); };
     const submit = () => {
       const out = {};
       for (let n = 0; n < fields.length; n++) {
-        const v = $('ask_' + n).value;
+        const v = field(n).value;
         if (fields[n].required && !String(v).trim()) {
-          $('ask_' + n).focus();
+          field(n).focus();
           return say(fields[n].label + ' is needed - it is recorded with the change.', 'bad');
         }
         out[fields[n].name] = v;
       }
       finish(out);
     };
-    const onKey = e => {
-      if (e.key === 'Escape') finish(null);
+    box.addEventListener('keydown', e => {
       if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submit();
-    };
+    });
     box.addEventListener('click', e => {
       if (e.target === box) finish(null);
       const act = e.target.dataset && e.target.dataset.act;
       if (act === 'cancel') finish(null);
       if (act === 'ok') submit();
     });
-    document.addEventListener('keydown', onKey);
-    document.body.appendChild(box);
+    shut = openModal(box);
+    // Escape closes through openModal, which cannot know this dialog answers a promise.
+    box.addEventListener('modal-closed', () => resolve(null));
     const first = box.querySelector('input,textarea,select,button.primary');
     if (first) first.focus();
   });
+}
+
+/* Poll something, politely: never twice at once, never while the tab is hidden, and more
+   slowly each time the server does not answer - up to half a minute, back to normal the
+   moment it does. A tab left open all day used to make about fifty thousand requests, and
+   a dead server was asked at full rate for as long as the page was open. */
+function poll(fn, ms) {
+  let failures = 0, running = false, timer = null;
+  const tick = async () => {
+    if (running) return;
+    if (document.hidden) return arm(ms);
+    running = true;
+    try { await fn(); failures = 0; }
+    catch (e) { failures++; }
+    finally { running = false; }
+    arm(Math.min(ms * Math.pow(2, Math.min(failures, 3)), Math.max(ms, 30000)));
+  };
+  const arm = delay => { clearTimeout(timer); timer = setTimeout(tick, delay); };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+  arm(ms);
+  return tick;
 }
 
 // What is waiting on a person, on every page: a count on the Activity tab, and in the
@@ -433,7 +556,7 @@ async function waiting() {
   document.title = (n ? '(' + n + ') ' : '') + BASE_TITLE;
 }
 waiting();
-setInterval(waiting, 20000);
+poll(waiting, 20000);
 
 async function act(run, done) {
   try { await run(); say(done, 'good'); await refresh(); }

@@ -42,6 +42,7 @@ PAGE = f"""<!doctype html>
 </style>
 {shell("Setup", "/admin")}
 <div class="wrap">
+ <div id="offline"></div>
  <div class="page-head">
   <h1>Setup</h1>
   <p>Everything the system needs before it can look at a client&rsquo;s files. Every change
@@ -165,24 +166,27 @@ function checklist() {{
     {{done: watches > 0, t: 'Say which folder to watch',
       d: watches ? (SETUP.watches || []).map(w => w.name + ' (' + (w.root || 'the whole inbox') + ')').join('; ')
                  : 'The folder client files arrive in' + (SETUP && SETUP.inbox_root ? ', under ' + SETUP.inbox_root : '') + '.',
-      go: configured && !watches ? ['Choose a folder', 'addWatch()'] : null}},
+      go: configured && !watches ? ['Choose a folder', 'addWatch'] : null}},
     {{done: dests > 0, t: 'Say where deliverables go',
       d: dests ? (SETUP.destinations || []).map(d => d.name + ' (' + (d.path || 'the outbox') + ')').join('; ')
                : 'The folder a finished workbook is written to' + (SETUP && SETUP.outbox_root ? ', under ' + SETUP.outbox_root : '') + '.',
-      go: configured && watches && !dests ? ['Choose a folder', 'addDestination()'] : null}},
+      go: configured && watches && !dests ? ['Choose a folder', 'addDestination'] : null}},
     {{done: cleared, t: 'Clear the methodology',
       d: cleared ? 'All ' + files.length + ' files read and cleared'
                  : 'Somebody reads each file once. Runs are blocked until they have.',
       go: configured && !cleared && files.some(f => f.state !== 'cleared')
-        ? ['Read the next one', `clearFile('${{esc((files.find(f => f.state !== 'cleared') || {{}}).name || '')}}')`] : null}},
+        ? ['Read the next one', 'clearFile',
+           {{name: (files.find(f => f.state !== 'cleared') || {{}}).name || ''}}] : null}},
     {{done: roster.length > 0, t: 'Register an engagement',
       d: roster.length ? plural(roster.length, 'engagement', 'engagements') + ' on the roster'
                        : 'The client work itself, and the practice group it belongs to.',
-      go: (configured && watches && dests && !roster.length) ? ['Add one', 'showAdd()'] : null}},
+      go: (configured && watches && dests && !roster.length) ? ['Add one', 'showAdd'] : null}},
     {{done: active > 0, t: 'Activate it',
       d: active ? plural(active, 'engagement active', 'engagements active')
                 : 'Preflight has to pass for it first. Until then nothing is read.',
-      go: roster.length && !active ? ['Activate ' + roster[0].engagement_id, `move('${{esc(roster[0].engagement_id)}}','activate')`] : null}},
+      go: roster.length && !active
+        ? ['Activate ' + roster[0].engagement_id, 'move',
+           {{id: roster[0].engagement_id, to: 'activate'}}] : null}},
   ];
   const next = steps.findIndex(s => !s.done);
   const done = steps.filter(s => s.done).length;
@@ -198,14 +202,37 @@ function checklist() {{
     steps.map((s, i) => `<div class="step ${{s.done ? 'done' : ''}} ${{i === next ? 'now' : ''}}">
        <span class="mark">${{s.done ? '&#10003;' : i + 1}}</span>
        <span><span class="t">${{esc(s.t)}}</span><span class="d">${{esc(s.d)}}</span></span>
-       ${{s.go && i === next ? `<span class="go"><button class="primary" onclick="${{s.go[1]}}">${{esc(s.go[0])}}</button></span>` : ''}}
+       ${{s.go && i === next ? `<span class="go"><button class="primary" data-act="${{esc(s.go[1])}}"${{data(s.go[2])}}>${{esc(s.go[0])}}</button></span>` : ''}}
       </div>`).join('') + '</div>';
 }}
 
+/* What a button does, by name. The values ride in data attributes: an engagement id, a
+   client's folder and a methodology filename are all free text, and none of them is
+   allowed to become script. */
+ACTIONS.addWatch = () => addWatch();
+ACTIONS.addDestination = () => addDestination();
+ACTIONS.showAdd = () => showAdd();
+ACTIONS.clearFile = d => clearFile(d.name);
+ACTIONS.move = d => move(d.id, d.to);
+ACTIONS.showFiles = d => showFiles(d.id);
+ACTIONS.settings = d => settings(d.id);
+ACTIONS.setRecipe = d => setRecipe(d.id, d.recipe);
+ACTIONS.editProfile = d => editProfile(d.id);
+ACTIONS.copyText = d => copyText(d.text);
+ACTIONS.activateFrom = (d, el) => {{ el.closest('.modal').remove(); move(d.id, 'activate'); }};
+
 /* ---------------------------------------------------------------- panels */
 async function refresh() {{
-  try {{ SETUP = await get('/api/admin/setup'); }}
-  catch (e) {{ SETUP = null; }}
+  try {{
+    SETUP = await get('/api/admin/setup');
+    online();
+  }} catch (e) {{
+    // A machine nobody has configured yet answers with a refusal, and that is not the same
+    // as a server nobody can reach: the first is this page's whole purpose, the second
+    // means nothing below can be trusted.
+    SETUP = null;
+    if (!e || !e.code) offline(e);
+  }}
 
   ME = await get('/api/admin/whoami').catch(() => null);
   $('chrome-right').innerHTML =
@@ -230,16 +257,16 @@ function roster() {{
   $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r">
      <span class="lbl"><b>${{esc(r.client || r.engagement_id)}}</b><br>
       <span class="sub" style="white-space:normal">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>
-      ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" onclick="editProfile('${{esc(r.engagement_id)}}');return false" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}</span>
+      ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}</span>
      <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
      <span>
-      <button class="quiet" onclick="showFiles('${{esc(r.engagement_id)}}')" title="Where this engagement's files go, what is there, and adding more">files</button>
-      <button class="quiet" onclick="settings('${{esc(r.engagement_id)}}')" title="Budget, review level and how long files are held before a run">settings</button>
-      <button class="quiet" onclick="setRecipe('${{esc(r.engagement_id)}}','${{esc(r.recipe || '')}}')">workflow</button>
-      <button class="quiet" onclick="editProfile('${{esc(r.engagement_id)}}')">profile</button>
+      <button class="quiet" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</button>
+      <button class="quiet" data-act="settings" data-id="${{esc(r.engagement_id)}}" title="Budget, review level and how long files are held before a run">settings</button>
+      <button class="quiet" data-act="setRecipe" data-id="${{esc(r.engagement_id)}}" data-recipe="${{esc(r.recipe || '')}}">workflow</button>
+      <button class="quiet" data-act="editProfile" data-id="${{esc(r.engagement_id)}}">profile</button>
       ${{r.state === 'active'
-        ? `<button onclick="move('${{esc(r.engagement_id)}}','pause')">Pause</button>`
-        : `<button class="primary" onclick="move('${{esc(r.engagement_id)}}','activate')">Activate</button>`}}
+        ? `<button data-act="move" data-id="${{esc(r.engagement_id)}}" data-to="pause">Pause</button>`
+        : `<button class="primary" data-act="move" data-id="${{esc(r.engagement_id)}}" data-to="activate">Activate</button>`}}
      </span></div>`).join('')
    : '<div class="empty"><b>No engagements yet</b>An engagement is one piece of client work.</div>';
 }}
@@ -275,7 +302,11 @@ async function preflight() {{
 }}
 
 async function scopes() {{
-  SCOPES = await get('/api/admin/scopes');
+  try {{ SCOPES = await get('/api/admin/scopes'); }}
+  catch (e) {{
+    $('scopes').innerHTML = '<div class="empty"><b>Not read</b>' + esc((e && e.text) || 'the practice groups could not be read') + '</div>';
+    return;
+  }}
   $('scopes').innerHTML =
     '<div class="r head"><span class="lbl">Practice group</span><span class="sub">Skills</span></div>' +
     SCOPES.paths.map(p => `<div class="r"><span class="lbl mono">${{esc(p.scope_path)}}</span>
@@ -292,7 +323,7 @@ function methodology() {{
      <span class="lbl mono">${{esc(f.name)}}</span>
      <span class="sub">${{esc(f.cleared_by || '')}}</span>
      <span class="pill ${{f.state === 'cleared' ? 'good' : f.state === 'edited' ? 'bad' : 'warn'}}">${{f.state === 'edited' ? 'edited since' : esc(f.state)}}</span>
-     ${{f.state === 'cleared' ? '' : `<button onclick="clearFile('${{esc(f.name)}}')">Clear</button>`}}
+     ${{f.state === 'cleared' ? '' : `<button data-act="clearFile" data-name="${{esc(f.name)}}">Clear</button>`}}
      </div>`).join('')
    : '<div class="empty"><b>No methodology files</b>They live in <span class="mono">foundations/</span>.</div>';
 }}
@@ -334,6 +365,10 @@ function showAdd() {{
       + (p.firm_layer_only ? '  (nothing defined yet)' : ''));
   $('e_watch').innerHTML = opts(SETUP ? SETUP.watches || [] : [], w => w.id, w => w.id + ' \\u2014 ' + (w.root || '/'));
   $('e_dest').innerHTML = opts(SETUP ? SETUP.destinations || [] : [], d => d.id, d => d.id + ' \\u2014 ' + (d.name || d.path || ''));
+  if (!SETUP) {{
+    return say('The environment has not been set up yet - do the first step on this page, '
+      + 'then add an engagement.', 'bad');
+  }}
   $('add-card').style.display = '';
   if ((SETUP.watches || []).length === 1) $('e_watch').value = SETUP.watches[0].id;
   if ((SETUP.destinations || []).length === 1) $('e_dest').value = SETUP.destinations[0].id;
@@ -387,7 +422,7 @@ async function showFiles(id) {{
     <div class="section-label">Where they go</div>
     <div class="excerpt" style="display:flex;gap:.6rem;align-items:center;box-shadow:inset 3px 0 0 var(--gold)">
      <span style="flex:1;min-width:0;overflow-wrap:anywhere">${{esc(f.absolute || f.relative)}}</span>
-     <button class="small" onclick="copyText(${{esc(JSON.stringify(f.absolute || f.relative))}})">Copy path</button></div>
+     <button class="small" data-act="copyText" data-text="${{esc(f.absolute || f.relative)}}">Copy path</button></div>
     ${{f.can_add ? `<div id="drop" tabindex="0" style="border:2px dashed var(--line);border-radius:var(--radius);padding:1.1rem;text-align:center;color:var(--ink-3);margin:.2rem 0 .8rem;cursor:pointer">
       <b style="color:var(--navy);font-weight:600">Drop client files here</b>, or click to choose them.<br>
       <span style="font-size:.84rem">Statements, trial balances, forecasts - as the client sent them. Nothing is renamed or opened here; the sweep reads them.</span>
@@ -399,7 +434,7 @@ async function showFiles(id) {{
       : '<div class="empty"><b>Nothing yet</b>The client&rsquo;s files will be listed here once they are in the folder.</div>'}}</div>
    </div>
    <div class="foot"><span class="spacer">Every file added here is recorded against your name.</span>
-    ${{f.state === 'paused' ? `<button onclick="this.closest('.modal').remove();move('${{esc(id)}}','activate')">Activate ${{esc(id)}}</button>` : ''}}
+    ${{f.state === 'paused' ? `<button data-act="activateFrom" data-id="${{esc(id)}}">Activate ${{esc(id)}}</button>` : ''}}
     <button class="primary" data-close>Done</button></div>
   </section>`;
   document.body.appendChild(box);

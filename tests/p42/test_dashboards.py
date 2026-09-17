@@ -88,11 +88,17 @@ def test_a_review_item_shows_the_source_before_the_proposal() -> None:
 
 def test_a_finished_runs_stream_is_closed_rather_than_replayed_forever() -> None:
     """A closed EventSource reconnects on its own and replays the run's whole history into
-    the feed again. The page closes it once the replay is done for a run that has ended, and
-    on any error, and ignores an event it has already shown."""
-    assert "if (ended) stream.close();" in ACTIVITY
-    assert "stream.onerror = () => {\n    stream.close();" in ACTIVITY
-    assert "seen.has(ev.event_id || ev.seq)" in ACTIVITY
+    the feed again. So the page closes the stream itself once a run that has ended has
+    finished replaying, and it never shows one event twice.
+
+    Written as what the page must do rather than as the lines it did it in: P45 rewrote this
+    block so a *live* run reconnects after a dropped connection, which is a different thing
+    from replaying a finished one - and a test should not confuse the two either.
+    """
+    body = scripts(ACTIVITY)
+    assert "if (ended() && source) source.close();" in body, "a finished run closes its own"
+    assert "seen.has(ev.event_id || ev.seq)" in body, "an event already shown is not shown twice"
+    assert "stream.onerror" in body, "and a dropped connection is noticed"
 
 
 def test_a_refused_action_is_said_not_swallowed() -> None:

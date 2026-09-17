@@ -40,6 +40,7 @@ PAGE = f"""<!doctype html>
 </style>
 {shell("Analytics", "/analytics")}
 <div class="wrap">
+ <div id="offline"></div>
  <div class="page-head">
   <h1>Analytics</h1>
   <p>Across every run rather than any one of them: whether this is working, and what to
@@ -116,7 +117,12 @@ function metric(k, v, caption, tone) {{
 async function refresh() {{
   let a;
   try {{ a = await get('/api/analytics?days=' + $('days').value); }}
-  catch (e) {{ return say(e.text || String(e), 'bad', e.code); }}
+  catch (e) {{
+    // Six loading skeletons and a toast that fades is a page that looks like it is still
+    // working. It is not, and it says so until a load succeeds.
+    return offline(e);
+  }}
+  online();
 
   $('chrome-right').innerHTML = 'since ' + esc(a.since);
   head(a.head);
@@ -287,6 +293,6 @@ function skills(rows) {{
 }}
 
 refresh();
-setInterval(refresh, 60000);
+poll(refresh, 60000);
 </script>
 """

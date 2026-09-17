@@ -13,16 +13,15 @@ from collections.abc import Callable
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-import ports
 from admin.console import AdminConsole, AdminRefused
 from admin.page import PAGE
 from intake.config import Destination, Watch
 from intake.roster import RosterEntry, RosterState
 from registries.errors import ADMIN_FORBIDDEN, DiagnosticError, diagnose  # noqa: F401
-from ui.who import who
+from ui.who import install_identity, who
 
 __all__ = ["create_admin_app", "install_identity", "who"]
 
@@ -128,30 +127,6 @@ class CredentialBody(Change):
     name: str
     purpose: str
     expires_on: str | None = None
-
-
-def install_identity(app: FastAPI, identity: Any | None = None) -> None:
-    """Resolve who is asking on every request to `app`, or refuse before a route runs.
-
-    Installed by the caller that assembles the application, because a router does not
-    carry its application\'s middleware: `tools/serve.py` puts both consoles on one app,
-    and this living on the admin app alone meant the combined one had no check at all.
-
-    On the request rather than in each handler for the same reason - a check twenty
-    handlers have to remember is a check one of them will not, and the one that forgets is
-    the one that writes to the record.
-    """
-    port = identity or ports.get_identity()
-
-    @app.middleware("http")
-    async def _who_is_asking(request: Request, call_next: Any) -> Any:
-        try:
-            request.state.identity = port.resolve(request.client.host if request.client else None)
-        except DiagnosticError as refused:
-            return JSONResponse(
-                status_code=401, content={"detail": {"refused": [refused.diagnostic.as_dict()]}}
-            )
-        return await call_next(request)
 
 
 def create_admin_app(console: AdminConsole, identity: Any | None = None) -> FastAPI:

@@ -815,3 +815,31 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C20 after P43, covering P43
 - proves: A setting written only in .env reaches the composed server, a person sets up a watch and destination and adds a client's file from the page into the folder the sweep reads, recorded against them, and Help is served beside every console
+
+## 2026-09-17 - P44 The dashboards tell the truth
+
+**Why:** Five reviews of the dashboards - a valuation MD, a frontend engineer, an AI architect, a working analyst and a security engineer - found the record holds far more than the screens show, and that three things on screen are not true: a clean run is painted in the colour that means 'needs attention', an empty Analytics page claims nothing has failed when nothing has run, and the inbox asks for answers on runs a newer file has already replaced.
+
+- phase added: P44 The dashboards tell the truth (Block J - Making it his, gate: auto)
+- exit criterion: Every verdict the scorecard can emit maps to a tone, and a passing run is not painted as needing attention
+- exit criterion: No empty state claims a rate or an absence that has no denominator behind it
+- exit criterion: A run's decisions are readable over HTTP and on the page, with the reveal recorded beside each
+- exit criterion: An item on a superseded run is not offered for answering
+- exit criterion: Alerts and SLA escalation happen with no browser open
+
+## 2026-09-17 - P45 Safe to leave open
+
+**Why:** The security review found the console trusts a request header for the only authentication input it has, accepts any Host so a page the operator visits can drive it by DNS rebinding, and renders client-file text into single-quoted inline handlers that esc() does not escape - which is stored XSS from a workbook, and breaks every button on a client called O'Brien. The engineer's review found the same escaping gap plus a set of failures that read as calm: a server that is down renders as 'no runs yet', a finished-looking page that has silently stopped streaming, and modals that wire themselves to each other's fields.
+
+- phase added: P45 Safe to leave open (Block J - Making it his, gate: auto)
+- exit criterion: No page builds a script handler out of data, and esc() escapes every character that could close one
+- exit criterion: A request with a foreign Host or Origin is refused, and the ops routes carry the identity check on their own
+- exit criterion: When a load fails the page says so, and no empty state or skeleton stands in for it
+- exit criterion: A dialog opened over another does not take the first one's fields, and a decision cannot be sent twice
+
+## 2026-09-17 - C21 The dashboards, reviewed
+
+**Why:** P44 and P45 answer five reviews of the dashboards: what they say is now what the record says, and the console is safe to leave open on a machine that holds client work. The join between the composition root, the run store and both consoles is where those changes meet.
+
+- checkpoint added: C21 after P45, covering P44, P45
+- proves: A request under another name is refused before a route runs, reading the console writes nothing, a run's decisions are readable with the reveal beside each, an item on a replaced run is asked of nobody, and every served page says when it cannot reach the server

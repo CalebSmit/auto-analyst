@@ -103,6 +103,11 @@ your name and keeps it.
 > machine that name is the operating-system user, and there are no accounts, because a
 > machine with one person on it does not need them.
 >
+> The server also answers only to this machine's own names, and refuses a request that
+> arrives under any other `Host` or from another page's `Origin`. That is not paranoia about
+> the network: a web page the browser happens to have open can reach `127.0.0.1`, and without
+> those two checks it could read every client name and download every released workbook.
+>
 > That is also why it binds to `127.0.0.1`. The local-user adapter **refuses any request
 > that did not come from this machine**, so binding the surface to a network address does
 > not quietly work: it needs an identity adapter that authenticates, which is the firm's
@@ -189,7 +194,9 @@ build* — that is the conversation to have, and it becomes a recipe with your n
    on the record, not learned.
 5. **Check the deliverable.** It arrives in the output folder as a workbook built from the
    firm's template, and the run's detail on Activity lists it under **Delivered** with a
-   **Download**. The download is checked against the digest recorded at release, so a file
+   **Download**, beside the run manifest under **Record**. The same detail says which model
+   produced it, what it spent against its ceiling, and - under **Decided on this run** -
+   every question a person answered, what was proposed, what they decided and why. The download is checked against the digest recorded at release, so a file
    edited in the outbox afterwards is refused rather than passed off as the deliverable.
    Every figure traces back to a source file, sheet and cell.
 
@@ -204,6 +211,18 @@ number or an EIN stops the run before it leaves, whether or not anyone declared 
 firm's own names — the reviewer on the engagement profile — are not client data and are
 not masked. A file with a sentence aimed at the model in it is refused at intake, and the
 run ends halted with that refusal as its reason.
+
+**What the run's own page tells you afterwards.** Under **Decided on this run**: every
+question a person answered, what the system had proposed, what they decided, their reason,
+and whether they revealed the proposal before deciding or not. That last one is there because
+a decision made without looking is a decision the record should be able to show. Beside it:
+which model produced the run, what it spent against its ceiling, each step and how many
+attempts it took, and - under **Record** - the run manifest.
+
+**One thing it does not do yet.** A correction or a rejection is recorded, and it teaches
+later runs through precedent. It does not amend *this* run's output: the step resumes from
+what the model first produced. That is on [`BUILD/OPEN.md`](../BUILD/OPEN.md) as a decision
+for the practice, and until it is answered the console does not claim otherwise.
 
 **What to do when it stops.** It stops rather than guesses, and it says why in words with
 a code — `CONFIG.METHODOLOGY_UNCLEARED`, `PRIVACY.UNMASKED_IDENTIFIER`. Every code carries
@@ -268,7 +287,7 @@ in that file; a group bound to nothing falls through to the firm's default.
 
 ### Preflight
 
-Thirteen checks over the live configuration, run before an engagement is activated and any
+Fourteen checks over the live configuration, run before an engagement is activated and any
 time you press the button. It is the difference between a setup mistake found now and a
 run that fails at three in the afternoon. Each failure names the engagement it blocks and
 what to do about it; a failure with no engagement named blocks everything.

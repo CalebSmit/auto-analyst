@@ -77,6 +77,12 @@ runs reach the review queue, get answered, resume and write precedent. Between t
 found twenty-three bugs the suite passed over. Run both after any change that touches
 intake, the driver, the guards or the consoles; a line marked FINDING is something to fix.
 
+The consoles answer only to this machine: the request gate in `ui/who.py` refuses a foreign
+`Host` or `Origin` before a route runs (a page the browser has open can reach `127.0.0.1`), and
+uvicorn is given `proxy_headers=False` so the peer address cannot be rewritten by a header.
+Pages build no handler out of data - values reach a handler through `data-` attributes and the
+`ACTIONS` table, because a client's line item is whatever the client typed.
+
 `serve.py` reads `.env` into the environment on start (the shell wins; `AA_NO_ENV_FILE=1`
 opts out, and the rehearsal sets it). Before that fix, only secrets were read from the file.
 

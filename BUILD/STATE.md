@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **43 of 43 phases closed**
-- Last green checkpoint: **C20**
+- **45 of 45 phases closed**
+- Last green checkpoint: **C21**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -62,4 +62,6 @@
 - **P41** What the third interview changed (2026-09-17)
 - **P42** The consoles, easier to use (2026-09-17)
 - **P43** Easy to start and use (2026-09-17)
+- **P44** The dashboards tell the truth (2026-09-17)
+- **P45** Safe to leave open (2026-09-17)
 

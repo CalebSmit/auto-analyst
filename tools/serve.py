@@ -262,7 +262,9 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
         entry = roster.get(engagement_id)
         return {"client": entry.client, "scope_path": entry.scope_path} if entry else None
 
-    ops = Console(store, bus, constraints=constraints, label_of=label_of)
+    def scope_of(engagement_id: str) -> str | None:
+        entry = roster.get(engagement_id)
+        return entry.scope_path if entry else None
 
     def planner(engagement_id: str, recipe: Any) -> dict[str, Any]:
         """What a launch records on the run: the plan hash it will execute under, and the
@@ -298,6 +300,24 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
 
     pool = _pool(store, bus, config, roster, intake_store, templates, contracts, constraints)
     surface = ReviewSurface(store, bus, queue=pool.queue if pool is not None else None)
+
+    # After the pool, and with everything the console was written to use. Left out, each
+    # one fails silently rather than loudly: no run plan to read, no place in the queue on
+    # a waiting run, and a drift monitor that blends every practice group into one number -
+    # which is the one thing it exists to avoid.
+    from ops.blobs import LocalContentStore  # noqa: PLC0415
+
+    ops = Console(
+        store,
+        bus,
+        constraints=constraints,
+        label_of=label_of,
+        scope_of=scope_of,
+        # The pool itself, not its job queue: the console asks it where a run stands
+        # ("#2 behind BRWF-2026-03"), which is the pool's question to answer.
+        queue=pool,
+        blobs=LocalContentStore(),
+    )
 
     # One app carrying both routers rather than two mounted sub-applications: mounting
     # would move every admin path under a prefix, and the paths are the contract the
@@ -483,6 +503,7 @@ def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
             )
             if served.pool is None:
                 print("  nothing to drive them: see the readiness report", flush=True)
+        _raise_alerts(served)
         if served.pool is None:
             continue
         # Every tick, not only one that released something: a decision made between
@@ -493,6 +514,50 @@ def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
             served.pool.work()
         except Exception as failed:  # noqa: BLE001 - one bad run is not a dead process
             print(f"  a run did not finish: {failed.__class__.__name__}: {failed}", flush=True)
+
+
+def _raise_alerts(served: Served) -> None:
+    """Raise what has gone quiet, and say so to whoever owns an overdue review item.
+
+    This is the process noticing, rather than a browser noticing: before it, `Console.alerts`
+    was the only caller of `scan(emit=True)`, so a run that stalled on Friday raised nothing
+    until somebody opened the dashboard on Monday - and "nobody works the review queue" is
+    the failure the blueprint rates most likely.
+    """
+    try:
+        served.ops.stall.scan()
+    except Exception as failed:  # noqa: BLE001 - a bad scan is not a dead process
+        print(f"  alert scan failed: {failed.__class__.__name__}: {failed}", flush=True)
+    try:
+        for item in _review_queue(served).escalate_overdue():
+            print(
+                f"  {item.item_id} is past its review SLA (owner {item.owner or 'unassigned'})",
+                flush=True,
+            )
+    except Exception as failed:  # noqa: BLE001 - one unescalated item is not a dead process
+        print(f"  SLA escalation failed: {failed.__class__.__name__}: {failed}", flush=True)
+
+
+def _review_queue(served: Served) -> Any:
+    """A review queue over the whole roster, for escalation only.
+
+    Each engagement's policy is its own - the SLA and the owner come from its profile, as
+    they do when the driver routes an item to a person. An engagement with no profile yet
+    has no policy, and an item on it is left alone rather than escalated to nobody.
+    """
+    from registries.constraints import ConstraintRegistry  # noqa: PLC0415
+    from review import CheckpointPolicy  # noqa: PLC0415
+    from review.queue import ReviewQueue  # noqa: PLC0415
+
+    constraints = ConstraintRegistry.load()
+
+    def policy_for(engagement_id: str) -> Any:
+        profile = served.config.profile(engagement_id)
+        if not profile:
+            raise KeyError(f"{engagement_id} has no profile, so it has no review policy")
+        return CheckpointPolicy.from_profile(profile, constraints)
+
+    return ReviewQueue(served.store, served.ops.bus, policy_for=policy_for)
 
 
 def report(served: Served) -> int:
@@ -574,7 +639,15 @@ def main(argv: list[str] | None = None) -> int:
     import uvicorn
 
     try:
-        uvicorn.run(served.app, host=args.host, port=args.port, log_level="warning")
+        # proxy_headers=False: there is no proxy here, and with one the peer address - the only
+        # input the identity port has - would be whatever `X-Forwarded-For` said it was.
+        uvicorn.run(
+            served.app,
+            host=args.host,
+            port=args.port,
+            log_level="warning",
+            proxy_headers=False,
+        )
     finally:
         stop.set()
         time.sleep(0)

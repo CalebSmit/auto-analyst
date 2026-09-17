@@ -19,6 +19,7 @@ date, rather than being deleted.
 
 | | What I need | Why it is blocked | When you answer |
 |---|---|---|---|
+| **What a correction does to the run it was made on** | Today: nothing. A reviewer's `answer` is read in exactly two places, both in `precedent/writeback.py`, and both teach *later* runs. The step this run resumes on is satisfied from the ledger - the model's original output - so a corrected value does not reach the deliverable, and a **rejected** proposal is delivered anyway. The console says "corrected: ... the run resumes on the next sweep", which reads as though it took effect. | It is a design decision with three defensible answers, and it is yours: (a) a rejection quarantines the step and the run stops for a person; (b) a correction re-derives the step's output from the answer and commits a new ledger entry under a new step key; (c) both. (b) is the one that changes what a deliverable contains, so it needs your word, not an inference from mine. Found by the AI-architecture review, 2026-09-17; the behaviour is confirmed in the code, not assumed. | I build the answer you give, and the review surface stops promising what it does not do. Until then the console says plainly that a decision is recorded and does not amend this run. |
 | **Two skills have no mechanical half** | `qc-tieout`, which both shipped recipes end with, and `ddr-tagging` in the full intake. Each needs a procedure - the deterministic half that says what the model is shown and what it must return - beside the four that have one. | Skill work rather than plumbing: the run reaches the step and stops there with it named, which is correct and is not finishing. Everything around them is joined - a released run is picked up, driven, masked, checked and recorded. | A run of `monthly-refresh` reaches `release` and a workbook lands in the outbox. |
 | **P28 sign-off** | Your word that the container proof is enough to call v1 portable. The image builds and the whole suite passes inside it on this machine (podman 6.1.1, 1711 passed, 78 skipped) - the clone onto the work machine is the part still outstanding. | P28 is `gate: human`. The gate refuses to close it on green tests alone, and I will not invent your words. | `gate close P28 --signoff "..."`, then `gate checkpoint C10`, and v1 is done. |
 | **The P26 sign-off wording** | Optional. The recorded sign-off reads "Caleb: it all looks good", which does not say what you checked. | Nothing is broken. It is a thin line in a permanent record, beside three others that name what was reviewed. | `gate amend P26 --reopen`, then close again with fuller words. The three checks re-run first. |
@@ -136,6 +137,26 @@ Not blocking anything today. Each would change what I build next.
    methodology, and to consider buying a valuation engine (Valutico) or a quality-of-earnings
    specialist (Finsider, askOdin). That is a procurement and risk decision. Nothing built
    forecloses it: a bought capability arrives as an adapter behind an existing port.
+
+---
+
+## 5b. What five reviews of the dashboards left unbuilt
+
+2026-09-17. Five reviews - a valuation MD, a frontend engineer, an AI-systems architect, a
+working analyst and a security engineer. What was wrong and cheap is built (P44, P45). What is
+left needs either a decision, data the firm has not produced yet, or more building than the
+finding is worth today. Each is on `knowledge/backlog.md` where it is the analyst's, and here
+where it is the practice's.
+
+| What | Why it is not built | What unblocks it |
+|---|---|---|
+| **The Sampling Audit** | The blueprint names it as the only defence against a confidently wrong, internally consistent, correctly sourced classification - *"no guard catches this"* - and it does not exist. `hitl.item.auto_accepted` is emitted with confidence and locator precisely so a sample can be drawn from what nobody was asked to look at. | A rate: how many auto-accepted items a week you are willing to look at, and by whom. Then it is a draw from the record and ordinary review items. |
+| **Review quality, per person** | Analytics reports override rates by skill, never by reviewer, and never reports the two signals the review surface was built to capture: items accepted without the proposal ever being revealed, and items decided seconds after revealing it. The data is now on the run detail; the aggregate is not. | Your word on whether the firm wants it measured per person at all. It is a real control and it reads as surveillance; the MD's call, not mine. |
+| **An engagement view** | Everything is indexed by run. An analyst thinks in clients, and a repeat client has several runs on one engagement. There is no screen that answers "where does Northgate stand". | Nothing - it is build work, and it is the largest single thing the analyst review asked for. Queued as B-026. |
+| **What the client still owes** | Nothing on any screen says which documents have arrived and which are missing, though historicals are the gate the whole job waits on. | The expected set per engagement type, which is B-009's coverage report. |
+| **Model checks under their own names** | The scorecard's *tie-out* is footing - every total re-added from the rows it cites. The analyst's *tie-out* is net income ties, balance sheet balances, cash agrees. Same word, different test, and a green pill would be read as the second. `tools/statement_checks.py` already computes the second. | Nothing technical; it needs the qc-tieout procedure to exist so the checks run on a real run. B-004. |
+| **Precedent, visible** | An answer given on one client is shown to the model on another in the same practice group. The safeguards are strong (masked, human-only, append-only) and there is no screen that shows what precedent exists or which precedents shaped a proposal. | A decision on what a reviewer should be shown at the point of deciding, and whether a wrong precedent is retired by superseding it. |
+| **The assembled prompt, readable** | The blueprint promises *"what was the model actually looking at is a lookup rather than an investigation"*. Every context is content-addressed and recorded; there is no route that reads one back. | A decision on who may read a masked context back, since masking is not a security boundary. |
 
 ---
 

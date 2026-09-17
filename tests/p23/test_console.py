@@ -30,7 +30,12 @@ def client(console: Console) -> TestClient:
 
 
 def frames(text: str) -> list[dict[str, Any]]:
-    """Parse SSE frames: event, id, data."""
+    """Parse SSE frames: event, id, data.
+
+    Every frame carries the one name the page listens for; what the frame *is* - the event
+    type, or the end of the replay - is in the body, so a type nobody anticipated still
+    reaches a listener.
+    """
     found = []
     for block in text.split("\n\n"):
         if not block.strip() or block.startswith(":"):
@@ -53,9 +58,10 @@ def test_the_console_replays_a_completed_run_from_the_event_stream_alone(
         assert response.headers["content-type"].startswith("text/event-stream")
         body = "".join(response.iter_text())
     got = frames(body)
-    assert got[-1]["event"] == "replayed"
+    assert {f["event"] for f in got} == {"aa"}, "one frame name, so nothing is dropped unseen"
+    assert got[-1]["data"]["type"] == "replayed"
     assert got[-1]["data"]["event"]["through"] == len(store.events("run_halted"))
-    types = [f["event"] for f in got[:-1]]
+    types = [f["data"]["type"] for f in got[:-1]]
     assert types == [e.type for e in store.events("run_halted")]
     final = got[-2]["data"]["trace"]
     assert final["nodes"] == console.replay("run_halted").as_dict()["nodes"]
@@ -97,7 +103,7 @@ def test_the_stream_follows_a_live_run_and_closes_when_the_manifest_is_written(
     worker.join(timeout=10)
     assert not worker.is_alive()
     got = [f for f in frames(body) if "event" in f]
-    events = [f["event"] for f in got]
+    events = [f["data"]["type"] for f in got]
     assert events[0] == "run.launched"
     assert "replayed" in events and events[-1] == "run.manifest.written"
     assert events.index("replayed") < events.index("guard.tieout.pass"), (

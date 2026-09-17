@@ -27,7 +27,8 @@ GLOSSARY: tuple[tuple[str, str], ...] = (
     ("Quiet period", "How long the system waits after the last file arrives before starting a run, so a half-uploaded folder does not start a half-run."),
     ("Preflight", "Checks over the setup before anything runs. A setup mistake found here does not stop a run in the middle of the afternoon."),
     ("Review item", "Something the system was not sure enough about to decide alone - an add-back, a tag, a period that does not line up. The run waits for your answer."),
-    ("Precedent", "An answer you gave, kept (masked) and shown on later engagements in the same practice group as an example of how the firm decides. Only a person's decision becomes precedent."),
+    ("Precedent", "An answer you gave, kept (masked) and shown on later engagements in the same practice group as an example of how the firm decides. Only a person's decision becomes precedent. It teaches later runs; it does not change the run you answered on."),
+    ("Decided on this run", "The questions already answered on a run: what was proposed, what was decided, by whom, why, and whether the proposal was revealed before the decision."),
     ("Waiting", "A run stopped on a person: it resumes on its own once its review items are answered."),
     ("Quarantined", "A run stopped on itself: a step failed in a way retrying will not fix. Fix the cause, then Resume - or Halt it."),
     ("Halted", "A run that ended without delivering. Nothing partial leaves the system; the reason is on the run."),
@@ -69,7 +70,7 @@ PAGE = (
     <div class="step"><span class="mark">4</span><span><span class="t">Answer what it asks</span>
      <span class="d">The Activity tab shows a count when something waits on you. <b>Review</b> shows the question and the source first; <b>Show the proposal</b> when you are ready to judge it. Accept, correct, reject or escalate - anything but accept needs a reason. The run carries on by itself.</span></span></div>
     <div class="step"><span class="mark">5</span><span><span class="t">Take the model</span>
-     <span class="d">A released run lists what it delivered in its detail on Activity, with a download. Every figure in it traces to a source file, sheet and cell.</span></span></div>
+     <span class="d">A released run lists what it delivered in its detail on Activity, with a download; the run manifest is beside it under <b>Record</b>. Every figure traces to a source file, sheet and cell, and <b>Decided on this run</b> is the list of what a person answered - which is what an associate reviewing it will ask for.</span></span></div>
    </div>
    <p class="note">Starting the tool on a machine: double-click <span class="mono">start.cmd</span> in the project folder. It sets up what is missing, checks everything, and opens this dashboard.</p>
    </div>
@@ -105,7 +106,8 @@ PAGE = (
     <div class="r"><span class="lbl"><b>A run stopped at the model</b><span class="d">No API key in <span class="mono">.env</span>, or the model adapter is still the replay one. <span class="mono">start.cmd</span> asks for the key.</span></span></div>
     <div class="r"><span class="lbl"><b>Preflight says the methodology is not cleared</b><span class="d">On Setup, read each file and clear it. Runs are blocked until then.</span></span></div>
     <div class="r"><span class="lbl"><b>A file started nothing</b><span class="d">Its name matched no document type, or two. Preflight on Setup names it and what to do.</span></span></div>
-    <div class="r"><span class="lbl"><b>A run is quarantined</b><span class="d">Its detail on Activity says why. Fix that, then <b>Resume</b>; or <b>Halt</b> it with a reason.</span></span></div>
+    <div class="r"><span class="lbl"><b>A run is quarantined</b><span class="d">Its detail on Activity says why. Fix that, then <b>Resume</b> - which asks what changed, because restarting a run a guard refused is a judgement - or <b>Halt</b> it with a reason.</span></span></div>
+    <div class="r"><span class="lbl"><b>A banner says the page cannot reach the server</b><span class="d">Nothing below it has changed since the time it names. The runs carry on without the page; it only reads.</span></span></div>
    </div>
   </section>
  </div>

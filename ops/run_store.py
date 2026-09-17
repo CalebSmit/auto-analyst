@@ -949,12 +949,18 @@ class SqlRunStore:
 
     def open_review_items(self, engagement_id: str | None = None) -> tuple[ReviewItemRecord, ...]:
         """The queue: everything open, oldest first, across runs - the inbox is of items,
-        not of runs."""
+        not of runs.
+
+        Items on a superseded run are not in it. A client sending a corrected statement
+        supersedes the run that read the old one, and answering its questions is work
+        thrown away - the newer run asks its own. The items stay on the record and on
+        their run; they are not asked of anybody.
+        """
         with self._session() as session:
             query = (
                 select(ReviewItem)
                 .join(Run, Run.run_id == ReviewItem.run_id)
-                .where(ReviewItem.state == "open")
+                .where(ReviewItem.state == "open", Run.superseded_by.is_(None))
                 .order_by(ReviewItem.created_at, ReviewItem.id)
             )
             if engagement_id is not None:
