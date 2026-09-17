@@ -116,7 +116,26 @@ Not blocking anything today. Each would change what I build next.
 4. **How much of the DDR work you actually want first.** The blueprint covers extraction,
    tagging, normalization and model building. The build has proven the vertical on three
    skills. Which engagement type you point it at first will decide what the next skills
-   are.
+   are. *(Answered 2026-09-16: mature operating company valuation - see Settled.)*
+5. **When extraction is trusted enough to leave a person out of it.** Proposed from the
+   research (2026-09-16, [`docs/research/ai-in-valuation.md`](../docs/research/ai-in-valuation.md)),
+   not decided: **at least 95%** of clean statement line items extracted correctly *with the
+   right locator*, measured against historicals an analyst keyed by hand; **below 90%** on
+   the firm's real document mix, a person stays in the extraction loop and scope narrows to
+   cleaner documents. And for the skills: first-draft add-back schedules and DCF inputs that
+   a senior analyst accepts with minor edits on **at least 70%** of engagements. The numbers
+   are the research's starting proposal; the bar is the practice's to set, and it needs one
+   hand-keyed engagement as ground truth before it can be measured at all.
+6. **Is report narrative ever in scope?** The research's third stage drafts descriptive
+   report sections (company description, methodology narrative, changes in financial
+   condition) from the structured store, every figure linked to its source. The blueprint
+   stops before the report, and the MD decides whether a report is written. The movement
+   flags built in P38 are the deterministic raw material either way; drafting prose from
+   them is a scope change for a person to make, not a default.
+7. **Build or buy a slice.** The research's verdict is to build ingestion and the firm's
+   methodology, and to consider buying a valuation engine (Valutico) or a quality-of-earnings
+   specialist (Finsider, askOdin). That is a procurement and risk decision. Nothing built
+   forecloses it: a bought capability arrives as an adapter behind an existing port.
 
 ---
 
@@ -304,3 +323,13 @@ deleted - a decision nobody can find later is one that gets made again.*
 | 2026-09-05 | Power Automate sits outside the boundary: notify and move files, never drive | This file, §5 |
 | 2026-09-05 | Model access is the Anthropic API directly, not Foundry if avoidable | The blueprint's LLM port row; this file, §5 |
 | 2026-09-05 | The container proof, on podman 6.1.1 rather than Docker Desktop. It found two portability bugs and two bad tests. | [`HANDOFF.md`](../HANDOFF.md) §2; the P28 amendment in [`AMENDMENTS.md`](AMENDMENTS.md) |
+| 2026-09-16 | The build serves **valuation / non-ESOP** first; ESOP is parked, not removed; other divisions come later as data | `focus:` in `scope/scopes.yaml`; the P37 amendment in [`AMENDMENTS.md`](AMENDMENTS.md) |
+| 2026-09-16 | The repo goes to a **private** GitHub repository, cloned to the work laptop and worked on in Cursor | The P37 amendment |
+| 2026-09-16 | `/improve-agent` runs in **both Cursor and Claude Code**, from one protocol | [`interview/PROTOCOL.md`](../interview/PROTOCOL.md) |
+| 2026-09-16 | What the interview learns lives in **`knowledge/`, ignored by git**, never committed | `.gitignore`; `tools/interview.py scan` |
+| 2026-09-16 | *Superseded the same day:* `knowledge/` is **committed** to the private repo so the interview travels between this machine and the work laptop. Client names still never leave it for a skill, methodology file or fixture | `.gitignore`; the second P37 amendment |
+| 2026-09-16 | The interview **may read real client documents** (Caleb's call). This covers the interview only; whether engagement letters permit processing on the firm's account stays open in §2, and whichever AI provider Cursor routes to must be one the firm has approved for client data | [`interview/PROTOCOL.md`](../interview/PROTOCOL.md) §3 |
+| 2026-09-16 | **The pilot engagement type is a mature operating company valuation** (DCF, GPC, guideline M&A transactions). Answers §5 question 4 | `recipes/mature-company-valuation.yaml` (draft, unregistered); `knowledge/workflow.md` |
+| 2026-09-16 | **AI access at work:** Claude (Claude Code) and any Cursor model. Whether an Anthropic API key is available on the firm's account is still open | `knowledge/profile.md` |
+| 2026-09-17 | **Caleb holds an Anthropic API key on the firm's account.** A live run with the real model needs only that key in `.env` on the work machine (never committed); until then the model door stops every run, correctly | `knowledge/profile.md`; `.env.example` |
+| 2026-09-16 | The interview **builds when told to stop**: it proposes a list, builds what is approved through the gate, and leaves the rest in the backlog | [`interview/PROTOCOL.md`](../interview/PROTOCOL.md) §5 |

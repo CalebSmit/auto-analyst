@@ -101,8 +101,10 @@ def test_the_load_bearing_surfaces_are_all_there(recorded: dict) -> None:
     }
     assert len(recorded["governance"]["stages"]) == 11
     assert len(recorded["record"]["run_states"]) == 7
-    assert set(recorded["recipes"]) == {"monthly-refresh@v3", "full-ddr-intake@v1"}
-    for name in ("monthly-refresh", "full-ddr-intake"):
+    assert set(recorded["recipes"]) == {
+        "monthly-refresh@v3", "full-ddr-intake@v1", "mature-company-valuation@v3",
+    }
+    for name in ("monthly-refresh", "full-ddr-intake", "mature-company-valuation"):
         assert recorded["plans"][name]["plan_hash"].startswith("sha256:")
 
 

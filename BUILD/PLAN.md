@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**36 of 36 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**43 of 43 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -101,4 +101,23 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P35** A released run is driven to an ending | auto | A run released by intake is picked up and driven to a delivered or halted ending, on a real store, with no test double in the path | 2026-09-07 |
 | [x] | **P36** Who is asking: identity on both surfaces | auto | Neither surface serves anything outside a loopback bind without an authenticated identity | 2026-09-07 |
 | [x] | **C13 - The system runs** | integration | A file landing in a watched folder becomes a deliverable in the outbox, with nothing in the path that exists only in a test | 2026-09-07 |
+
+## Block J - Making it his
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P37** The division focus, and the interview that fills it | auto | A focus that names an undeclared or parked segment fails the registry load | 2026-09-16 |
+| [x] | **C14 - Making it his** | integration | The focus division is offered first and can be scoped into, the interview describes it in the resolver's terms, and what the interview learns cannot reach a committed file | 2026-09-16 |
+| [x] | **P38** What the research changed | auto | The three model checks pass on statements that tie, fail with both numbers on ones that do not, and never pass on missing evidence | 2026-09-16 |
+| [x] | **C15 - What the research changed** | integration | On a system started the way a person starts it, a client forecast cannot pass for historical statements by name, by contents or at the historical table, and the model checks can place every category the tagging skill writes | 2026-09-16 |
+| [x] | **P39** A citation is checked where it points | auto | A figure read off the page with a number its cited rows do not carry fails the Provenance Check, naming both | 2026-09-17 |
+| [x] | **C16 - A citation is checked where it points** | integration | The system a person starts calls every output guard the blueprint runs on a skill step, and every adversarial fixture fires its own guard | 2026-09-17 |
+| [x] | **P40** What the second interview changed | auto | An add-back proposed as one-time that appears in more than two periods, or in the earliest period, is reviewed by a person | 2026-09-17 |
+| [x] | **C17 - What the second interview changed** | integration | The analyst's one-time rule holds on a real EBITDA schedule, and the table that schedule read gives forecast driver baselines with their sources | 2026-09-17 |
+| [x] | **P41** What the third interview changed | auto | A disagreement the analyst's rules settle has a figure from the right source that ties and cites it, and is still listed in the alignment report | 2026-09-17 |
+| [x] | **C18 - What the third interview changed** | integration | An audit opinion read from a PDF is on the record, disagreeing statements are settled by the analyst's rules only where they apply without doubt, and the pilot's cost of capital waits for the comps | 2026-09-17 |
+| [x] | **P42** The consoles, easier to use | auto | No page uses a browser pop-up, declares a name twice, or ships a script that does not parse | 2026-09-17 |
+| [x] | **C19 - The consoles, easier to use** | integration | Runs and review items name the client the roster knows, every served page is one clean script namespace that asks nothing through a pop-up, and the review panel's round trip works through the real routes | 2026-09-17 |
+| [x] | **P43** Easy to start and use | auto | A file added from the page lands only in its engagement's folder, by name, on local storage, for an engagement that is not archived, and the change is recorded with its digest | 2026-09-17 |
+| [x] | **C20 - Easy to start and use** | integration | A setting written only in .env reaches the composed server, a person sets up a watch and destination and adds a client's file from the page into the folder the sweep reads, recorded against them, and Help is served beside every console | 2026-09-17 |
 

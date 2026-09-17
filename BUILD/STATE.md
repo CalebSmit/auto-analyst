@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-08.*
+*Last written 2026-09-17.*
 
 ## Where the build is
 
-- **36 of 36 phases closed**
-- Last green checkpoint: **C13**
+- **43 of 43 phases closed**
+- Last green checkpoint: **C20**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -55,4 +55,11 @@
 - **P34** The run executes: the executor meets the dispatcher (2026-09-07)
 - **P35** A released run is driven to an ending (2026-09-07)
 - **P36** Who is asking: identity on both surfaces (2026-09-07)
+- **P37** The division focus, and the interview that fills it (2026-09-16)
+- **P38** What the research changed (2026-09-16)
+- **P39** A citation is checked where it points (2026-09-17)
+- **P40** What the second interview changed (2026-09-17)
+- **P41** What the third interview changed (2026-09-17)
+- **P42** The consoles, easier to use (2026-09-17)
+- **P43** Easy to start and use (2026-09-17)
 

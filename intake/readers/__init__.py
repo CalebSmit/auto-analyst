@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from guards.untrusted import UntrustedBoundary, Wrapped
-from intake.readers.classify import Classification, Evidence, classify
+from intake.readers.classify import Classification, Evidence, audited_evidence, classify
 from intake.readers.documents import ParsedDocument, read_document
 from intake.readers.periods import PeriodDetection, detect_periods
 from intake.readers.workbook import (
@@ -61,6 +61,8 @@ class ReadReport:
     review_item_id: str | None = None
     block_headers: dict[str, str] = field(default_factory=dict)
     """locator -> the header above the block's column, for the timing skill's period hint."""
+    audited: str | None = None
+    """The audit-opinion phrase found in a financial statements file, or None."""
 
     @property
     def locators(self) -> tuple[str, ...]:
@@ -131,6 +133,8 @@ def read_source(
     )
     report.classification = classify(evidence)
     report.periods = detect_periods("\n".join([*headers, *first_rows]))
+    if report.classification.document_type == "financial_statements":
+        report.audited = audited_evidence("\n".join(text_for_model))
 
     if report.classification.document_type == "other":
         item_id = f"classification:{row.source_id[7:19]}"
@@ -193,6 +197,7 @@ def read_source(
                 "period_ends": list(report.periods.period_ends),
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
+                "audited": report.audited,
             },
         )
 

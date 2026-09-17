@@ -29,6 +29,7 @@ while "run execution" did not.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import threading
 import time
@@ -257,7 +258,11 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
         constraints=constraints,
     )
     admin = AdminConsole(config, roster, preflight, constraints=constraints)
-    ops = Console(store, bus, constraints=constraints)
+    def label_of(engagement_id: str) -> dict[str, str] | None:
+        entry = roster.get(engagement_id)
+        return {"client": entry.client, "scope_path": entry.scope_path} if entry else None
+
+    ops = Console(store, bus, constraints=constraints, label_of=label_of)
 
     def planner(engagement_id: str, recipe: Any) -> dict[str, Any]:
         """What a launch records on the run: the plan hash it will execute under, and the
@@ -413,6 +418,16 @@ def _pool(
             masker=Masker(vault),
             bus=bus,
             blobs=blobs,
+            # The Provenance Check on every output, against the run's own manifest. The
+            # blueprint has it as a step guard; until P39 no run called it.
+            parse_store=SourceParseStore(store),
+            sources_for=lambda run_id: {
+                str(s["source_id"]): int(s["source_version"]) for s in store.run(run_id).sources
+            },
+            # And the Tie-Out Check, at the run's recorded tolerance. None recorded is zero:
+            # a looser tolerance is a materiality decision, and nobody has made one.
+            recompute=recompute,
+            tolerance_for=lambda run_id: float(store.run(run_id).tieout_tolerance or 0.0),
         )
 
     driver = RunDriver(
@@ -514,6 +529,10 @@ def report(served: Served) -> int:
     return 0 if check.passed and all(s.ready for s in seams) else 1
 
 
+def _secret(name: str) -> bool:
+    return any(word in name for word in ("KEY", "SECRET", "TOKEN", "PASSWORD"))
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--host", default=DEFAULT_HOST)
@@ -525,6 +544,16 @@ def main(argv: list[str] | None = None) -> int:
         "--check", action="store_true", help="wire everything, start nothing, and report"
     )
     args = parser.parse_args(argv)
+
+    if os.environ.get("AA_NO_ENV_FILE") != "1":
+        # The rehearsal sets everything it needs itself and opts out, so a developer's .env
+        # never leaks into a generated firm.
+        import ports  # noqa: PLC0415
+
+        applied = ports.load_env_file()
+        if applied:
+            shown = sorted(k for k in applied if not _secret(k))
+            print(f"  settings from .env: {', '.join(shown)}")
 
     served = build(environment=args.environment)
     code = report(served)

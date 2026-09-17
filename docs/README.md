@@ -5,6 +5,9 @@ original project-context note it grew out of. `architecture.html` is a self-cont
 single file: 118 nodes, 240 edges, 25 executable invariants, 67 failure modes. Open it in
 a browser; it needs nothing else and makes no network requests.
 
+`research/` holds outside research read against this build - what it confirmed, what it
+added, what waits and what was declined - so a tool or paper is weighed once.
+
 **What does not.** Generated documentation, and anything that duplicates BUILD/. The plan
 lives in BUILD/; this is the design the plan is built from.
 

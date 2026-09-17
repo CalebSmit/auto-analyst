@@ -24,6 +24,14 @@ layer_order:
   - "{practice}/{segment}/_segment"
   - "{practice}/{segment}/{disposition}"
 
+# Where the work is pointed. Decided 2026-09-16 (Caleb): the build serves the non-ESOP
+# valuation division first, because that is the division the person building it works in.
+# A focus orders the dashboards and aims the /improve-agent interview; it does not narrow
+# what resolves. Pointing at another division later is this entry and nothing else.
+focus:
+  practice: valuation
+  segment: non-esop
+
 practices:
   - id: valuation
     name: Valuation
@@ -32,6 +40,9 @@ practices:
       - id: esop
         name: ESOP
         defined: true
+        # Parked 2026-09-16: kept, tested and resolvable, but not where effort goes. Its
+        # skills and template binding stay so ESOP returns as a division, not a rebuild.
+        parked: true
       - id: non-esop
         name: Non-ESOP
         defined: true

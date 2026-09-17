@@ -1,0 +1,3 @@
+# Client names, people, places, account and entity names that appeared in answers
+# or documents. One per line. `interview.py scan` refuses any file outside knowledge/
+# that contains one of them. Add to it the moment a name is mentioned.

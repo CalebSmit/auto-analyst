@@ -1,0 +1,353 @@
+# The coverage map for /improve-agent: what has to be known about the focus division before
+# the system can do its mechanical work unsupervised.
+#
+# Committed, and therefore generic: no client, no project, no figure. What was actually
+# learned about each topic lives in knowledge/coverage.yaml, which git ignores.
+#
+# priority 1  the system cannot be pointed at a real engagement without it
+# priority 2  it runs, but a reviewer would redo this part
+# priority 3  it makes the output better, or makes it shareable later
+#
+# `angles` are directions to ask from, not a script. One question at a time, and the next
+# one comes from the last answer as often as from this list.
+# `feeds` names where an answer ends up - the reason the question is worth an analyst's time.
+
+version: 1
+
+topics:
+  - id: role
+    title: Your role, your team, and who reviews your work
+    priority: 1
+    why: Every review floor and sign-off in the system names a person; it has to be the right one.
+    angles:
+      - Your title, how long in non-ESOP valuation, and what you personally own on an engagement
+      - Who reviews your work, what they look at first, and who signs the report
+      - How many engagements you carry at once and how long a typical one takes, start to finish
+      - Which parts of an engagement you would hand to a new analyst first, and which you never would
+    done_when: The review chain for a typical engagement is known by role, and what the analyst owns is written down.
+    feeds: [knowledge/profile.md, BUILD/OPEN.md (reviewer and owner decisions)]
+
+  - id: engagement-types
+    title: The kinds of non-ESOP engagement, and how much of each
+    priority: 1
+    why: Each engagement type with a distinct workflow becomes its own recipe; the most common goes first.
+    angles:
+      - Purposes you value for (gift and estate, buy-sell, financial reporting, litigation, transactions, planning, other) and a rough share of volume for each
+      - Standard of value and premise usually used for each, and level of value (controlling, marketable minority, non-marketable minority)
+      - Which types share a workflow and which differ, and exactly where they differ
+      - Which single engagement type would save you the most time if it were automated first
+    done_when: Engagement types are listed with volume share, standard and level of value, and one is chosen as the pilot.
+    feeds: [recipes/, scope/scopes.yaml (segments or dispositions), knowledge/workflow.md]
+
+  - id: lifecycle
+    title: An engagement from first contact to delivered model
+    priority: 1
+    why: This is the recipe - the steps, their order, and which ones depend on which.
+    angles:
+      - Walk through the steps in order for the pilot engagement type, from engagement letter to model handed to review
+      - For each step, what it needs before it can start and what it produces
+      - Which steps can run in parallel and which truly wait on another
+      - Where the time goes - the two or three steps that take the most hours
+      - What happens between your model and the final report, even though the system stops before the report
+    done_when: Every step for the pilot type is written with inputs, outputs, dependencies and rough hours.
+    feeds: [recipes/, knowledge/workflow.md]
+
+  - id: document-request
+    title: The information request list
+    priority: 1
+    why: The request list is the schedule every incoming document is tagged against.
+    angles:
+      - Is there a standard request list, and how does it change by engagement type or client size
+      - Which items are essential, which are nice to have, and which are almost never received
+      - How items are numbered or referenced, and whether clients answer against those numbers
+      - Can you share a blank copy of the request list
+    done_when: A request list (or its structure) is in knowledge/, with essential items marked.
+    feeds: [skills/_firm/ddr-tagging, recipes/ (intake.required_types)]
+
+  - id: document-arrival
+    title: The order documents arrive in, and what you do when it is wrong
+    priority: 1
+    why: Intake holds files through a quiet period and releases a complete set; what "complete" means and what to do out of order is yours to define.
+    angles:
+      - On a recent project, the order documents actually came in, with rough dates
+      - What you can start before everything is in, and what you refuse to start without
+      - What you do when tax returns and internal financials disagree, or financials are revised mid-engagement
+      - How a late document changes work already done - redo, adjust, or note
+      - What you do when a document never arrives
+    done_when: For the pilot type, the minimum set to start, the full set to finish, and the handling of late, revised and missing documents are written down.
+    feeds: [knowledge/documents.md, intake (required types, quiet window), recipes/]
+
+  - id: document-types
+    title: Document types and the formats they come in
+    priority: 1
+    why: The readers have to recognise what a client actually sends, not what a clean fixture looks like.
+    angles:
+      - Which financial documents you get (tax returns, audited, reviewed or compiled statements, internal statements, trial balances, general ledger exports, AR and AP agings, debt schedules, projections)
+      - The formats - PDF scans, QuickBooks or other accounting exports, Excel, and how messy they are
+      - Which source wins when two documents give different numbers for the same year
+      - Share an example of the messiest document you have had to work from
+    done_when: Each common document type has its formats, its reliability ranking, and at least one example in knowledge/.
+    feeds: [intake/readers, knowledge/documents.md]
+
+  - id: spreading
+    title: Getting the historicals into one table
+    priority: 1
+    why: Timing normalization and line-item tagging are built; they need your conventions, not defaults.
+    angles:
+      - How many historical years you spread, whether you add trailing twelve months or interim periods, and how you handle a fiscal year-end change
+      - How you map client line items onto your model's chart of accounts, and the lines that are always hard to place
+      - What you do with a line item that changes name or splits between years
+      - Cash to accrual conversions, and when you do them
+    done_when: Period conventions and a mapping of real line items to the model's categories are written down, with the hard cases.
+    feeds: [skills/_firm/timing-normalization, skills/_firm/line-item-tagging, taxonomy/]
+
+  - id: normalization
+    title: Normalizing adjustments
+    priority: 1
+    why: EBITDA normalization is built against a synthetic schedule; real add-backs are where a reviewer's trust is won or lost.
+    angles:
+      - The adjustments you make most often, and how you evidence each one
+      - Owner compensation - how you set a market rate, and the sources
+      - Related-party rent, non-recurring items, discretionary expenses, non-operating assets and liabilities
+      - An adjustment you proposed that a reviewer pushed back on, and who was right
+      - What materiality means to you here - a percentage, a dollar amount, or judgment
+      - Normalized working capital - whether you set a normal level (a peg), and from what months
+      - Revenue quality - customer concentration, and whether it changes the valuation or only the narrative
+      - Cash-basis clients - how you spot one, and whether you convert to accrual
+    done_when: The common adjustments have a rule, an evidence standard and a reason each, and a materiality view is recorded.
+    feeds: [skills/valuation/_group/ebitda-normalization, knowledge/decisions.md, BUILD/OPEN.md (materiality)]
+
+  - id: excel-models
+    title: The Excel models you build into
+    priority: 1
+    why: The model loader binds by named range to a registered template; it has to be your real template.
+    angles:
+      - Which model template non-ESOP work uses, its version, and who maintains it
+      - The tabs, in the order you fill them, and which inputs are typed in versus linked
+      - Whether the template already has named ranges, and if not, which cells are the inputs
+      - How a template change reaches analysts, and whether old engagements keep the old version
+      - Can you share a blank copy of the template
+    done_when: The non-ESOP template is identified, its input map is written, and a copy (or its structure) is in knowledge/.
+    feeds: [templates/bindings.yaml, templates/inputs/, skills/valuation/_group/model-load]
+
+  - id: ai-tools
+    title: AI tools and models you use today
+    priority: 1
+    why: The system calls a pinned model through the firm's account; which models are available and approved decides what it can use.
+    angles:
+      - Which AI tools you use at work today (Copilot, ChatGPT, Claude, Cursor, others) and for which tasks
+      - Which of them are approved for client data, and under what account
+      - Whether you have, or can get, an Anthropic API key on the firm's account, and who would issue it
+      - Anything you have tried with AI on valuation work that did not work, and why
+    done_when: The approved tools and models are known, and the route to an API key is known or named as a blocker.
+    feeds: [knowledge/profile.md, .env.example, BUILD/OPEN.md]
+
+  - id: forecast
+    title: The forecast - the client's, or the firm's
+    priority: 1
+    why: The forecast is the second-largest time cost and no skill builds one yet.
+    angles:
+      - When the client sends a forecast, what you change before using it, and why
+      - When the client sends none, how the firm builds one - from what history, what growth and margin assumptions
+      - How the client approves a firm-built forecast, and what happens when they reject it
+      - What the due diligence meeting changes in the forecast
+      - How many forecast years, and how working capital, capital expenditure and depreciation are forecast
+    done_when: Both paths (client-provided and firm-built) are written step by step, with the approval loop and what due diligence changes.
+    feeds: [skills/ (a forecast skill), recipes/mature-company-valuation.yaml, knowledge/decisions.md]
+
+  - id: debt-and-model-checks
+    title: The debt tab and the model checks
+    priority: 2
+    why: Both were named as slow, and both are mechanical enough for the system to take on early.
+    angles:
+      - Where the debt detail comes from, and the fields entered for each instrument
+      - When a model check fails (net income, balance sheet, cash), the usual causes and how you find them
+      - Any other checks the model or the associate runs
+    done_when: The debt fields and sources are listed, and each model check has its common failure causes recorded.
+    feeds: [skills/_firm/qc-tieout, harness/procedures (qc-tieout), templates/inputs/]
+
+  - id: internal-value-review
+    title: The internal value review with the MD
+    priority: 2
+    why: It is the point the system's output has to be ready for, so what the MD looks at defines ready.
+    angles:
+      - What is presented, and in what form
+      - What the MD looks at first, and the questions that come up every time
+      - What usually changes after it, and what happens when the MD says it is not ready
+    done_when: What the IVR covers and the common outcomes are written down.
+    feeds: [ops/scorecard.py criteria, knowledge/workflow.md]
+
+  - id: pre-revenue
+    title: Pre-revenue companies and spin-offs
+    priority: 2
+    why: About a quarter of this analyst's engagements; the method mix differs when there is no revenue history.
+    angles:
+      - What the valuation rests on when there is no revenue history
+      - Which of the three core methods still apply, and what replaces the ones that do not
+      - What is different about a technology spun off to become its own business
+    done_when: The method choice and the main inputs for a pre-revenue valuation are recorded with reasons.
+    feeds: [recipes/ (a second recipe), knowledge/decisions.md]
+
+  - id: purchase-price-allocation
+    title: Purchase price allocations
+    priority: 2
+    why: About a quarter of this analyst's engagements, done after a transaction has closed.
+    angles:
+      - What the purchase price is allocated to, and the order it is done in
+      - Which documents a PPA needs that a normal valuation does not (purchase agreement, closing balance sheet)
+      - Whether the tangible asset model belongs to PPA work
+    done_when: The PPA workflow and its extra documents are recorded.
+    feeds: [recipes/ (a PPA recipe), knowledge/documents.md]
+
+  - id: extraction-baseline
+    title: Ground truth for measuring extraction
+    priority: 2
+    why: >-
+      The proposed bar for trusting extraction (95% of line items with the right locator;
+      below 90% a person stays in the loop) cannot be measured without historicals an analyst
+      keyed by hand. See docs/research/ai-in-valuation.md.
+    angles:
+      - A finished engagement whose historicals you keyed by hand, with the source documents, that could be kept (masked) as a gold case
+      - How long keying the historicals took on it, as the time baseline
+      - Which documents were the hardest to key from, and why - scans, merged cells, footnotes
+    done_when: One engagement's source documents and hand-keyed historicals are identified as a gold case, with the hours it took.
+    feeds: [fixtures/ (masked gold case), evals/gates.yaml, BUILD/OPEN.md (section 5, question 5)]
+
+  - id: data-sources
+    title: Data sources and tools behind the numbers
+    priority: 2
+    why: Comps, transactions and cost of capital come from subscriptions; a skill can only cite what it can reach.
+    angles:
+      - The databases for guideline public companies, M&A transactions and cost of capital data, and how you export from each
+      - Any valuation or diligence software the firm already uses or has trialled
+      - Which data you copy by hand today that an export could replace
+    done_when: Each of the three core methods has its data source and export format recorded.
+    feeds: [skills/valuation/_group (gpc-scrub, cost-of-capital), backlog (M&A transactions skill)]
+
+  - id: income-approach
+    title: The income approach
+    priority: 2
+    why: Discounted cash flow and capitalization inputs are mechanical to load but full of conventions.
+    angles:
+      - When you use a DCF versus a capitalization of earnings, and why
+      - Where projections come from, and how you test management's projections
+      - Terminal value method and long-term growth conventions
+      - Tax-effecting pass-through entities - whether, and how
+    done_when: Method selection, projection handling, terminal value and tax-effecting conventions are written with reasons.
+    feeds: [skills/valuation/_group/dcf-build, foundations/valuation/non-esop/]
+
+  - id: cost-of-capital
+    title: Cost of capital
+    priority: 2
+    why: The cost of capital skill exists as a skeleton; its sources and choices are the firm's.
+    angles:
+      - Build-up versus CAPM, and which data sources you use for each component
+      - Size premium source and how you pick the decile
+      - Company-specific risk - how you size it and how you support it
+      - Capital structure - actual, industry or target
+    done_when: Each component has its source and selection rule recorded.
+    feeds: [skills/valuation/_group/cost-of-capital]
+
+  - id: market-approach
+    title: The market approach
+    priority: 2
+    why: The guideline public company scrub exists as a skeleton; transaction methods are not built at all.
+    angles:
+      - Guideline public companies versus guideline transactions - which you rely on, and when
+      - The databases you use (Capital IQ, PitchBook, DealStats, others) and how you export from them
+      - How you select and scrub comparables, and the reasons you drop one
+      - How you pick a multiple from the range, and what adjustments you make
+    done_when: Sources, selection criteria and multiple selection are written with reasons.
+    feeds: [skills/valuation/_group/gpc-scrub, knowledge/decisions.md]
+
+  - id: asset-approach
+    title: The asset approach and non-operating items
+    priority: 2
+    why: Holding companies and asset-heavy businesses take a different path through the model.
+    angles:
+      - When the asset approach is primary, and when it is only a floor
+      - How you adjust the balance sheet to fair value, and with what support
+      - How you identify and treat non-operating assets and excess working capital
+    done_when: When and how the asset approach is used is recorded.
+    feeds: [knowledge/decisions.md, foundations/valuation/non-esop/]
+
+  - id: discounts
+    title: Discounts and premiums
+    priority: 2
+    why: The system never concludes a discount, but it can assemble the support; what support looks like is yours to say.
+    angles:
+      - How you support a discount for lack of control, and a discount for lack of marketability
+      - The studies or models you rely on, and which you avoid
+      - What in the documents changes a discount (buy-sell restrictions, distributions, voting rights)
+    done_when: The support assembled for each discount, and the facts that move it, are written down.
+    feeds: [knowledge/decisions.md]
+
+  - id: qc-review
+    title: Quality control and review comments
+    priority: 2
+    why: The QC tie-out skill has no mechanical half yet; the checks a reviewer runs are exactly what it should run.
+    angles:
+      - The checklist you run before handing a model to review
+      - The review comments you get most often
+      - What a reviewer ties out by hand, and against what
+      - Something that slipped through review once, and how it was caught
+    done_when: A pre-review checklist and the most common review comments are written down.
+    feeds: [skills/_firm/qc-tieout, harness/procedures (qc-tieout), knowledge/decisions.md]
+
+  - id: repeat-clients
+    title: Repeat clients versus new ones
+    priority: 2
+    why: The resolver already treats them differently; what actually carries forward is yours to define.
+    angles:
+      - What you reuse from last year's engagement and what you always redo
+      - How you handle a prior-year conclusion that you now disagree with
+      - How a new client's first engagement differs in time and in risk
+    done_when: The carry-forward and first-year rules are written with reasons.
+    feeds: [skills/valuation/non-esop/repeat, skills/valuation/non-esop/non-repeat]
+
+  - id: projects
+    title: Real projects, walked end to end
+    priority: 1
+    why: A rule stated in the abstract and a decision made on a real file are different evidence; the second is what makes a skill right.
+    angles:
+      - Pick a recent or current project; give it a codename and the engagement type, size and purpose
+      - The documents that came in, in order, with rough dates - share them or their paths
+      - The decisions you made, and why, at each step
+      - What you would do differently, and what the reviewer changed
+      - Where you were uncertain, and what you did about it
+    done_when: At least three projects of the pilot type are walked end to end, with documents and decisions recorded.
+    feeds: [knowledge/projects/, fixtures/ (masked), evals (gold sets), knowledge/decisions.md]
+
+  - id: edge-cases
+    title: The engagements that do not fit
+    priority: 3
+    why: The system should recognise an engagement it cannot handle and say so, rather than force it through.
+    angles:
+      - Multiple entities and consolidations, holding companies, distressed businesses (pre-revenue is routine work here, not an edge case - see its own topic)
+      - Which of these you would never want the system to attempt
+      - How you would recognise one from the documents alone
+    done_when: The out-of-scope cases and how to recognise each are written down.
+    feeds: [orchestrate (triage), knowledge/decisions.md]
+
+  - id: success
+    title: What good output looks like, and how you would trust it
+    priority: 2
+    why: The run scorecard needs a bar, and whether a released-with-review run is acceptable is a practice decision.
+    angles:
+      - What the system would have to hand you for it to save real time
+      - What you would check first before trusting its output
+      - Whether output that needed some review is acceptable for a real engagement, or the bar is clean
+      - How you would measure that it saved time
+    done_when: The pilot's acceptance bar and how it is measured are recorded.
+    feeds: [BUILD/OPEN.md (pilot definition), ops/scorecard.py criteria]
+
+  - id: sharing
+    title: Later - other analysts and other divisions
+    priority: 3
+    why: Not built now, but the choices made now should not block it.
+    angles:
+      - Who would use this next, and what they would need that you do not
+      - Which parts of your workflow are personal preference rather than firm practice
+      - Which other division would be next, and what differs most
+    done_when: Personal preference versus firm practice is marked on the rules already recorded.
+    feeds: [foundations/, scope/scopes.yaml]

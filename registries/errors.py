@@ -127,6 +127,7 @@ TIEOUT_MISMATCH = "GUARD.TIEOUT_MISMATCH"
 RECONCILE_CONFLICT = "GUARD.RECONCILE_CONFLICT"
 NUMERIC_DRIFT = "GUARD.NUMERIC_DRIFT"
 UNKNOWN_SOURCE = "SKILL.UNKNOWN_SOURCE"
+CITED_VALUE_ABSENT = "SKILL.CITED_VALUE_ABSENT"
 UNDECLARED_CYCLE = "LOOP.UNDECLARED_CYCLE"
 LOOP_CEILING_EXCEEDED = "LOOP.CEILING_EXCEEDED"
 TOOL_NOT_DECLARED = "POLICY.TOOL_NOT_DECLARED"
@@ -681,6 +682,14 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "written out. Rounding, a swapped scale, a dropped cell: the numeric lock does not "
         "care which. Nothing is released until the two token sets are identical, because "
         "a transform that changes a figure is not a transform.",
+    ),
+    CITED_VALUE_ABSENT: (
+        "model",
+        "A figure read off the page cites a real location, and the number is not there. The "
+        "source row says something else - a different amount, the opposite sign, or no "
+        "amount at all. A citation that points at the right place with the wrong number is "
+        "worse than none, because it looks checked. Both values are in the detail: requote "
+        "the row, or report the item as unavailable.",
     ),
     UNKNOWN_SOURCE: (
         "model",

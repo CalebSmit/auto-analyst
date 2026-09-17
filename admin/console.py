@@ -20,7 +20,9 @@ engagement record; guards read the run).
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import replace
+from pathlib import Path
 from typing import Any
 
 from admin.preflight import Preflight, PreflightReport, resolve_model
@@ -37,6 +39,11 @@ __all__ = ["REVIEW_LEVELS", "AdminConsole", "AdminRefused"]
 # The per-engagement review level ladder, lowest first. Raising is an admin action;
 # lowering is not one at all.
 REVIEW_LEVELS: tuple[str, ...] = ("standard", "elevated")
+
+# The largest file the Setup page will place in a watched folder. A client's statements,
+# schedules and exports are well under it; a data room is not a thing to upload one file at a
+# time through a browser.
+MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
 
 class AdminRefused(DiagnosticError):
@@ -79,9 +86,115 @@ class AdminConsole:
             "intake": dict(doc["intake"]),
             "roster": [self._entry_row(e) for e in self.roster.entries()],
             "firm_ceiling_usd": self.firm_ceiling,
+            "inbox_root": _local_root(self.preflight.storage),
+            "outbox_root": _local_root(self.preflight.delivery),
+            "review_levels": list(REVIEW_LEVELS),
             "can": CAN,
             "cannot": CANNOT,
         }
+
+    # -- an engagement's files, for the person who has them
+
+    def _folder_of(self, engagement_id: str) -> tuple[RosterEntry, str]:
+        entry = self.roster.get(engagement_id)
+        if entry is None:
+            raise KeyError(f"{engagement_id} is not on the roster")
+        watch = next((w for w in self.config.watches() if w.id == entry.watch_id), None)
+        if watch is None:
+            raise KeyError(f"{engagement_id} names watch {entry.watch_id!r}, which is not set up")
+        if watch.is_bound:
+            return entry, watch.root
+        if not entry.folder:
+            raise ValueError(f"{engagement_id} has no folder under watch {watch.id}")
+        return entry, f"{watch.root}/{entry.folder}" if watch.root else entry.folder
+
+    def engagement_files(self, engagement_id: str) -> dict[str, Any]:
+        """Where an engagement's files go, and what is there now.
+
+        What the Setup page shows so nobody has to work out a folder path: the path under the
+        watch, the whole path on this machine when storage is a local folder, and every file
+        the sweep would see.
+        """
+        entry, relative = self._folder_of(engagement_id)
+        storage = self.preflight.storage
+        base = _local_root(storage)
+        files = []
+        for ref in storage.list(relative):
+            stat = storage.stat(ref)
+            inside = ref.path.startswith(relative + "/")
+            files.append(
+                {
+                    "path": ref.path[len(relative) + 1 :] if inside else ref.path,
+                    "bytes": stat.size_bytes,
+                    "modified": stat.modified_at.isoformat(),
+                }
+            )
+        return {
+            "engagement_id": entry.engagement_id,
+            "client": entry.client,
+            "state": str(entry.state),
+            "relative": relative,
+            "absolute": str(Path(base) / relative) if base else None,
+            "can_add": base is not None and entry.state is not RosterState.ARCHIVED,
+            "files": files,
+            "quiet_period_minutes": self.config.timing(engagement_id).quiet_period_minutes,
+        }
+
+    def add_file(
+        self, engagement_id: str, name: str, data: bytes, *, who: str, reason: str
+    ) -> dict[str, Any]:
+        """Place one file in the engagement's watched folder - what a person dropping it there
+        would do, and nothing more. The sweep finds it, holds it through the quiet period and
+        fingerprints it like any other file; nothing here reads it.
+
+        Only where storage is a folder on this machine. Recorded against the person, with the
+        file's size and digest, so "who put this file here" has an answer.
+        """
+        base = _local_root(self.preflight.storage)
+        if base is None:
+            raise ValueError(
+                "files can be added from the page only when storage is a local folder; "
+                "put them where the storage port reads from"
+            )
+        entry, relative = self._folder_of(engagement_id)
+        if entry.state is RosterState.ARCHIVED:
+            raise ValueError(f"{engagement_id} is archived; nothing more is read for it")
+        clean = _safe_filename(name)
+        if not data:
+            raise ValueError(f"{clean} is empty")
+        if len(data) > MAX_UPLOAD_BYTES:
+            raise ValueError(f"{clean} is larger than {MAX_UPLOAD_BYTES // (1024 * 1024)} MB")
+        if not who.strip() or not reason.strip():
+            raise ValueError("adding a file names a person and gives a reason")
+        folder = Path(base) / relative
+        target = (folder / clean).resolve()
+        if Path(base).resolve() not in target.parents:
+            raise ValueError(f"{clean} would land outside the watched folder")
+        replaced = target.exists()
+        folder.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        digest = "sha256:" + hashlib.sha256(data).hexdigest()
+        self.config.log_change(
+            who=who,
+            field=f"files/{engagement_id}",
+            old={},
+            new=(placed := {
+                "file": f"{relative}/{clean}",
+                "bytes": len(data),
+                "digest": digest,
+                "replaced": replaced,
+            }),
+            reason=reason,
+        )
+        return placed
+
+    def methodology_text(self, name: str) -> dict[str, Any]:
+        """A methodology file's text, so it can be read on the page it is cleared from."""
+        register = self.preflight.methodology
+        found = next((p for p in register.files() if register.name_of(p) == name), None)
+        if found is None:
+            raise KeyError(f"no methodology file {name!r}")
+        return {"name": name, "text": found.read_text(encoding="utf-8")}
 
     @property
     def firm_ceiling(self) -> float:
@@ -108,12 +221,17 @@ class AdminConsole:
             paths.append(
                 {
                     "scope_path": str(path),
+                    "focus": registry.in_focus(path),
+                    "parked": bool(segment and segment.parked),
                     "defined": practice.defined and bool(segment and segment.defined),
                     "skills": len(resolved),
                     "firm_layer_only": resolved.firm_layer_only,
                 }
             )
+        # The focus first, parked last; declaration order otherwise. Sorting is stable.
+        paths.sort(key=lambda p: (not p["focus"], p["parked"]))
         return {
+            "focus": "/".join(registry.focus) if registry.focus else None,
             "layer_order": list(registry.layer_order),
             "practices": [
                 {
@@ -122,7 +240,8 @@ class AdminConsole:
                     "defined": p.defined,
                     "note": p.note,
                     "segments": [
-                        {"id": s.id, "name": s.name, "defined": s.defined} for s in p.segments
+                        {"id": s.id, "name": s.name, "defined": s.defined, "parked": s.parked}
+                        for s in p.segments
                     ],
                 }
                 for p in registry.practices
@@ -520,6 +639,18 @@ class AdminConsole:
                     "guv",
                     "bilanz",
                 ],
+                # A forecast is named like the statements it projects, so a file such as
+                # "Income Statement Forecast.xlsx" matches both types - and a filename that
+                # matches two types is held for a person rather than read as history (P38).
+                "forecast": [
+                    "forecast",
+                    "projection",
+                    "projections",
+                    "projected",
+                    "budget",
+                    "pro forma",
+                    "proforma",
+                ],
             },
             "destinations": [],
             "credentials": [],
@@ -665,7 +796,15 @@ class AdminConsole:
             "review_level": entry.review_level,
             "note": entry.note,
             "profile_recorded": self.config.profile(entry.engagement_id) is not None,
+            "profile_gaps": self._gaps(entry),
         }
+
+    def _gaps(self, entry: RosterEntry) -> list[str]:
+        """What the engagement's profile still lacks before a run can read it - shown beside
+        the engagement, so a missing judgement is found at setup rather than mid-run."""
+        from admin.preflight import _profile_gaps  # noqa: PLC0415 - one direction only
+
+        return _profile_gaps(self.config.profile(entry.engagement_id), entry.scope_path)
 
 
 CAN: tuple[str, ...] = (
@@ -713,3 +852,19 @@ def _destination_row(destination: Destination) -> dict[str, Any]:
     if destination.credential:
         row["credential"] = destination.credential
     return row
+
+
+def _local_root(port: Any) -> str | None:
+    """The folder on this machine a port reads or writes, when it is a local folder."""
+    found = getattr(port, "root", None)
+    return str(found) if found is not None and getattr(port, "name", "") == "local_folder" else None
+
+
+def _safe_filename(name: str) -> str:
+    """A file name, and only a name: no folders, no parent references, nothing hidden."""
+    clean = str(name or "").replace("\\", "/").rsplit("/", 1)[-1].strip()
+    if not clean or clean in {".", ".."} or clean.startswith("."):
+        raise ValueError(f"{name!r} is not a file name")
+    if any(ch in clean for ch in '<>:"|?*') or any(ord(ch) < 32 for ch in clean):
+        raise ValueError(f"{name!r} has a character a file name cannot carry")
+    return clean

@@ -14,9 +14,20 @@ from typing import Any
 from harness.runtime import BoundTools
 from review.router import Item
 
-__all__ = ["SourceFile", "TimingInputs", "TimingNormalization"]
+__all__ = ["NOT_HISTORICAL", "SourceFile", "TimingInputs", "TimingNormalization", "historical"]
 
 PROPOSAL_CONTRACT = "skills/timing-normalization-proposal@1.0.0"
+
+# How the timing normalizer marks a disagreement the analyst's precedence rules settled. Kept
+# here rather than imported: nothing in the harness imports a tool module (tests/p10). A test
+# holds the two copies equal.
+SETTLED_BY_RULE = " - taken by rule: "
+
+# Document types that are never history, whatever they look like. A client forecast carries
+# every statement label a historical file does; aligned into the historical table, its
+# projected years would sit beside the real ones as if they had happened (P38). Held out
+# here, in code, rather than left to the model to notice from a document_type field.
+NOT_HISTORICAL = frozenset({"forecast"})
 
 
 @dataclass(frozen=True)
@@ -37,11 +48,20 @@ class SourceFile:
     block_periods: dict[str, str] = field(default_factory=dict)
     """block locator -> the period label the detector read for that block, if it
     could. A hint for the model, not a decision."""
+    audited: bool = False
+    """Whether the reader found an audit opinion - audited sources win a disagreement."""
+    received_at: str = ""
+    """When intake first saw the file - the more recent wins a disagreement of one kind."""
 
 
 @dataclass(frozen=True)
 class TimingInputs:
     files: tuple[SourceFile, ...]
+
+
+def historical(inputs: TimingInputs) -> tuple[SourceFile, ...]:
+    """The files that may enter the historical table."""
+    return tuple(f for f in inputs.files if f.document_type not in NOT_HISTORICAL)
 
 
 class TimingNormalization:
@@ -53,8 +73,12 @@ class TimingNormalization:
         return ()
 
     def escalate(self, inputs: TimingInputs) -> str | None:
-        """A file flagged ambiguous on scale or period type stops here, before the model."""
-        for f in inputs.files:
+        """A file flagged ambiguous on scale or period type stops here, before the model. So
+        does a set with no historical file in it: forecasts alone are not a history."""
+        if inputs.files and not historical(inputs):
+            names = ", ".join(f.filename for f in inputs.files)
+            return f"no historical statements to align, only forecasts: {names}"
+        for f in historical(inputs):
             flags = [a for a in f.ambiguous if a.startswith(("scale", "period_type"))]
             if flags:
                 return f"{f.filename} is ambiguous: " + "; ".join(flags)
@@ -89,6 +113,8 @@ class TimingNormalization:
                 )
             )
         for c in report.get("conflicts", ()):
+            if SETTLED_BY_RULE in str(c.get("detail") or ""):
+                continue  # settled by the analyst's precedence rules; listed in the report
             label = str(c.get("canonical_label") or c.get("label") or "conflict")
             items.append(
                 Item(
@@ -109,7 +135,7 @@ class TimingNormalization:
     def payload(self, inputs: TimingInputs) -> str:
         """Labels and locators. No values: the model matches, it does not read figures."""
         entries = []
-        for f in inputs.files:
+        for f in historical(inputs):
             entries.append(
                 {
                     "source_id": f.source_id,
@@ -146,14 +172,16 @@ class TimingNormalization:
     def apply(
         self, proposal: dict[str, Any], tools: BoundTools, inputs: TimingInputs, pin: str
     ) -> dict[str, Any]:
-        sources = {f.source_id: f.blocks for f in inputs.files}
+        sources = {f.source_id: f.blocks for f in historical(inputs)}
         files = {
             f.source_id: {
                 "scale": f.scale,
                 "currency": f.currency,
                 "source_version": f.source_version,
+                "audited": f.audited,
+                "received_at": f.received_at,
             }
-            for f in inputs.files
+            for f in historical(inputs)
         }
         result = tools["timing_normalizer"](
             engagement_id=tools.engagement_id,

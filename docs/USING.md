@@ -62,15 +62,29 @@ python tools/serve.py --check
 
 ## Starting it
 
+**On Windows, double-click `start.cmd` in the project folder.** That is the whole of it. The
+first time, it installs what is missing, creates `.env`, generates the mask vault key, asks
+once for the Anthropic API key (typed into the window, not shown, kept only in `.env` on
+that machine - press Enter to go without one), makes the inbox and outbox folders, and opens
+the dashboard in the browser. After that it just starts. Close the window to stop it.
+`tools\start.ps1 -SetupOnly` prepares everything and runs `--check` without starting.
+
+Or by hand:
+
 ```
 python tools/serve.py
 ```
+
+Either way, the settings in `.env` are read when it starts - the model adapter, the folders,
+the database - and a value already set in the shell wins over the file. (The rehearsal sets
+`AA_NO_ENV_FILE=1` so a developer's `.env` never reaches a generated firm.)
 
 Then open:
 
 - **http://127.0.0.1:8000/admin** — setup, engagements, practice groups, methodology
 - **http://127.0.0.1:8000/** — the ops console: runs, steps, cost, the review queue
 - **http://127.0.0.1:8000/analytics** — across every run: is it working, and what to fix
+- **http://127.0.0.1:8000/help** — what to do, in order, and what the words on the pages mean
 
 Each links to the other two. They answer different questions and are read at different
 times: the admin page when you are setting something up, the console while a run is
@@ -147,15 +161,24 @@ build* — that is the conversation to have, and it becomes a recipe with your n
 ## For an analyst: what you do
 
 1. **Put the client's files in the engagement's folder.** Nothing else. No renaming
-   convention to remember, no form to fill.
+   convention to remember, no form to fill. On Setup, the engagement's **files** button
+   shows that folder's full path (with a copy button), what is in it now, and takes files
+   by drag and drop - the same as putting them in the folder, recorded against your name
+   with each file's digest. It only writes where storage is a folder on this machine.
 2. **Wait.** The system holds a set until it stops changing (30 minutes by default), so
    half-uploaded folders do not start half-runs.
 3. **Answer what it asks.** Anything below its confidence floor, anything material, and
-   anything a guard flagged comes to you as a review item on the Activity page — with the
-   question, where it came from, and (on request) what it is proposing. The run stops at
-   that step and waits; nothing after it is built on an answer nobody gave. **Accept** it
-   or **Reject** it with a reason; a rejection or a correction without a reason is refused,
-   and so is a decision on an item somebody else already decided. When the last open item
+   anything a guard flagged comes to you as a review item under **Waiting on a person** on
+   the Activity page; the Activity tab on every page shows how many are waiting, and so
+   does the browser tab's title. **Review** opens the item: the question, the lines of the
+   source it came from and why it came to a person — then **Show the proposal** for what
+   the system suggests and how confident it is. Showing it is recorded, and Accept and
+   Correct are not offered until you have. The run stops at that step and waits; nothing
+   after it is built on an answer nobody gave. **Accept** it, **Correct** it (edit the
+   proposed values), **Reject** it, or **Escalate** it; anything but accepting needs a
+   reason, a correction needs the corrected value, and a decision on an item somebody else
+   already decided is refused. The panel's *link to this item* opens the same item for a
+   colleague you want to answer it. When the last open item
    on a run is answered, the run resumes on the next sweep — usually within a minute — from
    the step after the one it stopped at, replaying what it already did rather than paying
    for it twice.
@@ -165,7 +188,10 @@ build* — that is the conversation to have, and it becomes a recipe with your n
    system has no example shape for yet (a template input with nothing to bind) is refused
    on the record, not learned.
 5. **Check the deliverable.** It arrives in the output folder as a workbook built from the
-   firm's template. Every figure traces back to a source file, sheet and cell.
+   firm's template, and the run's detail on Activity lists it under **Delivered** with a
+   **Download**. The download is checked against the digest recorded at release, so a file
+   edited in the outbox afterwards is refused rather than passed off as the deliverable.
+   Every figure traces back to a source file, sheet and cell.
 
 **What it will never do**: conclude a value, sign anything, decide something material on
 its own, or learn from its own unreviewed output. Only a decision a person actually made
@@ -190,6 +216,7 @@ a "what to do now". If the answer is not obvious, the code is the thing to quote
 ### First day on a new machine
 
 ```
+start.cmd                                 # Windows: all of the next three, then starts
 uv sync                                   # install
 cp .env.example .env                      # then add the Anthropic API key
 python tools/serve.py --check             # what is ready, what is not
@@ -225,9 +252,12 @@ Then, on the admin page, in this order:
 4. **Register an engagement** — its id, the client, the practice group picked from the
    list, the watch, the destination and its folder. It starts paused. A rush job can be
    given a shorter quiet period than the environment's, never a longer one.
-5. **Complete its engagement profile.** The page offers a skeleton with everything the
+5. **Complete its engagement profile.** The page offers a form with everything the
    system already knows filled in; the blanks are judgments — the industry code, the size
-   band, the owner-compensation benchmark, who reviews and how quickly. Three skills read
+   band, the owner-compensation benchmark, who reviews and how quickly. The engagement list
+   says beside each engagement what its profile still lacks, and `/admin#profile=<id>` opens
+   the form directly for whoever owns the missing judgements. The JSON is one click away
+   for anything the form does not cover. Three skills read
    it, so preflight will not activate an engagement without one.
 6. **Activate it**, and check preflight passes for it first. It will tell you what is
    missing if it does not.
@@ -249,7 +279,10 @@ what to do about it; a failure with no engagement named blocks everything.
   is down, runs continue — it reads the event log and drives nothing. Every page fits one
   screen: nothing is below the fold, and a panel with more than fits scrolls inside itself.
   Opening a run puts it in the address bar, so the link can be pasted to a colleague and
-  opens on that run.
+  opens on that run; with no link, the page opens on the run most likely to need you. Runs
+  are listed by client, with their scope, how long ago they last did something, and - for
+  one that stopped - the reason, in the three colours that carry meaning: mint fine, gold
+  attention, plum a problem.
 - **The run trace**, on that page, paints the whole design with what one run actually did:
   mint where a node passed, plum where one failed with its diagnostic underneath, a ring on
   whatever is running, and everything the run never touched left neutral. *Never ran* and
@@ -272,8 +305,11 @@ what to do about it; a failure with no engagement named blocks everything.
   run a newer run has already replaced.
 - **A file that launches nothing.** Files are typed from their names — `TB`, `trial
   balance`, `income statement`, `balance sheet`, `financials`, `IS`, `BS`, `FS` and the
-  like, whole words only, so `IS 2025.xlsx` counts and `analysis.xlsx` does not. A name no
-  convention claims is *held*: recorded, never guessed at, and it starts no clock. The Setup
+  like, whole words only, so `IS 2025.xlsx` counts and `analysis.xlsx` does not. A client's
+  forecast is its own type (`forecast`, `projection`, `budget`, `pro forma`) and never
+  enters the historical table; a name that matches both - `Income Statement Forecast.xlsx`
+  - is held rather than guessed. A name no convention claims is *held*: recorded, never
+  guessed at, and it starts no clock. The Setup
   page's preflight names every held file and what to do — rename it, or add the name's
   token to the conventions on the Setup page. Nothing that is not cleared here can
   contribute a figure.

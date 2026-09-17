@@ -26,6 +26,8 @@ from typing import Any
 from registries.errors import UNKNOWN_ADAPTER, RegistryError, diagnose
 
 __all__ = [
+    "env_file_values",
+    "load_env_file",
     "PORTS",
     "PortSpec",
     "adapters",
@@ -224,3 +226,45 @@ def _spec(port: str) -> PortSpec:
             )
         )
     return PORTS[port]
+
+
+def env_file_values(text: str) -> dict[str, str]:
+    """KEY=value lines, as .env writes them: comments and blanks skipped, one pair of
+    surrounding quotes removed. The one parser, shared by the secrets adapter and the
+    command that starts the system."""
+    values: dict[str, str] = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        values[key.strip()] = value
+    return values
+
+
+def load_env_file(path: Any = None) -> tuple[str, ...]:
+    """Put the settings in .env into this process's environment, where the ports read them.
+
+    Without this, a local start read only the secrets from .env: the adapters, the database
+    and the folder roots are chosen from the process environment, so `AA_LLM_ADAPTER=
+    anthropic_messages` written in .env changed nothing, silently. A container gets the file
+    through `--env-file`; this is the same thing for `python tools/serve.py`.
+
+    The real environment wins over the file, as it does for secrets: a value exported in the
+    shell is a deliberate override. Empty values are skipped, so a placeholder line does not
+    blank a setting. Returns the names it set, never a value.
+    """
+    from pathlib import Path
+
+    target = Path(path) if path is not None else Path(__file__).resolve().parents[1] / ".env"
+    if not target.is_file():
+        return ()
+    applied = []
+    for key, value in env_file_values(target.read_text(encoding="utf-8")).items():
+        if value and key not in os.environ:
+            os.environ[key] = value
+            applied.append(key)
+    return tuple(applied)

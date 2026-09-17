@@ -49,6 +49,9 @@ class Segment:
     id: str
     name: str
     defined: bool = False
+    parked: bool = False
+    """Kept and tested, but not where the work is pointed today. A label, not a gate:
+    a parked segment still resolves, and an engagement may still be scoped into it."""
 
 
 @dataclass(frozen=True)
@@ -108,8 +111,11 @@ class ScopeRegistry:
         review_ranks: dict[str, int],
         sensitivity_ranks: dict[str, int],
         source: Path = SCOPES_FILE,
+        focus: tuple[str, str] | None = None,
     ) -> None:
         self.source = source
+        self.focus = focus
+        """(practice, segment) the build and the dashboards are pointed at, or None."""
         self.version = version
         self.layer_order = layer_order
         self.practices = practices
@@ -127,7 +133,12 @@ class ScopeRegistry:
                 defined=bool(p.get("defined", False)),
                 note=p.get("note", ""),
                 segments=tuple(
-                    Segment(id=s["id"], name=s["name"], defined=bool(s.get("defined", False)))
+                    Segment(
+                        id=s["id"],
+                        name=s["name"],
+                        defined=bool(s.get("defined", False)),
+                        parked=bool(s.get("parked", False)),
+                    )
                     for s in p.get("segments", [])
                 ),
             )
@@ -142,7 +153,14 @@ class ScopeRegistry:
             )
             for d in raw["dispositions"]
         )
+        focus_raw = raw.get("focus")
+        focus = (
+            (str(focus_raw["practice"]), str(focus_raw["segment"]))
+            if isinstance(focus_raw, dict)
+            else None
+        )
         registry = cls(
+            focus=focus,
             version=str(raw["version"]),
             layer_order=tuple(raw["layer_order"]),
             practices=practices,
@@ -210,6 +228,10 @@ class ScopeRegistry:
             for disposition in self.dispositions
         )
 
+    def in_focus(self, scope: ScopePath) -> bool:
+        """Whether a path sits in the declared focus. False when nothing is declared."""
+        return self.focus == (scope.practice, scope.segment)
+
     def layers_for(self, scope: ScopePath) -> tuple[str, ...]:
         """The five layers, shallowest first. The one place the order is expanded."""
         self.validate(scope)
@@ -268,6 +290,14 @@ class ScopeRegistry:
         for practice in self.practices:
             if not practice.segments:
                 problems.append(f"{practice.id} declares no segments, not even a placeholder")
+        if self.focus is not None:
+            practice_id, segment_id = self.focus
+            declared = next((p for p in self.practices if p.id == practice_id), None)
+            segment = declared.segment(segment_id) if declared else None
+            if segment is None:
+                problems.append(f"focus names {practice_id}/{segment_id}, which is not declared")
+            elif segment.parked:
+                problems.append(f"focus names {practice_id}/{segment_id}, which is parked")
         for name, ranks in (
             ("review_ladder", self.review_ranks),
             ("sensitivity_ladder", self.sensitivity_ranks),

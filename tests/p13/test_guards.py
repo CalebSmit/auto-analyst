@@ -1,7 +1,7 @@
 """Five guards: each passes clean input, fails its own kind of bad input, and emits both.
 
 Three exit criteria are here by name - the 0.4% total, the "derived" source, the writer
-that rounds to the nearest thousand. The fourth, the ten fixtures, has its own file.
+that rounds to the nearest thousand. The fourth, the eleven fixtures, has its own file.
 """
 
 from __future__ import annotations
@@ -139,7 +139,9 @@ def test_a_source_version_the_run_does_not_hold_fails(
 def test_provenance_walks_every_figure_wherever_it_sits(
     provenance_gate: ProvenanceGate, started: str, sources: dict
 ) -> None:
-    nested = {"a": {"b": [{"c": figure(1.0)}, {"d": {"e": figure(2.0, source_id="derived")}}]}}
+    nested = {
+        "a": {"b": [{"c": figure(TRUE_TOTAL)}, {"d": {"e": figure(2.0, source_id="derived")}}]}
+    }
     assert len(list(figures_in(nested))) == 2
     result = provenance_gate.check(nested, started, sources)
     assert result.checked == 2 and result.failed == 1

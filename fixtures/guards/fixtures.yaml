@@ -1,4 +1,4 @@
-# The ten adversarial fixtures, from the blueprint's fixture table.
+# The eleven adversarial fixtures, from the blueprint's fixture table.
 #
 # A guard suite that only ever sees clean input tells you nothing about the guard. Each
 # entry names the guard it is built to defeat and the phase that builds that guard; the
@@ -51,6 +51,13 @@ fixtures:
     what: A figure citing source_id "derived", and one citing a hash not in the manifest
     fires: SKILL.FABRICATED_SOURCE
     case: provenance_derived_source.json
+
+  - id: provenance_cited_value_absent
+    guard: provenance
+    built_by: P39
+    what: A figure read off the page that cites a real row and carries a transposed amount
+    fires: SKILL.CITED_VALUE_ABSENT
+    case: provenance_cited_value_absent.json
 
   - id: deliverable_qc_broken_link
     guard: deliverable_qc

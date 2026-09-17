@@ -64,8 +64,9 @@ That distinction exists so that "tested" never quietly means "it ran without cra
 ## Running it
 
 ```
+start.cmd                                  # Windows, for a person: sets up what is missing, starts, opens it
 python tools/serve.py --check              # what is wired, what is not, what setup still needs
-python tools/serve.py                      # admin at /admin, ops console at /
+python tools/serve.py                      # admin at /admin, ops console at /, help at /help
 python tools/simulate_firm.py              # a generated firm through the real server, no key
 python tools/simulate_firm.py --scripted   # the same, with the review loop walked end to end
 ```
@@ -76,10 +77,29 @@ runs reach the review queue, get answered, resume and write precedent. Between t
 found twenty-three bugs the suite passed over. Run both after any change that touches
 intake, the driver, the guards or the consoles; a line marked FINDING is something to fix.
 
+`serve.py` reads `.env` into the environment on start (the shell wins; `AA_NO_ENV_FILE=1`
+opts out, and the rehearsal sets it). Before that fix, only secrets were read from the file.
+
 `readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
 need updating when a seam is filled - and it is the honest answer to "does this work yet".
 [`docs/USING.md`](docs/USING.md) is the guide for the people who use the tool rather than
 build it; keep it true, because a test holds it to the setup path it describes.
+
+## The focus, and `/improve-agent`
+
+The build serves **one division first: valuation / non-ESOP** (`focus:` in
+`scope/scopes.yaml`). ESOP is parked - kept, tested and resolvable, not where effort goes.
+Other divisions arrive later as data: a scope entry, a folder, and topics for the
+interview. Pointing the focus elsewhere is that one entry.
+
+`/improve-agent` (Cursor or Claude Code; both wrappers point at
+[`interview/PROTOCOL.md`](interview/PROTOCOL.md)) interviews the analyst one question at a
+time and, on stop, turns what it learned into changes through the gate. What it learns
+lives in `knowledge/`, committed to the private repo so it travels between machines, and
+it may hold client data - **nothing identifying leaves it** for a skill, methodology file
+or fixture; `python tools/interview.py scan` must print `clean` before a
+session ends. Run `python tools/interview.py status` to see where the interview stands and
+what the code says the focus division is still missing.
 
 ## What this project is
 
@@ -123,6 +143,7 @@ These are not style preferences. Each one is an invariant with a test behind it.
 - Local only through P24. No cloud, no ShareFile, no Box. The ports exist so that stays
   true without costing anything later.
 - The fake LLM adapter replays fixtures, so phases 4–10 need no API key and cost nothing.
-- Client data never enters the repo. `fixtures/` is masked or synthetic, always.
+- Client data enters the repo only under `knowledge/`, and only because the repo is private
+  (decided 2026-09-16). `fixtures/` is masked or synthetic, always.
 - Ask rather than assume when a decision would be expensive to reverse — the blueprint
   records nine such decisions that belong to people, not to code.

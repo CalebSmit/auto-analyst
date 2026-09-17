@@ -1,4 +1,4 @@
-"""Each of the ten fixtures fires the right guard, and only that guard.
+"""Each of the eleven fixtures fires the right guard, and only that guard.
 
 The blueprint's fixture table names ten guards across five phases. Six of them exist
 after P13. Each fixture whose guard is built is run against *every* built guard, and the
@@ -42,9 +42,9 @@ BUILT = {
 }
 
 
-def test_the_table_has_ten_and_they_are_the_blueprints(fixture_table: dict[str, Any]) -> None:
+def test_the_table_has_eleven_and_they_are_the_blueprints(fixture_table: dict[str, Any]) -> None:
     rows = fixture_table["fixtures"]
-    assert len(rows) == 10
+    assert len(rows) == 11
     for row in rows:
         assert (FIXTURES / row["case"]).is_file(), f"{row['id']} has no case file"
         assert row["fires"].split(".")[0] in {

@@ -203,3 +203,14 @@ def test_the_registry_stays_the_source_when_it_changes(console: AdminConsole) ->
     source = inspect.getsource(admin.console)
     for hardcoded in ('"valuation"', '"consulting"', '"corporate-finance"', '"esop"'):
         assert hardcoded not in source, hardcoded
+
+
+def test_the_focus_is_offered_first_and_parked_segments_last(console: AdminConsole) -> None:
+    """P37: the dashboard leads with the division the work is pointed at."""
+    choices = console.scope_choices()
+    assert choices["focus"] == "valuation/non-esop"
+    paths = choices["paths"]
+    assert [p["focus"] for p in paths[:2]] == [True, True]
+    assert all(p["scope_path"].startswith("valuation/non-esop/") for p in paths[:2])
+    parked = [i for i, p in enumerate(paths) if p["parked"]]
+    assert parked == list(range(len(paths) - len(parked), len(paths))) and parked

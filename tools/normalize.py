@@ -9,9 +9,13 @@ What it refuses to do:
 
 * **Interpolate.** A period no block covers is a gap in the report and an absence in the
   table. Not a zero, not an average, not last year.
-* **Choose between two files.** Two blocks claiming one period: where they agree the
-  figure carries both locators; where they disagree there is no figure and the report
-  carries the conflict with both values.
+* **Choose between two files on its own judgment.** Two blocks claiming one period: where
+  they agree the figure carries both locators. Where they disagree, the analyst's rules
+  (knowledge, 2026-09-17-2) settle it only when they apply without doubt - audited
+  statements over internal ones, and within the same kind the most recently received file.
+  A settled disagreement still stays in the report with every value and the rule named.
+  Anything else - an older audited file against a newer internal one, a tie in arrival, a
+  file with no arrival time - has no figure, and the conflict goes to a person.
 * **Restate scale.** Each figure carries the scale its file was read at.
 * **Drop a row.** Every row in every block the mapping names ends up under a canonical
   label or in `unmatched`; a row the proposal forgot is reported as such.
@@ -30,7 +34,11 @@ from typing import Any
 
 import pandas as pd
 
-__all__ = ["Normalized", "timing_normalizer"]
+__all__ = ["TAKEN_BY_RULE", "Normalized", "settle", "timing_normalizer"]
+
+# Marks a conflict the analyst's precedence rules settled. The detail keeps every value;
+# the procedure reads the marker to tell a settled disagreement from an open one.
+TAKEN_BY_RULE = " - taken by rule: "
 
 PRODUCED_BY = "timing-normalization@0.1.0"
 CONTRACT = "skills/timing-normalization@1.0.0"
@@ -122,26 +130,28 @@ def timing_normalizer(
             file_sources = {loc_sid for loc_sid, _ in by_file.items()}
             claimants = {p["source_id"] for p in periods if p["label"] == period_label}
             totals = {sid: t for sid, (t, _) in file_totals.items()}
+            chosen: str | None = sorted(file_sources)[0]
             if len(claimants) > 1 and len(set(totals.values())) > 1:
+                chosen, why = settle(totals, files)
+                said = "; ".join(
+                    f"{sid[:19]}... says {t:,.2f}" for sid, t in sorted(totals.items())
+                )
                 conflicts.append(
                     {
                         "period_label": period_label,
                         "source_ids": sorted(totals),
-                        "detail": (
-                            f"{label}: "
-                            + "; ".join(
-                                f"{sid[:19]}... says {t:,.2f}" for sid, t in sorted(totals.items())
-                            )
-                            + " - no figure taken"
-                        ),
+                        "detail": f"{label}: {said}"
+                        + (f"{TAKEN_BY_RULE}{why}" if chosen else f" - no figure taken ({why})"),
                     }
                 )
-                continue
+                if chosen is None:
+                    continue
+            assert chosen is not None
             # The figure cites one file. Where two files agree, the other's rows are on
             # the trail; the derivation names rows the figure's own source holds, so the
             # tie-out guard can resolve every locator under the figure's source_id.
-            value = next(iter(totals.values()))
-            first_sid = sorted(file_sources)[0]
+            value = totals[chosen]
+            first_sid = chosen
             locators = list(file_totals[first_sid][1])
             meta = files[first_sid]
             if meta.get("scale") not in (1, 1000, 1_000_000):
@@ -241,6 +251,46 @@ def _check_periods(periods: list[dict[str, Any]]) -> None:
         if key in seen and seen[key] != (p["type"], p["end"]):
             raise ValueError(f"period {key!r} is typed or ended two ways")
         seen[key] = (p["type"], p["end"])
+
+
+def settle(
+    totals: Mapping[str, float], files: Mapping[str, Mapping[str, Any]]
+) -> tuple[str | None, str]:
+    """Which disagreeing source a period's figure comes from, and why - or None, and why not.
+
+    The analyst's rules (knowledge, 2026-09-17-2): audited over internal; within the same kind,
+    the most recently received. When an older audited file disagrees with a newer internal
+    one the analyst was not sure, so a person decides. A file with no arrival time, or two
+    files that arrived at the same moment, cannot be ordered, and a person decides.
+    """
+    sids = sorted(totals)
+    arrived = {sid: str(files.get(sid, {}).get("received_at") or "") for sid in sids}
+    if not all(arrived.values()):
+        return None, "a disagreeing file has no arrival time to order it by"
+    audited = [sid for sid in sids if files.get(sid, {}).get("audited")]
+    internal = [sid for sid in sids if sid not in audited]
+
+    def latest(group: list[str]) -> str | None:
+        newest = max(arrived[sid] for sid in group)
+        at = [sid for sid in group if arrived[sid] == newest]
+        return at[0] if len(at) == 1 else None
+
+    if audited and internal:
+        newest_audited = max(arrived[sid] for sid in audited)
+        if any(arrived[sid] > newest_audited for sid in internal):
+            return None, (
+                "an older audited file disagrees with a newer internal one; audited is the "
+                "likely answer, and a person confirms it"
+            )
+        winner = latest(audited)
+        if winner is None:
+            return None, "two audited files arrived together and disagree"
+        return winner, f"audited over internal ({winner[:19]}...)"
+    winner = latest(sids)
+    if winner is None:
+        return None, "the disagreeing files arrived together"
+    kind = "audited" if audited else "internal"
+    return winner, f"the most recently received {kind} file ({winner[:19]}...)"
 
 
 def _distinct_periods(periods: list[dict[str, Any]]) -> list[dict[str, Any]]:

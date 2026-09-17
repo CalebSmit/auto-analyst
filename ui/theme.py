@@ -223,6 +223,42 @@ select{width:auto;padding:.3rem .5rem;margin:0}
  background:color-mix(in srgb,var(--navy) 42%,transparent);padding:2rem}
 .modal>.card{width:min(56rem,100%);max-height:100%;box-shadow:0 24px 60px rgba(12,46,63,.35)}
 
+.modal>.card.narrow{width:min(34rem,100%)}
+.modal .foot{display:flex;gap:.5rem;align-items:center;justify-content:flex-end}
+.modal .foot .spacer{margin-right:auto;font-size:.8rem;color:var(--ink-3)}
+.field{margin:0 0 .8rem}
+.field .hint{font-size:.8rem;color:var(--ink-3);margin:-.3rem 0 .4rem}
+.field select{width:100%;padding:.45rem .6rem}
+
+/* ---------------------------------------------------------------- review panel */
+.excerpt{font-family:var(--mono);font-size:.84rem;line-height:1.5;white-space:pre-wrap;
+ background:var(--surface-2);border-radius:var(--radius-sm);padding:.6rem .75rem;margin:.2rem 0 .8rem;
+ box-shadow:inset 3px 0 0 var(--accent);color:var(--ink);max-height:14rem;overflow:auto}
+.kv{display:grid;grid-template-columns:minmax(8rem,auto) 1fr;gap:.3rem .9rem;font-size:.9rem;margin:.2rem 0 .8rem}
+.kv dt{color:var(--ink-3);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;padding-top:.1rem}
+.kv dd{margin:0;color:var(--ink);word-break:break-word}
+.kv dd input{margin:0}
+.section-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+ margin:.9rem 0 .35rem;font-weight:600}
+.reveal{display:flex;align-items:center;gap:.7rem;padding:.7rem .8rem;border-radius:var(--radius-sm);
+ background:var(--accent-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 30%,white);margin:.2rem 0 .8rem}
+.reveal p{margin:0;font-size:.86rem;color:var(--ink-2);flex:1}
+.decide{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+.decide button.on{background:var(--navy);color:var(--brand-s5);border-color:var(--navy)}
+
+/* ---------------------------------------------------------------- lists that are work */
+.r.pick{cursor:pointer}
+.r.pick:hover{background:var(--surface-2)}
+.r .why-line{display:block;font-size:.8rem;color:var(--ink-3);margin-top:.15rem;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34rem}
+.count{display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .35rem;border-radius:99px;
+ font-size:.74rem;font-weight:700;background:var(--gold);color:var(--navy)}
+.attention{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:.86rem}
+.attention b{color:var(--navy)}
+.toggle{display:inline-flex;align-items:center;gap:.35rem;font-size:.8rem;color:var(--ink-3);cursor:pointer;user-select:none;
+ text-transform:none;letter-spacing:0;margin:0}
+.toggle input{width:auto;margin:0}
+
 /* ---------------------------------------------------------------- steps */
 .steps{display:flex;flex-direction:column;gap:.1rem}
 .step{display:flex;gap:.7rem;align-items:flex-start;padding:.5rem .55rem;border-radius:var(--radius-sm)}
@@ -317,6 +353,88 @@ async function post(url, body) {
   if (!r.ok) throw await refusal(r);
   return r.json();
 }
+// When something happened, in the words a person uses: "4 min ago", "yesterday".
+function ago(ts) {
+  if (!ts) return '';
+  const t = Date.parse(ts);
+  if (isNaN(t)) return '';
+  const s = Math.max(0, (Date.now() - t) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.round(s / 60) + ' min ago';
+  if (s < 86400) return Math.round(s / 3600) + ' h ago';
+  if (s < 172800) return 'yesterday';
+  return Math.round(s / 86400) + ' days ago';
+}
+const usd = v => (v === null || v === undefined) ? '' : '$' + Number(v).toFixed(2);
+
+// A question asked in the page rather than in a browser pop-up: it can explain itself, it
+// can require a reason, and it does not block everything else on the screen. Resolves to
+// the answers by field name, or null if the person cancelled.
+function ask({title, why = '', body = '', fields = [], ok = 'Continue', danger = false, note = ''}) {
+  return new Promise(resolve => {
+    const box = document.createElement('div');
+    box.className = 'modal';
+    box.innerHTML = `<section class="card${body ? '' : ' narrow'}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <header><h2>${esc(title)}</h2>${why ? `<p class="why">${esc(why)}</p>` : ''}</header>
+      <div class="body">${body ? `<div class="excerpt" style="max-height:min(22rem,45vh);font-family:var(--sans);font-size:.9rem">${esc(body)}</div>` : ''}${fields.map((f, n) => `<div class="field">
+        <label for="ask_${n}">${esc(f.label)}${f.required ? '' : ' <span style="text-transform:none;letter-spacing:0">(optional)</span>'}</label>
+        ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
+        ${f.kind === 'select'
+          ? `<select id="ask_${n}">${(f.options || []).map(o => `<option value="${esc(o.value)}"${o.value === f.value ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`
+          : f.kind === 'textarea'
+            ? `<textarea id="ask_${n}" rows="3" placeholder="${esc(f.placeholder || '')}">${esc(f.value || '')}</textarea>`
+            : `<input id="ask_${n}" value="${esc(f.value || '')}" placeholder="${esc(f.placeholder || '')}">`}
+      </div>`).join('')}${note ? `<p class="note" style="margin-top:0">${esc(note)}</p>` : ''}</div>
+      <div class="foot"><button class="quiet" data-act="cancel">Cancel</button>
+       <button class="primary" data-act="ok"${danger ? ' style="background:var(--bad);border-color:var(--bad)"' : ''}>${esc(ok)}</button></div>
+    </section>`;
+    const finish = value => { box.remove(); document.removeEventListener('keydown', onKey); resolve(value); };
+    const submit = () => {
+      const out = {};
+      for (let n = 0; n < fields.length; n++) {
+        const v = $('ask_' + n).value;
+        if (fields[n].required && !String(v).trim()) {
+          $('ask_' + n).focus();
+          return say(fields[n].label + ' is needed - it is recorded with the change.', 'bad');
+        }
+        out[fields[n].name] = v;
+      }
+      finish(out);
+    };
+    const onKey = e => {
+      if (e.key === 'Escape') finish(null);
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) submit();
+    };
+    box.addEventListener('click', e => {
+      if (e.target === box) finish(null);
+      const act = e.target.dataset && e.target.dataset.act;
+      if (act === 'cancel') finish(null);
+      if (act === 'ok') submit();
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(box);
+    const first = box.querySelector('input,textarea,select,button.primary');
+    if (first) first.focus();
+  });
+}
+
+// What is waiting on a person, on every page: a count on the Activity tab, and in the
+// browser tab's title so it shows when the console is in the background.
+const BASE_TITLE = document.title;
+async function waiting() {
+  let n = 0;
+  try { n = (await get('/api/review')).length; } catch (e) { return; }
+  const tab = document.querySelector('.nav a[href="/"]');
+  if (tab) {
+    let badge = tab.querySelector('.count');
+    if (n && !badge) { badge = document.createElement('span'); badge.className = 'count'; badge.style.marginLeft = '.4rem'; tab.appendChild(badge); }
+    if (badge) { if (n) { badge.textContent = n; badge.title = n + ' waiting on a person'; } else badge.remove(); }
+  }
+  document.title = (n ? '(' + n + ') ' : '') + BASE_TITLE;
+}
+waiting();
+setInterval(waiting, 20000);
+
 async function act(run, done) {
   try { await run(); say(done, 'good'); await refresh(); }
   catch (e) { say(e.text || String(e), 'bad', e.code); }
@@ -334,12 +452,20 @@ def shell(title: str, current: str) -> str:
         ("/admin", "Setup"),
         ("/", "Activity"),
         ("/analytics", "Analytics"),
+        ("/help", "Help"),
     )
     links = "".join(
         f'<a href="{path}"{" aria-current=\'page\'" if path == current else ""}>{label}</a>'
         for path, label in tabs
     )
+    icon = (
+        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E"
+        "%3Crect width='32' height='32' rx='6' fill='%230c2e3f'/%3E"
+        "%3Cpath d='M9 23l7-14 7 14' stroke='%23c19b2b' stroke-width='3' fill='none' "
+        "stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    )
     return (
+        f'<link rel="icon" href="{icon}">'
         f'<header class="top"><div class="top-in">'
         f'<span class="brand"><b>Automated Analyst</b><span>Chartwell</span></span>'
         f'<nav class="nav">{links}</nav>'

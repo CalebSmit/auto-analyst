@@ -1,0 +1,8 @@
+---
+description: Session rules for this repository
+alwaysApply: true
+---
+
+Before anything else in this repository, read `CLAUDE.md` at the repo root and follow it.
+Its rules (the gate, generated files, non-negotiables) apply in Cursor exactly as they do
+in Claude Code. When the user runs `/improve-agent`, follow `interview/PROTOCOL.md`.

@@ -76,10 +76,11 @@ def test_every_built_guard_fires_on_its_own_fixture_and_only_that_guard(
 
 
 def test_every_guard_fixture_has_its_guard(fixture_table: dict[str, Any]) -> None:
-    """Nine after P17; the tenth, the Deliverable QC Gate, landed with P21."""
+    """Nine after P17; the tenth, the Deliverable QC Gate, landed with P21; the eleventh, a
+    second provenance fixture for a cited value that is not on the row, with P39."""
     built = [r for r in fixture_table["fixtures"] if r["guard"] in BUILT]
     owed = {r["guard"]: r["built_by"] for r in fixture_table["fixtures"] if r["guard"] not in BUILT}
-    assert len(built) == 10
+    assert len(built) == 11
     assert owed == {}
 
 

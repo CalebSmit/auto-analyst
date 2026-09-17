@@ -16,19 +16,22 @@ from __future__ import annotations
 
 import asyncio
 import dataclasses
+import hashlib
 import json
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Mapping
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Protocol
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 import ports
 from ops.analytics import Analytics
 from ops.blobs import ContentRef, ContentStore
 from ops.console.analytics_page import PAGE as ANALYTICS_PAGE
+from ops.console.help_page import PAGE as HELP_PAGE
 from ops.console.trace import Trace, TraceReducer
 from ops.cost import CostMeter
 from ops.drift import DriftMonitor
@@ -73,7 +76,12 @@ class Console:
         human_baseline_override_rate: float | None = None,
         queue: QueueView | None = None,
         blobs: ContentStore | None = None,
+        label_of: Callable[[str], Mapping[str, str] | None] | None = None,
     ) -> None:
+        """`label_of` names an engagement for a person - its client and scope path - so the
+        runs list reads as work rather than as hashes. Optional: the console reads the run
+        store, and the roster that knows a client's name is the composition root's."""
+        self.label_of = label_of
         self.store = store
         self.bus = bus
         self.queue = queue
@@ -102,6 +110,7 @@ class Console:
             rows.append(
                 {
                     **_run_row(run),
+                    **self._label(run.engagement_id),
                     "events": len(events),
                     "last_event": events[-1].type if events else None,
                     "last_ts": events[-1].ts if events else run.started_at,
@@ -197,9 +206,27 @@ class Console:
                 )
         return rows
 
+    def _label(self, engagement_id: str) -> dict[str, str]:
+        found = self.label_of(engagement_id) if self.label_of else None
+        if not found:
+            return {"client": "", "scope_path": ""}
+        return {
+            "client": str(found.get("client") or ""),
+            "scope_path": str(found.get("scope_path") or ""),
+        }
+
     def inbox(self, engagement_id: str | None = None) -> list[dict[str, Any]]:
+        engagements: dict[str, str] = {}
+
+        def engagement_of(run_id: str) -> str:
+            if run_id not in engagements:
+                engagements[run_id] = self.store.run(run_id).engagement_id
+            return engagements[run_id]
+
         return [
             {
+                "engagement_id": engagement_of(i.run_id),
+                **self._label(engagement_of(i.run_id)),
                 "run_id": i.run_id,
                 "item_id": i.item_id,
                 "kind": i.kind,
@@ -236,7 +263,12 @@ class Console:
 
     def artifacts(self, run_id: str) -> list[dict[str, Any]]:
         return [
-            {"name": a.name, "content_hash": a.content_hash, "written_at": a.written_at}
+            {
+                "name": a.name,
+                "content_hash": a.content_hash,
+                "written_at": a.written_at,
+                "path": a.path,
+            }
             for a in self.store.artifacts(run_id)
         ]
 
@@ -336,6 +368,34 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
     def artifacts(run_id: str) -> list[dict[str, Any]]:
         _known(console, run_id)
         return console.artifacts(run_id)
+
+    @app.get("/api/runs/{run_id}/artifacts/{name:path}/download")
+    def download(run_id: str, name: str) -> Response:
+        """A deliverable, from where it was delivered, when that is a folder on this machine.
+        Read from the delivery root and checked against the digest the release recorded, so
+        what downloads is what was released - not whatever is at that path now."""
+        _known(console, run_id)
+        found = next((a for a in console.store.artifacts(run_id) if a.name == name), None)
+        if found is None or not found.path:
+            raise HTTPException(status_code=404, detail=f"no delivered file {name!r} on {run_id}")
+        delivery = ports.get_delivery()
+        base = getattr(delivery, "root", None)
+        if base is None or getattr(delivery, "name", "") != "local_folder":
+            raise HTTPException(status_code=409, detail="deliverables are not in a local folder here")
+        target = (Path(base) / found.path).resolve()
+        if Path(base).resolve() not in target.parents or not target.is_file():
+            raise HTTPException(status_code=404, detail=f"{found.path} is not in the delivery folder")
+        data = target.read_bytes()
+        if found.content_hash and "sha256:" + hashlib.sha256(data).hexdigest() != found.content_hash:
+            raise HTTPException(
+                status_code=409,
+                detail=f"{found.path} has changed since it was released; it is not the deliverable",
+            )
+        return Response(
+            content=data,
+            media_type="application/octet-stream",
+            headers={"Content-Disposition": f'attachment; filename="{target.name}"'},
+        )
 
     @app.get("/api/runs/{run_id}/stream")
     async def stream(
@@ -546,6 +606,11 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
     def cost(engagement_id: str) -> dict[str, Any]:
         return console.meter.rollup(engagement_id).as_dict()
 
+    @app.get("/help", response_class=HTMLResponse)
+    def help_page() -> str:
+        """What a person does, in order, and what the words on the other pages mean."""
+        return HELP_PAGE
+
     @app.get("/analytics", response_class=HTMLResponse)
     def analytics_page() -> str:
         """The four questions that decide whether the project continues.
@@ -668,11 +733,12 @@ def _known(console: Console, run_id: str) -> None:
 
 OPS_SHELL = shell("Activity", "/")
 
-PAGE = f"""<!doctype html>
+PAGE = (
+    f"""<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Activity - Automated Analyst</title>
 <style>{CSS}
-.board{{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.95fr);
+.board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr);
  grid-template-rows:minmax(0,1.05fr) minmax(0,.7fr) minmax(0,1fr);
  grid-template-areas:"runs detail inbox" "trace trace alerts" "trace trace feed"}}
 </style>
@@ -687,7 +753,7 @@ PAGE = f"""<!doctype html>
  <div class="board">
   <section class="card" style="grid-area:runs">
    <header><h2>Runs</h2>
-    <p class="why">Pick one to see what it did, step by step, as it happened.</p></header>
+    <p class="why">Newest first. Pick one to see what it did, step by step, as it happened.</p></header>
    <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 
@@ -701,7 +767,7 @@ PAGE = f"""<!doctype html>
 
   <section class="card" style="grid-area:inbox">
    <header><h2>Waiting on a person</h2>
-    <p class="why">Anything the system was not sure enough about to decide alone.</p></header>
+    <p class="why">What the system was not sure enough about to decide alone. Open one to read the source first, then the proposal.</p></header>
    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
   </section>
 
@@ -718,10 +784,11 @@ PAGE = f"""<!doctype html>
      <span><i style="background:var(--accent)"></i>running</span>
      <span><i style="background:var(--ink-3)"></i>touched</span>
      <span><i style="box-shadow:inset 0 0 0 1px var(--line)"></i>never reached</span>
-     <span style="margin-left:auto" id="map-count"></span>
+     <label class="toggle" style="margin-left:auto"><input type="checkbox" id="touched-only" onchange="repaint()">only what this run touched</label>
+     <span id="map-count"></span>
     </div>
-    <div id="map"><div class="empty"><b>Choose a run</b>The graph is painted from its event stream.</div></div>
     <div class="diag" id="diag"></div>
+    <div id="map"><div class="empty"><b>Choose a run</b>The graph is painted from its event stream.</div></div>
    </div>
   </section>
 
@@ -740,185 +807,371 @@ PAGE = f"""<!doctype html>
 </div>
 <div id="toast"></div>
 {SHELL}
-<script>
-let source = null, current = null;
+"""
+    + """<script>
+let source = null, current = null, RUNS = [], LAST_TRACE = null;
 
-const STATE_TONE = {{delivered: 'good', halted: 'bad', blocked: 'warn', queued: '', running: 'accent'}};
+/* The run states, in the three colours that carry meaning: fine, attention, problem. */
+const STATE_TONE = {delivered: 'good', released: 'good', halted: 'bad', quarantined: 'warn',
+  waiting: 'warn', blocked: 'warn', queued: '', running: 'accent', superseded: ''};
+const STATE_SAYS = {
+  quarantined: 'stopped on itself - a step failed in a way retrying will not fix',
+  waiting: 'stopped on a person - it resumes when the review items are answered',
+  halted: 'ended without delivering - nothing partial left the system',
+  running: 'working now', queued: 'waiting for a worker', superseded: 'replaced by a newer run',
+};
+const NEEDS_ATTENTION = new Set(['quarantined', 'waiting', 'blocked']);
 
-async function refresh() {{
-  const runs = await get('/api/runs').catch(() => []);
-  $('chrome-right').textContent = runs.length ? plural(runs.length, 'run', 'runs') : '';
-  $('runs').innerHTML = runs.length ? runs.map(r => `<div class="r link${{r.run_id === current ? ' on' : ''}}" onclick="open_('${{r.run_id}}')">
-     <span class="lbl"><b class="mono">${{esc(r.run_id)}}</b><br>
-      <span class="sub">${{esc(r.engagement_id)}}</span></span>
-     <span class="pill ${{STATE_TONE[r.state] ?? ''}}"><i class="dot"></i>${{esc(r.state)}}</span>${{r.state === 'quarantined' ? `
-     <span class="sub"><button class="btn small" onclick="event.stopPropagation();runAction('${{esc(r.run_id)}}','resume')">Resume</button>
-      <button class="btn small ghost" onclick="event.stopPropagation();runAction('${{esc(r.run_id)}}','halt')">Halt</button></span>` : ''}}
-     ${{r.queue && r.queue.waiting_on
-        ? `<span class="sub">#${{r.queue.position}} behind ${{esc(r.queue.waiting_on)}}</span>` : ''}}
-    </div>`).join('')
-   : '<div class="empty"><b>No runs yet</b>A run starts when a complete set of files settles in a watched folder.</div>';
+function runName(r) {
+  return r.client ? esc(r.client) : esc(r.engagement_id);
+}
 
+async function refresh() {
+  RUNS = await get('/api/runs').catch(() => []);
+  RUNS.sort((a, b) => String(b.started_at || '').localeCompare(String(a.started_at || '')));
   const inbox = await get('/api/review').catch(() => []);
-  $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r">
-     <span class="lbl"><span class="mono">${{esc(i.item_id)}}</span><br>
-      <span class="sub">${{esc(i.subject || '')}}</span></span>
-     <span class="sub">${{esc(i.owner || 'unassigned')}}</span>
-     <span class="sub">
-      <button class="btn small" onclick="decideItem('${{esc(i.run_id)}}','${{esc(i.item_id)}}','accepted')">Accept</button>
-      <button class="btn small ghost" onclick="decideItem('${{esc(i.run_id)}}','${{esc(i.item_id)}}','rejected')">Reject</button>
+  const alerts = await get('/api/alerts').catch(() => []);
+
+  const attention = RUNS.filter(r => NEEDS_ATTENTION.has(r.state)).length;
+  $('chrome-right').innerHTML = RUNS.length
+    ? `<span class="attention">${plural(RUNS.length, 'run', 'runs')}`
+      + (attention ? ` &middot; <b style="color:var(--gold)">${attention} need attention</b>` : '')
+      + (inbox.length ? ` &middot; <b style="color:var(--gold)">${inbox.length} waiting on you</b>` : '')
+      + `</span>`
+    : '';
+
+  $('runs').innerHTML = RUNS.length ? RUNS.map(r => `<div class="r pick${r.run_id === current ? ' on' : ''}" onclick="open_('${esc(r.run_id)}')">
+     <span class="lbl"><b>${runName(r)}</b>
+      <span class="sub" style="display:block;white-space:normal">${esc(r.engagement_id)}${r.scope_path ? ' &middot; ' + esc(r.scope_path) : ''} &middot; <span class="mono" title="run id">${esc(r.run_id)}</span></span>
+      ${r.state_reason && r.state !== 'delivered' ? `<span class="why-line" title="${esc(r.state_reason)}">${esc(r.state_reason)}</span>` : ''}
+     </span>
+     <span style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+      <span class="pill ${STATE_TONE[r.state] ?? ''}" title="${esc(STATE_SAYS[r.state] || '')}"><i class="dot"></i>${esc(r.state)}</span>
+      <span class="sub">${esc(ago(r.last_ts || r.started_at))}${r.open_review_items ? ` &middot; <span class="count" title="open review items">${r.open_review_items}</span>` : ''}</span>
+      ${r.queue && r.queue.waiting_on ? `<span class="sub">#${r.queue.position} behind ${esc(r.queue.waiting_on)}</span>` : ''}
+     </span>
+    </div>`).join('')
+   : `<div class="empty" style="text-align:left;padding:.6rem .2rem"><b>No runs yet - here is how one starts</b>
+      <div class="steps" style="margin-top:.6rem">
+       <div class="step"><span class="mark">1</span><span><span class="t">Set up an engagement</span><span class="d">On <a href="/admin">Setup</a>: the client, its practice group and its profile.</span></span></div>
+       <div class="step"><span class="mark">2</span><span><span class="t">Add the client&rsquo;s files</span><span class="d">The engagement&rsquo;s <b>files</b> button on Setup takes them by drag and drop.</span></span></div>
+       <div class="step"><span class="mark">3</span><span><span class="t">Activate it</span><span class="d">When the files stop changing, a run starts and appears here.</span></span></div>
+       <div class="step"><span class="mark">4</span><span><span class="t">Answer what it asks</span><span class="d">Items it is not sure about wait for you in <b>Waiting on a person</b>.</span></span></div>
+      </div></div>`;
+
+  $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r pick" onclick="review('${esc(i.run_id)}','${esc(i.item_id)}')">
+     <span class="lbl"><b>${esc(i.subject || i.item_id)}</b>
+      <span class="sub" style="display:block;white-space:normal">${i.client ? esc(i.client) + ' &middot; ' : ''}${esc(i.skill || i.kind || '')}${i.due_at ? ' &middot; due ' + esc(i.due_at.slice(0, 16).replace('T', ' ')) : ''}</span></span>
+     <span style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
+      ${i.severity ? `<span class="pill ${i.severity === 'high' ? 'bad' : 'warn'}">${esc(i.severity)}</span>` : ''}
+      <span class="sub">${esc(i.owner || 'unassigned')}</span>
+      <button class="small" onclick="event.stopPropagation();review('${esc(i.run_id)}','${esc(i.item_id)}')">Review</button>
      </span></div>`).join('')
    : '<div class="empty"><b>Nothing waiting</b>Everything the system proposed was inside its confidence bar.</div>';
 
-  const alerts = await get('/api/alerts').catch(() => []);
-  $('alerts').innerHTML = alerts.length ? alerts.map(a => `<div class="r">
-     <span class="lbl"><b>${{esc(a.kind.replace(/_/g, ' '))}}</b><br>
-      <span class="sub mono">${{esc(a.run_id)}} &middot; ${{esc(a.subject)}}</span></span>
-     <span class="pill bad">${{esc(a.code || 'alert')}}</span></div>`).join('')
+  $('alerts').innerHTML = alerts.length ? alerts.map(a => `<div class="r pick" onclick="open_('${esc(a.run_id)}')">
+     <span class="lbl"><b>${esc(a.kind.replace(/_/g, ' '))}</b><br>
+      <span class="sub mono">${esc(a.run_id)} &middot; ${esc(a.subject)}</span></span>
+     <span class="pill bad">${esc(a.code || 'alert')}</span></div>`).join('')
    : '<div class="empty"><b>Nothing raised</b>No run is silent and no review is overdue.</div>';
-}}
 
-/* A quarantined run stopped on itself. Resume replays it from the frontier; halt ends it,
-   with a reason, and writes its manifest. Both are recorded against whoever asked. */
-async function runAction(runId, action) {{
+  if (current) {
+    const run = RUNS.find(r => r.run_id === current);
+    if (run) actions(run);
+  }
+}
+
+/* The run's own actions, beside what it is doing. A quarantined run stopped on itself:
+   resume replays it from the frontier; halt ends it, with a reason, and writes its
+   manifest. Both are recorded against whoever asked. */
+function actions(run) {
+  const box = $('run-actions');
+  if (!box) return;
+  box.innerHTML = run.state === 'quarantined'
+    ? `<button class="small primary" onclick="runAction('${esc(run.run_id)}','resume')">Resume</button>
+       <button class="small ghost" onclick="runAction('${esc(run.run_id)}','halt')">Halt</button>`
+    : '';
+}
+
+async function runAction(runId, action) {
   let reason = '';
-  if (action === 'halt') {{
-    reason = window.prompt('Why end this run? The reason is recorded.') || '';
-    if (!reason.trim()) return;
-  }}
-  try {{
-    const r = await post(`/api/runs/${{runId}}/${{action}}`, {{reason}});
-    say(`${{runId}}: ${{action === 'halt' ? 'halted' : 'resuming'}} (${{r.state}})`);
-  }} catch (e) {{ refusal(e); }}
+  if (action === 'halt') {
+    const answer = await ask({
+      title: 'End this run', ok: 'Halt the run', danger: true,
+      why: 'The run ends without delivering, and its manifest is written. Nothing partial leaves the system.',
+      fields: [{name: 'reason', label: 'Why', kind: 'textarea', required: true,
+        placeholder: 'e.g. the client sent a corrected trial balance; a new run will pick it up'}],
+    });
+    if (!answer) return;
+    reason = answer.reason;
+  } else {
+    const answer = await ask({
+      title: 'Resume this run', ok: 'Resume',
+      why: 'It replays from where it stopped. Whatever made it stop should be fixed first, or it will stop again in the same place.',
+      fields: [{name: 'reason', label: 'What changed', kind: 'textarea', required: false}],
+    });
+    if (!answer) return;
+    reason = answer.reason;
+  }
+  try {
+    const r = await post(`/api/runs/${runId}/${action}`, {reason});
+    say(`${runId}: ${action === 'halt' ? 'halted' : 'resuming'} (${r.state})`, 'good');
+  } catch (e) { say(e.text || String(e), 'bad', e.code); }
   refresh();
-}}
+}
 
-/* A decision is recorded once, at the version the reviewer saw. Approving needs no reason;
-   anything else does, and the server refuses a silent override. */
-async function decideItem(runId, itemId, decision) {{
-  const item = await get(`/api/runs/${{runId}}/review/${{itemId}}`);
-  let rationale = '';
-  if (decision !== 'accepted') {{
-    rationale = window.prompt(`Why ${{decision}}? The reason is recorded with the decision.`) || '';
-    if (!rationale.trim()) return;
-  }}
-  try {{
-    const r = await post(`/api/runs/${{runId}}/review/${{itemId}}/decide`,
-      {{decision, expected_version: item.version, rationale}});
-    say(`${{itemId}}: ${{decision}}` + (r.open_items ? ` (${{r.open_items}} still open)` : ' - the run resumes on the next sweep'));
-  }} catch (e) {{ refusal(e); }}
-  refresh();
-}}
+/* One review item, in the surface's order: the question and the source first; the
+   proposal and its confidence only when asked for, and that asking is recorded; then
+   the decision, once, at the version the reviewer saw. A reason is required for
+   anything but accepting, and a correction carries the corrected value. */
+async function review(runId, itemId) {
+  let item;
+  try { item = await get(`/api/runs/${runId}/review/${itemId}`); }
+  catch (e) { return say(e.text || String(e), 'bad', e.code); }
+  const run = RUNS.find(r => r.run_id === runId) || {};
+  const box = document.createElement('div');
+  box.className = 'modal';
+  box.innerHTML = `<section class="card" role="dialog" aria-modal="true" aria-label="Review">
+    <header><h2>${esc(item.question || item.item_id)}</h2>
+     <p class="why">${run.client ? esc(run.client) + ' &middot; ' : ''}${esc(run.engagement_id || '')} &middot; ${esc(item.skill || item.kind)}${item.due_at ? ' &middot; due ' + esc(item.due_at.slice(0, 16).replace('T', ' ')) : ''}</p></header>
+    <div class="body">
+     ${item.source_excerpt ? `<div class="section-label">What the source says${item.locator ? ' &middot; <span class="mono" style="text-transform:none;letter-spacing:0">' + esc(item.locator) + '</span>' : ''}</div>
+      <div class="excerpt">${esc(item.source_excerpt)}</div>` : ''}
+     ${(item.reasons || []).length ? `<div class="section-label">Why it came to a person</div>
+      <ul style="margin:.2rem 0 .8rem 1.1rem;padding:0;font-size:.9rem;color:var(--ink-2)">${item.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}
+     <div id="rv-proposal"><div class="reveal"><p>Read the source first. The system's proposal and its confidence are shown when you ask, and the asking is recorded - so an answer given without looking is visible later.</p>
+      <button onclick="revealProposal('${esc(runId)}','${esc(itemId)}')">Show the proposal</button></div></div>
+     <div class="section-label">Your decision</div>
+     <div class="decide" id="rv-choices">
+      <button data-d="accepted" disabled title="Show the proposal first">Accept</button>
+      <button data-d="corrected" disabled title="Show the proposal first">Correct it</button>
+      <button data-d="rejected">Reject</button>
+      <button data-d="escalated">Escalate</button>
+     </div>
+     <div id="rv-reason" style="display:none;margin-top:.7rem">
+      <label for="rv-rationale">Why</label>
+      <textarea id="rv-rationale" rows="3" placeholder="Recorded with the decision"></textarea>
+     </div>
+    </div>
+    <div class="foot"><span class="spacer">Version ${esc(item.version)} &middot; <a href="#review=${encodeURIComponent(runId)}/${encodeURIComponent(itemId)}" title="A link to this item, to send to whoever should answer it">link to this item</a></span>
+     <button class="quiet" data-close>Cancel</button>
+     <button class="primary" id="rv-submit" disabled>Record decision</button></div>
+  </section>`;
+  document.body.appendChild(box);
+  let decision = null;
+  const close = () => { box.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  box.addEventListener('click', e => { if (e.target === box || e.target.dataset.close !== undefined) close(); });
+  box.querySelectorAll('#rv-choices button').forEach(b => b.addEventListener('click', () => {
+    decision = b.dataset.d;
+    box.querySelectorAll('#rv-choices button').forEach(x => x.classList.toggle('on', x === b));
+    $('rv-reason').style.display = decision === 'accepted' ? 'none' : '';
+    box.querySelectorAll('.pv').forEach(i => { i.disabled = decision !== 'corrected'; });
+    $('rv-submit').disabled = false;
+    if (decision !== 'accepted') $('rv-rationale').focus();
+  }));
+  $('rv-submit').addEventListener('click', async () => {
+    const rationale = $('rv-rationale').value;
+    if (decision !== 'accepted' && !rationale.trim()) {
+      $('rv-rationale').focus();
+      return say('A ' + decision + ' decision needs a reason - there is no silent override.', 'bad');
+    }
+    let answer = null;
+    if (decision === 'corrected') {
+      answer = {};
+      box.querySelectorAll('.pv').forEach(i => {
+        const raw = i.value, was = i.dataset.type;
+        answer[i.dataset.key] = was === 'number' && raw.trim() !== '' && !isNaN(Number(raw)) ? Number(raw)
+          : was === 'boolean' ? raw === 'true' : was === 'json' ? JSON.parse(raw || 'null') : raw;
+      });
+    }
+    try {
+      const r = await post(`/api/runs/${runId}/review/${itemId}/decide`,
+        {decision, expected_version: item.version, rationale, answer});
+      close();
+      say(`${decision}: ${item.question || itemId}` + (r.open_items ? ` (${r.open_items} still open)` : ' - the run resumes on the next sweep'), 'good');
+    } catch (e) { say(e.text || String(e), 'bad', e.code); }
+    refresh();
+  });
+}
+
+async function revealProposal(runId, itemId) {
+  let p;
+  try { p = await post(`/api/runs/${runId}/review/${itemId}/reveal`, {}); }
+  catch (e) { return say(e.text || String(e), 'bad', e.code); }
+  const entries = Object.entries(p.proposal || {});
+  const typeOf = v => typeof v === 'number' ? 'number' : typeof v === 'boolean' ? 'boolean' : (v !== null && typeof v === 'object') ? 'json' : 'text';
+  $('rv-proposal').innerHTML = `<div class="section-label">What the system proposes${p.confidence !== null && p.confidence !== undefined ? ' &middot; confidence ' + Math.round(p.confidence * 100) + '%' : ''}</div>
+    ${entries.length ? `<dl class="kv">${entries.map(([k, v]) => `<dt>${esc(k.replace(/_/g, ' '))}</dt><dd>
+      <input class="pv" data-key="${esc(k)}" data-type="${typeOf(v)}" disabled
+       value="${esc(typeOf(v) === 'json' ? JSON.stringify(v) : v)}"></dd>`).join('')}</dl>`
+      : '<p class="note" style="margin-top:0">The item carries no proposal - it is a question for you to answer.</p>'}`;
+  document.querySelectorAll('#rv-choices button').forEach(b => { b.disabled = false; b.title = ''; });
+}
 
 /* The 118 nodes of the design, loaded once. The trace says what a run did to some of
    them; the rest are the ones it never touched, which is most of what a trace tells you. */
 let GRAPH = null;
 const GROUP_ORDER = ['entry', 'intake', 'source', 'privacy', 'orch', 'skill', 'tool',
   'guard', 'hitl', 'out', 'data', 'pref', 'gov', 'ops', 'notice', 'port'];
-const GROUP_NAME = {{
+const GROUP_NAME = {
   entry: 'The engagement', intake: 'Files come in', source: 'Reading them',
   privacy: 'Masking', orch: 'Planning the work', skill: 'Skills', tool: 'Tools',
   guard: 'Guards', hitl: 'People', out: 'Deliverables', data: 'What it knows',
   pref: 'Precedent', gov: 'Governance', ops: 'Watching it work', notice: 'Notices',
   port: 'Ports',
-}};
+};
 
-async function loadGraph() {{
-  if (!GRAPH) GRAPH = await get('/api/graph').catch(() => ({{nodes: []}}));
+async function loadGraph() {
+  if (!GRAPH) GRAPH = await get('/api/graph').catch(() => ({nodes: []}));
   return GRAPH;
-}}
+}
 
-async function paint(trace) {{
+function repaint() { if (LAST_TRACE) paint(LAST_TRACE); }
+
+async function paint(trace) {
+  LAST_TRACE = trace;
   const g = await loadGraph();
-  const seen = trace.nodes || {{}};
+  const seen = trace.nodes || {};
+  const onlyTouched = $('touched-only') && $('touched-only').checked;
   const groups = new Map();
-  for (const n of g.nodes) {{
+  for (const n of g.nodes) {
+    if (onlyTouched && !seen[n.id]) continue;
     if (!groups.has(n.group)) groups.set(n.group, []);
     groups.get(n.group).push(n);
-  }}
+  }
   const ordered = GROUP_ORDER.filter(k => groups.has(k))
     .concat([...groups.keys()].filter(k => !GROUP_ORDER.includes(k)));
 
-  $('map').innerHTML = '<div class="map-groups">' + ordered.map(key => `
-    <div class="map-group"><h3>${{esc(GROUP_NAME[key] || key)}}</h3><div class="map">` +
-    groups.get(key).map(n => {{
+  $('map').innerHTML = ordered.length ? '<div class="map-groups">' + ordered.map(key => `
+    <div class="map-group"><h3>${esc(GROUP_NAME[key] || key)}</h3><div class="map">` +
+    groups.get(key).map(n => {
       const state = seen[n.id] || '';
       const running = state === 'active';
-      return `<span class="node ${{esc(state)}}" title="${{esc(n.plain || n.label)}}">
-        ${{running ? '<i class="ring"></i>' : ''}}<span class="id">${{esc(n.id)}}</span></span>`;
-    }}).join('') + '</div></div>').join('') + '</div>';
+      return `<span class="node ${esc(state)}" title="${esc(n.plain || n.label)}">
+        ${running ? '<i class="ring"></i>' : ''}<span class="id">${esc(n.id)}</span></span>`;
+    }).join('') + '</div></div>').join('') + '</div>'
+    : '<div class="empty"><b>Nothing touched yet</b>This run has not reached any node of the design.</div>';
 
   const touched = Object.keys(seen).length;
   $('map-count').textContent = touched + ' of ' + g.nodes.length + ' touched';
 
-  const failed = Object.entries(trace.diagnostics || {{}});
+  const failed = Object.entries(trace.diagnostics || {});
   $('diag').innerHTML = failed.length ? failed.map(([node, d]) => `<div class="d-row">
-     <span class="code">${{esc(node)}} &mdash; ${{esc(d.code || d.type || 'failed')}}</span>
-     <span class="msg">${{esc(d.message || '')}}${{d.step_id ? ' <span style="color:var(--ink-4)">at step ' + esc(d.step_id) + '</span>' : ''}}</span>
+     <span class="code">${esc(node)} &mdash; ${esc(d.code || d.type || 'failed')}</span>
+     <span class="msg">${esc(d.message || '')}${d.step_id ? ' <span style="color:var(--ink-4)">at step ' + esc(d.step_id) + '</span>' : ''}</span>
     </div>`).join('') : '';
-}}
+}
 
-async function open_(id) {{
-  if (source) source.close();
+/* What the run delivered, where it went, and a download of exactly what was released. */
+async function deliverables(id) {
+  const box = $('deliverables');
+  if (!box) return;
+  const files = (await get(`/api/runs/${id}/artifacts`).catch(() => []))
+    .filter(a => a.path && !/manifest|\\.json$/i.test(a.name));
+  box.innerHTML = files.length ? `<div class="section-label" style="margin-top:.2rem">Delivered</div>` + files.map(a => `<div class="r">
+     <span class="lbl"><b>${esc(a.name)}</b><span class="sub" style="display:block;white-space:normal">${esc(a.path)} &middot; ${esc(ago(a.written_at))}</span></span>
+     <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>`).join('') : '';
+}
+
+async function open_(id) {
+  if (source) { source.close(); source = null; }
   current = id;
   history.replaceState(null, '', '#' + encodeURIComponent(id));
+  document.querySelectorAll('#runs .r').forEach(el => el.classList.toggle('on', el.getAttribute('onclick') === `open_('${id}')`));
   let run;
-  try {{ run = await get('/api/runs/' + id); }}
-  catch (e) {{ return say(e.text || String(e), 'bad', e.code); }}
+  try { run = await get('/api/runs/' + id); }
+  catch (e) { return say(e.text || String(e), 'bad', e.code); }
+  const row = RUNS.find(r => r.run_id === id) || {};
 
   const c = run.scorecard;
-  $('detail-why').textContent = id + ' \u2014 ' + (run.engagement_id || '');
+  $('detail-why').textContent = (row.client ? row.client + ' — ' : '') + (run.engagement_id || '') + ' — ' + id;
   $('card').innerHTML =
-    `<div class="r" style="border:0;padding:0 0 10px">
-      <span class="lbl"><span class="pill ${{c.in_progress ? 'accent' : c.verdict === 'clean' ? 'good' : c.verdict === 'halted' ? 'bad' : 'warn'}}">
-       <i class="dot"></i>${{c.in_progress ? 'in progress' : esc(c.verdict)}}</span></span>
-      <span class="sub mono">${{esc(c.criteria_version)}}</span></div>` +
+    `<div class="r" style="border:0;padding:0 0 .4rem">
+      <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot"></i>${esc(run.state)}</span>
+       ${(c.in_progress ? 'in progress' : c.verdict) !== run.state ? `<span class="pill ${c.in_progress ? 'accent' : c.verdict === 'clean' ? 'good' : c.verdict === 'halted' ? 'bad' : 'warn'}" title="the scorecard's verdict">${c.in_progress ? 'in progress' : esc(c.verdict)}</span>` : ''}</span>
+      <span id="run-actions"></span></div>
+     ${run.state_reason ? `<p class="note" style="margin:.1rem 0 .2rem">${esc(STATE_SAYS[run.state] ? STATE_SAYS[run.state] + '.' : '')}</p>
+      ${run.state_reason.length > 160
+        ? `<details style="margin:0 0 .6rem"><summary><b style="color:var(--navy)">${esc(run.state_reason.slice(0, 150))}&hellip;</b></summary><p class="note" style="margin:.2rem 0 0">${esc(run.state_reason)}</p></details>`
+        : `<p style="margin:0 0 .6rem;font-size:.9rem;color:var(--navy);font-weight:600">${esc(run.state_reason)}</p>`}` : ''}
+     <dl class="kv" style="margin-bottom:.4rem">
+      <dt>Started</dt><dd>${esc((run.started_at || '').slice(0, 16).replace('T', ' '))} <span class="sub">(${esc(ago(run.started_at))})</span></dd>
+      ${run.ended_at ? `<dt>Ended</dt><dd>${esc(run.ended_at.slice(0, 16).replace('T', ' '))}</dd>` : ''}
+      <dt>Model spend</dt><dd>${esc(usd(run.spend ? run.spend.usd : run.cost_usd))} <span class="sub">&middot; ${esc(run.spend ? run.spend.model_calls : run.model_calls)} calls</span></dd>
+      ${row.open_review_items ? `<dt>Waiting on you</dt><dd><span class="count">${row.open_review_items}</span></dd>` : ''}
+     </dl>
+     <div id="deliverables"></div>
+     <details><summary>Scorecard &mdash; ${esc(c.criteria.filter(x => x.status === 'pass').length)} of ${esc(c.criteria.length)} criteria met <span class="mono">(${esc(c.criteria_version)})</span></summary>` +
     c.criteria.map(x => `<div class="r">
-      <span class="lbl">${{esc(x.label)}}</span>
-      <span class="sub mono">${{esc(x.measured)}}</span>
-      <span class="pill ${{x.status === 'pass' ? 'good' : x.status === 'fail' ? 'bad' : ''}}">${{esc(x.status.replace('_', ' '))}}</span>
-     </div>`).join('');
+      <span class="lbl">${esc(x.label)}</span>
+      <span class="sub mono">${esc(x.measured)}</span>
+      <span class="pill ${x.status === 'pass' ? 'good' : x.status === 'fail' ? 'bad' : ''}">${esc(x.status.replace('_', ' '))}</span>
+     </div>`).join('') + '</details>';
+  actions(row.run_id ? row : run);
+  deliverables(id);
 
   $('feed').innerHTML = '';
   $('feed-src').textContent = 'Replaying ' + id + ' from the event stream.';
   paint(run.trace);
 
-  source = new EventSource('/api/runs/' + id + '/stream');
-  source.addEventListener('replayed', e => {{
+  // The stream replays the record, then follows the bus while the run is live. A run
+  // that has ended closes its stream - and a browser reconnects a closed EventSource on
+  // its own, replaying the whole history into the feed again. So the page closes it.
+  const stream = new EventSource('/api/runs/' + id + '/stream');
+  source = stream;
+  const seen = new Set();
+  stream.addEventListener('replayed', e => {
+    const ended = Boolean(run.ended_at) || ['halted', 'delivered', 'released', 'superseded'].includes(run.state);
     $('feed-src').textContent = 'Replayed through event ' + JSON.parse(e.data).event.through +
-      (run.ended_at ? ' \u2014 the run has ended.' : ' \u2014 following live.');
-  }});
-  source.onerror = () => {{
-    $('feed-src').textContent = 'Stream closed. The run ended, or the console lost the bus \u2014 runs continue either way.';
-  }};
-  const handler = e => {{
+      (ended ? ' — the run has ended.' : ' — following live.');
+    if (ended) stream.close();
+  });
+  stream.onerror = () => {
+    stream.close();
+    if (source === stream) $('feed-src').textContent = 'Stream closed. The run ended, or the console lost the bus — runs continue either way.';
+  };
+  const handler = e => {
+    if (source !== stream) return;
     const d = JSON.parse(e.data), ev = d.event;
-    if (!ev.type) return;
+    if (!ev.type || seen.has(ev.event_id || ev.seq)) return;
+    seen.add(ev.event_id || ev.seq);
     const bad = ev.type.endsWith('fail') || ev.type.startsWith('alert.');
     const line = document.createElement('div');
     line.className = 'r';
-    line.innerHTML = `<span class="sub mono">${{esc((ev.ts || '').slice(11, 19))}}</span>
-      <span class="lbl"><span class="mono" style="color:${{bad ? 'var(--bad)' : 'var(--navy)'}}">${{esc(ev.type)}}</span>
-       ${{ev.node_id ? `<span class="sub">&middot; ${{esc(ev.node_id)}}</span>` : ''}}
-       ${{ev.message ? `<span class="d">${{esc(ev.message)}}</span>` : ''}}</span>`;
+    line.innerHTML = `<span class="sub mono">${esc((ev.ts || '').slice(11, 19))}</span>
+      <span class="lbl"><span class="mono" style="color:${bad ? 'var(--bad)' : 'var(--navy)'}">${esc(ev.type)}</span>
+       ${ev.node_id ? `<span class="sub">&middot; ${esc(ev.node_id)}</span>` : ''}
+       ${ev.message ? `<span class="d">${esc(ev.message)}</span>` : ''}</span>`;
     $('feed').prepend(line);
     paint(d.trace);
-  }};
+  };
   const known = ['step.started', 'step.completed', 'skill.dispatched', 'skill.completed',
     'hitl.item.queued', 'hitl.item.decided', 'release.written', 'run.scored',
     'run.manifest.written', 'budget.ceiling_crossed', 'alert.run_silent',
     'alert.review_overdue', 'alert.step_overdue', 'alert.guard_repeating'];
   const events = await get('/api/runs/' + id + '/events').catch(() => []);
   const types = new Set(events.map(e => e.type).concat(known));
-  for (const t of types) source.addEventListener(t, handler);
-}}
+  for (const t of types) stream.addEventListener(t, handler);
+}
 
 /* A link to a run is a link to this page with the run in the fragment, so one can be
-   pasted into a message and open on the right run. */
-refresh().then(() => {{
+   pasted into a message and open on the right run. With no link, the page opens on the
+   run most likely to need somebody: one that has stopped, or else the newest. */
+refresh().then(() => {
   const wanted = decodeURIComponent(location.hash.slice(1));
-  if (wanted) open_(wanted);
-}});
+  const first = RUNS.find(r => NEEDS_ATTENTION.has(r.state)) || RUNS[0];
+  if (wanted.startsWith('review=')) {
+    // A link to one review item - what a person pastes into a message asking for an answer.
+    const [runId, ...rest] = wanted.slice(7).split('/');
+    open_(runId);
+    review(runId, rest.join('/'));
+  }
+  else if (wanted) open_(wanted);
+  else if (first) open_(first.run_id);
+});
 setInterval(refresh, 5000);
 </script>
 """
+)

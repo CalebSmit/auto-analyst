@@ -273,7 +273,11 @@ def test_the_register_is_not_a_recipe() -> None:
     """It lives beside the recipes it is about; offering it as one would offer somebody a
     workflow that does not exist."""
     assert "registered" not in recipe_names()
-    assert sorted(recipe_names()) == ["full-ddr-intake", "monthly-refresh"]
+    assert sorted(recipe_names()) == [
+        "full-ddr-intake",
+        "mature-company-valuation",
+        "monthly-refresh",
+    ]
     assert (RECIPES_DIR / "registered.yaml").parent == RECIPES_DIR
 
 

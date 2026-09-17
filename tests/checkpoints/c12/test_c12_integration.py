@@ -139,7 +139,7 @@ def test_the_surface_shows_which_workflows_are_approved_and_by_whom(
     populate it - so what it shows here is what it would show there.
     """
     listed = {r["name"]: r for r in console.recipes()["recipes"]}
-    assert set(listed) == {"monthly-refresh", "full-ddr-intake"}
+    assert set(listed) == {"monthly-refresh", "full-ddr-intake", "mature-company-valuation"}
     for row in listed.values():
         assert row["state"] == "registered"
         assert row["approved_by"], "a registration names somebody"

@@ -660,3 +660,158 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The three consoles now carry Chartwell's brand tokens and fit one screen each; the blueprint's trace wording no longer names traffic-light colours, because the colours are the firm's
 
 - task added: Consoles styled from the brand sheet (Chartwell Templates/shared/brand.css) and laid out to fit one screen per page, panels scrolling inside themselves
+
+## 2026-09-16 - P37 The division focus, and the interview that fills it
+
+**Why:** Caleb, 2026-09-16: the build now serves the non-ESOP valuation division first, because that is the division he works in, with other divisions added later as data. Most of what the system knows about how the work is done is synthetic; the way it becomes his is an interview run from a slash command in Cursor or Claude Code, one question at a time, recorded in a git-ignored knowledge folder and turned into changes through the build's own rules when he says stop. Decided with him: private GitHub repo; Cursor and Claude Code both; knowledge in a git-ignored folder in the repo; ESOP kept but parked; real client documents may be read by the interview; build on stop.
+
+- phase added: P37 The division focus, and the interview that fills it (Block J - Making it his, gate: auto)
+- exit criterion: A focus that names an undeclared or parked segment fails the registry load
+- exit criterion: Both slash commands run the same protocol, and neither holds behaviour of its own
+- exit criterion: The interview's state is read from files, never from a model's memory: coverage, follow-ups, backlog and sessions
+- exit criterion: No identifier on the local watch list appears in any file git would commit, and knowledge/ is ignored
+
+## 2026-09-16 - C14 Making it his
+
+**Why:** P37 opens a new block: the build pointed at one division, and the interview that makes it the analyst's. It sits on the scope registry (P05), the admin surface (P29) and the procedure table (P34), so it gets a checkpoint of its own rather than waiting for the block to grow.
+
+- checkpoint added: C14 after P37, covering P37
+- proves: The focus division is offered first and can be scoped into, the interview describes it in the resolver's terms, and what the interview learns cannot reach a committed file
+
+## 2026-09-16 - P37 The division focus, and the interview that fills it
+
+**Why:** Caleb, 2026-09-16: knowledge/ is committed, not ignored. The repo is private, and the interview has to travel between this machine and the work laptop through git; a folder copied by hand is one that ends up out of date on one of them. The boundary that still matters is inside the repo: a client name in knowledge/ is fine, the same name in a skill, methodology file or fixture reaches every prompt for every client. The scan now checks everything outside knowledge/.
+
+- task added: knowledge/ committed so the interview travels with the private repo, excluded from the container image
+- task dropped: knowledge/ ignored by git and by the container build, with only its README committed
+- exit criterion added: No identifier on the watch list appears in any file outside knowledge/, and knowledge/ travels with the repo
+- exit criterion dropped: No identifier on the local watch list appears in any file git would commit, and knowledge/ is ignored
+- status: done -> open
+
+## 2026-09-16 - P37 The division focus, and the interview that fills it
+
+**Why:** Caleb, 2026-09-16: the first /improve-agent session ran here (eleven high-level questions) and he asked for a base to be built from it. Three things the answers justified: the interview map was wrong for this division (pre-revenue is a quarter of the work, not an edge case, and the forecast, the debt tab and the internal value review had no topic); the pilot he chose - a mature operating company valuation - has an order of work that maps onto skills that exist, so it gets a draft recipe, unregistered, with the forecast and M&A transactions named as missing rather than invented; and how the group works gets a draft methodology file that a person must still clear. Nothing identifying left knowledge/.
+
+- task added: A draft pilot recipe, recipes/mature-company-valuation.yaml, in the analyst's order: historical financials the only required document, comps before WACC before the DCF, the model checks last; unregistered
+- task added: Draft non-ESOP methodology at foundations/valuation/non-esop/_segment/how-we-work.md, passing the clearance scan and not cleared
+- task added: The interview map corrected from the first session: forecast, debt tab and model checks, internal value review, pre-revenue and purchase price allocation topics
+- task added: A next-session question queue at the top of knowledge/followups.md, asked first
+- exit criterion added: The pilot recipe compiles for both non-ESOP scopes and waits only for historical financials
+- check added: python -m uv run pytest tests/p06 tests/p31 tests/p33 -q
+- status: done -> open
+
+## 2026-09-16 - P38 What the research changed
+
+**Why:** Caleb, 2026-09-16: research on AI in valuation practice, to be woven in without questions. Read against the build, it mostly describes the architecture already here - extract with provenance, compute in code, one skill per deliverable, a person signs. What it added: a failure preserved with both numbers rather than smoothed (the QoE tools), which makes the analyst's three model checks buildable now as deterministic code; and, read against the pilot, a defect - a client forecast was bound as historical financial statements with full confidence, so a forecast arriving first could release a run on projected years. Benchmarks, report narrative and build-or-buy are a person's decisions and are held in OPEN.md; declined ideas and the reasons are in docs/research/ai-in-valuation.md.
+
+- phase added: P38 What the research changed (Block J - Making it his, gate: auto)
+- exit criterion: The three model checks pass on statements that tie, fail with both numbers on ones that do not, and never pass on missing evidence
+- exit criterion: A client forecast shaped like financial statements is classified as a forecast, and cannot satisfy a recipe waiting for historicals
+- exit criterion: Every category in the taxonomy has a declared direction, so a new one is caught by a test rather than a run
+
+## 2026-09-16 - P38 What the research changed
+
+**Why:** Closing the forecast defect at the classifier alone left two gaps. Intake binds a document type from the filename before anything reads it, and the default conventions had no forecast type, so a file named Income Statement Forecast bound as financial statements. And every file in a run's set reaches timing normalization, so even a correctly labelled forecast would have been shown to the model building the historical table. Both are now closed in code: forecast conventions in the first setup (a name matching two types is held for a person), and the timing procedure holds forecasts out of the table and escalates a set with only forecasts.
+
+- task added: Forecast filename conventions in the admin's first setup, so a name matching both a statement and a forecast is held rather than bound
+- task added: The timing-normalization procedure holds forecasts out of the historical table - payload, tool input and escalation - and escalates a set with no historical file
+- exit criterion added: A forecast in a run's file set never reaches the model or the tool that builds the historical table
+- check added: python -m uv run pytest tests/p18 tests/p24 -q
+- status: done -> open
+
+## 2026-09-16 - C15 What the research changed
+
+**Why:** P38 changed the classifier, the binder's default conventions and the timing procedure at once - three older phases' code - so it gets its own checkpoint rather than riding on C14's.
+
+- checkpoint added: C15 after P38, covering P38
+- proves: On a system started the way a person starts it, a client forecast cannot pass for historical statements by name, by contents or at the historical table, and the model checks can place every category the tagging skill writes
+
+## 2026-09-17 - P39 A citation is checked where it points
+
+**Why:** Caleb, 2026-09-17: the full LlamaIndex post behind the research (a due-diligence agent built on LiteParse), to use what fits. Its core is citation verification: a cited number is trusted only once it is found on the cited page, and an unverified one is shown rather than hidden. Read against this build, the Provenance Check did half of that - it required the cited location to exist and never looked at the number there. Tracing where that guard runs, to change it, found the larger problem: the dispatcher called only the schema check, so the Provenance and Tie-Out Checks - both step guards the blueprint marks as existing now - were built, tested and used by the eval harness, and never called on a live run. That is a disagreement between the code and the blueprint, resolved here in the blueprint's favour: both are wired at the composition root, tie-out at the run's recorded tolerance or zero when none is recorded.
+
+- phase added: P39 A citation is checked where it points (Block J - Making it his, gate: auto)
+- exit criterion: A figure read off the page with a number its cited rows do not carry fails the Provenance Check, naming both
+- exit criterion: A live run's skill outputs pass through the Provenance and Tie-Out Checks, and a tampered output is stopped by the right one
+- exit criterion: Every guard the blueprint marks as a fail-closed step guard either speaks on a rehearsal run or is named as silent
+
+## 2026-09-17 - C16 A citation is checked where it points
+
+**Why:** P39 wired guards into the live dispatcher at the composition root - a change to what every run does, reaching back to P10, P13 and P34 - so it gets its own checkpoint, and one that asks the assembled system rather than the guard.
+
+- checkpoint added: C16 after P39, covering P39
+- proves: The system a person starts calls every output guard the blueprint runs on a skill step, and every adversarial fixture fires its own guard
+
+## 2026-09-17 - P40 What the second interview changed
+
+**Why:** Caleb, 2026-09-17, second /improve-agent session: eleven answers, then 'build as much as possible' of what they justified. Three corrections to things built on assumptions the answers overturned - the EBITDA procedure's one-time test was looser than the analyst's (an item in every period was the only one flagged; the analyst's rule is one or two periods and not the years before, confirmed with management); the pilot recipe made WACC wait for the comps and let the DCF ignore them (the analyst: comps, transactions and WACC are independent, and the comps' multiples support the DCF's exit multiple); and the draft methodology said a client forecast is adjusted after due diligence (the analyst: it is used unchanged, except interest expense from the debt tab). And one addition: forecast driver baselines, the arithmetic half of a firm-built forecast. The suite's own recipe registration assumed a shipped recipe never changes; it now registers a changed one as the next version.
+
+- phase added: P40 What the second interview changed (Block J - Making it his, gate: auto)
+- exit criterion: An add-back proposed as one-time that appears in more than two periods, or in the earliest period, is reviewed by a person
+- exit criterion: The pilot's comps and WACC compile to the same level and the DCF compiles after both
+- exit criterion: Forecast driver baselines are computed from a real normalized table, every value with its sources and every missing value with its reason
+
+## 2026-09-17 - C17 What the second interview changed
+
+**Why:** P40 changed a P20 procedure, a P37 recipe and the suite's registration fixture, and added a tool that reads P18 and P19's table - enough reach for its own checkpoint.
+
+- checkpoint added: C17 after P40, covering P40
+- proves: The analyst's one-time rule holds on a real EBITDA schedule, and the table that schedule read gives forecast driver baselines with their sources
+
+## 2026-09-17 - P40 What the second interview changed
+
+**Why:** The analyst corrected session 2026-09-17-1 in 2026-09-17-2: the data for comps, transactions and WACC is pulled side by side, but beta is the comps' median unlevered beta, so the WACC is not final until the comp set is. Version 2 of the pilot recipe made wacc independent of gpc on the first answer; that was wrong whenever CAPM is used. P41 builds version 3; this criterion is replaced with the corrected one.
+
+- exit criterion added: The pilot's WACC compiles after the comps, and the DCF after both (corrected 2026-09-17-2, built in P41)
+- exit criterion dropped: The pilot's comps and WACC compile to the same level and the DCF compiles after both
+- status: done -> open
+
+## 2026-09-17 - P41 What the third interview changed
+
+**Why:** Caleb, 2026-09-17, third /improve-agent session: fourteen answers, and all four proposed builds approved. The session corrected my own change of the day before - the WACC is not independent of the comps, because beta is the comp set's median unlevered beta, relevered - so the pilot recipe goes to version 3. The methodology draft takes in the session: cost of capital, the debt note and its fallbacks, the exit multiple, repeat clients, fair market value on a controlling basis, source precedence, what the MD reviews. The beta arithmetic becomes a tool, with the relevering formula a required argument because the firm's formula is unconfirmed. And the analyst's rules for disagreeing sources - audited over internal, most recent within a kind, an older audited file against a newer internal one to a person - are applied in the timing normalizer, which until now took no figure on any disagreement. The contract does not change: a settled disagreement stays in the alignment report, marked, and only open ones become review items.
+
+- phase added: P41 What the third interview changed (Block J - Making it his, gate: auto)
+- exit criterion: A disagreement the analyst's rules settle has a figure from the right source that ties and cites it, and is still listed in the alignment report
+- exit criterion: An older audited source against a newer internal one, a tie in arrival, or an unknown arrival time takes no figure and reaches a person
+- exit criterion: Beta is never relevered without a named formula, and the median names every comp it used and left out
+
+## 2026-09-17 - C18 What the third interview changed
+
+**Why:** P41 carried an audit flag and an arrival time from the reader through the driver into the timing normalizer - four phases' code on one path - and changed the pilot recipe again, so it gets its own checkpoint.
+
+- checkpoint added: C18 after P41, covering P41
+- proves: An audit opinion read from a PDF is on the record, disagreeing statements are settled by the analyst's rules only where they apply without doubt, and the pilot's cost of capital waits for the comps
+
+## 2026-09-17 - P42 The consoles, easier to use
+
+**Why:** Caleb, 2026-09-17: make the dashboards look better and easier to use, and keep finding improvements. Read by screenshot against a rehearsal firm, the consoles were consistent but hard to act on: runs listed by hash with no client, every state the same grey, nothing open until clicked, a review item accepted from the list without its source or proposal ever shown - which bypassed the review surface's own order - and every question asked through a browser pop-up. The reworking found two bugs: a finished run's live feed reconnected and replayed its whole history over and over, because a closed EventSource reconnects on its own; and a refused resume, halt or decision failed silently, because the page handed a caught error to a function that reads a response. A third was caught before it shipped: a shared helper took a name the Analytics page already declared, which would have stopped that page's script entirely.
+
+- phase added: P42 The consoles, easier to use (Block J - Making it his, gate: auto)
+- exit criterion: No page uses a browser pop-up, declares a name twice, or ships a script that does not parse
+- exit criterion: A review item's proposal is shown only on request, and accepting or correcting is not offered before it
+- exit criterion: A finished run's stream is closed rather than replayed, and a refused action is reported
+- exit criterion: Runs and review items name the client, and an engagement names what its profile still lacks
+
+## 2026-09-17 - C19 The consoles, easier to use
+
+**Why:** P42 joined the console to the roster at the composition root and rebuilt pages owned by three earlier phases; the pages were tested as strings, so the checkpoint runs them against the data they render and the routes they call.
+
+- checkpoint added: C19 after P42, covering P42
+- proves: Runs and review items name the client the roster knows, every served page is one clean script namespace that asks nothing through a pop-up, and the review panel's round trip works through the real routes
+
+## 2026-09-17 - P43 Easy to start and use
+
+**Why:** Caleb asked for a deep dive on making the tool very easy for him to use. Walking it as he would found three gaps: nothing on the page set up a watch or a destination, a client's files could only be placed by working out a folder path, and settings written in .env (the model adapter, folders, database) were silently ignored on a local start because only secrets were read from the file.
+
+- phase added: P43 Easy to start and use (Block J - Making it his, gate: auto)
+- exit criterion: A file added from the page lands only in its engagement's folder, by name, on local storage, for an engagement that is not archived, and the change is recorded with its digest
+- exit criterion: A deliverable downloads only if it is inside the delivery folder and matches the digest recorded at release
+- exit criterion: A setting in .env reaches a locally started server, and a value in the real environment wins
+- exit criterion: Help is linked from every page, its glossary names only words the pages use, and the start script parses
+
+## 2026-09-17 - C20 Easy to start and use
+
+**Why:** P43 closes the ease-of-use deep dive: the start path, the page and the folders meet at the composition root, and that join needs its own proof.
+
+- checkpoint added: C20 after P43, covering P43
+- proves: A setting written only in .env reaches the composed server, a person sets up a watch and destination and adds a client's file from the page into the folder the sweep reads, recorded against them, and Help is served beside every console

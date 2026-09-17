@@ -7,6 +7,8 @@ code, owner, expected, found, what_now.
 
 from __future__ import annotations
 
+import base64
+import binascii
 from collections.abc import Callable
 from typing import Any
 
@@ -107,6 +109,11 @@ class WatchBody(Change):
     recipe: str
     engagement_id: str | None = None
     depth: int = 2
+
+
+class FileBody(Change):
+    name: str
+    content_base64: str
 
 
 class DestinationBody(Change):
@@ -316,6 +323,28 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
                 ).__dict__
             )
         )
+
+    @app.get("/api/admin/engagements/{engagement_id}/files")
+    def engagement_files(engagement_id: str) -> dict[str, Any]:
+        """Where this engagement's files go, and what is there."""
+        return _guard(lambda: console.engagement_files(engagement_id))
+
+    @app.post("/api/admin/engagements/{engagement_id}/files")
+    def add_file(engagement_id: str, request: Request, body: FileBody) -> dict[str, Any]:
+        """Put a file in the engagement's watched folder, as a person dropping it there."""
+        try:
+            data = base64.b64decode(body.content_base64, validate=True)
+        except (binascii.Error, ValueError) as bad:
+            raise HTTPException(status_code=400, detail=f"not a file: {bad}") from bad
+        return _guard(
+            lambda: console.add_file(
+                engagement_id, body.name, data, who=who(request, body.who), reason=body.reason
+            )
+        )
+
+    @app.get("/api/admin/methodology/{name:path}/text")
+    def methodology_text(name: str) -> dict[str, Any]:
+        return _guard(lambda: console.methodology_text(name))
 
     @app.get("/api/admin/engagements/{engagement_id}/profile/template")
     def profile_template(engagement_id: str) -> dict[str, Any]:

@@ -509,8 +509,13 @@ def run_the_firm(api: Api, inbox: Path, out: Report, *, scripted: bool = False) 
     else:
         time.sleep(8)
     _, runs = api.get("/api/runs")
+    guards_heard: set[str] = set()
     for r in runs:
         _, detail = api.get(f"/api/runs/{r['run_id']}")
+        # By node, whatever the event type: the Policy Gate speaks as policy.allow, not guard.
+        guards_heard |= {
+            str(e.get("node_id")) for e in (api.get(f"/api/runs/{r['run_id']}/events")[1] or [])
+        }
         trace = detail.get("trace", {})
         failed = trace.get("diagnostics", {})
         out.say(
@@ -536,6 +541,32 @@ def run_the_firm(api: Api, inbox: Path, out: Report, *, scripted: bool = False) 
                 f"  {r['engagement_id']} went through timing, tagging, EBITDA and model-load",
                 f"completed: {sorted(s for s in completed if s)}",
             )
+            # P39: the Provenance Check runs on every skill output in a live run, and it
+            # looked at figures - "passed over nothing" is not a pass worth recording.
+            proven = {
+                e.get("step_id")
+                for e in events
+                if e["type"] == "guard.provenance.pass"
+                and int((e.get("payload") or {}).get("checked", 0)) > 0
+            }
+            out.check(
+                {"timing", "ebitda"} <= proven and not any(
+                    e["type"] == "guard.provenance.fail" for e in events
+                ),
+                f"  {r['engagement_id']} had every figure traced to its source, and found there",
+                f"provenance passed with figures on: {sorted(s for s in proven if s)}",
+            )
+            tied = {
+                e.get("step_id")
+                for e in events
+                if e["type"] == "guard.tieout.pass"
+                and int((e.get("payload") or {}).get("checked", 0)) > 0
+            }
+            out.check(
+                "timing" in tied and not any(e["type"] == "guard.tieout.fail" for e in events),
+                f"  {r['engagement_id']} had every derived figure recomputed from its rows",
+                f"tie-out passed with derived figures on: {sorted(s for s in tied if s)}",
+            )
             out.check(
                 "hitl.pass.paused" in kinds and "run.resumed" in kinds,
                 f"  {r['engagement_id']} paused for a person and resumed after the answer",
@@ -544,6 +575,22 @@ def run_the_firm(api: Api, inbox: Path, out: Report, *, scripted: bool = False) 
                 "precedent.written" in kinds,
                 f"  {r['engagement_id']} wrote precedent from the decisions",
             )
+    # P39: which of the blueprint's fail-closed step guards spoke on any run. A guard that
+    # is built, tested and never called looks exactly like one that passed - the Provenance
+    # and Tie-Out Checks sat that way until P39. Reported, not failed: a guard at release
+    # stays silent while every run stops before release, and the Budget Governor speaks
+    # only when a ceiling is crossed.
+    blueprint = json.loads((ROOT / "graph" / "architecture.json").read_text(encoding="utf-8"))
+    step_guards = {
+        str(n["id"])
+        for n in blueprint["nodes"]
+        if n.get("isGuard") and n.get("runtime") == "step" and n.get("failClosed")
+    }
+    silent = sorted(step_guards - guards_heard)
+    out.say(
+        f"  step guards heard on a run: {len(step_guards & guards_heard)} of {len(step_guards)}"
+        + (f"; silent: {', '.join(silent)}" if silent else "")
+    )
     _, pre = api.get("/api/admin/preflight")
     unclaimed = next(c for c in pre["checks"] if c["id"] == "unclaimed_folders")
     out.check(
@@ -731,6 +778,8 @@ def main(argv: list[str] | None = None) -> int:
         **({"AA_REHEARSAL": "1"} if args.scripted else {}),
         "AA_IDENTITY_NAME": os.environ.get("AA_IDENTITY_NAME", "rehearsal"),
         "PYTHONIOENCODING": "utf-8",
+        # Everything the generated firm needs is above; a developer's .env stays out of it.
+        "AA_NO_ENV_FILE": "1",
     }
     port = free_port()
     out = Report()

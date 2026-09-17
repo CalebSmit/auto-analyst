@@ -336,6 +336,7 @@
    "SCOPE.UNKNOWN_TOOL": "config",
    "SCOPE.UNRESOLVED": "config",
    "SKILL.BELOW_GATE": "model",
+   "SKILL.CITED_VALUE_ABSENT": "model",
    "SKILL.CLIENT_DATA_IN_DRAFT": "client-data",
    "SKILL.FABRICATED_SOURCE": "model",
    "SKILL.GATE_SKIPPED": "process",
@@ -466,6 +467,13 @@
     "qc-conventions.md",
     "tagging-policy.md",
     "valuation-standards.md"
+   ]
+  },
+  "valuation/non-esop/_segment": {
+   "bytes": 6974,
+   "digest": "sha256:12b4c1b875fa6b04df3c7f1c078fc2ea5f039c8c92cd85c5c851e80f7aaab6f1",
+   "files": [
+    "how-we-work.md"
    ]
   }
  },
@@ -664,6 +672,28 @@
    ],
    "plan_hash": "sha256:478bac895c70eb64e85f331c044068cc08ca9f3ec1c490e0f7e34ff57c9f5f8e"
   },
+  "mature-company-valuation": {
+   "loops": [
+    "self_verification:tagging",
+    "self_verification:ebitda",
+    "guard_repair:ebitda",
+    "tieout_repair:qc"
+   ],
+   "order": [
+    "intake",
+    "mask",
+    "timing",
+    "gpc",
+    "tagging",
+    "wacc",
+    "ebitda",
+    "dcf",
+    "model",
+    "qc",
+    "release"
+   ],
+   "plan_hash": "sha256:aaf429c015acdc509d553bd0e2fa6e7720df9fd0c5428560acb0885d4a9746dd"
+  },
   "monthly-refresh": {
    "loops": [
     "self_verification:tagging",
@@ -792,6 +822,40 @@
     "ddr",
     "timing",
     "tagging",
+    "qc",
+    "release"
+   ]
+  },
+  "mature-company-valuation@v3": {
+   "loops": [
+    "self_verification:tagging<=1",
+    "self_verification:ebitda<=1",
+    "guard_repair:ebitda<=2",
+    "tieout_repair:qc<=1"
+   ],
+   "required_types": [
+    "financial_statements"
+   ],
+   "skills": [
+    "timing-normalization",
+    "line-item-tagging",
+    "ebitda-normalization",
+    "gpc-scrub",
+    "cost-of-capital",
+    "dcf-build",
+    "model-load",
+    "qc-tieout"
+   ],
+   "steps": [
+    "intake",
+    "mask",
+    "timing",
+    "tagging",
+    "ebitda",
+    "gpc",
+    "wacc",
+    "dcf",
+    "model",
     "qc",
     "release"
    ]

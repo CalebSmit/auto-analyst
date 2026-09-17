@@ -25,14 +25,16 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any, Protocol
 
 from graph.compile import Step
 from graph.execute import Blocked
 from graph.resolve import ResolvedScope
+from guards.provenance import ProvenanceGate
 from guards.schema import SchemaGate
+from guards.tieout import Recompute, TieoutGate
 from guards.untrusted import SENTINEL_RULE, UntrustedBoundary
 from harness.context import AssembledContext, ContextBuilder, ContextRequest
 from harness.door import ModelDoor
@@ -40,6 +42,7 @@ from harness.policy import RunScope
 from harness.runtime import BoundTools, GuardedRuntime
 from ops.blobs import ContentRef, ContentStore
 from ops.events import EventBus
+from ops.source_parse import SourceParseStore
 from ports.llm import LLMRequest, Message, ModelPin
 from privacy.mask import Identifier, Masker
 from registries.contracts import ContractRegistry
@@ -136,7 +139,17 @@ class SkillDispatcher:
         masker: Masker,
         bus: EventBus,
         blobs: ContentStore,
+        parse_store: SourceParseStore | None = None,
+        sources_for: Callable[[str], Mapping[str, int]] | None = None,
+        recompute: Recompute | None = None,
+        tolerance_for: Callable[[str], float] | None = None,
     ) -> None:
+        """`parse_store` and `sources_for` (run id -> the intake manifest's source_id to
+        version) switch on the Provenance Check for every output; with `recompute` and
+        `tolerance_for` (run id -> the run's tie-out tolerance) as well, the Tie-Out Check.
+        The composition root passes all four; a component test that builds a dispatcher
+        for one skill may not. The recompute engine is handed in rather than imported,
+        because binding a tool implementation is the composition root's job."""
         self.tree = tree
         self.context = context
         self.door = door
@@ -147,6 +160,12 @@ class SkillDispatcher:
         self.bus = bus
         self.blobs = blobs
         self.schema = SchemaGate(contracts, bus)
+        self.provenance = (
+            ProvenanceGate(contracts, parse_store, bus) if parse_store is not None else None
+        )
+        self.sources_for = sources_for
+        self.recompute = recompute
+        self.tolerance_for = tolerance_for
 
     def run(
         self,
@@ -278,6 +297,22 @@ class SkillDispatcher:
         output = procedure.apply(proposal, tools, inputs, str(pin))
         contract = step.output_schema or resolved.skill.output_contract
         self.schema.run(output, contract, run_id, engagement_id, step.id)
+
+        # 7. Every figure traced to a file this run read - and, read off the page, found
+        #    there. The schema proves the envelope's shape; this proves what it claims.
+        if self.provenance is not None and self.sources_for is not None:
+            self.provenance.run(
+                output, run_id, engagement_id, self.sources_for(run_id), step.id
+            )
+        # 8. Every derived figure recomputed from the rows it cites, within the run's
+        #    tolerance. The guard reads the tolerance; nothing in the step can change it.
+        if self.provenance is not None and self.recompute and self.tolerance_for is not None:
+            TieoutGate(
+                self.provenance.parse_store,
+                self.recompute,
+                self.tolerance_for(run_id),
+                self.bus,
+            ).run(output, run_id, engagement_id, step.id)
 
         output_ref = self.blobs.put(
             json.dumps(output, sort_keys=True, separators=(",", ":")).encode("utf-8"),

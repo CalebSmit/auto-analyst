@@ -13,7 +13,8 @@ a category, a rationale, a confidence. Everything numeric happens here, through 
 * `above_materiality` is the figure against the engagement's threshold;
 * `review_required` is set from rules a model cannot relax: material, officer pay, a
   category the policy always reviews, a fact not in the documents, a non-recurring
-  candidate that recurs in every period, a figure that did not tie, a confidence below
+  candidate that fails the analyst's one-time test (more than two periods, or present in the
+  earliest), a figure that did not tie, a confidence below
   the bar, a departure from a cited precedent.
 
 **The verification pass** (`EbitdaVerification`) is a separate invocation of the same
@@ -29,7 +30,7 @@ be recorded in.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -52,6 +53,7 @@ __all__ = [
     "ProposalRefused",
     "VERIFICATION_CONTRACT",
     "VerificationInputs",
+    "one_time_doubts",
 ]
 
 CONTRACT = "skills/ebitda-normalization@1.0.0"
@@ -62,6 +64,31 @@ RECOMPUTE = "recompute"
 PRECEDENT_TOOL = "precedent_lookup"
 NON_RECURRING = "non_recurring"
 OWNER_RELATED = "owner_related"
+# The most periods a one-time item may appear in (the analyst's rule, 2026-09-17-1).
+ONE_TIME_MAX_PERIODS = 2
+CONFIRM_WITH_MANAGEMENT = "confirm with management that it will not recur"
+
+
+def one_time_doubts(periods: Sequence[str], present: Iterable[str]) -> list[str]:
+    """Why an item proposed as non-recurring may not be, by the analyst's test.
+
+    One-time means it appears in one or two periods and not in the years before; management
+    then confirms (knowledge, 2026-09-17-1). `periods` are the table's, earliest first. The
+    confirmation question is always last; any note before it sends the item to a person.
+    """
+    here = [p for p in periods if p in set(present)]
+    doubts: list[str] = []
+    if here and len(here) == len(periods):
+        doubts.append("present in every period; probably not non-recurring")
+    elif len(here) > ONE_TIME_MAX_PERIODS:
+        doubts.append(
+            f"present in {len(here)} of {len(periods)} periods; one-time means at most "
+            f"{ONE_TIME_MAX_PERIODS}"
+        )
+    elif len(periods) > 1 and here and here[0] == periods[0]:
+        doubts.append("present in the earliest period, so no earlier year shows it was absent")
+    return [*doubts, CONFIRM_WITH_MANAGEMENT]
+
 
 Rows = list[dict[str, Any]]
 
@@ -400,9 +427,10 @@ class EbitdaNormalization:
             review = True
 
         recurs = set(inputs.periods) <= set(line.periods)
-        if category == NON_RECURRING and recurs:
-            notes.append("present in every period; probably not non-recurring")
-            review = True
+        if category == NON_RECURRING:
+            doubts = one_time_doubts(inputs.periods, line.periods)
+            notes.extend(doubts)
+            review = review or len(doubts) > 1
 
         cited: dict[str, str] | None = None
         if c.get("officer_compensation"):

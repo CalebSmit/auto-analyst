@@ -269,6 +269,15 @@ intake_document_types:
     supplied_by: client
     privacy_class: masked_only
     required_by: []
+  # Added 2026-09-16 (P38). A client's forecast is shaped exactly like the statements it
+  # projects, and was being bound as financial_statements - so a forecast arriving first
+  # could satisfy a recipe waiting for historicals. Its own type keeps projected years out
+  # of the historical table. No skill takes it yet; a forecast skill is on the backlog.
+  - id: forecast
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
   - id: plan_document
     contract: null
     supplied_by: client

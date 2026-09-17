@@ -134,9 +134,12 @@ def registered_recipes() -> None:
     register = RecipeRegister()
     missing = [p for p in register.files() if not register.is_registered(digest_of_recipe(p))]
     for path in missing:
+        # A recipe the repo changed is a new version of it, never version 1 again - the
+        # register refuses a second set of bytes under a registered version, correctly.
+        registered = [r.version for r in register.registered() if r.name == path.stem]
         register.register(
             path,
-            version=1,
+            version=max(registered, default=0) + 1,
             approved_by="tests: the recipes the repo ships",
             decision_ref=f"test-suite/{path.stem}",
         )

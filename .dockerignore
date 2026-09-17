@@ -37,3 +37,6 @@ docs/.blueprint-mirror
 .idea/
 Thumbs.db
 .DS_Store
+
+# Interview knowledge can hold client data; it never goes into an image.
+knowledge/

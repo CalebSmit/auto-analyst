@@ -1,0 +1,220 @@
+topics:
+  role:
+    status: covered
+    notes:
+    - first high-level answer (Q1)
+    - 'review chain settled: associate review, internal value review with MD, MD gates
+      the report (Q3)'
+    sessions:
+    - 2026-09-16-1
+  lifecycle:
+    status: partial
+    notes:
+    - first high-level answer (Q1)
+    - 'pilot sequence: historicals (organize + input) -> forecast -> models set up
+      (DCF) -> GPC comps and comparable transactions -> WACC data -> associate review
+      -> IVR (Q7). Missing: inputs/outputs, dependencies, hours.'
+    - 'time: data retrieval most, then forecast; checks and debt-instrument entry
+      also slow (Q8)'
+    - draft pilot recipe written from it (B-002)
+    - DD meeting rarely changes model; explains forecast and unusual costs for the
+      report (Q7)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-1
+  document-types:
+    status: partial
+    notes:
+    - first high-level answer (Q1)
+    - 'pilot set: audited OR internal financials (either used); almost always an income
+      statement forecast; sometimes fixed asset schedules; sometimes NWC line-item
+      forecasts (Q9)'
+    - 'debt detail from the audited financials'' LT debt note; fields: maturity, starting
+      amount, years left, rate (Q2)'
+    - audited beats internal on disagreement; forecast always internal (Q8, B-024)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-2
+  spreading:
+    status: partial
+    notes:
+    - first high-level answer (Q1)
+    - audited beats internal on disagreement; forecast always internal (Q8, B-024)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-2
+  repeat-clients:
+    status: covered
+    notes:
+    - first high-level answer (Q1)
+    - adjustment list carried forward from last year, values refreshed (Q1)
+    - copy historicals + enter new period; same forecast method, fresh assumptions;
+      new WACC as of valuation date; comps kept unless reason; adjustment items carried
+      (Q7, 2026-09-17-1 Q1)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-1
+    - 2026-09-17-2
+  excel-models:
+    status: partial
+    notes:
+    - first high-level answer (Q1)
+    - model has a debt tab; every long-term debt instrument entered individually (Q8)
+    - DCF structure is in the template; GPC/transactions/WACC independent; comps multiples
+      support exit multiple (Q8)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-1
+  engagement-types:
+    status: partial
+    notes:
+    - 'types named: startup/pre-revenue (incl. tech spin-off), purchase price allocation
+      after a sale, buy-sell (one starting soon), fair market value of an operating
+      company for the owners'' information. Volume split and pilot not yet chosen
+      (Q4)'
+    - '~10 engagements in 3 months: ~25% pre-revenue, ~25% PPA, ~25% mature operating
+      company, ~25% mix of others (Q5). Pilot not yet chosen.'
+    - 'pilot chosen: mature operating company valuation (Q6). Still missing: standard
+      and level of value per type.'
+    - 'pilot standard of value: usually fair market value (Q13); level of value pending'
+    - 'pilot: fair market value, controlling (Q13); other types'' standard/level still
+      open'
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-2
+  income-approach:
+    status: partial
+    notes:
+    - a DCF is run on nearly every engagement (Q5)
+    - DCF structure is in the template; GPC/transactions/WACC independent; comps multiples
+      support exit multiple (Q8)
+    - 'no weighting: each method gives an EV range; final EV chosen within ranges
+      by the MD (Q10)'
+    - exit multiple when comp set is good (MD picks, near median/average); CAPM with
+      good comps, build-up without; repeat = last year (Q4)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-1
+    - 2026-09-17-2
+  market-approach:
+    status: partial
+    notes:
+    - GPC and guideline M&A transactions run on nearly every engagement (Q5)
+    - DCF structure is in the template; GPC/transactions/WACC independent; comps multiples
+      support exit multiple (Q8)
+    - Capital IQ, manual pull (no API); drop if financial situation changes a lot
+      or leaves line of business; inclusion criteria later (Q9)
+    - 'no weighting: each method gives an EV range; final EV chosen within ranges
+      by the MD (Q10)'
+    - exit multiple when comp set is good (MD picks, near median/average); CAPM with
+      good comps, build-up without; repeat = last year (Q4)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-1
+    - 2026-09-17-2
+  qc-review:
+    status: partial
+    notes:
+    - 'model checks: net income ties to client net income; balance sheet balances;
+      ending cash on cash flow = balance sheet cash (Q8)'
+    - a failed model check is usually the analyst's own mistake; causes vary; needs
+      the main model (Q1)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-2
+  document-arrival:
+    status: partial
+    notes:
+    - 'historicals gate the work; model set up on them; forecast used when it arrives;
+      other documents used as they come (Q10). Missing: late, revised, contradictory
+      and never-arriving documents.'
+    - most recent document wins; restated past periods updated in the model (Q9)
+    - 'older audited vs newer internal: probably audited, uncertain - goes to a person
+      (Q10)'
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-2
+  ai-tools:
+    status: covered
+    notes:
+    - 'firm has Claude: Claude Code on the work computer; any Cursor model also allowed
+      (Q11). API key access not yet known.'
+    - has a firm Anthropic API key; uses Claude Code and Cursor models (Q11)
+    sessions:
+    - 2026-09-16-1
+    - 2026-09-17-1
+  normalization:
+    status: partial
+    notes:
+    - EBITDA adjustments are a major focus; owner pay rarely adjusted; interest income
+      common; repeat = last year's items with new values, new = think through (Q1).
+      Examples to come from work computer.
+    - 'candidate sources: other income/expense detail first, internal financials,
+      DD meeting, audited notes; looking for one-time and discretionary; mostly analyst
+      judgment (Q2)'
+    - 'one-time test: appears in only 1-2 periods and not prior years, then management
+      confirms (Q3); build''s recurrence test differs (B-015)'
+    - interest income usually removed from EBITDA (Q14); examples to come
+    sessions:
+    - 2026-09-17-1
+    - 2026-09-17-2
+  forecast:
+    status: partial
+    notes:
+    - client forecast = source of truth, unchanged, tie wherever possible; interest
+      expense from firm's debt tab instead (Q4)
+    - 'firm-built forecast: drivers (revenue growth %, COGS % rev, opex % rev improving
+      gradually), modest assumptions, client rarely pushes back (Q5)'
+    - driver baseline = last year or multi-year average, whichever is normal; then
+      stepped up/down (Q6)
+    - 'no debt note: match client interest expense, ask for details, or forecast zero/flat
+      (Q3)'
+    sessions:
+    - 2026-09-17-1
+    - 2026-09-17-2
+  data-sources:
+    status: partial
+    notes:
+    - Capital IQ for GPC and transactions, manual export (Q9); cost of capital source
+      still open
+    - Kroll for WACC data; beta = median unlevered comps beta (Capital IQ), relevered;
+      WACC waits for comps; pretax Kd from implied credit rating (Q5)
+    sessions:
+    - 2026-09-17-1
+    - 2026-09-17-2
+  success:
+    status: partial
+    notes:
+    - 'no weighting: each method gives an EV range; final EV chosen within ranges
+      by the MD (Q10)'
+    sessions:
+    - 2026-09-17-1
+  debt-and-model-checks:
+    status: partial
+    notes:
+    - 'debt detail from the audited financials'' LT debt note; fields: maturity, starting
+      amount, years left, rate (Q2)'
+    - 'no debt note: match client interest expense, ask for details, or forecast zero/flat
+      (Q3)'
+    sessions:
+    - 2026-09-17-2
+  cost-of-capital:
+    status: partial
+    notes:
+    - exit multiple when comp set is good (MD picks, near median/average); CAPM with
+      good comps, build-up without; repeat = last year (Q4)
+    - Kroll for WACC data; beta = median unlevered comps beta (Capital IQ), relevered;
+      WACC waits for comps; pretax Kd from implied credit rating (Q5)
+    - credit rating eyeballed, MD decides; rating spreads from Capital IQ; analyst
+      wants ratio-based support (Q6, B-022)
+    sessions:
+    - 2026-09-17-2
+  internal-value-review:
+    status: covered
+    notes:
+    - MD looks first at M&A multiples, then comps, then industry/market context (Q11);
+      what changes after not yet asked
+    - 'after IVR little changes: multiples used, or a WACC assumption such as CSRP
+      (Q12)'
+    sessions:
+    - 2026-09-17-2

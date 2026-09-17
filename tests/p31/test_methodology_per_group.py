@@ -245,10 +245,15 @@ def test_the_firms_files_moved_into_the_firm_layer() -> None:
     with the move - what changed is that there is now somewhere else for a group to put
     its own."""
     register = MethodologyRegister()
-    assert [register.name_of(p) for p in register.files()] == [
+    names = [register.name_of(p) for p in register.files()]
+    assert [n for n in names if n.startswith("_firm/")] == [
         "_firm/qc-conventions.md",
         "_firm/tagging-policy.md",
         "_firm/valuation-standards.md",
+    ]
+    # P37: the non-ESOP group's first methodology of its own, drafted from the interview.
+    assert [n for n in names if not n.startswith("_firm/")] == [
+        "valuation/non-esop/_segment/how-we-work.md"
     ]
     stray = [p.name for p in (ROOT / "foundations").glob("*.md") if p.name != "README.md"]
     assert not stray, f"methodology left outside a layer: {stray}"

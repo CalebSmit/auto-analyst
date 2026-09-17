@@ -656,6 +656,8 @@ class RunDriver:
                     period_ends=tuple(periods.period_ends) if periods else (),
                     ambiguous=tuple(periods.ambiguous) if periods else (),
                     source_version=row.source_version,
+                    audited=bool(report.audited),
+                    received_at=str(row.received_at or ""),
                 )
             )
         return tuple(out)
@@ -691,6 +693,8 @@ class RunDriver:
             period_ends=tuple(detected.get("period_ends") or ()),
             ambiguous=tuple(detected.get("ambiguous") or ()),
             source_version=row.source_version,
+            audited=bool(detected.get("audited")),
+            received_at=str(getattr(row, "received_at", "") or ""),
         )
 
     def _detection_for(self, run_id: str, source_id: str) -> dict[str, Any]:

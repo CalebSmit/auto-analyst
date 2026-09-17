@@ -20,7 +20,7 @@ from tests.p06.conftest import skill_step, two_step_recipe
 
 
 def test_both_recipes_load(monthly: Recipe, ddr: Recipe) -> None:
-    assert recipe_names() == ("full-ddr-intake", "monthly-refresh")
+    assert recipe_names() == ("full-ddr-intake", "mature-company-valuation", "monthly-refresh")
     assert monthly.key == "monthly-refresh@v3"
     assert ddr.key == "full-ddr-intake@v1"
 

@@ -18,11 +18,21 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-__all__ = ["CLASSES", "Classification", "Evidence", "classify"]
+__all__ = ["CLASSES", "Classification", "Evidence", "audited_evidence", "classify"]
+
+# What only an audit leaves on a set of financial statements: the auditor's report, or its
+# opinion paragraph. A compilation or review report is not an audit and does not match.
+_AUDITED = re.compile(
+    r"independent auditor['’]?s['’]? report"
+    r"|report of independent (?:certified public accountants|registered public accounting firm)"
+    r"|in our opinion,? the (?:accompanying )?(?:consolidated )?financial statements present fairly",
+    re.IGNORECASE,
+)
 
 CLASSES = (
     "trial_balance",
     "financial_statements",
+    "forecast",
     "ddr_response",
     "request_schedule",
     "participant_census",
@@ -51,6 +61,14 @@ _CUES: dict[str, tuple[tuple[str, float], ...]] = {
         (r"\bcash flows?\b", 0.6),
         (r"\btotal assets\b|\btotal liabilities\b", 0.6),
         (r"\bnet income\b|\bgross (?:profit|margin)\b|\bEBITDA\b", 0.5),
+    ),
+    # Forward-looking cues. Weighted like any other, then given precedence over the statement
+    # cues above in `classify`, because a forecast carries every one of those.
+    "forecast": (
+        (r"\bforecast(?:s|ed)?\b|\bprojections?\b|\bprojected\b|\bpro ?forma\b", 1.0),
+        (r"\bbudget(?:s|ed)?\b", 0.8),
+        # "2026E" - estimate. Not P or F: "2025 P&L" is a historical statement.
+        (r"\b(?:FY)?(?:19|20)\d{2}E\b", 0.6),
     ),
     "ddr_response": ((r"\bdue diligence\b", 0.8), (r"\bDDR\b", 0.8), (r"\bresponse\b", 0.3)),
     "request_schedule": (
@@ -114,6 +132,13 @@ class Classification:
         return self.document_type == "other" or self.confidence < 0.8
 
 
+def audited_evidence(text: str) -> str | None:
+    """The phrase showing a document carries an audit opinion, or None. Returned rather than
+    a bare flag so the record says why a source was treated as audited."""
+    found = _AUDITED.search(text or "")
+    return found.group(0) if found else None
+
+
 def classify(evidence: Evidence) -> Classification:
     text = evidence.text()
     scores: dict[str, float] = {}
@@ -126,6 +151,17 @@ def classify(evidence: Evidence) -> Classification:
                 reasons.setdefault(cls, []).append(f"{match.group(0)!r} (+{weight:g})")
     if not scores:
         return Classification("other", 0.0, ("no recognisable cue in the headers or first rows",))
+    if "forecast" in scores and "financial_statements" in scores:
+        # A forecast is shaped like the statements it projects, so it scores on every
+        # statement cue. Read as historicals, projected years would enter the historical
+        # table and could satisfy a recipe waiting for the real ones. The safe error is the
+        # other way round: a historical file with a budget column waits for a person.
+        statements = scores.pop("financial_statements")
+        reasons["forecast"].append(
+            f"forward-looking cue outranks the statement cues ({statements:g} for "
+            "financial_statements)"
+        )
+        scores["forecast"] = max(scores["forecast"], statements)
     ranked = sorted(scores.items(), key=lambda kv: -kv[1])
     best, score = ranked[0]
     runner_up = ranked[1][1] if len(ranked) > 1 else 0.0

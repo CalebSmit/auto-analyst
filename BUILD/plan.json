@@ -1225,6 +1225,223 @@
       ],
       "notes": "",
       "closed": "2026-09-07"
+    },
+    {
+      "id": "P37",
+      "title": "The division focus, and the interview that fills it",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The system knows which division it serves, and has a repeatable way to learn how that division actually works from the analyst who does the work.",
+      "builds": [],
+      "tasks": [
+        "scopes.yaml declares a focus (valuation/non-esop) and a parked flag on a segment; the registry refuses a focus on an undeclared or parked segment",
+        "The admin scope choices lead with the focus and list parked segments last, labelled",
+        "interview/PROTOCOL.md: the one set of instructions /improve-agent follows - one question per message, record after every answer, build on stop through the gate and the governance chain",
+        "interview/topics.yaml: the coverage map for non-ESOP valuation work, each topic with angles, a done-when and what it feeds",
+        "tools/interview.py: status (coverage, follow-ups, backlog, and what the code says is missing for the focus), session, mark, topics, and scan for identifiers in committable files",
+        "Thin wrappers in .claude/commands and .cursor/commands, and a Cursor rule pointing at CLAUDE.md",
+        "knowledge/ committed so the interview travels with the private repo, excluded from the container image",
+        "A draft pilot recipe, recipes/mature-company-valuation.yaml, in the analyst's order: historical financials the only required document, comps before WACC before the DCF, the model checks last; unregistered",
+        "Draft non-ESOP methodology at foundations/valuation/non-esop/_segment/how-we-work.md, passing the clearance scan and not cleared",
+        "The interview map corrected from the first session: forecast, debt tab and model checks, internal value review, pre-revenue and purchase price allocation topics",
+        "A next-session question queue at the top of knowledge/followups.md, asked first"
+      ],
+      "exit": [
+        "A focus that names an undeclared or parked segment fails the registry load",
+        "Both slash commands run the same protocol, and neither holds behaviour of its own",
+        "The interview's state is read from files, never from a model's memory: coverage, follow-ups, backlog and sessions",
+        "No identifier on the watch list appears in any file outside knowledge/, and knowledge/ travels with the repo",
+        "The pilot recipe compiles for both non-ESOP scopes and waits only for historical financials"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p37 -q",
+        "python -m uv run pytest tests/p29 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy tools admin registries",
+        "python -m uv run pytest tests/p06 tests/p31 tests/p33 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-16"
+    },
+    {
+      "id": "P38",
+      "title": "What the research changed",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Outside research on AI in valuation is weighed once against the build, and the parts that fit are built: the analyst's model checks as deterministic code, and a forecast that can never pass for history.",
+      "builds": [],
+      "tasks": [
+        "tools/statement_checks.py: net income ties, balance sheet balances, cash agrees, movement flags; every total through recompute; failures keep both numbers; absence is could_not_evaluate; no default tolerance or threshold; output fits skills/qc-tieout@1.0.0",
+        "A forecast document type in the closed vocabulary, and forward-looking cues taking precedence over statement cues in the classifier",
+        "docs/research/ai-in-valuation.md: what the research confirmed, added, deferred and declined, with reasons",
+        "OPEN.md holds the extraction benchmarks, report narrative scope, and build-or-buy as a person's decisions",
+        "Interview topics for an extraction baseline and data sources, and quality-of-earnings angles on normalization",
+        "Forecast filename conventions in the admin's first setup, so a name matching both a statement and a forecast is held rather than bound",
+        "The timing-normalization procedure holds forecasts out of the historical table - payload, tool input and escalation - and escalates a set with no historical file"
+      ],
+      "exit": [
+        "The three model checks pass on statements that tie, fail with both numbers on ones that do not, and never pass on missing evidence",
+        "A client forecast shaped like financial statements is classified as a forecast, and cannot satisfy a recipe waiting for historicals",
+        "Every category in the taxonomy has a declared direction, so a new one is caught by a test rather than a run",
+        "A forecast in a run's file set never reaches the model or the tool that builds the historical table"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p38 -q",
+        "python -m uv run pytest tests/p17 tests/p16 tests/p02 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy tools intake registries",
+        "python -m uv run pytest tests/p18 tests/p24 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-16"
+    },
+    {
+      "id": "P39",
+      "title": "A citation is checked where it points",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Every figure in a live run is traced to a file the run read, found there if it was read off the page, and re-derived if it was computed - and a guard the blueprint says runs is one a live run actually calls.",
+      "builds": [],
+      "tasks": [
+        "The Provenance Check requires a figure read off the page to carry a value found on the cited rows - by parsed value or by the printed text (currency stripped, parentheses as negative), never by absolute value or a scale suffix; new code SKILL.CITED_VALUE_ABSENT",
+        "An eleventh adversarial fixture: a transposed amount citing a real row; the blueprint's fixture table and error-code table carry it",
+        "The Provenance and Tie-Out Checks run on every skill output in the live dispatcher, wired at the composition root",
+        "The scripted rehearsal checks both guards passed with figures on real steps, and reports every fail-closed step guard no run emitted",
+        "docs/research/ai-in-valuation.md records the post: confirmed, changed, waits, declined"
+      ],
+      "exit": [
+        "A figure read off the page with a number its cited rows do not carry fails the Provenance Check, naming both",
+        "A live run's skill outputs pass through the Provenance and Tie-Out Checks, and a tampered output is stopped by the right one",
+        "Every guard the blueprint marks as a fail-closed step guard either speaks on a rehearsal run or is named as silent"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p39 -q",
+        "python -m uv run pytest tests/p13 tests/p14 tests/p18 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy guards harness tools registries"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P40",
+      "title": "What the second interview changed",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The build follows the analyst's stated rules where it had followed a guess: the one-time test, the pilot's order, the methodology's account of the forecast - and computes the starting point of a firm-built forecast.",
+      "builds": [],
+      "tasks": [
+        "one_time_doubts in the EBITDA procedure: a non-recurring candidate in more than two periods, or in the earliest, goes to a person; every one is marked for management's confirmation",
+        "mature-company-valuation version 2: gpc and wacc wait only for the masked payload; dcf waits for gpc as well; the suite registers a changed recipe as its next version",
+        "The draft non-ESOP methodology rewritten from both interviews: ranges not weights, the client forecast unchanged, driver-built forecasts, the one-time rule, comps drop criteria",
+        "tools/forecast_drivers.py: revenue growth, cost of sales and operating expenses as shares of revenue, per period, last year and trailing averages, every value through recompute with its source lines; chooses nothing"
+      ],
+      "exit": [
+        "An add-back proposed as one-time that appears in more than two periods, or in the earliest period, is reviewed by a person",
+        "Forecast driver baselines are computed from a real normalized table, every value with its sources and every missing value with its reason",
+        "The pilot's WACC compiles after the comps, and the DCF after both (corrected 2026-09-17-2, built in P41)"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p40 -q",
+        "python -m uv run pytest tests/p20 tests/p33 tests/p37 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy tools harness"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P41",
+      "title": "What the third interview changed",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The pilot's order, the methodology, the beta arithmetic and the handling of disagreeing sources follow the analyst's stated rules - and where the analyst was unsure, a person still decides.",
+      "builds": [],
+      "tasks": [
+        "mature-company-valuation version 3: wacc waits for gpc again (beta comes from the comp set); P40's exit criterion amended to match",
+        "The draft methodology gains cost of capital, debt, exit multiple, repeat clients, standard and level of value, source precedence and the internal value review",
+        "tools/beta.py: unlever and relever under a named formula with no default, and the comps' median unlevered beta naming every company used and left out",
+        "Source precedence in tools/normalize.py: audited over internal, most recent within a kind; older audited against newer internal, ties and unknown arrival go to a person; settled disagreements stay in the report and raise no review item",
+        "The reader records audit-opinion evidence on financial statements; the driver carries audited and received_at to the timing step, on first read and on resume"
+      ],
+      "exit": [
+        "A disagreement the analyst's rules settle has a figure from the right source that ties and cites it, and is still listed in the alignment report",
+        "An older audited source against a newer internal one, a tie in arrival, or an unknown arrival time takes no figure and reaches a person",
+        "Beta is never relevered without a named formula, and the median names every comp it used and left out"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p41 -q",
+        "python -m uv run pytest tests/p10 tests/p16 tests/p17 tests/p18 tests/p35 tests/p40 -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy tools intake harness workers"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P42",
+      "title": "The consoles, easier to use",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A person can see at a glance what needs them, answer a review in the order the review surface intends, and set up an engagement without editing JSON - and nothing the consoles do fails silently.",
+      "builds": [],
+      "tasks": [
+        "Activity: runs lead with the client, scope and age; states in the three meaning colours with the stop reason; the page opens on the run that needs attention; a review panel shows question, source and reasons, reveals the proposal on request and on the record, and records accept, correct, reject or escalate with a reason; halt and resume ask in the page; the trace can show only what a run touched",
+        "The live feed closes a finished run's stream and ignores repeats; refused actions are said, not swallowed",
+        "Setup: engagements lead with the client and say what a profile lacks; the profile is a form with the JSON one click away; workflow and methodology clearance ask in the page",
+        "Every page: an in-page dialog instead of browser pop-ups, a count of what waits on a person on the Activity tab and in the window title, links to a run, a review item and a profile, a tab icon",
+        "The console's run and review rows carry the client and scope from the roster, through the composition root"
+      ],
+      "exit": [
+        "No page uses a browser pop-up, declares a name twice, or ships a script that does not parse",
+        "A review item's proposal is shown only on request, and accepting or correcting is not offered before it",
+        "A finished run's stream is closed rather than replayed, and a refused action is reported",
+        "Runs and review items name the client, and an engagement names what its profile still lacks"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p42 -q",
+        "python -m uv run pytest tests/p23 tests/p24 tests/p29 tests/p36 tests/regression/test_serve.py -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ui tools"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P43",
+      "title": "Easy to start and use",
+      "block": "Block J - Making it his",
+      "gate": "auto",
+      "status": "done",
+      "intent": "One double-click starts the tool on a new machine, and everything an analyst does - add files, adjust an engagement, take the deliverable, find out what a word means - is on the page, with nothing silently ignored.",
+      "builds": [],
+      "tasks": [
+        "start.cmd and tools/start.ps1: find uv, install if stale, create .env, generate the vault key, ask once for the API key without showing it, make the folders, check, start, open the browser - changing nothing already set",
+        "serve.py reads .env into the environment on start (the shell wins, blanks skipped, AA_NO_ENV_FILE opts out); one parser shared with the secrets adapter; the rehearsal opts out",
+        "Setup: a files panel per engagement (full path with copy, what is there, drag-and-drop upload into the watched folder only, recorded with digest); settings (budget, review level, quiet period); watch and destination dialogs from the checklist; methodology read before it is cleared",
+        "Activity: a released run lists its deliverables with a download checked against the release digest; an empty page says how a run starts",
+        "A Help page linked from every page: the five steps, the words, the colours, and what to do when something stops"
+      ],
+      "exit": [
+        "A file added from the page lands only in its engagement's folder, by name, on local storage, for an engagement that is not archived, and the change is recorded with its digest",
+        "A deliverable downloads only if it is inside the delivery folder and matches the digest recorded at release",
+        "A setting in .env reaches a locally started server, and a value in the real environment wins",
+        "Help is linked from every page, its glossary names only words the pages use, and the start script parses"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p43 -q",
+        "python -m uv run pytest tests/p42 tests/p23 tests/p24 tests/p28 tests/p36 tests/regression/test_serve.py -q",
+        "python -m uv run ruff check .",
+        "python -m uv run mypy admin ops ui tools ports"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
     }
   ],
   "checkpoints": [
@@ -1371,6 +1588,83 @@
         "python -m uv run pytest tests/checkpoints/c13 -q"
       ],
       "closed": "2026-09-07"
+    },
+    {
+      "id": "C14",
+      "title": "Making it his",
+      "after": "P37",
+      "status": "done",
+      "proves": "The focus division is offered first and can be scoped into, the interview describes it in the resolver's terms, and what the interview learns cannot reach a committed file",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c14 -q"
+      ],
+      "closed": "2026-09-16"
+    },
+    {
+      "id": "C15",
+      "title": "What the research changed",
+      "after": "P38",
+      "status": "done",
+      "proves": "On a system started the way a person starts it, a client forecast cannot pass for historical statements by name, by contents or at the historical table, and the model checks can place every category the tagging skill writes",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c15 -q"
+      ],
+      "closed": "2026-09-16"
+    },
+    {
+      "id": "C16",
+      "title": "A citation is checked where it points",
+      "after": "P39",
+      "status": "done",
+      "proves": "The system a person starts calls every output guard the blueprint runs on a skill step, and every adversarial fixture fires its own guard",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c16 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C17",
+      "title": "What the second interview changed",
+      "after": "P40",
+      "status": "done",
+      "proves": "The analyst's one-time rule holds on a real EBITDA schedule, and the table that schedule read gives forecast driver baselines with their sources",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c17 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C18",
+      "title": "What the third interview changed",
+      "after": "P41",
+      "status": "done",
+      "proves": "An audit opinion read from a PDF is on the record, disagreeing statements are settled by the analyst's rules only where they apply without doubt, and the pilot's cost of capital waits for the comps",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c18 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C19",
+      "title": "The consoles, easier to use",
+      "after": "P42",
+      "status": "done",
+      "proves": "Runs and review items name the client the roster knows, every served page is one clean script namespace that asks nothing through a pop-up, and the review panel's round trip works through the real routes",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c19 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C20",
+      "title": "Easy to start and use",
+      "after": "P43",
+      "status": "done",
+      "proves": "A setting written only in .env reaches the composed server, a person sets up a watch and destination and adds a client's file from the page into the folder the sweep reads, recorded against them, and Help is served beside every console",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c20 -q"
+      ],
+      "closed": "2026-09-17"
     }
   ]
 }

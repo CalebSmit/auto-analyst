@@ -1,0 +1,196 @@
+# Mature company valuation - the pilot for the non-ESOP valuation division.
+#
+# Drafted 2026-09-16 from the first /improve-agent session (knowledge/sessions/2026-09-16-1.md).
+# Chosen as the pilot because it is the easiest engagement type: a mature operating company
+# valued with the three methods run on nearly every engagement - a DCF, guideline public
+# companies and guideline M&A transactions.
+#
+# The analyst's order is: historicals in, forecast, then the valuation inputs, then
+# associate review and the internal value review with the MD. The second interview
+# (2026-09-17-1) and the third (2026-09-17-2) settled the middle: the DCF's structure already
+# lives in the template; the data for guideline companies, transactions and WACC is pulled side
+# by side, but the WACC is not final until the comp set is - beta is the comps' median unlevered
+# beta, relevered - and the DCF's exit multiple leans on the comps' medians and averages. Each method ends in a range -
+# the MD chooses within them. It stops before review: nothing here concludes a value.
+#
+# Two steps the analyst does are NOT here, because no skill exists for them yet:
+#   - the forecast (client-provided in Excel almost always; otherwise built by the firm and
+#     sent to the client for approval)
+#   - guideline M&A transactions
+# Both are on the build backlog. A recipe composes skills; it cannot name one that is not
+# in the tree.
+#
+# Version 3 (2026-09-17-2): WACC waits for the comps again - version 2 made them independent,
+# which is wrong whenever CAPM uses the comps' beta. Not yet registered.
+# Registration is a person's act at /admin, after reading this file.
+
+name: mature-company-valuation
+version: 3
+title: Mature company valuation (pilot)
+description: >-
+  Get the historicals into one tagged table, normalize earnings, screen guideline public
+  companies, build the cost of capital and the DCF inputs, load the model and run the
+  model checks. The non-ESOP pilot; forecast and M&A transactions are still manual.
+
+inputs:
+  - name: engagement_profile
+    schema: engagement_profile@1.0.0
+  - name: source_documents
+    schema: null
+    note: >-
+      Audited or internal financial statements (either is used), almost always an income
+      statement forecast, sometimes a fixed asset schedule or a net working capital
+      forecast, and interim financials when given.
+
+# Historical financials are the gate: "we cant do much unless they give the historical
+# financials". Everything else is used as it arrives, so nothing else is required here.
+intake:
+  required_types: [financial_statements]
+
+steps:
+  - id: intake
+    kind: io
+    label: Intake & fingerprint
+    run_inputs: [source_documents]
+    on_failure: halt
+    timeout_s: 120
+
+  - id: mask
+    kind: io
+    label: Mask & scan payload
+    needs: [intake]
+    on_failure: halt
+    timeout_s: 120
+
+  # Historicals in - the step that takes the analyst the most hours.
+  - id: timing
+    kind: skill
+    skill: timing-normalization
+    label: Historicals into one table
+    needs: [mask]
+    output_schema: skills/timing-normalization@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: tagging
+    kind: skill
+    skill: line-item-tagging
+    label: Line-item tagging
+    needs: [timing]
+    output_schema: skills/line-item-tagging@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  # Confirmed 2026-09-17-1: EBITDA adjustments get close attention (owner pay rarely, interest
+  # income often; one-time means one or two periods and not the years before).
+  - id: ebitda
+    kind: skill
+    skill: ebitda-normalization
+    label: EBITDA normalization
+    needs: [timing, tagging]
+    run_inputs: [engagement_profile]
+    output_schema: skills/ebitda-normalization@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  # Guideline companies wait only for the masked payload.
+  - id: gpc
+    kind: skill
+    skill: gpc-scrub
+    label: Guideline public companies
+    needs: [mask]
+    run_inputs: [engagement_profile]
+    output_schema: skills/gpc-scrub@1.0.0
+    on_failure: review
+    timeout_s: 300
+    retries: 1
+
+  # The WACC waits for the comps: beta is their median unlevered beta, relevered to the subject
+  # company, and a good comp set is what decides CAPM over build-up (2026-09-17-2).
+  - id: wacc
+    kind: skill
+    skill: cost-of-capital
+    label: Cost of capital (WACC data)
+    needs: [gpc]
+    run_inputs: [engagement_profile]
+    output_schema: skills/cost-of-capital@1.0.0
+    on_failure: review
+    timeout_s: 300
+    retries: 1
+
+  # The comps' multiples support the terminal multiple when the exit multiple method is used,
+  # so the DCF waits for the guideline companies as well as the discount rate.
+  - id: dcf
+    kind: skill
+    skill: dcf-build
+    label: DCF inputs
+    needs: [timing, ebitda, wacc, gpc]
+    output_schema: skills/dcf-build@1.0.0
+    on_failure: review
+    timeout_s: 300
+    retries: 1
+
+  - id: model
+    kind: skill
+    skill: model-load
+    label: Model load
+    needs: [timing, tagging, wacc, gpc, dcf]
+    output_schema: skills/model-load@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  # The analyst's model checks: net income ties to the client's net income, the balance
+  # sheet balances, and ending cash on the cash flow matches balance sheet cash.
+  - id: qc
+    kind: skill
+    skill: qc-tieout
+    label: Model checks
+    needs: [timing, tagging, model]
+    output_schema: skills/qc-tieout@1.0.0
+    on_failure: review
+    timeout_s: 300
+    retries: 1
+
+  - id: release
+    kind: io
+    label: Unmask, verify, release to review
+    needs: [qc]
+    on_failure: halt
+    timeout_s: 300
+
+loops:
+  - loop: self_verification
+    head: tagging
+    members: [tagging]
+    max_iterations: 1
+    why: >-
+      Pass two is a separate invocation that sees the source excerpt and the proposal,
+      never the first pass's reasoning.
+
+  - loop: self_verification
+    head: ebitda
+    members: [ebitda]
+    max_iterations: 1
+    why: >-
+      Every EBITDA output, always. The verifier sees the schedule, the cited rows and the
+      excerpts, and never the first pass's rationale or confidence.
+
+  - loop: guard_repair
+    head: ebitda
+    members: [ebitda]
+    max_iterations: 2
+    why: >-
+      The guard's structured failure is appended to the step input and the skill runs
+      again. Two attempts, then a quarantine record and a review item.
+
+  - loop: tieout_repair
+    head: qc
+    members: [qc]
+    max_iterations: 1
+    why: >-
+      A model check that fails is handed back once with the recomputed value and the
+      source rows. If it still fails, a review item carries both numbers and the delta.
