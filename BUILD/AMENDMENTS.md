@@ -1061,3 +1061,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** No other phase in the plan names `tools/verify.py` as a check - verify is run once over the tree, not three times inside three closes, and running the whole suite per phase is what made these closes take an hour each. The phase checks stay the tests the phase is about; verify stays the thing run at the end of a session.
 
 - check dropped: python -m uv run python tools/verify.py
+
+## 2026-09-17 - P54 The interview can finish again
+
+**Why:** The scan that keeps a client's name inside knowledge/ has never once done its job: it reported clean over an empty register until P53, and has refused every session since. Neither state is a check, and the close-out of every /improve-agent session runs it.
+
+- phase added: P54 The interview can finish again (The interview, gate: auto)
+- exit criterion: scan returns 0 on a knowledge tree with no session logs, 1 on answers with an empty register, and scans for real when both are present - each proved by running the command
+- exit criterion: Every test in the phase fails when its fix is reverted
+- exit criterion: status names an empty register before the first question rather than after the last
+
+## 2026-09-17 - C27 The interview can finish again
+
+**Why:** P54 stands alone: it is the one thing blocking the next /improve-agent session, and it is being handed back before the engine work behind it starts.
+
+- checkpoint added: C27 after P54, covering P54
+- proves: The check CLAUDE.md names as what keeps a client's name inside knowledge/ answers honestly in all three states on the repo as it stands - refusing an empty register over real answers, passing on a clone nobody has been interviewed on, and scanning for real when there is something to scan - and the protocol, the map and the session that run it all still describe the same command.

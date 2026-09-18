@@ -133,14 +133,14 @@ def test_the_identifier_scan_refuses_to_call_an_empty_register_clean() -> None:
     nobody remembered to write a name in a file nothing reminds them about.
 
     A check that cannot fail is worse than no check, because the record says it ran.
-    """
-    import inspect
 
+    What this asserted first was that the *source* of `_scan` contained the string
+    "UNCHECKED", which is not the same claim and did not hold the refusal down: the
+    refusal shipped with a predicate that fired on a clone where no interview had
+    happened, and this test was green throughout. The behaviour is now proved by running
+    the command, in `tests/p54/test_scan_answers.py`. What is left here is the one thing
+    that belongs beside the other two halves of this leak: that the refusal exists at all.
+    """
     from tools.interview import _knowledge_has_answers, _scan
 
-    source = inspect.getsource(_scan)
-    assert "UNCHECKED" in source
-    assert "not names and _knowledge_has_answers()" in source
-    assert "return 1" in source.split("UNCHECKED")[1], "and it is a failure, not a note"
-    # Still silent on a clone where no interview has happened, which is the honest case.
-    assert callable(_knowledge_has_answers)
+    assert callable(_scan) and callable(_knowledge_has_answers)

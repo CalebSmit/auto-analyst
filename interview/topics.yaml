@@ -2,7 +2,9 @@
 # the system can do its mechanical work unsupervised.
 #
 # Committed, and therefore generic: no client, no project, no figure. What was actually
-# learned about each topic lives in knowledge/coverage.yaml, which git ignores.
+# learned about each topic lives in knowledge/coverage.yaml, which is committed too - to the
+# private repo, so the interview travels between machines (decided 2026-09-16). This file is
+# the map and must stay generic; knowledge/ is where a name is allowed to be.
 #
 # priority 1  the system cannot be pointed at a real engagement without it
 # priority 2  it runs, but a reviewer would redo this part

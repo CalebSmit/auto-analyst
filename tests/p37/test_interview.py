@@ -232,8 +232,25 @@ def test_identifiers_skip_comments_and_fragments(tmp_path: Path) -> None:
 
 
 def test_the_committed_tree_is_clean_against_the_local_watch_list() -> None:
-    """Empty on a clone with no interview; the real check on a machine that has one."""
-    assert interview.scan(interview.committable_files(), interview.identifiers()) == []
+    """The real check on a machine that has been interviewed.
+
+    This passed vacuously for as long as the register was empty: `scan` returns `[]` on an
+    empty name list, so it asserted that finding nothing in nothing is nothing. It now says
+    which of the two it is, so a green run means one of them rather than either.
+    """
+    names = interview.identifiers()
+    if not names:
+        # Skipped, not passed, and the two empty cases are not the same skip. Enforcement
+        # belongs to `interview.py scan`, which the protocol runs at the close of every
+        # session and which refuses the second case outright; what a test can add is
+        # refusing to report a pass it did not earn.
+        why = (
+            "knowledge/ holds answers and identifiers.txt is empty - this checked NOTHING"
+            if interview._knowledge_has_answers()
+            else "no interview on this machine yet, so there is nothing to check against"
+        )
+        pytest.skip(why)
+    assert interview.scan(interview.committable_files(), names) == []
 
 
 # ------------------------------------------------------------------ the command

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**53 of 53 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**54 of 54 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -141,4 +141,11 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P52** The map, answering what a person asks | auto | A person who has never seen the tool can say, from the first screen and without clicking, which run this is and what happened to it | 2026-09-17 |
 | [x] | **P53** Three silent wrongs | auto | A material add-back routes to review whether its figure is positive or negative, and a test proves it by failing without the fix | 2026-09-17 |
 | [x] | **C26 - The map, whole** | integration | The full-design map on the assembled system - the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page - and the three silent wrongs found beside it: materiality read as magnitude, a comparative statement stopped rather than misread, and a person's name refused into the store that is read across clients. | 2026-09-17 |
+
+## The interview
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P54** The interview can finish again | auto | scan returns 0 on a knowledge tree with no session logs, 1 on answers with an empty register, and scans for real when both are present - each proved by running the command | 2026-09-17 |
+| [x] | **C27 - The interview can finish again** | integration | The check CLAUDE.md names as what keeps a client's name inside knowledge/ answers honestly in all three states on the repo as it stands - refusing an empty register over real answers, passing on a clone nobody has been interviewed on, and scanning for real when there is something to scan - and the protocol, the map and the session that run it all still describe the same command. | 2026-09-17 |
 

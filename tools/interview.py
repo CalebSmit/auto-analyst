@@ -218,6 +218,15 @@ def backlog_counts(knowledge: Path = KNOWLEDGE) -> dict[str, int]:
     return counts
 
 
+SESSION_HEADER = (
+    "Appended after every answer: the question, the answer as given, files provided,\n"
+    "and what was recorded where. Never rewritten afterwards.\n"
+)
+"""What `start_session` writes before a single question has been asked. Named rather than
+inlined because `_knowledge_has_answers` subtracts it: a log holding only this has learned
+nothing, and the difference decides whether the leak scan has anything to check."""
+
+
 def start_session(knowledge: Path = KNOWLEDGE, today: date | None = None) -> Path:
     """A new session log: `sessions/YYYY-MM-DD-N.md`, N counting today's sessions."""
     init(knowledge)
@@ -227,12 +236,7 @@ def start_session(knowledge: Path = KNOWLEDGE, today: date | None = None) -> Pat
     while (sessions / f"{stamp}-{n}.md").exists():
         n += 1
     path = sessions / f"{stamp}-{n}.md"
-    path.write_text(
-        f"# Session {stamp}-{n}\n\n"
-        "Appended after every answer: the question, the answer as given, files provided,\n"
-        "and what was recorded where. Never rewritten afterwards.\n",
-        encoding="utf-8",
-    )
+    path.write_text(f"# Session {stamp}-{n}\n\n" + SESSION_HEADER, encoding="utf-8")
     return path
 
 
@@ -391,7 +395,16 @@ def _status() -> int:
         print(f"- {line}")
 
     print("\n## Boundary")
-    print(f"identifiers kept inside knowledge/: {len(identifiers())}")
+    names = identifiers()
+    print(f"identifiers kept inside knowledge/: {len(names)}")
+    if not names and _knowledge_has_answers():
+        # Step 6 of the protocol is where `scan` runs, and step 6 is after every answer has
+        # been given. Saying it here, at step 2, is the difference between a note to act on
+        # while asking and a wall at the end of the session.
+        print("  `interview.py scan` will refuse to close this session: knowledge/ holds")
+        print("  answers and the register is empty. Every client, person, place and entity")
+        print("  named in an answer goes in knowledge/identifiers.txt, one per line - add")
+        print("  them as they come up rather than at the end.")
     return 0
 
 
@@ -413,32 +426,65 @@ def _scan() -> int:
     if hits:
         print(f"FAIL: {len(hits)} identifier(s) outside knowledge/")
         return 1
-    if not names and _knowledge_has_answers():
-        # `clean` over an empty register is the most dangerous thing this command can
-        # print: it is the check CLAUDE.md names as the one that keeps client data inside
-        # knowledge/, and it passed unconditionally for as long as nobody remembered to
-        # write a name in the file. A check that cannot fail is worse than no check,
-        # because the record says it ran.
-        print("UNCHECKED: knowledge/ holds answers and knowledge/identifiers.txt is empty.")
-        print("           Nothing was looked for, so nothing was found. Add every client,")
-        print("           person, place and entity named in an answer, one per line, then")
-        print("           re-run. This is the whole of what keeps those names out of a")
-        print("           skill, a methodology file or a fixture.")
-        return 1
+    if not names:
+        if _knowledge_has_answers():
+            # `clean` over an empty register is the most dangerous thing this command can
+            # print: it is the check CLAUDE.md names as the one that keeps client data inside
+            # knowledge/, and it passed unconditionally for as long as nobody remembered to
+            # write a name in the file. A check that cannot fail is worse than no check,
+            # because the record says it ran.
+            print("UNCHECKED: knowledge/ holds answers and knowledge/identifiers.txt is empty.")
+            print("           Nothing was looked for, so nothing was found. Add every client,")
+            print("           person, place and entity named in an answer, one per line, then")
+            print("           re-run. This is the whole of what keeps those names out of a")
+            print("           skill, a methodology file or a fixture.")
+            return 1
+        # And the other empty case, which is not a failure and must not read like one: a
+        # clone before its first interview has nothing to check for, and saying so is the
+        # only honest answer. The first version of this refusal could not tell the two
+        # apart, so it refused on a machine where nobody had been asked anything yet.
+        print("clean: knowledge/ holds no answers yet, so there is nothing to check for.")
+        return 0
     print(f"clean: {len(names)} identifiers checked against every file outside knowledge/")
     return 0
+
+
+def _beyond_its_header(log: Path) -> bool:
+    """Whether anything has been appended to a session log since it was opened.
+
+    `interview.py session` runs at step 3 of the protocol - before the first question. A log
+    that still holds only what `start_session` wrote is a session that has learned nothing.
+    """
+    try:
+        text = log.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        return True  # unreadable is not evidence of emptiness
+    body = text.replace(SESSION_HEADER, "")
+    return any(
+        line.strip() and not line.startswith("# Session ") for line in body.splitlines()
+    )
 
 
 def _knowledge_has_answers(knowledge: Path = KNOWLEDGE) -> bool:
     """Whether there is anything in knowledge/ that could have named somebody.
 
-    An empty register is correct on a clone where no interview has happened yet, and
-    wrong the moment one has. The distinction is what makes the refusal above actionable
-    rather than something to work around on day one.
+    Two places, because those are the two ways a name first arrives. The interview appends
+    every answer to its session log before it asks the next question, so no answer exists
+    without a log carrying it; and `projects/<codename>/docs/` is where a client's own
+    documents are allowed to live, which is a name whatever the logs say.
+
+    What deliberately does not count is the skeleton `init()` lays down and the README that
+    ships with the repo. The first version of this counted any `.md` over 400 bytes, and
+    `knowledge/README.md` is committed at 522 - so a clone where no interview had happened
+    was told to register names nobody had been given yet, and there was no state of the repo
+    in which the scan could pass. An empty register is correct exactly until somebody is
+    asked something.
     """
     if not knowledge.is_dir():
         return False
-    return any(p.is_file() and p.stat().st_size > 400 for p in knowledge.rglob("*.md"))
+    if any(_beyond_its_header(log) for log in (knowledge / "sessions").glob("????-??-??-*.md")):
+        return True
+    return any(p.is_file() and p.name != "README.md" for p in (knowledge / "projects").rglob("*"))
 
 
 def main(argv: list[str] | None = None) -> int:

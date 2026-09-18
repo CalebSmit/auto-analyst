@@ -93,6 +93,9 @@ Before the next question:
    that you are not asking next. Tick `- [x]` ones you have asked.
 5. **Add identifiers** to `identifiers.txt`: every client name, person's name, entity,
    place, account or product name that could identify a client, the moment it appears.
+   Not at the end - `scan` is step 6 of the close-out and refuses an empty register, so a
+   session that leaves this until then has left it until after every answer was given.
+   `status` says so at step 2 when the register is empty and there is something to check.
 6. **Contradictions are findings.** If an answer contradicts an earlier answer, the code,
    a skill's reference file or the blueprint, say so plainly and ask which is right. Do
    not silently pick one.
@@ -123,6 +126,9 @@ touched unless something went wrong.
 6. **Close out every session, built or not:**
    - `python tools/interview.py scan` must print `clean`. If it finds an identifier in a
      committable file, remove it from that file (codename or generic wording) and rescan.
+     If it prints `UNCHECKED`, the register is empty and something has been learned: the
+     names go in `identifiers.txt` first. Do not work around it - that refusal is the
+     check. **Never invent a name to fill it**; ask.
    - `python tools/verify.py --fast`, and the full `python tools/verify.py` if code changed.
    - `python tools/gate.py render`.
    - Tell them in two lines what changed and what the next session will pick up.
@@ -158,7 +164,8 @@ Where an approved change lands, and the path it must take:
 | A decision that is a person's, not the code's | `BUILD/OPEN.md` | Record it; move answered items to Settled with a date. |
 
 **The build's rules apply to every change.** New work is a phase: `python tools/gate.py
-extend` with the reason, or `gate amend` on the current interview phase. A moved public
+extend` with the reason. (`gate amend` is for a phase that is still open; there usually is
+not one, because a session closes the phase it opened.) A moved public
 surface is checked with `python tools/surfaces.py --check` and accepted only after the
 reason is recorded. Record abandoned approaches with `gate ledger`. Run the rehearsals
 (`tools/simulate_firm.py`, and `--scripted`) after changes to intake, the driver, the
