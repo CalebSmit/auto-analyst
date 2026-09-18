@@ -26,7 +26,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "BUILD"
@@ -144,6 +144,31 @@ def run(cmd: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     return proc.returncode == 0, out.strip()
 
 
+def say(text: str = "", stream: TextIO | None = None) -> None:
+    """Print, whatever the console can encode.
+
+    A check's output belongs to whatever the check ran, and may hold any character; the
+    console it lands on here is often cp1252, which holds rather few. `run` already decodes
+    with `errors="replace"`, so carrying a replacement character is the normal case - and
+    printing one to a cp1252 stream raises `UnicodeEncodeError`.
+
+    That happened while reporting a failing check: the gate died in the middle of saying
+    why a phase had not passed, and what a person saw was a traceback from inside gate.py,
+    which reads as the gate being broken rather than the check having failed. The refusal
+    itself was correct - nothing is written when a check fails - so the only casualty was
+    the reason, at the one moment it was wanted.
+
+    What cannot be encoded is replaced, not dropped: a line with one bad character in it is
+    still the line, and losing it would be the same failure more quietly.
+    """
+    out = stream if stream is not None else sys.stdout
+    try:
+        print(text, file=out)
+    except UnicodeEncodeError:
+        encoding = getattr(out, "encoding", None) or "ascii"
+        print(text.encode(encoding, "replace").decode(encoding, "replace"), file=out)
+
+
 REENTRY = "AA_GATE_RUNNING"
 
 
@@ -172,7 +197,7 @@ def run_checks(checks: list[str], verbose: bool) -> bool:
         print(f"  [{OK if ok else NO}] {cmd}")
         if not ok or verbose:
             for line in out.splitlines()[-25:]:
-                print(f"         {line}")
+                say(f"         {line}")
         allok = allok and ok
     return allok
 

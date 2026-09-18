@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 import yaml
@@ -293,6 +292,3 @@ def split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
         return {}, parts[2]
     return (loaded if isinstance(loaded, dict) else {}), parts[2]
 
-
-def read_draft(path: Path) -> str:
-    return path.read_text(encoding="utf-8", errors="replace")

@@ -2187,6 +2187,54 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P70",
+      "title": "The gate can always say why",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A check's output belongs to whatever the check ran - pytest, ruff, uv - and may contain any character. The console it is printed to on Windows is cp1252 and cannot encode most of them. gate.py holds the string safely and then loses it at the print, which turns a reportable failure into a traceback about encodings. P58 made this tool's independence from the project environment a tested property for the same reason: it is the tool the others are checked with.",
+      "builds": [],
+      "tasks": [
+        "Printing a check's output cannot raise, whatever the console can encode",
+        "What cannot be encoded is replaced rather than dropped, so the rest of the line survives"
+      ],
+      "exit": [
+        "A check whose output contains a character the console cannot encode is still reported, and the gate still refuses",
+        "The replacement is visible in the line rather than the line being lost"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p70 -q",
+        "python -m uv run pytest tests/p58 tests/p01 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P71",
+      "title": "Nothing is built and wired to nothing",
+      "block": "The engine",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The defect keeps recurring because nothing looks for it. A test that walks the shipped packages and fails on a public function nothing calls turns a class of defect found by careful reading into one found by the suite. It needs an allowlist, because a genuine entry point or a deliberately-unwired seam exists - and the allowlist has to carry a reason, so that 'nothing calls this' is a decision on the record rather than an omission.",
+      "builds": [],
+      "tasks": [
+        "A public function nothing references, anywhere, fails the suite",
+        "An exception carries a reason, so an unwired seam is a recorded decision rather than an oversight",
+        "The two found today are resolved: one deleted, one recorded as the gap it is"
+      ],
+      "exit": [
+        "A public function referenced nowhere fails the check, and adding one to the allowlist without a reason still fails",
+        "The scan is quiet on the tree as it stands, so a failure means something new",
+        "The eval harness not measuring provenance failures is written down rather than implied by a function nobody calls"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p71 -q",
+        "python -m uv run pytest tests/p55 tests/p60 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2606,6 +2654,28 @@
       "proves": "A repeat year rolls through all three pieces together - a ten-wide window dropping its oldest year, two dates moved on, last year's line items carried as this year's schema - and only what no arithmetic covers reaches a person; a request section never stands in for an item; a line-item mismatch is handed over rather than resolved; the sections are not a second document-type vocabulary; a skill's judgement is still routed on its confidence; and the fact that nothing yet sets the acceptance rule's evidence is recorded rather than quiet.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c38 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C39",
+      "title": "The gate reports a failure rather than becoming one",
+      "after": "P70",
+      "status": "done",
+      "proves": "A real check that fails with output the console cannot encode is still reported, as a failure, with its text intact and the unencodable character replaced; the gate runs as a process under that console encoding without a traceback; a passing check still reads as passing; and no phase sits past the last checkpoint.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c39 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C40",
+      "title": "An unwired seam is a decision, and the decision is on the record",
+      "after": "P71",
+      "status": "done",
+      "proves": "The scan is quiet on the tree as it stands, so a failure means something new; every excused seam names a backlog item that exists and does not claim to be built; the two found today are resolved the two different ways they warranted - one deleted because there was nothing to record, one kept because there was; and the earlier findings of the same shape, P55's precedent wiring and P60's on_failure, are still wired.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c40 -q"
       ],
       "closed": "2026-09-18"
     }

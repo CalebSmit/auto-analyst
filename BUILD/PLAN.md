@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**69 of 69 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**71 of 71 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -153,6 +153,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C35 - What a session is told, and whether it is still true** | integration | Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other. | 2026-09-18 |
 | [x] | **P63** An engagement view, and a way to find one client | auto | A person can find one client's runs among many without scrolling the list | 2026-09-18 |
 | [x] | **C36 - Finding one client, and what the screen may claim** | integration | The engagement fold and the runs panel are two readings of one set of rows and cannot disagree about which runs or how many are open; every state the page names or paints is one RunState can hold; and the register still carries the question that refusing to invent a valuation date opened. | 2026-09-18 |
+| [x] | **P70** The gate can always say why | auto | A check whose output contains a character the console cannot encode is still reported, and the gate still refuses | 2026-09-18 |
+| [x] | **C39 - The gate reports a failure rather than becoming one** | integration | A real check that fails with output the console cannot encode is still reported, as a failure, with its text intact and the unencodable character replaced; the gate runs as a process under that console encoding without a traceback; a passing check still reads as passing; and no phase sits past the last checkpoint. | 2026-09-18 |
 
 ## The interview
 
@@ -175,6 +177,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C32 - A loop that can be entered** | integration | A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said. | 2026-09-18 |
 | [x] | **P60** A quarantine that leaves something behind | auto | store.quarantines() is non-empty for every run with a quarantined step, and a resumed pass over the same step key does not write a second record | 2026-09-18 |
 | [x] | **C33 - A run that ends says so** | integration | Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's. | 2026-09-18 |
+| [x] | **P71** Nothing is built and wired to nothing | auto | A public function referenced nowhere fails the check, and adding one to the allowlist without a reason still fails | 2026-09-18 |
+| [x] | **C40 - An unwired seam is a decision, and the decision is on the record** | integration | The scan is quiet on the tree as it stands, so a failure means something new; every excused seam names a backlog item that exists and does not claim to be built; the two found today are resolved the two different ways they warranted - one deleted because there was nothing to record, one kept because there was; and the earlier findings of the same shape, P55's precedent wiring and P60's on_failure, are still wired. | 2026-09-18 |
 
 ## Version one: the data it gathers
 

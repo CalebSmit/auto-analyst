@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **69 of 69 phases closed**
-- Last green checkpoint: **C38**
+- **71 of 71 phases closed**
+- Last green checkpoint: **C40**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -88,4 +88,6 @@
 - **P67** Proved by arithmetic, or seen (2026-09-18)
 - **P68** The request list, as the schedule documents arrive against (2026-09-18)
 - **P69** Last year's model, rolled forward (2026-09-18)
+- **P70** The gate can always say why (2026-09-18)
+- **P71** Nothing is built and wired to nothing (2026-09-18)
 

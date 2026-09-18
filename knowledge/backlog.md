@@ -371,3 +371,16 @@ passing checks actually cover. That second half is the real work - a finding say
 re-added, and turning that into "these seven line items are covered" is a mapping nobody has
 written. Until both exist the rule is correct and inert. Size: medium, and it is the step that
 makes B-037 real.
+
+## B-041 The eval harness has never measured a provenance failure
+status: proposed
+2026-09-18, found by P71's scan for public functions nothing references.
+`evals/metrics.py::provenance_of` says "Exposed for the harness" and is the only mention of
+`ProvenanceGate` anywhere in `evals/` - so nothing in the eval or promotion path counts the
+figures the provenance gate would fault. `evals/gates.yaml` decides promotion from what the
+harness measures, which means a candidate skill can promote while faulting provenance: the
+guard still stops the run, but the evidence that a skill does it often never reaches the
+board. Left unwired and recorded rather than deleted, because deleting removes the only
+trace of the intent, and wiring it changes what promotion measures - a decision about the
+governance chain rather than a tidy-up. Allowlisted in `tests/p71` with this reason. Size:
+small to wire, plus a decision about whether the rate becomes a gate.

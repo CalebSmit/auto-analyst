@@ -1377,3 +1377,34 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - task added: A company suffix only ends a name when nothing capitalised follows it
 - exit criterion added: A suffix word inside a longer capitalised phrase is not proposed as a company, and a real name ending in one still is
 - status: done -> open
+
+## 2026-09-18 - P70 The gate can always say why
+
+**Why:** gate.py crashed with a UnicodeEncodeError while printing a failing check's output. The tool that is the only thing permitted to mark a phase done, reporting why a phase did not pass, died in the middle of saying so - and what a person saw instead was a traceback from inside gate.py, which reads as the gate being broken rather than the check having failed. It ran at exactly the worst moment: nothing is written when a check fails, so the refusal was correct, and the reason for it was lost. The output is decoded with errors=replace already, so a replacement character is a normal thing to be holding; what is missing is that printing it must not be able to fail.
+
+- phase added: P70 The gate can always say why (The consoles, gate: auto)
+- exit criterion: A check whose output contains a character the console cannot encode is still reported, and the gate still refuses
+- exit criterion: The replacement is visible in the line rather than the line being lost
+
+## 2026-09-18 - C39 The gate reports a failure rather than becoming one
+
+**Why:** P70 closes the consoles block with the tool the block is checked by. A checkpoint here is not ceremony: gate close is the only thing permitted to mark a phase done, and the crash it fixes happened at the exact moment a check had failed - so the path from a failing check to a person reading why it failed is worth exercising end to end rather than one function at a time.
+
+- checkpoint added: C39 after P70, covering P70
+- proves: A real check that fails with output the console cannot encode is still reported, as a failure, with its text intact and the unencodable character replaced; the gate runs as a process under that console encoding without a traceback; a passing check still reads as passing; and no phase sits past the last checkpoint.
+
+## 2026-09-18 - P71 Nothing is built and wired to nothing
+
+**Why:** P55 found three things built and wired to nothing - precedent retrieval handed to every collaborator but the context builder, a release gate read off a field that never existed, RepairNeeded raised only by a test double - and P60 found on_failure parsed, validated, hashed and read by nothing. Each was found by a person reading carefully, which is not a method. A scan for public functions nothing references finds the same shape mechanically, and finds two today: governance.conformance.read_draft, which duplicates the line drop.py already runs inline, and evals.metrics.provenance_of, whose docstring says 'Exposed for the harness' while being the only mention of ProvenanceGate in evals - so the eval harness has never measured a provenance failure, and a candidate skill could promote while faulting one.
+
+- phase added: P71 Nothing is built and wired to nothing (The engine, gate: auto)
+- exit criterion: A public function referenced nowhere fails the check, and adding one to the allowlist without a reason still fails
+- exit criterion: The scan is quiet on the tree as it stands, so a failure means something new
+- exit criterion: The eval harness not measuring provenance failures is written down rather than implied by a function nobody calls
+
+## 2026-09-18 - C40 An unwired seam is a decision, and the decision is on the record
+
+**Why:** P71 makes a recurring defect findable by the suite instead of by careful reading. The checkpoint asks the part the unit tests cannot: whether the code and the written record still agree about what is unwired and why. A scan with an allowlist is only as honest as the reasons in it, and a reason living solely in a test file is one nobody reading the backlog will see.
+
+- checkpoint added: C40 after P71, covering P71
+- proves: The scan is quiet on the tree as it stands, so a failure means something new; every excused seam names a backlog item that exists and does not claim to be built; the two found today are resolved the two different ways they warranted - one deleted because there was nothing to record, one kept because there was; and the earlier findings of the same shape, P55's precedent wiring and P60's on_failure, are still wired.
