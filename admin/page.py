@@ -213,6 +213,7 @@ ACTIONS.addWatch = () => addWatch();
 ACTIONS.addDestination = () => addDestination();
 ACTIONS.showAdd = () => showAdd();
 ACTIONS.clearFile = d => clearFile(d.name);
+ACTIONS.approveRecipe = d => approveRecipe(d.name, d.state);
 ACTIONS.move = d => move(d.id, d.to);
 ACTIONS.showFiles = d => showFiles(d.id);
 ACTIONS.settings = d => settings(d.id);
@@ -336,6 +337,7 @@ async function workflows() {{
      <span class="lbl mono">${{esc(x.name)}}</span>
      <span class="sub">${{esc(x.approved_by || '')}}</span>
      <span class="pill ${{x.state === 'registered' ? 'good' : x.state === 'edited' ? 'bad' : 'warn'}}">${{x.state === 'registered' ? 'approved' : x.state === 'edited' ? 'edited since' : 'not approved'}}</span>
+     ${{x.state === 'registered' ? '' : `<button class="btn" data-act="approveRecipe" data-name="${{esc(x.name)}}" data-state="${{esc(x.state)}}">Approve</button>`}}
      </div>`).join('')
    : '<div class="empty"><b>No workflows</b></div>';
 }}
@@ -572,6 +574,24 @@ async function clearFile(name) {{
   if (!answer) return;
   act(() => post(`/api/admin/methodology/${{name}}/clear`, {{who: who()}}), 'Cleared ' + name + '.');
 }}
+
+async function approveRecipe(name, state) {{
+  const edited = state === 'edited';
+  const answer = await ask({{
+    title: (edited ? 'Re-approve ' : 'Approve ') + name,
+    why: edited
+      ? 'This workflow was approved and the file has been edited since, so it stopped being approved on its own. Approving records that you read what it says now.'
+      : 'Approving records, under your name, that these steps in this order are what the practice does. Until one is approved no engagement can run it.',
+    note: 'The approval is of this exact file. Editing it afterwards un-approves it, the same way editing a cleared methodology file un-clears it.',
+    fields: [{{name: 'reason', label: 'Why this workflow is right', required: true}}],
+    ok: edited ? 'I have read it - re-approve it' : 'I have read it - approve it',
+  }});
+  if (!answer) return;
+  act(() => post(`/api/admin/recipes/${{encodeURIComponent(name)}}/approve`,
+      {{who: who(), reason: answer.reason}}),
+    'Approved ' + name + '.');
+}}
+
 async function setRecipe(id, current) {{
   const r = await get('/api/admin/recipes').catch(() => ({{recipes: []}}));
   const options = [{{value: '', label: 'The watched folder\u2019s default'}}].concat(

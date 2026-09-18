@@ -1835,6 +1835,31 @@
       ],
       "notes": "",
       "closed": "2026-09-17"
+    },
+    {
+      "id": "P57",
+      "title": "Approving a recipe on a machine that has none",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A registration records that somebody approved a workflow, which is why the file is not committed and why the admin console refuses to write it - a button that skipped the board would be the shortcut P33 exists to close. But refusing to do it badly is not the same as making it possible, and today it is impossible: there is no route, no button and no command. This adds the approval a person performs, through the board, under their own name, on the same four layers methodology clearance already uses.",
+      "builds": [],
+      "tasks": [
+        "An approval route beside the methodology clearance, calling the board rather than the register",
+        "The Setup page offers it where it already says a recipe is not approved",
+        "A recipe edited after approval loses it, and the route says so rather than silently re-approving"
+      ],
+      "exit": [
+        "A recipe can be approved from /admin on a clean clone, the approver's name is on the governance chain, and preflight check 10 goes green as a result",
+        "The route refuses anything that is not an approval, the way board.register_recipe already does",
+        "Nothing writes recipes/registered.yaml except the board, proved by a test that fails if a second writer appears"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p57 -q",
+        "python -m uv run pytest tests/p24 tests/p27 tests/p32 tests/p33 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
     }
   ],
   "checkpoints": [
@@ -2157,6 +2182,17 @@
         "python -m uv run pytest tests/checkpoints/c29 -q"
       ],
       "closed": "2026-09-17"
+    },
+    {
+      "id": "C30",
+      "title": "A machine that can be started",
+      "after": "P57",
+      "status": "done",
+      "proves": "A workflow can be approved from /admin by a named person with a recorded reason, through the board and into the governance chain, so a clean clone goes from nothing-will-run to something-will - and the register is still written by nothing but the board, still not committed, and still refuses a recipe edited since somebody read it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c30 -q"
+      ],
+      "closed": "2026-09-18"
     }
   ]
 }

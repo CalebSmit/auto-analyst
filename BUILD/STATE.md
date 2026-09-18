@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-17.*
+*Last written 2026-09-18.*
 
 ## Where the build is
 
-- **56 of 56 phases closed**
-- Last green checkpoint: **C29**
+- **57 of 57 phases closed**
+- Last green checkpoint: **C30**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -75,4 +75,5 @@
 - **P54** The interview can finish again (2026-09-17)
 - **P55** Built, and wired to nothing (2026-09-17)
 - **P56** The register, fillable from what was already said (2026-09-17)
+- **P57** Approving a recipe on a machine that has none (2026-09-17)
 

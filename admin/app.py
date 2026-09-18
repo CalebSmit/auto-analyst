@@ -78,6 +78,15 @@ class Clearance(BaseModel):
     that somebody read it."""
 
 
+class Approval(BaseModel):
+    who: str = ""
+    reason: str = ""
+    """Unlike a clearance, this carries a reason, and the console refuses an empty one.
+    Clearing methodology always means the same thing; approving a workflow means "these
+    steps, in this order, are what the practice does" - and which steps and which order is
+    exactly what somebody will want to know in a year."""
+
+
 class ReviewLevel(Change):
     level: str
 
@@ -198,6 +207,21 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
     @app.post("/api/admin/methodology/{name:path}/clear")
     def clear_methodology(name: str, request: Request, body: Clearance) -> dict[str, Any]:
         return _guard(lambda: console.clear_methodology(name, who=who(request, body.who)))
+
+    @app.post("/api/admin/recipes/{name}/approve")
+    def approve_recipe(name: str, request: Request, body: Approval) -> dict[str, Any]:
+        """Approve this exact version of a workflow, through the board.
+
+        Beside the methodology clearance and shaped like it, because they are the same kind
+        of act: a person read something and takes responsibility for it. A plain `{name}`
+        rather than `{name:path}` - a recipe is one file in `recipes/`, and a slash in the
+        name is somebody reaching somewhere they should not be.
+        """
+        return _guard(
+            lambda: console.approve_recipe(
+                name, who=who(request, body.who), reason=body.reason
+            )
+        )
 
     @app.post("/api/admin/engagements")
     def register(request: Request, body: Registration) -> dict[str, Any]:

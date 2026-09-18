@@ -1118,3 +1118,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C29 after P56, covering P56
 - proves: A name enters the register because a person put it there, and a person is given what they need to do it: what in knowledge/ has the shape of a name and where it appeared, a command that adds one, and - for a session that named nobody, which the first three did - an acknowledgement that a person signed and that expires the moment another session is logged. No path lets the check pass without somebody having looked.
+
+## 2026-09-17 - P57 Approving a recipe on a machine that has none
+
+**Why:** recipes/registered.yaml is gitignored on purpose and the only writer is SkillBoard.register_recipe, called from two test files and nothing else. On a clean clone no recipe loads, preflight check 10 fails, no engagement activates and no run starts - with nothing to click. It is the first thing that will stop the work-machine clone.
+
+- phase added: P57 Approving a recipe on a machine that has none (The consoles, gate: auto)
+- exit criterion: A recipe can be approved from /admin on a clean clone, the approver's name is on the governance chain, and preflight check 10 goes green as a result
+- exit criterion: The route refuses anything that is not an approval, the way board.register_recipe already does
+- exit criterion: Nothing writes recipes/registered.yaml except the board, proved by a test that fails if a second writer appears
+
+## 2026-09-17 - C30 A machine that can be started
+
+**Why:** P57 stands on its own: it is what makes a clean clone startable, and it is the last thing before the loop work, which is a larger change to the engine rather than to a surface.
+
+- checkpoint added: C30 after P57, covering P57
+- proves: A workflow can be approved from /admin by a named person with a recorded reason, through the board and into the governance chain, so a clean clone goes from nothing-will-run to something-will - and the register is still written by nothing but the board, still not committed, and still refuses a recipe edited since somebody read it.

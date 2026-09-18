@@ -298,13 +298,98 @@ class AdminConsole:
             "size_bytes": record.size_bytes,
         }
 
+    def approve_recipe(
+        self,
+        name: str,
+        *,
+        who: str,
+        reason: str,
+        register: Any | None = None,
+        board: Any | None = None,
+    ) -> dict[str, Any]:
+        """Record that a person approved this exact version of a workflow.
+
+        The register was unwritable outside the test suite, which is not the same thing as
+        being protected: on a clean clone no recipe loaded, preflight check 10 failed, no
+        engagement activated and no run started, and there was nothing anywhere to click.
+        Refusing to do it badly had become refusing to do it.
+
+        So this goes *through* `SkillBoard.register_recipe` rather than around it. The board
+        is still the only writer, it still refuses anything that is not an approval, and the
+        chain still records who approved what and why. What changed is that a person can now
+        perform the approval instead of only a test being able to.
+
+        `reason` is required and not defaulted. A registration with no reason is the shape
+        of a decision without the decision in it, and this record outlives everybody who
+        remembers the conversation.
+
+        `register` and `board` default to the real ones and are injectable, the way
+        `SkillBoard.register_recipe` already takes its register - so a test can prove this
+        refuses what it should without writing to the machine's own governance chain.
+        """
+        from pathlib import Path  # noqa: PLC0415
+
+        from governance.board import Decision, SkillBoard  # noqa: PLC0415
+        from governance.record import GovernanceRecord  # noqa: PLC0415
+        from ops.blobs import LocalContentStore  # noqa: PLC0415
+        from registries.recipes import RecipeRegister  # noqa: PLC0415
+
+        if not who.strip():
+            raise ValueError("an approval names a person; nothing here defaults that")
+        if not reason.strip():
+            raise ValueError(f"{name} needs a reason for approval, recorded with it")
+
+        register = register or RecipeRegister()
+        path = Path(register.root) / f"{name}.yaml"
+        if not path.is_file():
+            raise KeyError(f"{name} is not a recipe in {Path(register.root).name}/")
+
+        # A re-approval after an edit is the next version, not the same one again: the
+        # register keeps every approval, and two rows for "version 1" of one workflow would
+        # make "which file did they read" unanswerable. `RecipeState` carries no version -
+        # it describes the file on disk - so the number comes from what has been registered.
+        approved = [r.version for r in register.registered() if r.name == name]
+        version = max(approved) + 1 if approved else 1
+
+        # The board takes a content store for skill submissions; registering a recipe never
+        # touches it. Built here rather than carried on the console because nothing else on
+        # this surface writes to the governance chain.
+        board = board or SkillBoard(GovernanceRecord(), LocalContentStore())
+        recorded = board.register_recipe(
+            path,
+            version=version,
+            decision=Decision(
+                candidate_id=f"recipe:{name}",
+                decision="approved",
+                reviewer=who,
+                reason=reason,
+                # Empty, and not a practice group. `routed_to` records which reviewer
+                # group a *submission* was routed to by its scope - the board derives it
+                # from the scope registry for a skill drop. A recipe approved here was
+                # routed to nobody: a named person at this console performed the approval
+                # directly, and writing a group name in would claim a routing that did not
+                # happen. It would also put a practice group's name in `admin/`, which
+                # P29 forbids precisely so that adding a group stays an entry in
+                # scopes.yaml rather than a code change.
+                routed_to="",
+            ),
+            register=register,
+        )
+        return {
+            "name": recorded.name,
+            "version": recorded.version,
+            "digest": recorded.digest,
+            "approved_by": who,
+            "reason": reason,
+        }
+
     def recipes(self) -> dict[str, Any]:
         """Every recipe on disk, and whether the board approved this version of it.
 
-        Read-only. Approving a workflow is a board decision recorded in the governance
-        chain; a button here that skipped that would be the shortcut P33 exists to close.
-        What this is for is answering "why did that engagement not run" without anybody
-        having to read a register by hand.
+        Reading is separate from approving on purpose. `approve_recipe` is the write, and it
+        goes through the board: a button here that wrote the register directly would be the
+        shortcut P33 exists to close. What this is for is answering "why did that engagement
+        not run" without anybody having to read a register by hand.
         """
         from registries.recipes import RecipeRegister
 
