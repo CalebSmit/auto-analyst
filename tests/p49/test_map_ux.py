@@ -19,8 +19,10 @@ from ops.console.map_view import MAP_HTML, MAP_JS, MAP_STYLE
 def test_the_run_is_numbered_in_the_order_it_happened() -> None:
     """From the first event recorded against each node, not from the order a dictionary
     happened to hand them over."""
-    assert "MAP_ORDER = Object.keys(MAP_EVENTS)" in MAP_JS
-    assert "localeCompare(String(MAP_EVENTS[b][0].ts))" in MAP_JS, "ordered by when"
+    assert "MAP_ORDER = [];" in MAP_JS
+    # P50: the order is the order the server sent the events, which is their `seq` - a
+    # contract - rather than a re-derivation of it by collating timestamp strings.
+    assert "if (!at || seen.has(at)) continue;" in MAP_JS, "first appearance wins"
     assert "MAP_SEQ[id] = i + 1" in MAP_JS
     assert "el.dataset.ord = MAP_SEQ[id]" in MAP_JS, "and the number is on the node"
     assert "#dmap .mn .ord{" in MAP_STYLE
@@ -31,7 +33,8 @@ def test_a_person_can_walk_the_run_a_step_at_a_time() -> None:
     assert 'data-act="mapStep" data-by="-1"' in MAP_HTML
     assert 'data-act="mapStep" data-by="1"' in MAP_HTML
     assert "if (e.key === 'n' || e.key === ']')" in MAP_JS, "and from the keyboard"
-    assert "MAP_ORDER.indexOf(MAP_PICKED)" in MAP_JS
+    # P50: over what is on screen - whatever the legend is hiding is not a step to take.
+    assert "walk.indexOf(MAP_PICKED)" in MAP_JS
 
 
 def test_the_side_list_is_in_that_order_with_the_time_of_each() -> None:
@@ -55,7 +58,7 @@ def test_picking_a_node_draws_the_edges_it_is_on() -> None:
     """240 edges at one weight is a hairball. The ones the picked node is on are drawn and
     the rest fall back, which is the only way to read what feeds what."""
     assert "path.classList.toggle('on', Boolean(id) && (path.dataset.from === id" in MAP_JS
-    assert "#dmap.focused #dmap-edges path:not(.on){opacity:.12}" in MAP_STYLE
+    assert "#dmap.focused #dmap-edges path:not(.on){opacity:.1}" in MAP_STYLE
     assert "#dmap #dmap-edges path.on{stroke:var(--accent)" in MAP_STYLE
 
 
@@ -71,7 +74,11 @@ def test_what_feeds_it_and_what_it_feeds_are_links() -> None:
 def test_the_neighbours_are_marked_on_the_canvas() -> None:
     assert "el.classList.toggle('near', near.has(el.id.slice(3)))" in MAP_JS
     assert "#dmap .mn.near{" in MAP_STYLE
-    assert "#dmap.focused .mn:not(.on):not(.near){opacity:.4}" in MAP_STYLE
+    # P50/P51: the rest fall back by losing their mark and their ink rather than by having
+    # their opacity cut - dimming a white box over warm paper makes mud, and it took the
+    # quietest nodes' names below anything readable. A focused node is never faded.
+    assert "#dmap.focused .mn:not(.on):not(.near):not(:focus-visible){" in MAP_STYLE
+    assert "--edge:var(--line-soft);--mark:transparent;color:var(--ink-4)" in MAP_STYLE
 
 
 # ------------------------------------------------------------------ finding and filtering
@@ -88,7 +95,9 @@ def test_a_node_can_be_found_by_name_id_or_group() -> None:
 
 def test_the_legend_shows_and_hides_rather_than_only_labelling() -> None:
     swatches = re.findall(r'data-act="mapFilter" data-state="(\w+)"', MAP_HTML)
-    assert set(swatches) == {"passed", "failed", "active", "used", "notreached"}
+    # P52: `blocked` joins them - a part this run was stopped before reaching is not the
+    # same fact as a part no run has ever used, and they were drawn identically.
+    assert set(swatches) == {"passed", "failed", "active", "used", "notreached", "blocked"}
     assert 'aria-pressed="true"' in MAP_HTML
     assert "ACTIONS.mapFilter" in MAP_JS
     assert "#dmap.hide-passed .mn.passed" in MAP_STYLE
@@ -113,7 +122,10 @@ def test_the_dialog_keeps_the_focus_and_gives_it_back() -> None:
     assert 'role="dialog" aria-modal="true"' in MAP_HTML
     assert "function mapTrap(e)" in MAP_JS
     assert "MAP_CAME_FROM = document.activeElement;" in MAP_JS
-    assert "if (MAP_CAME_FROM && MAP_CAME_FROM.focus) MAP_CAME_FROM.focus();" in MAP_JS
+    # P50: and to something that still exists - refresh() replaces the button the map was
+    # opened from every five seconds, so the captured element is usually detached by now.
+    assert "MAP_CAME_FROM.isConnected" in MAP_JS
+    assert "if (back && back.focus) back.focus();" in MAP_JS
 
 
 # ------------------------------------------------------------------ links

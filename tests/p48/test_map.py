@@ -91,13 +91,14 @@ def test_the_overlay_does_not_reuse_an_id_the_page_already_has() -> None:
 
 
 def test_a_node_is_bordered_by_what_the_run_did_there() -> None:
-    for state, token in (
-        ("passed", "var(--good)"),
-        ("failed", "var(--bad)"),
-        ("active", "var(--accent)"),
-    ):
+    # P51: the border is one of three custom properties the state sets - a wash, a hairline
+    # and a mark - rather than a rule of its own per state, so the five read as a family.
+    for state, mark in (("passed", "--mark:var(--good)"),
+                        ("failed", "--mark:var(--bad)"),
+                        ("active", "--mark:var(--accent)")):
         rule = re.search(rf"#dmap \.mn\.{state}\{{([^}}]*)\}}", MAP_STYLE)
-        assert rule and f"border-color:{token}" in rule.group(1), state
+        assert rule and mark in rule.group(1), state
+        assert "--edge:" in rule.group(1) and "--wash:" in rule.group(1), state
     never = re.search(r"#dmap \.mn\.notreached,[^{]*\{([^}]*)\}", MAP_STYLE)
     assert never and "border-style:dashed" in never.group(1), (
         "a node the run never reached is drawn as never reached, not as one that passed"
@@ -107,15 +108,20 @@ def test_a_node_is_bordered_by_what_the_run_did_there() -> None:
 def test_the_map_says_what_happened_in_a_node() -> None:
     assert "async function pickNode(id)" in MAP_JS
     assert "What happened here" in MAP_JS
-    assert "MAP_EVENTS[e.node_id]" in MAP_JS, "the events the run recorded against the node"
-    assert "(LAST_TRACE || {}).diagnostics" in MAP_JS, "and the diagnostic, where there is one"
+    # P50: keyed by the node's name as a string, because an event with no node would
+    # otherwise become the key "null" and take a place in the sequence.
+    assert "(MAP_EVENTS[at] = MAP_EVENTS[at] || []).push(e)" in MAP_JS
+    assert "const events = MAP_EVENTS[id] || [];" in MAP_JS
+    assert "(MAP_TRACE || {}).diagnostics" in MAP_JS, "and the diagnostic, where there is one"
 
 
 def test_it_opens_where_the_run_went_and_fits_on_request() -> None:
     assert "function mapFocus()" in MAP_JS and "function mapFit()" in MAP_JS
     assert 'data-act="mapFocus"' in MAP_HTML and 'data-act="mapFit"' in MAP_HTML
-    # It opens on the part the run touched - and, when the link names one, on that node.
-    assert "mapFocus();\n  pickNode(nodeId" in MAP_JS
+    # P52: it opens on the part the run touched, and picks the place it stopped at - which
+    # is the reason this view gets opened - unless the link named somewhere else.
+    assert "mapFocus();" in MAP_JS
+    assert "pickNode(nodeId && $('mn-' + nodeId) ? nodeId : (stopped || null));" in MAP_JS
 
 
 def test_the_keyboard_can_work_it() -> None:
@@ -126,7 +132,11 @@ def test_the_keyboard_can_work_it() -> None:
 
 
 def test_far_out_the_labels_are_still_legible() -> None:
-    assert "#dmap.far .mn .nm{display:none}" in MAP_STYLE
+    # P51: far out it is the *id* that goes and the name that stays, because the names are
+    # the English somebody wrote for this and the ids are not; and the state stops being a
+    # 1px border, which at that scale is a third of a pixel, and becomes the whole fill.
+    assert "#dmap.far .mn .id{display:none}" in MAP_STYLE
+    assert "#dmap.far .mn{padding:.3rem .45rem;border-width:0}" in MAP_STYLE
     assert "classList.toggle('far', MAP_K < .52)" in MAP_JS
 
 
@@ -142,6 +152,8 @@ def test_a_name_the_design_does_not_have_is_reported_rather_than_dropped(
     on_canvas = {n["id"] for n in GRAPH["nodes"]}
     recorded = set(client.get("/api/runs/run_halted/trace").json()["nodes"])
     assert recorded - on_canvas, "the discrepancy this test is about has gone - update it"
-    assert "Not on this map" in MAP_JS
+    # P52: in the words the two readers use - "the drawing", not "this map"; "part", not
+    # "node" - but saying the same thing, which is that the disagreement is real.
+    assert "Recorded, but not in the drawing" in MAP_JS
     assert "a difference between the system and its blueprint" in MAP_JS
-    assert "not on this map'" in MAP_JS, "and the count in the title says so too"
+    assert "not in this drawing" in MAP_JS, "and the count beside the key says so too"

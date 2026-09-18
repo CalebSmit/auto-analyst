@@ -212,23 +212,32 @@ firm's own names — the reviewer on the engagement profile — are not client d
 not masked. A file with a sentence aimed at the model in it is refused at intake, and the
 run ends halted with that refusal as its reason.
 
-**Seeing where a run went.** On a run's detail, **See the whole design** opens the
-blueprint at full size: all 118 nodes where the design of record puts them, the edges between
-them, and each node bordered by what this run did there - mint for passed, plum for failed,
-a hairline for touched, and a dashed outline for the ones it never reached. It opens on the
-part the run went through; **Fit all** shows the whole thing.
+**Seeing where a run went.** On a run's detail, **See the whole design** opens the whole
+system at full size: all 118 parts where the design of record puts them, the lines between
+them, and each part coloured by what this run did there — mint for done, plum for failed,
+gold for the ones it never got to because it stopped first, and a dashed outline for the
+ones this run had no use for. It opens on the place it stopped, at a size the labels can be
+read at; **Where it ran** goes back to the whole run and **Show everything** to the whole
+system.
 
-Each node the run touched carries the number of the step it was, in the order it happened,
-and the arrows beside that number walk the run a step at a time (`n` and `p` from the
-keyboard). Clicking a node says what the blueprint says it is for, what this run recorded
-against it, and - as links you can follow - what feeds it and what it feeds; the edges it
-sits on are drawn and the rest fall back, so the 240 edges stop being a thicket. The find
-box takes a name, an id or a practice group (`/` reaches it), and the swatches at the top
-show and hide by what happened, so "just the failures" is one click.
+The heading is the engagement, not the diagram: how many of the steps it planned are done,
+what state the run is in, how long it took and what it cost. With nothing selected, the
+panel answers the questions you came with — where it stopped and why, what it got through,
+what it never got to, and what to do now, with the button that does it.
+
+Each part the run went through carries its place in the order, and the arrows beside that
+number walk the run one at a time (`n` and `p` from the keyboard). A dotted trail shows
+where the run went next when the design has no line for that hop — which is most of them,
+and worth knowing rather than drawing over. Clicking a part says what it is for, how long
+it took there, what the run recorded against it in plain words, and — as links you can
+follow — what feeds it and what it feeds. The find box takes a name, an id or a practice
+group (`/` reaches it), and the key at the bottom left shows and hides by what happened,
+so "just the failures" is one click.
 
 All of it works from the keyboard, and the link in the address bar follows what you are
-looking at: `#map=run_...` for the run, `#map=run_.../node_id` for one node of it, which is
-what to paste into a message when the question is about that node.
+looking at: `#map=run_...` for the run, `#map=run_.../part_id` for one part of it.
+**Copy a link to this** puts it on the clipboard, which is what to paste into a message
+when the question is about that part.
 
 **What the run's own page tells you afterwards.** Under **Decided on this run**: every
 question a person answered, what the system had proposed, what they decided, their reason,

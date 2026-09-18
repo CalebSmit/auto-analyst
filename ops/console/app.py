@@ -940,7 +940,10 @@ PAGE = (
 {SHELL}
 """
     + """<script>
-let source = null, current = null, RUNS = [], LAST_TRACE = null;
+let source = null;
+let current = null;
+let RUNS = [];
+let LAST_TRACE = null;
 /* The SSE frame name. One name for every event, so a type this page has never seen still
    reaches the feed. It must match `FRAME` in ops/console/app.py, and a test says so. */
 const FRAME = 'aa';
@@ -1215,9 +1218,16 @@ const GROUP_NAME = {
   port: 'Ports',
 };
 
+let GRAPH_LOADING = null;
 async function loadGraph() {
-  if (!GRAPH) GRAPH = await get('/api/graph').catch(() => ({nodes: []}));
-  return GRAPH;
+  if (GRAPH) return GRAPH;
+  // The promise is cached, not the answer: concurrent callers share one request, and a
+  // failure is thrown rather than remembered, so the next attempt is a fresh one.
+  if (!GRAPH_LOADING) {
+    GRAPH_LOADING = get('/api/graph').then(g => { GRAPH = g; return g; })
+      .finally(() => { GRAPH_LOADING = null; });
+  }
+  return GRAPH_LOADING;
 }
 
 function repaint() { if (LAST_TRACE) paint(LAST_TRACE); }

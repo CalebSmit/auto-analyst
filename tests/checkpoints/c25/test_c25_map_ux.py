@@ -22,6 +22,34 @@ from fastapi.testclient import TestClient
 from tools.serve import build
 
 
+def _names(declaration: str) -> list[str]:
+    """The names a `const`/`let`/`var` statement binds, and nothing else.
+
+    Only what sits at bracket depth zero counts: the keys of an object literal spanning
+    several lines, and a default inside an arrow function's parameters, are commas and
+    identifiers too, and reading them as bindings is how this check reports a collision
+    that is not there.
+    """
+    found: list[str] = []
+    depth, expecting = 0, True
+    for token in re.finditer(r"[()\[\]{}]|=>|[=,;]|[A-Za-z_$][\w$]*", declaration):
+        text = token.group()
+        if text in "([{":
+            depth += 1
+        elif text in ")]}":
+            depth -= 1
+        elif depth > 0:
+            continue
+        elif text == ",":
+            expecting = True
+        elif text in ("=", "=>", ";"):
+            expecting = False
+        elif expecting:
+            found.append(text)
+            expecting = False
+    return found
+
+
 @pytest.fixture
 def served(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
     monkeypatch.setenv("AA_DB_URL", f"sqlite:///{(tmp_path / 'c25.db').as_posix()}")
@@ -91,6 +119,14 @@ def test_the_page_serves_the_controls_and_one_script_namespace(served: Any) -> N
     for control in ('id="dmap-find"', 'data-act="mapStep"', 'data-act="mapFilter"'):
         assert control in page, control
     body = "\n".join(re.findall(r"<script>(.*?)</script>", page, re.S))
-    declared = re.findall(r"^(?:const|let|var|function|async function)\s+(\w+)", body, re.M)
+    # P50: every name, not only the first on a declaration. `let A = 1, B = 2;` used to
+    # hide B from this check - and a duplicate `let` across the page's two classic scripts
+    # is an early SyntaxError, so the second script never runs and the whole map vanishes
+    # with nothing but a console message. tests/p50 keeps the declarations one per line;
+    # this reads the rest of the names anyway, so the two are not relying on each other.
+    declared: list[str] = []
+    for statement in re.findall(r"^(?:const|let|var)\s+[\s\S]*?;$", body, re.M):
+        declared += _names(statement.split(None, 1)[1])
+    declared += re.findall(r"^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)", body, re.M)
     doubled = sorted({n for n in declared if declared.count(n) > 1})
     assert doubled == [], f"the served page declares {doubled} twice"
