@@ -2235,6 +2235,31 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P72",
+      "title": "A retry that can happen",
+      "block": "The engine",
+      "gate": "auto",
+      "status": "done",
+      "intent": "TransportFailure is described in graph/execute.py as the only kind of failure a retry is for, and it is deliberately not a DiagnosticError because it is an infrastructure hiccup on its way to being either a successful second attempt or a quarantine record. All of that is true and none of it has ever run. The model door is the one place a call leaves this machine, and the adapter is the one place that knows what the SDK raises; ports sits below both graph and harness, so the type belongs to the port and the translation belongs to the adapter that has the exception in its hands.",
+      "builds": [],
+      "tasks": [
+        "TransportFailure belongs to the LLM port, which both the executor and the adapter can see",
+        "The adapter raises it for what a second attempt might fix, and for nothing else",
+        "A permanent failure still ends the step rather than being retried"
+      ],
+      "exit": [
+        "A connection error, a timeout, a rate limit and a server error each arrive at the executor as TransportFailure",
+        "A bad request, an unknown model and a missing credential are unchanged, and are not retried",
+        "The executor retries a transport failure, emits step.transport_failed, and ends with PROCESS.TRANSPORT_EXHAUSTED when the attempts are used up"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p72 -q",
+        "python -m uv run pytest tests/p08 tests/p11 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2676,6 +2701,17 @@
       "proves": "The scan is quiet on the tree as it stands, so a failure means something new; every excused seam names a backlog item that exists and does not claim to be built; the two found today are resolved the two different ways they warranted - one deleted because there was nothing to record, one kept because there was; and the earlier findings of the same shape, P55's precedent wiring and P60's on_failure, are still wired.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c40 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C41",
+      "title": "The retry path, joined at both ends",
+      "after": "P72",
+      "status": "done",
+      "proves": "The class the adapter raises is the class the executor catches and it belongs to the port so both can see it; something in production raises it, checked the way the gap was found; the executor's retry loop, its event and its exhaustion code are all still there; transient and permanent remain different questions; and the fact that no rehearsal could have caught this - the fake and scripted adapters have no network - is recorded where somebody trusting a clean rehearsal will meet it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c41 -q"
       ],
       "closed": "2026-09-18"
     }

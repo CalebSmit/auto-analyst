@@ -13,11 +13,43 @@ from __future__ import annotations
 
 from typing import Any
 
-from ports.llm import LLMRequest, LLMResponse, Usage
+from ports.llm import LLMRequest, LLMResponse, TransportFailure, Usage
 from ports.secrets import SecretsPort
 from registries.errors import MISSING_CREDENTIAL, MODEL_PIN_UNAVAILABLE, RegistryError, diagnose
 
 API_KEY = "ANTHROPIC_API_KEY"
+
+# What a second attempt might fix. Named rather than imported, so that listing adapters
+# still does not need the SDK - the same reason `_connect` defers its import.
+#
+# `APITimeoutError` subclasses `APIConnectionError` in the SDK, and both are named anyway:
+# a subclass relationship is the SDK's to change, and this list is a statement about which
+# failures are worth retrying rather than about its class tree.
+_TRANSIENT = frozenset(
+    {
+        "APIConnectionError",
+        "APITimeoutError",
+        "RateLimitError",
+        "InternalServerError",
+        "ServiceUnavailableError",
+        "OverloadedError",
+    }
+)
+
+
+def _is_transient(exc: BaseException) -> bool:
+    """Whether this is an infrastructure hiccup rather than a refusal.
+
+    By name, and then by status: a 5xx the SDK has no dedicated class for is still the
+    server's problem and still worth another attempt. A 4xx never is - the request was
+    understood and rejected, and sending it again produces the same answer more slowly.
+    429 is the exception and is named above, because a rate limit *is* a wait.
+    """
+    if type(exc).__name__ in _TRANSIENT:
+        return True
+    status = getattr(exc, "status_code", None)
+    return isinstance(status, int) and status >= 500
+
 
 
 class AnthropicMessagesLLM:
@@ -49,6 +81,8 @@ class AnthropicMessagesLLM:
                 raise RegistryError(
                     diagnose(MODEL_PIN_UNAVAILABLE, f"{request.pin.model}: {exc}")
                 ) from exc
+            if _is_transient(exc):
+                raise TransportFailure(f"{type(exc).__name__}: {exc}") from exc
             raise
 
         text = "".join(

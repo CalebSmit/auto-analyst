@@ -1408,3 +1408,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C40 after P71, covering P71
 - proves: The scan is quiet on the tree as it stands, so a failure means something new; every excused seam names a backlog item that exists and does not claim to be built; the two found today are resolved the two different ways they warranted - one deleted because there was nothing to record, one kept because there was; and the earlier findings of the same shape, P55's precedent wiring and P60's on_failure, are still wired.
+
+## 2026-09-18 - P72 A retry that can happen
+
+**Why:** Found by extending P71's scan from functions to exception classes - the shape P55 found by hand, where RepairNeeded was raised in exactly one place and that place was a test double. TransportFailure is the same: the executor documents raising it, catches it, emits step.transport_failed on it and ends a run with PROCESS.TRANSPORT_EXHAUSTED when the attempts run out - and nothing in production has ever raised it. The Anthropic adapter translates NotFoundError and BadRequestError and re-raises everything else unchanged, so a connection error, a timeout, a 429 or a 500 falls into the executor's general handler and quarantines the step on the first try. Every recipe declares retries against a mechanism nothing can enter. The fake and scripted adapters have no network, which is why no rehearsal could ever have shown it.
+
+- phase added: P72 A retry that can happen (The engine, gate: auto)
+- exit criterion: A connection error, a timeout, a rate limit and a server error each arrive at the executor as TransportFailure
+- exit criterion: A bad request, an unknown model and a missing credential are unchanged, and are not retried
+- exit criterion: The executor retries a transport failure, emits step.transport_failed, and ends with PROCESS.TRANSPORT_EXHAUSTED when the attempts are used up
+
+## 2026-09-18 - C41 The retry path, joined at both ends
+
+**Why:** P72 joined a seam that had two correct ends and nothing crossing it. The checkpoint keeps the crossing: an exception class raised only by tests is the shape that produced this defect and produced P55's, and it is cheap to ask for directly.
+
+- checkpoint added: C41 after P72, covering P72
+- proves: The class the adapter raises is the class the executor catches and it belongs to the port so both can see it; something in production raises it, checked the way the gap was found; the executor's retry loop, its event and its exhaustion code are all still there; transient and permanent remain different questions; and the fact that no rehearsal could have caught this - the fake and scripted adapters have no network - is recorded where somebody trusting a clean rehearsal will meet it.

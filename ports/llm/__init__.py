@@ -23,6 +23,22 @@ from typing import Literal, Protocol, runtime_checkable
 Role = Literal["user", "assistant"]
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
 
+
+class TransportFailure(Exception):
+    """The model could not be reached, or did not answer in time.
+
+    The only kind of failure a retry is for. Deliberately not a `DiagnosticError`: it is an
+    infrastructure hiccup on its way to becoming either a successful second attempt or a
+    quarantine record, and only the ending carries a diagnostic.
+
+    It lives here rather than beside the executor that catches it because the adapter is
+    the only thing holding the provider's own exception, and `ports` sits below both
+    `graph` and `harness` - so this is the one place both ends can see. It was declared
+    beside the executor for a long time, which meant the adapter could not raise it, which
+    meant nothing did: the retry loop, the `step.transport_failed` event and
+    `PROCESS.TRANSPORT_EXHAUSTED` were all reachable only from a test.
+    """
+
 # The blueprint prices its tiers at $1/$5, $2/$10 and $5/$25 per MTok. Those are the
 # current Haiku, Sonnet and Opus rates, so the tiers resolve as below. A tier is a
 # budgeting decision made per skill; the pin recorded in the manifest is always the

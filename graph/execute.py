@@ -54,6 +54,7 @@ from ops.blobs import ContentRef, ContentStore, LocalContentStore
 from ops.events import EventBus
 from ops.models import RunState, StepStatus, now_iso
 from ops.run_store import LateResult, QuarantineRecord, RunStore
+from ports.llm import TransportFailure
 from registries.constraints import ConstraintRegistry
 from registries.errors import TRANSPORT_EXHAUSTED, RegistryError
 
@@ -70,14 +71,6 @@ __all__ = [
 ]
 
 
-class TransportFailure(Exception):
-    """The step could not be reached or did not answer in time.
-
-    The only kind of failure a retry is for. Deliberately not a subclass of
-    `DiagnosticError`: it is an infrastructure hiccup on its way to becoming either a
-    successful second attempt or a quarantine record, and only the ending carries a
-    diagnostic.
-    """
 
 
 ReviewHook = Callable[[str, "Step", ContentRef], int]
