@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -128,7 +129,7 @@ def resolve(cmd: str) -> str:
     return f'"{exe}" run ' + rest
 
 
-def run(cmd: str) -> tuple[bool, str]:
+def run(cmd: str, env: dict[str, str] | None = None) -> tuple[bool, str]:
     proc = subprocess.run(
         resolve(cmd),
         shell=True,
@@ -137,15 +138,37 @@ def run(cmd: str) -> tuple[bool, str]:
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
     out = (proc.stdout or "") + (proc.stderr or "")
     return proc.returncode == 0, out.strip()
 
 
+REENTRY = "AA_GATE_RUNNING"
+
+
 def run_checks(checks: list[str], verbose: bool) -> bool:
+    """Run a phase's checks, once, and never from inside a run of them.
+
+    A phase may name `tools/verify.py` as a check, and verify runs the whole suite - which
+    contains `tests/p01/test_structure.py::test_gate_check_does_not_mutate_the_plan`, which
+    runs `gate check` on the first open phase. That is this function, running this phase's
+    checks, inside itself. Each turn of the loop is a full suite, and a machine hosting a
+    few of them at once stops finishing any of them: the count observed here was 272
+    processes and climbing, with nothing ever completing.
+
+    The guard is an environment variable rather than a lock file so it dies with the
+    process tree and cannot be left behind by a kill. A nested call reports that it
+    declined and exits 0, because the outer run is the one whose verdict counts and the
+    tests that call in are asserting about the plan file rather than about the checks.
+    """
+    if os.environ.get(REENTRY) == "1":
+        print("  [-] checks not re-run: already inside a gate run")
+        return True
     allok = True
+    env = dict(os.environ, **{REENTRY: "1"})
     for cmd in checks:
-        ok, out = run(cmd)
+        ok, out = run(cmd, env)
         print(f"  [{OK if ok else NO}] {cmd}")
         if not ok or verbose:
             for line in out.splitlines()[-25:]:
@@ -534,6 +557,24 @@ def cmd_amend(plan: dict[str, Any], args: argparse.Namespace) -> int:
                 )
             p["exit"].remove(matched[0])
             changes.append(f"exit criterion dropped: {matched[0]}")
+    if args.drop_check:
+        # The counterpart of --drop-task and --drop-exit, which have been here since P01.
+        # Its absence meant a check written in the wrong shape could only be added to, and
+        # a phase whose checks do not run the way they were meant to is a phase that
+        # closes on a verdict about nothing. The one that prompted this ran `python -m
+        # pytest` where every other phase runs `python -m uv run pytest`, so it used the
+        # system interpreter, found no dependencies, and reported FAIL for eight phases'
+        # worth of tests that were all passing.
+        for fragment in args.drop_check:
+            matched = [c for c in p["checks"] if fragment.lower() in c.lower()]
+            if len(matched) != 1:
+                listed = "\n  ".join(p["checks"])
+                sys.exit(
+                    f"--drop-check {fragment!r} matched {len(matched)} checks; "
+                    f"it must match exactly one. Checks are:\n  {listed}"
+                )
+            p["checks"].remove(matched[0])
+            changes.append(f"check dropped: {matched[0]}")
     if args.add_check:
         for c in args.add_check:
             p["checks"].append(c)
@@ -895,6 +936,12 @@ def main() -> int:
         "a criterion that cannot be met must go, not be ignored",
     )
     c.add_argument("--add-check", action="append")
+    c.add_argument(
+        "--drop-check",
+        action="append",
+        help="drop a check by unique text fragment - a check that does not run the way it "
+        "was meant to is worse than none, because the phase closes on its verdict",
+    )
     c.add_argument("--set-blueprint", help="where the design of record lives")
     c.add_argument("--set-proves", help="what a checkpoint proves")
     c.add_argument("--set-after", help="move a checkpoint to cover up to a different phase")
