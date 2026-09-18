@@ -223,13 +223,23 @@ def test_a_proposal_carrying_an_amount_is_refused_before_any_tool_runs(
     case: dict[str, Any],
     store: SqlRunStore,
 ) -> None:
-    from guards import GuardFailed
+    """The proposal is refused, and - because `ebitda` declares `guard_repair` - the
+    refusal is offered to the loop controller rather than ending the step outright.
+
+    This asserted `GuardFailed` until P59, when the declared loops started being reachable.
+    The claim it was making is unchanged and now stronger: the guard still refuses, still
+    with `SKILL.SCHEMA_INVALID`, still before any tool runs - and the region the recipe has
+    declared on this step since P14 is named rather than ignored.
+    """
+    from harness.loops import RepairNeeded
 
     numeric = copy.deepcopy(case["proposal"])
     numeric["candidates"][0]["amount"] = 285000
-    with pytest.raises(GuardFailed) as refused:
+    with pytest.raises(RepairNeeded) as refused:
         dispatch(world, ebitda_step, scope, ProposalPort(numeric), world["inputs"])
     assert refused.value.diagnostic.code == "SKILL.SCHEMA_INVALID"
+    assert refused.value.loop == "guard_repair"
+    assert refused.value.feedback is not None, "the next pass has to be given what was wrong"
     assert events_of(store, world["run_id"], "tool.called") == []
 
 

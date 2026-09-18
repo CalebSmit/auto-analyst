@@ -21,6 +21,12 @@ is a person, `RepairNeeded` is a guard with a declared loop behind it, `Transpor
 something a second attempt might fix. They are raised by what this calls and pass through
 untouched: catching one to add context here would turn an ending the executor knows how to
 handle into one it does not.
+
+`self_verification` would be the one exception, and is not yet - see the note at the end of
+`__call__`. Its trigger is "every EBITDA and DDR output, always" and it has run on no
+production output at all, because half of it was never built: `tagging` declares the region
+and has no verification procedure. That is on BUILD/OPEN.md for a person, not worked around
+here.
 """
 
 from __future__ import annotations
@@ -32,6 +38,7 @@ from graph.execute import Attempt
 from harness.dispatch import SkillDispatcher
 from harness.inputs import InputsUnavailable, RunFacts, build_inputs
 from harness.procedures import procedure_for, verifier_for
+from harness.repair import REPAIR_INPUT
 from ops.blobs import ContentRef, ContentStore
 
 __all__ = ["RunContext", "SkillStepRunner"]
@@ -98,10 +105,17 @@ class SkillStepRunner:
             verifier_for(step.skill) if verifying else procedure_for(step.skill)
         )
 
+        # The guard's failure from the previous iteration, if this is one. Taken out of the
+        # inputs rather than passed through `build_inputs`, which reads only the names it
+        # looks up by hand and would have ignored this one in silence - so the repair pass
+        # would have been handed the same payload as the pass that failed.
+        feedback = attempt.inputs.get(REPAIR_INPUT)
+        given = {k: v for k, v in attempt.inputs.items() if k != REPAIR_INPUT}
+
         inputs = build_inputs(
             step.skill,
             step.id,
-            dict(attempt.inputs),
+            dict(given),
             self.context.facts,
             self.blobs,
             verifying=verifying,
@@ -119,5 +133,20 @@ class SkillStepRunner:
             run_scope=self.context.run_scope,
             procedure=procedure,
             pin=self.context.pin,
+            repair_feedback=feedback,
         )
+
+        # Self-verification would go here, and does not yet. It is not a guard failure, so
+        # it is not the dispatcher's to raise; the only place that knows whether this is
+        # pass one or pass two is the line above, which makes it the runner's.
+        #
+        # What stopped it is not the raiser. `self_verification` is declared on `tagging` in
+        # every shipped recipe and `verifier_for("line-item-tagging")` raises - only
+        # `ebitda-normalization` has a verification procedure. Demanding the pass therefore
+        # quarantines every run at tagging with "no verification pass", which is the system
+        # correctly refusing to pretend a declared control ran, and is also every run
+        # stopping. The declaration and the skills disagree, and which of them is wrong is a
+        # person's call: build the tagging verifier through the governance chain, or drop
+        # the declaration and move the plan hash. Recorded in BUILD/OPEN.md rather than
+        # decided here, and pinned by a test in tests/p59 so it cannot go quiet again.
         return done.output_ref

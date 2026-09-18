@@ -32,6 +32,7 @@ from typing import Any, Protocol
 from graph.compile import Step
 from graph.execute import Blocked
 from graph.resolve import ResolvedScope
+from guards import GuardFailed
 from guards.provenance import ProvenanceGate
 from guards.schema import SchemaGate
 from guards.tieout import Recompute, TieoutGate
@@ -39,6 +40,7 @@ from guards.untrusted import SENTINEL_RULE, UntrustedBoundary
 from harness.context import AssembledContext, ContextBuilder, ContextRequest
 from harness.door import ModelDoor
 from harness.policy import RunScope
+from harness.repair import as_repair, feedback_document
 from harness.runtime import BoundTools, GuardedRuntime
 from ops.blobs import ContentRef, ContentStore
 from ops.events import EventBus
@@ -167,6 +169,44 @@ class SkillDispatcher:
         self.recompute = recompute
         self.tolerance_for = tolerance_for
 
+    def _repair(
+        self,
+        step: Step,
+        failed: GuardFailed,
+        run_id: str,
+        engagement_id: str,
+        identifiers: Iterable[Identifier],
+    ) -> Exception:
+        """The guard's rejection, as the loop the plan declares for it - or as itself.
+
+        Here, and not in the executor or the runner, for one reason: the feedback is a
+        `ContentRef` whose bytes reach the model. A tie-out failure carries stated and
+        recomputed figures, locators and source ids; a provenance failure carries source ids
+        and filenames. This method is inside the only object that holds the masker, the
+        engagement id and the run's identifiers together - the same three the payload was
+        masked with, so the door's scan sees one consistent text. Neither the runner nor the
+        executor holds a masker, and text that reaches the door unmasked quarantines the run.
+        """
+        document = json.dumps(feedback_document(failed), sort_keys=True, separators=(",", ":"))
+        masked = self.masker.mask(document, engagement_id, list(identifiers), run_id=run_id)
+        ref = self.blobs.put(
+            masked.text.encode("utf-8"),
+            media_type="application/json",
+            name=f"guard_feedback:{step.id}",
+        )
+        asked = as_repair(step, failed, ref)
+        if asked is None:
+            return failed  # no declared region on this step: quarantine, as before
+        self._emit(
+            run_id,
+            engagement_id,
+            step.id,
+            "skill.repair_requested",
+            f"{failed.result.guard} rejected {step.id}; the plan declares {asked.loop}",
+            level="warn",
+        )
+        return asked
+
     def run(
         self,
         *,
@@ -181,6 +221,7 @@ class SkillDispatcher:
         run_scope: RunScope,
         procedure: Procedure,
         pin: ModelPin,
+        repair_feedback: ContentRef | None = None,
     ) -> Dispatched:
         if step.kind != "skill" or not step.skill:
             raise ValueError(f"{step.id} is not a skill step")
@@ -233,6 +274,11 @@ class SkillDispatcher:
                 scope=scope,
                 engagement_profile=engagement_profile,
                 payload=payload_ref,
+                # On a repair pass, what the guard said. The Context Builder has assembled
+                # this section since P09 and nothing had ever passed one, so every repair
+                # iteration would have sent a byte-identical payload - the same bad answer,
+                # twice, with both iterations spent.
+                repair_feedback=repair_feedback,
                 precedent_terms=terms,
             )
         )
@@ -290,29 +336,41 @@ class SkillDispatcher:
 
         # 5. A mapping, never a number - checked before a tool runs.
         proposal = procedure.parse(call.response.text)
-        self.schema.run(proposal, procedure.proposal_contract, run_id, engagement_id, step.id)
+        try:
+            self.schema.run(proposal, procedure.proposal_contract, run_id, engagement_id, step.id)
+        except GuardFailed as failed:
+            raise self._repair(step, failed, run_id, engagement_id, identifiers) from None
 
         # 6. Through the tools the registry allows this skill, and no others.
         tools = self.runtime.bound(run_scope, caller, step.id)
         output = procedure.apply(proposal, tools, inputs, str(pin))
         contract = step.output_schema or resolved.skill.output_contract
-        self.schema.run(output, contract, run_id, engagement_id, step.id)
+        try:
+            self.schema.run(output, contract, run_id, engagement_id, step.id)
+        except GuardFailed as failed:
+            raise self._repair(step, failed, run_id, engagement_id, identifiers) from None
 
         # 7. Every figure traced to a file this run read - and, read off the page, found
         #    there. The schema proves the envelope's shape; this proves what it claims.
         if self.provenance is not None and self.sources_for is not None:
-            self.provenance.run(
-                output, run_id, engagement_id, self.sources_for(run_id), step.id
-            )
+            try:
+                self.provenance.run(
+                    output, run_id, engagement_id, self.sources_for(run_id), step.id
+                )
+            except GuardFailed as failed:
+                raise self._repair(step, failed, run_id, engagement_id, identifiers) from None
         # 8. Every derived figure recomputed from the rows it cites, within the run's
         #    tolerance. The guard reads the tolerance; nothing in the step can change it.
         if self.provenance is not None and self.recompute and self.tolerance_for is not None:
-            TieoutGate(
-                self.provenance.parse_store,
-                self.recompute,
-                self.tolerance_for(run_id),
-                self.bus,
-            ).run(output, run_id, engagement_id, step.id)
+            try:
+                TieoutGate(
+                    self.provenance.parse_store,
+                    self.recompute,
+                    self.tolerance_for(run_id),
+                    self.bus,
+                ).run(output, run_id, engagement_id, step.id)
+            except GuardFailed as failed:
+                raise self._repair(step, failed, run_id, engagement_id, identifiers) from None
 
         output_ref = self.blobs.put(
             json.dumps(output, sort_keys=True, separators=(",", ":")).encode("utf-8"),

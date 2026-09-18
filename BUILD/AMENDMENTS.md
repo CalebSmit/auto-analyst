@@ -1172,3 +1172,28 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - check dropped: python -m uv sync --frozen
 - check added: python -m uv run python -c "import fastapi, sqlalchemy, yaml, cryptography"
+
+## 2026-09-18 - P59 The graph owns every loop, in fact
+
+**Why:** guard_repair, tieout_repair and self_verification are declared on every shipped recipe, given integer ceilings the compiler checks, and compiled into regions on every plan - and nothing at runtime can enter one, because RepairNeeded is raised only by a test double. 'The graph owns every loop' is a non-negotiable that is currently false.
+
+- phase added: P59 The graph owns every loop, in fact (The engine, gate: auto)
+- exit criterion: A schema, provenance or tie-out rejection on a step declaring the matching region re-runs that step with the guard's failure in its context, and the second pass's context_ref differs from the first's
+- exit criterion: The feedback blob is masked with the run's own identifiers before it is written
+- exit criterion: RepairNeeded is raised in production code outside tests/, and a test fails if it stops being
+- exit criterion: A guard failure on a step with no declared region quarantines immediately with no loop event
+- exit criterion: No plan hash changes and export_architecture --check stays green with no re-export
+
+## 2026-09-18 - P59 The graph owns every loop, in fact
+
+**Why:** Self-verification is dropped from this phase and recorded as a finding instead. Making the runner demand it is two lines; doing it quarantines every run at tagging with 'no verification pass for line-item-tagging', because the region is declared on tagging in every shipped recipe and only ebitda-normalization has a verifier. That is the system correctly refusing to pretend a declared control ran, and it is also every run stopping. Which of the two is wrong - the declaration or the missing skill - is a person's call, not a thing to settle at the end of a night. The guard-triggered loops, which is what the phase was actually about, are unaffected.
+
+- task added: The gap that stops self-verification is named where it cannot go quiet, rather than worked around
+- task dropped: Self-verification is demanded by the runner rather than arranged by whoever wired the test
+
+## 2026-09-18 - C32 A loop that can be entered
+
+**Why:** P59 closes the block. The guard-triggered loops are real; the two regions that remain unreachable each need a decision rather than a fix, and both are on OPEN.md.
+
+- checkpoint added: C32 after P59, covering P59
+- proves: A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said.

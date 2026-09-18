@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**58 of 58 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**59 of 59 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -156,4 +156,11 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C27 - The interview can finish again** | integration | The check CLAUDE.md names as what keeps a client's name inside knowledge/ answers honestly in all three states on the repo as it stands - refusing an empty register over real answers, passing on a clone nobody has been interviewed on, and scanning for real when there is something to scan - and the protocol, the map and the session that run it all still describe the same command. | 2026-09-17 |
 | [x] | **P56** The register, fillable from what was already said | auto | suggest names the candidates in this repo's knowledge/ and says which file and line each came from | 2026-09-17 |
 | [x] | **C29 - The register, fillable** | integration | A name enters the register because a person put it there, and a person is given what they need to do it: what in knowledge/ has the shape of a name and where it appeared, a command that adds one, and - for a session that named nobody, which the first three did - an acknowledgement that a person signed and that expires the moment another session is logged. No path lets the check pass without somebody having looked. | 2026-09-17 |
+
+## The engine
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P59** The graph owns every loop, in fact | auto | A schema, provenance or tie-out rejection on a step declaring the matching region re-runs that step with the guard's failure in its context, and the second pass's context_ref differs from the first's | 2026-09-18 |
+| [x] | **C32 - A loop that can be entered** | integration | A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said. | 2026-09-18 |
 

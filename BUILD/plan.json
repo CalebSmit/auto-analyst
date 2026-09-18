@@ -1884,6 +1884,36 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P59",
+      "title": "The graph owns every loop, in fact",
+      "block": "The engine",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A guard rejects a skill's output and the step quarantines at once, though the recipe declares a region that exists to repair exactly that. RepairNeeded has a docstring describing the whole mechanism, a controller that can admit and exhaust it, a ceiling the compiler checks, and one caller - tests/p14/conftest.py. The Context Builder already assembles a repair_feedback section and nothing has ever passed one. Join the guards to the controller at the only place that can do it without leaking a client's figures, and carry the guard's failure to the model that has to act on it - because a repair pass that sends a byte-identical payload is a loop that looks like it works and cannot.",
+      "builds": [],
+      "tasks": [
+        "A guard failure on a step whose plan declares the matching region asks the controller for an iteration, at the one place that holds the masker",
+        "The guard's structured failure reaches the model as the changed input, masked with the run's own identifiers",
+        "A step whose plan declares no matching region quarantines at once, exactly as it does today, and nothing can name a loop the recipe did not declare",
+        "The gap that stops self-verification is named where it cannot go quiet, rather than worked around"
+      ],
+      "exit": [
+        "A schema, provenance or tie-out rejection on a step declaring the matching region re-runs that step with the guard's failure in its context, and the second pass's context_ref differs from the first's",
+        "The feedback blob is masked with the run's own identifiers before it is written",
+        "RepairNeeded is raised in production code outside tests/, and a test fails if it stops being",
+        "A guard failure on a step with no declared region quarantines immediately with no loop event",
+        "No plan hash changes and export_architecture --check stays green with no re-export"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p59 -q",
+        "python -m uv run pytest tests/p08 tests/p13 tests/p14 tests/p20 tests/p34 -q",
+        "python -m uv run pytest tests/checkpoints/c05 tests/checkpoints/c07 -q",
+        "python -m uv run python tools/export_architecture.py --check"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2226,6 +2256,17 @@
       "proves": "Every command the guide and the session rules give works from a fresh shell, the one tool that must not need the environment still does not, and a tool run without it names the command to type instead of raising somebody else's ImportError five hundred lines in.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c31 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C32",
+      "title": "A loop that can be entered",
+      "after": "P59",
+      "status": "done",
+      "proves": "A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c32 -q"
       ],
       "closed": "2026-09-18"
     }
