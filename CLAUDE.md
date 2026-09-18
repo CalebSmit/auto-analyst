@@ -65,10 +65,10 @@ That distinction exists so that "tested" never quietly means "it ran without cra
 
 ```
 start.cmd                                  # Windows, for a person: sets up what is missing, starts, opens it
-python tools/serve.py --check              # what is wired, what is not, what setup still needs
-python tools/serve.py                      # admin at /admin, ops console at /, help at /help
-python tools/simulate_firm.py              # a generated firm through the real server, no key
-python tools/simulate_firm.py --scripted   # the same, with the review loop walked end to end
+python -m uv run python tools/serve.py --check              # what is wired, what is not, what setup still needs
+python -m uv run python tools/serve.py                      # admin at /admin, ops console at /, help at /help
+python -m uv run python tools/simulate_firm.py              # a generated firm through the real server, no key
+python -m uv run python tools/simulate_firm.py --scripted   # the same, with the review loop walked end to end
 ```
 
 The two rehearsals are the tests the suite cannot be: real process, real HTTP, files

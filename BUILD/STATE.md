@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **57 of 57 phases closed**
-- Last green checkpoint: **C30**
+- **58 of 58 phases closed**
+- Last green checkpoint: **C31**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -76,4 +76,5 @@
 - **P55** Built, and wired to nothing (2026-09-17)
 - **P56** The register, fillable from what was already said (2026-09-17)
 - **P57** Approving a recipe on a machine that has none (2026-09-17)
+- **P58** The documented command works, or says why (2026-09-18)
 

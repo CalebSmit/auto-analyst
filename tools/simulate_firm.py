@@ -39,6 +39,10 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools._environment import needs  # noqa: E402
 
 # ---------------------------------------------------------------- the firm
 
@@ -739,6 +743,11 @@ def hostile_file(api: Api, inbox: Path, before: dict[str, Any], out: Report) -> 
 
 
 def main(argv: list[str] | None = None) -> int:
+    # CLAUDE.md and docs/USING.md both say to run this before the first real
+    # engagement. Without the project environment it answered with a traceback about
+    # cryptography, five hundred lines into a file nobody was reading.
+    needs("cryptography", "fastapi", "uvicorn", "sqlalchemy", script="tools/simulate_firm.py")
+
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
         "--keep", action="store_true", help="leave the folders and databases behind"

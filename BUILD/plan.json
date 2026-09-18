@@ -1860,6 +1860,30 @@
       ],
       "notes": "",
       "closed": "2026-09-17"
+    },
+    {
+      "id": "P58",
+      "title": "The documented command works, or says why",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A clone on the work machine follows docs/USING.md, runs python tools/serve.py --check, and gets ModuleNotFoundError: No module named fastapi - a traceback about somebody else's library, with no indication that the answer is one prefix. The tools that a person runs should either work or say what to run. Nothing about this is subtle; it is only invisible from a shell that already has the environment.",
+      "builds": [],
+      "tasks": [
+        "A tool a person runs directly says what to run instead of raising somebody else's ImportError",
+        "The docs give a command that works from a fresh shell",
+        "A test runs a documented command the way a person would, from outside the environment"
+      ],
+      "exit": [
+        "python tools/serve.py --check from a bare interpreter prints what to run and exits non-zero, rather than a traceback",
+        "Every command in docs/USING.md and CLAUDE.md is one that works from a fresh shell, proved by a test that reads them"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p58 -q",
+        "python -m uv run pytest tests/regression -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2191,6 +2215,17 @@
       "proves": "A workflow can be approved from /admin by a named person with a recorded reason, through the board and into the governance chain, so a clean clone goes from nothing-will-run to something-will - and the register is still written by nothing but the board, still not committed, and still refuses a recipe edited since somebody read it.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c30 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C31",
+      "title": "What a person is told to type",
+      "after": "P58",
+      "status": "done",
+      "proves": "Every command the guide and the session rules give works from a fresh shell, the one tool that must not need the environment still does not, and a tool run without it names the command to type instead of raising somebody else's ImportError five hundred lines in.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c31 -q"
       ],
       "closed": "2026-09-18"
     }

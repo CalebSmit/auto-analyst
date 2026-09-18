@@ -55,7 +55,7 @@ than guessing. That is the design, and it is what most first runs on real files 
 You can check this yourself at any time; it is derived from the code, not from this page:
 
 ```
-python tools/serve.py --check
+python -m uv run python tools/serve.py --check
 ```
 
 ---
@@ -72,7 +72,7 @@ the dashboard in the browser. After that it just starts. Close the window to sto
 Or by hand:
 
 ```
-python tools/serve.py
+python -m uv run python tools/serve.py
 ```
 
 Either way, the settings in `.env` are read when it starts - the model adapter, the folders,
@@ -265,11 +265,17 @@ a "what to do now". If the answer is not obvious, the code is the thing to quote
 start.cmd                                 # Windows: all of the next three, then starts
 uv sync                                   # install
 cp .env.example .env                      # then add the Anthropic API key
-python tools/serve.py --check             # what is ready, what is not
-python tools/simulate_firm.py             # a generated firm through the real thing
-python tools/simulate_firm.py --scripted  # the same, with the review loop walked end to end
-python tools/serve.py                     # start it
+
+python -m uv run python tools/serve.py --check             # what is ready, what is not
+python -m uv run python tools/simulate_firm.py             # a generated firm through the real thing
+python -m uv run python tools/simulate_firm.py --scripted  # the same, with the review loop walked end to end
+python -m uv run python tools/serve.py                     # start it
 ```
+
+The `python -m uv run` prefix is what puts the project's own dependencies on the path. A
+bare `python tools/serve.py` works only in a shell where the virtualenv is already
+activated; run without one it now tells you this rather than raising `ModuleNotFoundError`
+about a library you have never heard of.
 
 **Run the rehearsal before the first real engagement.** `tools/simulate_firm.py` starts
 the real server, sets up three invented clients through the same API the page uses, puts

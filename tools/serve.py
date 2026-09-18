@@ -42,6 +42,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from tools._environment import needs  # noqa: E402
+
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
 DEFAULT_SWEEP_SECONDS = 60
@@ -649,6 +651,11 @@ def _secret(name: str) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Before anything else, and before argparse: this is the command docs/USING.md tells a
+    # person to run first on a new machine, and without the project's environment it used to
+    # answer with `ModuleNotFoundError: No module named 'fastapi'`.
+    needs("fastapi", "uvicorn", "sqlalchemy", script="tools/serve.py")
+
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)

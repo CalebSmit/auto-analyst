@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**57 of 57 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**58 of 58 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -145,6 +145,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C28 - Built, and wired to something** | integration | The system the command assembles reads precedent into every context it builds, carries what a release gate is built from, and records a failure under the code it arrived with - each asked of the object build() returns rather than of a double, because a double would have been wired correctly by whoever wrote it. | 2026-09-17 |
 | [x] | **P57** Approving a recipe on a machine that has none | auto | A recipe can be approved from /admin on a clean clone, the approver's name is on the governance chain, and preflight check 10 goes green as a result | 2026-09-17 |
 | [x] | **C30 - A machine that can be started** | integration | A workflow can be approved from /admin by a named person with a recorded reason, through the board and into the governance chain, so a clean clone goes from nothing-will-run to something-will - and the register is still written by nothing but the board, still not committed, and still refuses a recipe edited since somebody read it. | 2026-09-18 |
+| [x] | **P58** The documented command works, or says why | auto | python tools/serve.py --check from a bare interpreter prints what to run and exits non-zero, rather than a traceback | 2026-09-18 |
+| [x] | **C31 - What a person is told to type** | integration | Every command the guide and the session rules give works from a fresh shell, the one tool that must not need the environment still does not, and a tool run without it names the command to type instead of raising somebody else's ImportError five hundred lines in. | 2026-09-18 |
 
 ## The interview
 

@@ -1134,3 +1134,18 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C30 after P57, covering P57
 - proves: A workflow can be approved from /admin by a named person with a recorded reason, through the board and into the governance chain, so a clean clone goes from nothing-will-run to something-will - and the register is still written by nothing but the board, still not committed, and still refuses a recipe edited since somebody read it.
+
+## 2026-09-18 - P58 The documented command works, or says why
+
+**Why:** Every command docs/USING.md tells a person to run dies with ModuleNotFoundError unless they happen to be in an activated shell. Found by running the rehearsal exactly as CLAUDE.md documents it and getting a traceback - the same class of mistake as the phase checks written in the wrong shape, one layer further out where a person meets it.
+
+- phase added: P58 The documented command works, or says why (The consoles, gate: auto)
+- exit criterion: python tools/serve.py --check from a bare interpreter prints what to run and exits non-zero, rather than a traceback
+- exit criterion: Every command in docs/USING.md and CLAUDE.md is one that works from a fresh shell, proved by a test that reads them
+
+## 2026-09-18 - C31 What a person is told to type
+
+**Why:** P58 closes with P57: between them they are what a clone on the work machine meets - the commands that get it started, and the approval that lets it run anything.
+
+- checkpoint added: C31 after P58, covering P58
+- proves: Every command the guide and the session rules give works from a fresh shell, the one tool that must not need the environment still does not, and a tool run without it names the command to type instead of raising somebody else's ImportError five hundred lines in.
