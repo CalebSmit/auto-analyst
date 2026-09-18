@@ -95,3 +95,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Invoke a Python tool as a module - python -m pytest - not through its generated console script. A managed corporate laptop is more likely to carry that policy than a personal one, so this is the form that travels.
 
+
+## 2026-09-18 - Reopening P01 with 'gate amend P01 --reopen' to re-close it on a corrected check
+
+**Phase:** not phase-specific
+
+**Why it failed:** tests/p01/test_structure.py::test_no_package_is_built_before_its_phase asks open_phases()[0] where the build is. With P01 open that is P01, so every package built by a later phase reads as work running ahead of the plan - twelve failures - and P01's own checks include that test. It cannot pass while P01 is open, and P01 cannot close until it passes.
+
+**Rule:** P01 is the one phase that cannot be reopened: it defines where the build is for every structural check. Correct its checks with 'gate amend' in place and record why the phase was not re-closed on them. Any other phase reopens cleanly - P07 and P36 both did.
+

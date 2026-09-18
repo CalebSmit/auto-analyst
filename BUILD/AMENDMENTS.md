@@ -1149,3 +1149,26 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C31 after P58, covering P58
 - proves: Every command the guide and the session rules give works from a fresh shell, the one tool that must not need the environment still does not, and a tool run without it names the command to type instead of raising somebody else's ImportError five hundred lines in.
+
+## 2026-09-18 - P07 The assertion suites
+
+**Why:** The check ran whatever python PATH resolved to. gate.resolve() only rewrites a command beginning 'python -m uv run ', so this used the system interpreter with none of the project's dependencies and has been reporting on nothing since P07 closed. Reopened and re-closed rather than corrected in place, so the done mark rests on a verdict the project interpreter actually produced.
+
+- check dropped: python tools/export_architecture.py --check
+- check added: python -m uv run python tools/export_architecture.py --check
+- status: done -> open
+
+## 2026-09-18 - P36 Who is asking: identity on both surfaces
+
+**Why:** Written 'python -m pytest' rather than 'python -m uv run pytest', so it ran the system interpreter with no dependencies and reported on nothing. Reopened and re-closed so the done mark rests on a real verdict.
+
+- check dropped: python -m pytest tests/p35/test_round_two.py -q
+- check added: python -m uv run pytest tests/p35/test_round_two.py -q
+- status: done -> open
+
+## 2026-09-18 - P01 Project structure and build-state system
+
+**Why:** Two checks ran whatever python PATH resolved to rather than the project's interpreter. 'uv sync --frozen' installs into whichever environment answers, which is not necessarily the one the suite runs in; it is replaced by an import of the four packages everything else depends on, through uv, which is what that check was actually for. 'gate.py render' stays bare and is now correct by intent rather than by luck - P58 made gate.py's independence from the project environment a documented, tested property, because it is the tool that installs and checks the others and cannot be the one that needs them. Corrected in place and NOT re-closed on the new checks: P01 is the one phase that cannot be reopened, because tests/p01/test_structure.py asks open_phases()[0] where the build is, and with P01 open every package built by a later phase reads as running ahead of the plan. See LEDGER.md. The checks are right from here; P01's own done mark still rests on the old verdict, and that is recorded rather than hidden.
+
+- check dropped: python -m uv sync --frozen
+- check added: python -m uv run python -c "import fastapi, sqlalchemy, yaml, cryptography"
