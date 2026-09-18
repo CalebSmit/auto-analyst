@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**62 of 62 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**69 of 69 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -151,6 +151,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C34 - The setup surface, used** | integration | The two records a person creates during setup agree with each other and with the chain behind them: approving bytes that are already approved says who did and writes nothing, an edited file is still a second decision, neither register is committed, and the bar the profile form offers is one somebody chose rather than a default nobody did. | 2026-09-18 |
 | [x] | **P62** A register that cannot go stale quietly | auto | A settled item cannot sit in the register as though it were open, and a test fails if one does | 2026-09-18 |
 | [x] | **C35 - What a session is told, and whether it is still true** | integration | Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other. | 2026-09-18 |
+| [x] | **P63** An engagement view, and a way to find one client | auto | A person can find one client's runs among many without scrolling the list | 2026-09-18 |
+| [x] | **C36 - Finding one client, and what the screen may claim** | integration | The engagement fold and the runs panel are two readings of one set of rows and cannot disagree about which runs or how many are open; every state the page names or paints is one RunState can hold; and the register still carries the question that refusing to invent a valuation date opened. | 2026-09-18 |
 
 ## The interview
 
@@ -158,8 +160,12 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 |---|---|---|---|---|
 | [x] | **P54** The interview can finish again | auto | scan returns 0 on a knowledge tree with no session logs, 1 on answers with an empty register, and scans for real when both are present - each proved by running the command | 2026-09-17 |
 | [x] | **C27 - The interview can finish again** | integration | The check CLAUDE.md names as what keeps a client's name inside knowledge/ answers honestly in all three states on the repo as it stands - refusing an empty register over real answers, passing on a clone nobody has been interviewed on, and scanning for real when there is something to scan - and the protocol, the map and the session that run it all still describe the same command. | 2026-09-17 |
-| [x] | **P56** The register, fillable from what was already said | auto | suggest names the candidates in this repo's knowledge/ and says which file and line each came from | 2026-09-17 |
+| [x] | **P56** The register, fillable from what was already said | auto | suggest names the candidates in this repo's knowledge/ and says which file and line each came from | 2026-09-18 |
 | [x] | **C29 - The register, fillable** | integration | A name enters the register because a person put it there, and a person is given what they need to do it: what in knowledge/ has the shape of a name and where it appeared, a command that adds one, and - for a session that named nobody, which the first three did - an acknowledgement that a person signed and that expires the moment another session is logged. No path lets the check pass without somebody having looked. | 2026-09-17 |
+| [x] | **P64** An acknowledgement that says what it looked at | auto | A session recorded after an acknowledgement on the same day does not inherit it, and scan refuses | 2026-09-18 |
+| [x] | **P65** An acknowledgement is a decision, not a default | auto | register --none with no note refuses and records nothing | 2026-09-18 |
+| [x] | **P66** Two commands, one answer about the register | auto | With a standing acknowledgement, status says so and says what expires it, rather than warning of a refusal that is not happening | 2026-09-18 |
+| [x] | **C37 - The boundary, exercised rather than read** | integration | A session walked end to end through the commands a person actually runs - status, session, answers, acknowledgement, scan - reports what the record holds at every point: the acknowledgement covers what it looked at and nothing logged after it, a standing one cannot be silently replaced, status and scan never describe the same file differently, a leaked identifier is named rather than raised on, and no command reaches the repository's own knowledge folder. | 2026-09-18 |
 
 ## The engine
 
@@ -169,4 +175,13 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C32 - A loop that can be entered** | integration | A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said. | 2026-09-18 |
 | [x] | **P60** A quarantine that leaves something behind | auto | store.quarantines() is non-empty for every run with a quarantined step, and a resumed pass over the same step key does not write a second record | 2026-09-18 |
 | [x] | **C33 - A run that ends says so** | integration | Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's. | 2026-09-18 |
+
+## Version one: the data it gathers
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P67** Proved by arithmetic, or seen | auto | A figure carrying its locator and a passing arithmetic cover is accepted without a person, with no confidence stated | 2026-09-18 |
+| [x] | **P68** The request list, as the schedule documents arrive against | auto | The section of an arriving file is read from its path, and a path naming no section says so rather than guessing | 2026-09-18 |
+| [x] | **P69** Last year's model, rolled forward | auto | Rolling a full ten-year window drops the oldest year and keeps the width at ten | 2026-09-18 |
+| [x] | **C38 - What version one gathers, and what it refuses to decide** | integration | A repeat year rolls through all three pieces together - a ten-wide window dropping its oldest year, two dates moved on, last year's line items carried as this year's schema - and only what no arithmetic covers reaches a person; a request section never stands in for an item; a line-item mismatch is handed over rather than resolved; the sections are not a second document-type vocabulary; a skill's judgement is still routed on its confidence; and the fact that nothing yet sets the acceptance rule's evidence is recorded rather than quiet. | 2026-09-18 |
 

@@ -105,13 +105,31 @@ def test_what_p28_still_owes_is_the_clone_and_it_says_so() -> None:
     assert "Evidence only the work machine can produce" in register
 
 
+SETTLED_BY = r"\b(Done|done|Signed|Answered)\b"
+"""The words this register uses to say a row is settled. A date has to sit beside one.
+
+`Answered` is here because section 2 holds decisions rather than build work, and a decision
+is answered rather than done - which is this register's own vocabulary elsewhere ("Answered,
+2026-09-05" for Power Automate, "(Answered 2026-09-16 ...)" for the pilot type). C38 found
+it: the first settled *decision* row failed a guard written when only build rows had ever
+been struck through. Both halves of the rule still stand - an explicit word and a date -
+because a strikethrough on its own is a claim nobody can check.
+"""
+
+
 def test_a_settled_row_says_when_and_what_settled_it() -> None:
     """Struck through is not enough - a row that says only "done" is one nobody can check."""
     for line in text().splitlines():
         if not line.startswith("| ~~"):
             continue
-        assert re.search(r"\b(Done|Signed|done)\b", line), line[:90]
+        assert re.search(SETTLED_BY, line), line[:90]
         assert re.search(r"20\d\d-\d\d-\d\d", line), f"no date on a settled row: {line[:90]}"
+
+
+def test_a_settled_row_with_no_settling_word_still_fails() -> None:
+    """The other side. Widening the list must not have turned the rule off."""
+    assert not re.search(SETTLED_BY, "| ~~Something~~ it is fine now | - | 2026-09-18 |")
+    assert re.search(SETTLED_BY, "| ~~Something~~ **Answered 2026-09-18** | - | - |")
 
 
 def test_the_register_is_pointed_at_from_the_rules_a_session_reads() -> None:

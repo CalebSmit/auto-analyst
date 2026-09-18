@@ -15,10 +15,20 @@ remove it. The rules, in the order they are applied, each with the reason it rec
 3. A **material** item goes to review, whatever its confidence.
 4. An item in an always-review category, one that differs from the prior year, or one
    that binds future years goes to review - the constraint registry's own list.
-5. An item with no confidence, or one below the engagement's auto-accept bar, goes to
-   review. No bar set means no auto-accept.
-6. Everything else is **auto-accepted** - and recorded as such, so the Sampling Audit can
+5. An **extracted figure** - one read out of a client document rather than judged by a
+   skill - is gated on evidence instead of on a score: it needs the locator saying which
+   page and row it came from, and at least one passing arithmetic cover, a total it feeds
+   that was re-added from its own rows. Missing either, it goes to review, and the reason
+   names which. This rule exists because most of what arrives is scanned and OCR'd, and
+   the failure that matters there is a misread the model is confident about - which no
+   probability catches and a total that stops adding up does.
+6. Any other item with no confidence, or one below the engagement's auto-accept bar, goes
+   to review. No bar set means no auto-accept.
+7. Everything else is **auto-accepted** - and recorded as such, so the Sampling Audit can
    draw from what nobody was asked to look at.
+
+Rule 5 replaces the score for extracted figures and nothing else: 2, 3 and 4 still apply to
+them, so evidence is never a way round a review requirement somebody raised.
 """
 
 from __future__ import annotations
@@ -65,6 +75,23 @@ class Item:
     changed_from_prior: bool = False
     binds_future_years: bool = False
     locator: str = ""
+
+    extracted: bool = False
+    """This item is a figure read out of a client document, not a judgement a skill made.
+
+    The two are gated differently on purpose. For a judgement, a confidence score is a
+    reasonable thing to route on. For a figure read off a scanned page it is the wrong
+    instrument: the failure that matters is a misread the model is confident about, and
+    nothing in a probability catches it. What catches it is a total that stops adding up.
+    """
+
+    arithmetic_cover: tuple[str, ...] = ()
+    """The checks that re-derived this figure from its own rows and passed.
+
+    Empty means no arithmetic covers it - not that a check failed, which is a guard's job
+    and stops the step. A figure nothing re-adds is one where a misread would leave no
+    trace, so it is shown to a person however confident the model was.
+    """
 
 
 @dataclass(frozen=True)
@@ -126,7 +153,27 @@ class ConfidenceRouter:
             reasons.append("differs from the prior year")
         if item.binds_future_years:
             reasons.append("binds future years")
-        if item.confidence is None:
+
+        # An extracted figure is gated on evidence rather than on a score. The analyst who
+        # has to trust this said what the evidence is: the page and row it was read from,
+        # and every total it feeds re-adding. Given both he will not open the PDF; given
+        # neither he wants to see it, and he wants to see *every* one that is uncovered
+        # rather than only those that changed since last year.
+        #
+        # Evidence stands in for the confidence test and for nothing else. Materiality, an
+        # always-review category, a review_required flag and a raised review level all still
+        # send a fully covered figure to a person - an admin may raise a review requirement
+        # and never lower one, and this must not become the way round that.
+        if item.extracted:
+            if not item.locator:
+                reasons.append(
+                    "no source locator: nothing says which page and row this was read from"
+                )
+            if not item.arithmetic_cover:
+                reasons.append(
+                    "no arithmetic covers this figure: no total it feeds was re-added from its rows"
+                )
+        elif item.confidence is None:
             reasons.append("no confidence stated")
         elif self.policy.auto_accept_confidence is None:
             reasons.append("no auto-accept bar is set for this engagement")

@@ -2,3 +2,13 @@
 # or documents. One per line. `interview.py scan` refuses any file outside knowledge/
 # that contains one of them. Add to it the moment a name is mentioned.
 # reviewed 2026-09-18 by smitc: reviewed the four candidates suggest found - Gordon Growth, Managing Director, Claude Code, Secrets Port - all method or system vocabulary; no client, person, place or entity has been named in an interview yet
+FoxDen Capital
+ABA Schedules, LLC
+Saul Ewing
+Obsidian Vault
+James M Pleasant Co (JMP)
+Oral and Maxillofacial Surgery Associates, Inc
+OMSA
+Moss Adams
+Kapiolani Business Plaza
+Aiea

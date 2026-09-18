@@ -220,3 +220,32 @@ def test_registering_a_name_makes_the_scan_check_for_it(
     out = capsys.readouterr().out
     assert "SKILL.md:1" in out
     assert "FAIL: 1 identifier(s) outside knowledge/" in out
+
+
+# ------------------------------------------------- a company suffix ends a name
+
+
+def test_a_suffix_inside_a_longer_phrase_is_not_a_company() -> None:
+    r"""Found by C29 on the first session that named real clients. `Capital` matched in the
+    middle of the firm template's "Applicable Capital Gains" and the suggester proposed
+    "Applicable Capital" as a company - because the lookahead was `(?!\w)`, which a space
+    satisfies. A company suffix ends a name; that is what makes it a suffix."""
+    entity = next(p for kind, _, p in interview.CANDIDATE_SHAPES if kind == "entity")
+    assert not entity.findall("Applicable Capital Gains")
+    assert not entity.findall("the Interim Valuation Date Group Name")
+
+
+def test_a_real_name_ending_in_a_suffix_is_still_proposed() -> None:
+    """The other side. A rule that proposes nothing is not a rule, and these are exactly
+    the shapes the register exists to catch."""
+    entity = next(p for kind, _, p in interview.CANDIDATE_SHAPES if kind == "entity")
+    for name in ("Brightwater Capital", "Kestrel Reach Holdings", "Acme Group"):
+        assert entity.search(name), name
+
+
+def test_a_multi_suffix_name_still_matches_whole() -> None:
+    """Greedy matching has to keep the longest form: stopping at `Partners` would register
+    half a company."""
+    entity = next(p for kind, _, p in interview.CANDIDATE_SHAPES if kind == "entity")
+    found = entity.search("Northgate Dental Partners Inc")
+    assert found and found.group(0) == "Northgate Dental Partners Inc"

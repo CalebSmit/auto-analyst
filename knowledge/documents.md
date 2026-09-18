@@ -56,3 +56,29 @@ what it feeds, and what to do when it is late, missing, revised or out of order.
 - Anything else is used as it arrives ("we just use what we can"). (2026-09-16-1)
 - Late or revised documents: the most recent one received wins; restated past periods are updated in the model (2026-09-17-2). Contradictory: audited over internal (2026-09-17-2). Never-arriving: not yet asked.
 - Also known: that the model is not presented to the MD until the client has provided all information. (2026-09-16-1)
+
+## The due diligence request list (2026-09-18-1)
+
+The schedule everything else is tracked against. Sent to the client at the start. Seven
+sections: A Financial Records (16 items), B Corporate Documents (8), C Operational Matters
+(11), D Employment/Labor Matters (6), E Properties & Equipment (7), F Contracts (2),
+G Legal Matters (4).
+
+It doubles as the tracker: columns `In Model? | <firm> Notes | Provided | Not Applicable`,
+with a free-text status in the notes column - `Done`, `Received`, `Outstanding`, `NA?`,
+`FY 23 only`, `Received past 2 years`, `Received FY 23 compensation, see D.5`. Supporting data
+gets its own worksheet named after the item (`B.6`, `C.7`, `D.5`, `E.1 & E.2`), so a request
+number addresses both a status and a tab.
+
+Tailored per engagement - the example seen is written for a medical practice ("by doctor",
+"payor mix", "procedure count by type").
+
+**What feeds the model** is section A: audited/reviewed/compiled statements and annual
+internal statements for five fiscal years, YTD stubs, sixty months of monthly IS and BS,
+forecasts, compensation by owner, discretionary payments, one-time/non-operational items,
+aged receivables, fixed asset schedule, tax depreciation and amortization forecasts, lease
+amortization (ASC 842), contingent claims, prior appraisals.
+
+**Folder structure (2026-09-18-1).** Each request-list section is a folder in Box and a folder
+in ShareFile. The section groupings are stable across engagements; the items inside them vary,
+and stay similar year to year for a repeat client.

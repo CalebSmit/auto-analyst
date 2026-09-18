@@ -1251,3 +1251,129 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C35 after P62, covering P62
 - proves: Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other.
+
+## 2026-09-18 - P63 An engagement view, and a way to find one client
+
+**Why:** An analyst thinks in clients; every screen is indexed by run. Finding one engagement among ten is scrolling, and /api/runs?engagement_id= has existed unused since P23. This is the largest single thing five dashboard reviews asked for, and it is the screen the next interview session will sit in front of while walking a real project.
+
+- phase added: P63 An engagement view, and a way to find one client (The consoles, gate: auto)
+- exit criterion: A person can find one client's runs among many without scrolling the list
+- exit criterion: Runs collapse by engagement with the newest on top, and a repeat client reads as one row rather than several
+- exit criterion: The filter is built from data through data- attributes and the ACTIONS table, never from a handler written out of a client's text
+
+## 2026-09-18 - P63 An engagement view, and a way to find one client
+
+**Why:** B-026 asks the engagement line to carry a valuation date. No such field exists: the engagement profile's two as_of dates belong to size_band and fiscal_calendar, and neither is a valuation date. Putting one on the screen would mean inventing a date nothing in the system holds. The line carries what the console actually knows; the field itself is an interview question, recorded in OPEN.md.
+
+- task added: An engagement line says where it stands: scope, run count, what is open, last activity
+- task dropped: An engagement line says where it stands: valuation date, what is open, last activity
+
+## 2026-09-18 - C36 Finding one client, and what the screen may claim
+
+**Why:** P63 ends the consoles block: the screen an analyst finds a client on, and the question that refusing to invent a valuation date left open. The checkpoint asks whether the fold and the runs panel can disagree, whether the page claims any state a run cannot be in, and whether the register stayed current while a row was settled and a question added.
+
+- checkpoint added: C36 after P63, covering P63
+- proves: The engagement fold and the runs panel are two readings of one set of rows and cannot disagree about which runs or how many are open; every state the page names or paints is one RunState can hold; and the register still carries the question that refusing to invent a valuation date opened.
+
+## 2026-09-18 - P64 An acknowledgement that says what it looked at
+
+**Why:** The empty-register acknowledgement expires by date, and a session logged on the same calendar day counts as covered. That is deliberate - a person finishes a session and then records that nobody was named - but the same date also covers a session that has not happened yet when the acknowledgement is written. The register's acknowledgement is dated today and the next interview session is today, so the check CLAUDE.md names as what keeps client data inside knowledge/ would print clean over a session full of real client names. A date cannot tell the two orderings apart; what was reviewed has to be recorded, not only when.
+
+- phase added: P64 An acknowledgement that says what it looked at (The interview, gate: auto)
+- exit criterion: A session recorded after an acknowledgement on the same day does not inherit it, and scan refuses
+- exit criterion: The legitimate flow still works: finishing a session and then recording that nobody was named leaves scan clean
+- exit criterion: An acknowledgement with no recorded session list covers only sessions strictly before its date
+
+## 2026-09-18 - P65 An acknowledgement is a decision, not a default
+
+**Why:** Found by running the command rather than reading it. 'register --none' with no text records an acknowledgement worded by the code, not the person, and record_review replaces any existing acknowledgement line silently - so one careless invocation destroys a recorded decision, under someone else's name, and exits 0. An acknowledgement is the same kind of record as a methodology clearance: a person looked at something and said so. P57 already refuses to re-approve a recipe at bytes already approved, because that would record a decision that changed nothing; the same reasoning applies here and was not applied. 'mark' with an unknown topic raises a traceback instead of saying why.
+
+- phase added: P65 An acknowledgement is a decision, not a default (The interview, gate: auto)
+- exit criterion: register --none with no note refuses and records nothing
+- exit criterion: An acknowledgement that is still current cannot be silently replaced, and the refusal names who made it and when
+- exit criterion: An acknowledgement that has gone stale can still be renewed, because that is the legitimate act
+- exit criterion: Every interview command refuses a bad argument with a sentence rather than a traceback
+
+## 2026-09-18 - P65 An acknowledgement is a decision, not a default
+
+**Why:** Fixing the fixture exposed the reason the accident was possible twice. The module finds knowledge/ two ways - the module attribute KNOWLEDGE, which a caller can redirect, and parameter defaults bound at definition, which silently cannot. A CLI handler that relies on the second reaches the real knowledge/ however the first is set, which is how a test in this very phase wrote to the repo's own coverage.yaml and downgraded a topic. One way to find it, named at the call.
+
+- task added: Every CLI handler names the knowledge folder it works on, so the module attribute is the only source
+- exit criterion added: No interview command reaches the real knowledge/ when the module's KNOWLEDGE has been pointed elsewhere
+
+## 2026-09-18 - P66 Two commands, one answer about the register
+
+**Why:** status warns that scan will refuse to close the session while scan, run the same minute, prints clean. Both are right - the acknowledgement stands now and goes stale the moment this session records an answer - but a person reading them together sees two commands disagreeing about the one check CLAUDE.md tells them to trust, at the top of the session they are about to start. The warning should say which of the two states the register is actually in.
+
+- phase added: P66 Two commands, one answer about the register (The interview, gate: auto)
+- exit criterion: With a standing acknowledgement, status says so and says what expires it, rather than warning of a refusal that is not happening
+- exit criterion: With no acknowledgement and answers recorded, status still warns before the first question
+- exit criterion: A test runs both commands over the same folder and fails if they disagree about whether the register is satisfied
+
+## 2026-09-18 - P66 Two commands, one answer about the register
+
+**Why:** C37 found a third way the same class of defect was present: scan's reporting line called relative_to(ROOT), which raises rather than falling back. It is the line that names a client's identifier having reached a file outside knowledge/ - so the one moment the check has something to say was the one moment it could raise instead of saying it. Unreachable today because everything committable_files() returns is inside the repository, which is why it survived; a landmine that has not gone off is still a landmine.
+
+- task added: The line that reports a leaked identifier cannot raise instead of reporting it
+- exit criterion added: scan names a hit in a file outside the repository rather than raising on the path
+- status: done -> open
+
+## 2026-09-18 - C37 The boundary, exercised rather than read
+
+**Why:** P64, P65 and P66 close the interview block before the next session opens it. All three were found by running the tool rather than reading it, all three are about the one check CLAUDE.md names as what keeps a client's name inside knowledge/, and two of them destroyed real records in this repo before they were fixed. The checkpoint walks a whole session the way the protocol describes one, because what the three have in common is that the suite exercised the functions and not the commands.
+
+- checkpoint added: C37 after P66, covering P64, P65, P66
+- proves: A session walked end to end through the commands a person actually runs - status, session, answers, acknowledgement, scan - reports what the record holds at every point: the acknowledgement covers what it looked at and nothing logged after it, a standing one cannot be silently replaced, status and scan never describe the same file differently, a leaked identifier is named rather than raised on, and no command reaches the repository's own knowledge folder.
+
+## 2026-09-18 - P67 Proved by arithmetic, or seen
+
+**Why:** The fourth interview session answered the auto-accept bar that BUILD/OPEN.md section 2 has carried as undecided since the start, and answered it in a different shape than the build assumed: not a confidence number, but a rule about evidence. A figure may be accepted unseen when it carries its source locator and every total it feeds re-adds and the statements tie; everything else is shown, every one of them, not only what changed. That is the right shape because a confidently wrong OCR read is exactly what a probability cannot catch and a failed footing can - and most of the inbound path is about to be OCR'd scans.
+
+- phase added: P67 Proved by arithmetic, or seen (Version one: the data it gathers, gate: auto)
+- exit criterion: A figure carrying its locator and a passing arithmetic cover is accepted without a person, with no confidence stated
+- exit criterion: A figure missing either one goes to review, and the reason names which is missing
+- exit criterion: Materiality, an always-review category, review_required and a raised review level still send a fully covered figure to a person
+- exit criterion: A skill's judgement, which is not an extracted figure, is routed exactly as it was before
+
+## 2026-09-18 - P68 The request list, as the schedule documents arrive against
+
+**Why:** The fourth session showed a real due diligence request list and it is two things at once: what the client is asked for, and the tracker of what has arrived. Its seven section groupings are stable across engagements; the items inside them vary and stay similar year to year for a repeat client. And each section is a folder in Box and in ShareFile, so a document's section is known from where it sits rather than from classifying it. B-009's coverage report does not need inventing - it exists on paper, with Provided and Not Applicable columns already on it.
+
+- phase added: P68 The request list, as the schedule documents arrive against (Version one: the data it gathers, gate: auto)
+- exit criterion: The section of an arriving file is read from its path, and a path naming no section says so rather than guessing
+- exit criterion: A request item reference is parsed from a filename or a folder, and a malformed one is refused rather than half-read
+- exit criterion: A coverage report over a request list and a set of arrived files names what is still outstanding
+- exit criterion: Nothing here classifies a document type: section and type are separate axes and both are kept
+
+## 2026-09-18 - P69 Last year's model, rolled forward
+
+**Why:** 75% of engagements are repeat clients, and for those everything starts from last year's version of itself - the model, the WS grouping, the Input tab, the request list. That is one mechanism applied four times rather than four features, and it is the largest single saving available. Its Excel half needs the firm's real template, which is not in hand; its arithmetic half does not, and is exact: a ten-column window that drops its oldest year, two dates rolled forward a year, and a prior year's line items carried as this year's schema.
+
+- phase added: P69 Last year's model, rolled forward (Version one: the data it gathers, gate: auto)
+- exit criterion: Rolling a full ten-year window drops the oldest year and keeps the width at ten
+- exit criterion: A window with fewer than ten years filled grows to the width and only then starts dropping
+- exit criterion: Rolling 29 February forward a year lands on a real date rather than raising
+- exit criterion: A prior line item with no match this year, and a new row matching no prior line item, are both reported and neither is resolved
+
+## 2026-09-18 - C38 What version one gathers, and what it refuses to decide
+
+**Why:** P67, P68 and P69 are what the fourth interview session justified building without the firm's real model in hand. The rest of its backlog - the input-help workbook, the OCR adapter, the Excel half of the roll-forward - needs the template's named ranges or an OCR engine confirmed on the work machine, and guessing at either would be expensive to reverse. The checkpoint asks the three built pieces the same question: does each still refuse what is not its to decide.
+
+- checkpoint added: C38 after P69, covering P67, P68, P69
+- proves: A repeat year rolls through all three pieces together - a ten-wide window dropping its oldest year, two dates moved on, last year's line items carried as this year's schema - and only what no arithmetic covers reaches a person; a request section never stands in for an item; a line-item mismatch is handed over rather than resolved; the sections are not a second document-type vocabulary; a skill's judgement is still routed on its confidence; and the fact that nothing yet sets the acceptance rule's evidence is recorded rather than quiet.
+
+## 2026-09-18 - P62 A register that cannot go stale quietly
+
+**Why:** C38 caught the guard being narrower than the register it guards. A settled row must carry a word asserting it is settled and a date, so that 'done' is checkable rather than asserted - and the word list was Done, Signed, done. That was written when only build rows were struck through. Section 2 holds decisions that belong to a person, and the register's own established vocabulary settles those with 'Answered' - it reads 'Answered, 2026-09-05' for the Power Automate decision and '(Answered 2026-09-16 ...)' for the pilot type. The first settled decision row therefore failed a guard that had never seen one. Widening the list to include Answered keeps both halves of the rule - an explicit settlement word, and a date - and stops the register having to say 'Done' about a question.
+
+- task added: A decision settled with the register's own word for settling a decision is accepted
+- exit criterion added: A struck-through row settled with Answered and a date passes, and one with neither word still fails
+- status: done -> open
+
+## 2026-09-18 - P56 The register, fillable from what was already said
+
+**Why:** The first interview session to name real clients found the entity heuristic firing inside a longer phrase. Its lookahead is (?!\w), which a space satisfies, so 'Capital' matched in the middle of the firm template's 'Applicable Capital Gains' and the suggester proposed 'Applicable Capital' as a company. A company suffix terminates a name - that is what makes it a suffix - so it must not be followed by another capitalised word. Greedy matching means a genuine multi-suffix name like 'Northgate Dental Partners Inc' still matches at its full length. Found by tests/checkpoints/c29, which exists to notice exactly this and whose docstring says a failure means a real engagement has been discussed.
+
+- task added: A company suffix only ends a name when nothing capitalised follows it
+- exit criterion added: A suffix word inside a longer capitalised phrase is not proposed as a company, and a real name ending in one still is
+- status: done -> open

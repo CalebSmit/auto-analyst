@@ -370,9 +370,9 @@ def scan(files: list[Path], names: list[str]) -> list[tuple[Path, int, str]]:
 
 
 def _status() -> int:
-    created = init()
+    created = init(KNOWLEDGE)
     topics = load_topics()
-    coverage = load_coverage()
+    coverage = load_coverage(KNOWLEDGE)
     sessions = sorted((KNOWLEDGE / "sessions").glob("????-??-??-*.md"))
     print("# Interview status\n")
     if created:
@@ -383,11 +383,11 @@ def _status() -> int:
     for t in topics:
         tally[coverage.get(t.id, {}).get("status", "open")] += 1
     print("topics: " + ", ".join(f"{n} {s}" for s, n in tally.items()))
-    print(f"projects: {', '.join(projects()) or 'none yet'}")
-    counts = backlog_counts()
+    print(f"projects: {', '.join(projects(KNOWLEDGE)) or 'none yet'}")
+    counts = backlog_counts(KNOWLEDGE)
     print("backlog: " + (", ".join(f"{n} {s}" for s, n in counts.items()) or "empty"))
 
-    followups = open_followups()
+    followups = open_followups(KNOWLEDGE)
     print(f"\n## Open follow-ups ({len(followups)}) - ask these first")
     for item in followups[:5]:
         print(f"- {item}")
@@ -403,15 +403,27 @@ def _status() -> int:
         print(f"- {line}")
 
     print("\n## Boundary")
-    names = identifiers()
+    names = identifiers(KNOWLEDGE)
     print(f"identifiers kept inside knowledge/: {len(names)}")
-    if not names and _knowledge_has_answers():
+    if not names and _knowledge_has_answers(KNOWLEDGE):
         # Step 6 of the protocol is where `scan` runs, and step 6 is after every answer has
         # been given. Saying it here, at step 2, is the difference between a note to act on
         # while asking and a wall at the end of the session.
-        print("  `interview.py scan` will refuse to close this session: knowledge/ holds")
-        print("  answers and the register is empty. Add names as they come up rather than")
-        print("  at the end:")
+        #
+        # It also has to agree with `scan`, which reads the acknowledgement and this did not.
+        # A person running both in one minute was told the close-out would refuse and that
+        # the register was clean, about the same file, by the two commands the protocol
+        # tells them to run.
+        standing = reviewed_empty(KNOWLEDGE)
+        if standing and _review_is_current(KNOWLEDGE, standing[0]):
+            on, by = standing
+            print(f"  An acknowledgement stands, made {on} by {by}, so `scan` passes now.")
+            print("  It covers the sessions recorded before it and not this one: the first")
+            print("  answer logged today makes it stale and the close-out refuses again.")
+        else:
+            print("  `interview.py scan` will refuse to close this session: knowledge/ holds")
+            print("  answers and the register is empty.")
+        print("  Add names as they come up rather than at the end:")
         print("      python tools/interview.py suggest     what already looks like a name")
         print("      python tools/interview.py register NAME [NAME ...]")
         print("      python tools/interview.py register --none \"...\"   if nobody was named")
@@ -419,7 +431,7 @@ def _status() -> int:
 
 
 def _topics() -> int:
-    coverage = load_coverage()
+    coverage = load_coverage(KNOWLEDGE)
     for topic in sorted(load_topics(), key=lambda t: t.priority):
         state = coverage.get(topic.id, {}).get("status", "open")
         print(f"[{topic.id}] p{topic.priority} {state}: {topic.title}")
@@ -428,24 +440,52 @@ def _topics() -> int:
     return 0
 
 
+def _shown(path: Path) -> str:
+    """A path as a person should read it: relative to the repository where it is inside it,
+    and whole where it is not.
+
+    `relative_to` raises rather than falling back, and this is the line that reports a
+    client's name having reached a file outside `knowledge/` - so the one moment the check
+    has something to say was the one moment it could raise instead of saying it. Nothing
+    `committable_files()` returns is outside the repository today, which is why it never
+    happened; a landmine that has not gone off is still a landmine (see P55).
+    """
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
 def _scan() -> int:
-    names = identifiers()
+    names = identifiers(KNOWLEDGE)
     hits = scan(committable_files(), names)
     for path, line, name in hits:
-        print(f"{path.relative_to(ROOT)}:{line}: {name!r}")
+        print(f"{_shown(path)}:{line}: {name!r}")
     if hits:
         print(f"FAIL: {len(hits)} identifier(s) outside knowledge/")
         return 1
     if not names:
-        reviewed = reviewed_empty()
+        reviewed = reviewed_empty(KNOWLEDGE)
         if reviewed and _review_is_current(KNOWLEDGE, reviewed[0]):
             on, who = reviewed
+            # Explicitly against the module's KNOWLEDGE rather than the parameter default:
+            # a default is bound at definition and does not follow a patched module
+            # attribute, which is how these checks came to read the machine's own register
+            # instead of the one under test (see the note in tests/p54).
+            over = _reviewed_over(KNOWLEDGE)
             print(f"clean: the register is empty on purpose - reviewed {on} by {who}.")
             print("       Nothing outside knowledge/ was searched, because nothing has been")
-            print("       named to search for. A session recorded after that date makes this")
-            print("       stale and the check refuses again.")
+            print("       named to search for.")
+            if over is None:
+                print("       It names no sessions, so it covers only what was logged before")
+                print(f"       {on}. Any session dated {on} or later makes it stale and the")
+                print("       check refuses again.")
+            else:
+                print(f"       Made over {len(over)} session(s): {', '.join(over) or 'none'}.")
+                print("       The next session is not among them, so it goes stale as soon as")
+                print("       one is logged and the check refuses again.")
             return 0
-        if _knowledge_has_answers():
+        if _knowledge_has_answers(KNOWLEDGE):
             # `clean` over an empty register is the most dangerous thing this command can
             # print: it is the check CLAUDE.md names as the one that keeps client data inside
             # knowledge/, and it passed unconditionally for as long as nobody remembered to
@@ -537,7 +577,12 @@ CANDIDATE_SHAPES: tuple[tuple[str, str, re.Pattern[str]], ...] = (
     (
         "entity",
         "a proper name ending in a company suffix",
-        re.compile(rf"\b(?:{_PROPER}\s+){{1,4}}(?:{_SUFFIX})(?!\w)"),
+        # `(?!\s+[A-Z])` because a company suffix *ends* a name - that is what makes it a
+        # suffix. Without it, `Capital` matched inside the firm template's "Applicable
+        # Capital Gains" and the suggester proposed "Applicable Capital" as a company. The
+        # `(?!\w)` before it does not help: a space satisfies it. Greedy matching means a
+        # genuine multi-suffix name - "Northgate Dental Partners Inc" - still matches whole.
+        re.compile(rf"\b(?:{_PROPER}\s+){{1,4}}(?:{_SUFFIX})(?!\w)(?!\s+[A-Z])"),
     ),
     (
         "person",
@@ -674,11 +719,22 @@ def _answer_files(knowledge: Path) -> list[Path]:
 
 # ----------------------------------------------- a register that is empty on purpose
 
-_REVIEWED = re.compile(r"^#\s*reviewed\s+(\d{4}-\d{2}-\d{2})\s+by\s+([^:]+):", re.I)
+_REVIEWED = re.compile(
+    r"^#\s*reviewed\s+(\d{4}-\d{2}-\d{2})\s+by\s+([^:\[]+?)\s*(?:\[over:([^\]]*)\])?\s*:", re.I
+)
+"""`# reviewed <date> by <who> [over: <session stems>]: <note>`.
+
+The `[over: ...]` part is what the acknowledgement was made against, and it is the whole
+point of the line. Optional in the pattern because acknowledgements written before P64 do
+not carry it, and those are read conservatively rather than trusted - see
+`_review_is_current`."""
 
 
 def reviewed_empty(knowledge: Path = KNOWLEDGE) -> tuple[str, str] | None:
     """`(date, who)` if somebody has recorded that they looked and there was nothing.
+
+    The sessions it was made over are read separately by `_reviewed_over`, so that a caller
+    wanting to print who and when does not have to know about coverage.
 
     An empty register does not have to mean nobody has checked. Three sessions of this
     interview named no client at all - they were about how the work is done, not about whose
@@ -702,11 +758,57 @@ def reviewed_empty(knowledge: Path = KNOWLEDGE) -> tuple[str, str] | None:
     return None
 
 
-def _review_is_current(knowledge: Path, on: str) -> bool:
-    """Whether every recorded answer predates the review. A session opened the day of the
-    review counts as covered; one dated after it does not."""
+def _reviewed_over(knowledge: Path = KNOWLEDGE) -> tuple[str, ...] | None:
+    """The session stems an acknowledgement was made over, or None if it names none.
+
+    None means the line was written before P64 and says only when it was made. That is not
+    the same as "over nothing", and the two must not be confused: one is an old record, the
+    other would be an acknowledgement covering no session at all.
+    """
+    path = knowledge / "identifiers.txt"
+    if not path.exists():
+        return None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        found = _REVIEWED.match(line.strip())
+        if found:
+            over = found.group(3)
+            return tuple(over.split()) if over is not None else None
+    return None
+
+
+def sessions_with_answers(knowledge: Path = KNOWLEDGE) -> tuple[str, ...]:
+    """The session logs that got past their own header - the ones holding answers."""
     logs = sorted((knowledge / "sessions").glob("????-??-??-*.md"))
-    return all(log.stem[:10] <= on for log in logs if _beyond_its_header(log))
+    return tuple(log.stem for log in logs if _beyond_its_header(log))
+
+
+def _review_is_current(knowledge: Path, on: str) -> bool:
+    """Whether the acknowledgement covers every session that holds answers.
+
+    It used to ask whether every session *predated* the review, with the same day counting
+    as covered. That was deliberate and it was wrong. The legitimate flow is to finish a
+    session and then record that nobody was named, which happens on one day - so `<` would
+    refuse the very case the acknowledgement exists for. But `<=` also covers a session that
+    had not happened when the line was written, and a session begun an hour after an
+    acknowledgement inherited it. That is the check CLAUDE.md names as what keeps client
+    data inside `knowledge/` reporting `clean` over answers nobody looked at.
+
+    A date cannot separate those two orderings, because both happen on the same date. What
+    was looked at has to be recorded. So an acknowledgement now carries the sessions it was
+    made over, and is current only while those are still all of them.
+
+    An acknowledgement from before P64 carries no list. It is read conservatively - strictly
+    before its date - rather than trusted, because the one thing not known about it is
+    whether the same-day session came first. That expires the acknowledgement in the repo
+    today against any session dated the same day, which is the safe direction: the cost is
+    running `register --none` again, and the cost of the other direction is a client's name
+    leaving `knowledge/` unnoticed.
+    """
+    answered = sessions_with_answers(knowledge)
+    covered = _reviewed_over(knowledge)
+    if covered is None:
+        return all(stem[:10] < on for stem in answered)
+    return set(answered) <= set(covered)
 
 
 def add_identifiers(names: list[str], knowledge: Path = KNOWLEDGE) -> list[str]:
@@ -725,11 +827,17 @@ def add_identifiers(names: list[str], knowledge: Path = KNOWLEDGE) -> list[str]:
 
 
 def record_review(who: str, note: str, knowledge: Path = KNOWLEDGE, on: str | None = None) -> str:
-    """Write the acknowledgement that the register was looked at and is empty on purpose."""
+    """Write the acknowledgement that the register was looked at and is empty on purpose.
+
+    It records the sessions that held answers at the moment it was written. That list is
+    what makes the acknowledgement expire honestly: the next session is not in it, so the
+    check refuses again, whether or not it falls on the same day.
+    """
     init(knowledge)
     path = knowledge / "identifiers.txt"
     stamp = on or date.today().isoformat()
-    line = f"# reviewed {stamp} by {who}: {note}"
+    over = " ".join(sessions_with_answers(knowledge))
+    line = f"# reviewed {stamp} by {who} [over:{(' ' + over) if over else ''}]: {note}"
     body = path.read_text(encoding="utf-8")
     kept = [ln for ln in body.splitlines() if not _REVIEWED.match(ln.strip())]
     path.write_text("\n".join([*kept, line]) + "\n", encoding="utf-8")
@@ -757,8 +865,8 @@ def _worth_proposing(phrase: str, known: set[str]) -> bool:
 
 
 def _suggest() -> int:
-    candidates = suggest()
-    registered = identifiers()
+    candidates = suggest(KNOWLEDGE, ROOT)
+    registered = identifiers(KNOWLEDGE)
     print("# Candidates for knowledge/identifiers.txt\n")
     print("Read from the answers already in knowledge/. Nothing here has been written")
     print("anywhere: the register is changed by a person, one name per line. Reject freely -")
@@ -795,25 +903,44 @@ def _suggest() -> int:
 
 def _register(names: list[str], none: str | None, who: str) -> int:
     if none is not None:
-        if identifiers():
+        if identifiers(KNOWLEDGE):
             print("The register is not empty; there is nothing to acknowledge.")
             return 1
-        note = none or "reviewed: no client, person or entity has been named in an interview yet"
-        line = record_review(who, note)
+        # The note is the decision. The code used to supply one when the person did not,
+        # which records an acknowledgement in nobody's words - the same defect as a
+        # methodology clearance nobody read the file for.
+        if not none.strip():
+            print("An acknowledgement needs words of your own: what you looked at, and why")
+            print("there was nothing to register. Nothing has been recorded.")
+            print('\n  python tools/interview.py register --none "checked the three sessions;')
+            print('      no client, person or entity has been named"')
+            return 2
+        # Replacing one that still stands would destroy a record and put a second decision
+        # in its place that changed nothing - which is what P57 refuses for a recipe already
+        # approved at the same bytes. A stale one is different: renewing it is the act.
+        standing = reviewed_empty(KNOWLEDGE)
+        if standing and _review_is_current(KNOWLEDGE, standing[0]):
+            on, by = standing
+            print(f"An acknowledgement already stands, made {on} by {by}, and nothing has")
+            print("been logged since that it does not cover. Recording another would replace")
+            print("it with a decision that changed nothing.")
+            print("\nIt goes stale by itself the moment a session with answers is logged.")
+            return 1
+        line = record_review(who, none, KNOWLEDGE)
         print(f"recorded in knowledge/identifiers.txt:\n  {line}")
-        print("\nIt covers the answers recorded up to today. The next session makes it stale,")
+        print("\nIt covers the sessions named in it. The next one makes it stale,")
         print("which is the point: an acknowledgement is not a way of switching the check off.")
         return 0
     if not names:
         print("Nothing to add. Give one or more names, or --none to record an empty register.")
         return 2
-    added = add_identifiers(names)
+    added = add_identifiers(names, KNOWLEDGE)
     skipped = [n for n in names if n not in added]
     for name in added:
         print(f"added: {name}")
     for name in skipped:
         print(f"already registered: {name}")
-    print(f"\n{len(identifiers())} identifier(s) in the register. Now: interview.py scan")
+    print(f"\n{len(identifiers(KNOWLEDGE))} identifier(s) in the register. Now: interview.py scan")
     return 0
 
 
@@ -856,7 +983,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "status":
         return _status()
     if args.command == "session":
-        print(start_session().relative_to(ROOT).as_posix())
+        opened = start_session(KNOWLEDGE)
+        # Relative while it is inside the repo, which is where it lives; absolute rather
+        # than a traceback when it is not, which is the case a test points elsewhere.
+        try:
+            print(opened.relative_to(ROOT).as_posix())
+        except ValueError:
+            print(opened.as_posix())
         return 0
     if args.command == "topics":
         return _topics()
@@ -867,7 +1000,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "register":
         return _register(args.names, args.none, args.who or _who())
     if args.command == "mark":
-        entry = mark(args.topic, args.status, args.note, args.session)
+        # A traceback in the middle of an interview is noise a person has to read past to
+        # find the one sentence that matters, and the sentence is already written.
+        try:
+            entry = mark(args.topic, args.status, args.note, args.session, KNOWLEDGE)
+        except ValueError as refused:
+            print(refused)
+            print("\nThe topics are listed by: python tools/interview.py topics")
+            return 2
         print(f"{args.topic}: {entry['status']}")
         return 0
     return 2

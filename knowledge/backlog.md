@@ -67,6 +67,11 @@ report of which expected documents have arrived, drafted as a follow-up list for
 Needs `expected_types` on recipes (non-blocking, unlike required_types) and more document
 types: fixed asset schedule, debt schedule, interim financials. The forecast type was added
 first because its absence was a defect (see P38). Evidence: Q9, Q10. Size: medium.
+2026-09-18 (P63): the mechanism is buildable and the **data is not**. An `expected_types`
+with nothing in it is a report that says nothing - the "wired to nothing" shape P55 was
+about - so this waits on one interview answer: for a mature-company valuation, which
+documents do you expect to receive, and which of them is the job actually blocked on? With
+that list it is a small build; without it there is nothing to report against.
 
 ## B-010 Add-back register with graded support
 status: proposed
@@ -202,7 +207,7 @@ Needs a scope decision (BUILD/OPEN.md section 5, question 6) and the firm's appr
 before any design. Size: unknown.
 
 ## B-026 An engagement view, and a way to find one client
-status: proposed
+status: built (2026-09-18, P63)
 2026-09-17, from five reviews of the dashboards. Everything on Activity is indexed by run; an
 analyst thinks in clients, and a repeat client has several runs behind one engagement. There
 is no filter, no search and no grouping: finding Northgate among ten engagements is scrolling.
@@ -210,6 +215,13 @@ Needs: a filter on the runs panel (client, engagement, scope), rows collapsed by
 with the newest run on top, and an engagement line - valuation date, what has arrived, what is
 open, last activity. `/api/runs?engagement_id=` already exists and no page uses it. Size:
 medium.
+Built: the runs panel folds by engagement (newest run on top at both levels) and carries a
+find box over client, engagement, scope and run id - a redraw of what the browser already
+has, not a second request. `Console.engagements()` folds the same rows the panel reads, so
+the two cannot disagree, and `/api/engagements` exposes it. **Not built: the valuation
+date** the item asked for - no such field exists (the profile's two `as_of` dates are
+`size_band`'s and `fiscal_calendar`'s), and inventing one was refused. It is now question 7
+in BUILD/OPEN.md section 5, and a test fails if a date appears without one.
 
 ## B-027 Documents: what has arrived and what the client still owes
 status: proposed
@@ -266,3 +278,96 @@ production. So a quarantined step writes no quarantine record and opens no revie
 `constraints.yaml`'s rule that exhaustion always produces an artifact. Nobody is assigned and
 nothing reaches the queue. Fixing the loops (BUILD/OPEN.md §4b) fixes this with them; recorded
 separately because the missing artifact is what a person would notice first. Size: with B-loops.
+
+## B-033 Version 1 is data collection, not model building
+status: proposed
+2026-09-18-1: the analyst redefined the goal. "Version 1 of this is not for you to run the
+actual model - just to make it really easy for me to input stuff into the model." Both shipped
+recipes end in gpc, cost-of-capital, dcf-build, model-load and qc-tieout, which is running the
+model. Change: a pilot recipe whose steps stop at organised data, and whose release produces
+the input-help workbook. Drops gpc, cost-of-capital, dcf-build and qc-tieout from version 1's
+path; B-004, B-005, B-006 and B-021 fall down the order with them. Files:
+recipes/*.yaml, BUILD/OPEN.md. Evidence: Q1a, Q2. Size: medium (a recipe version, so a person
+re-registers it).
+
+## B-034 The input-help workbook, as a registered template
+status: proposed
+2026-09-18-1 Q2: version 1 fills an "input help" workbook matching the model's input format
+and never touches the real model; integration comes once that works extremely well. This is
+not a new mechanism - templates/bindings.yaml, templates/inputs/*.yaml, tools/write_template.py
+and the model-load skill already write into a copy of a pinned template by named range. Change:
+register a second template at valuation/non-esop/_segment with an input schema for the tabs
+that matter - Input, WS, Sales Detail, IS, BS, D (CF skipped, Q3) - and retarget model-load to
+it. Also gives the delivery path something real to release, which it has never had. The exact
+named ranges need the real model; until then the schema is an educated guess the analyst asked
+for. Evidence: Q2, Q3. Size: medium.
+
+## B-035 Local OCR for scanned PDFs
+status: proposed
+2026-09-18-1 Q14-Q16: PDFs are the only path with keying in it, none of them can be copied
+from, and clients send a lot of them - so most of the inbound path needs OCR. intake/readers/
+documents.py reports a scanned page and does not read it, by design ("the OCR path is a later
+adapter"). **It must be local and deterministic**: masking needs text, text from a scan needs
+OCR, and OCR by a vision model would put unmasked client documents in front of a model before
+masking could happen, breaking the guarantee at its root. Local keeps the order image -> text
+-> mask -> model and keeps privacy/ deterministic Python. Needs: the engine decision and
+confirmation it can be installed on the work machine (Q21, unconfirmed). Evidence: Q14, Q15,
+Q16. Size: large, and it is the single highest-value build in this list.
+
+## B-036 The prior-year rollforward, as the main path
+status: part built (2026-09-18, P69) - the arithmetic half; the Excel half needs the real template
+2026-09-18-1 Q4: 75% of engagements are repeat clients. Q3-Q10 describe one mechanism applied
+four times - for a repeat client, everything starts from last year's version of itself: the
+model, the WS grouping, the Input tab, the request list. Promotes B-023 from "large, later" to
+the centre. Change: read last year's workbook by named range (the analyst points at its Box
+location during set-up, Q5); carry every Input field across and roll only Valuation Date and
+Latest Fiscal Year End forward a year (Q9); carry the WS line items as the schema rather than
+tagging against the firm taxonomy (Q7); shift the year columns in a fixed ten-wide block with
+the oldest dropping, filling five (Q10); raise a review item on anything that does not match,
+distinguishing a client change from the firm's own prior grouping (Q6). Evidence: Q3-Q10.
+Size: large.
+
+## B-037 The acceptance rule: proved by arithmetic, or seen
+status: built (2026-09-18, P67) - the rule is in the router; no producer sets its fields yet
+2026-09-18-1 Q18-Q20. The analyst needs the data 100% accurate and would otherwise re-check
+every figure against the client documents; a figure carrying its page and row, whose totals all
+re-add and whose statements tie, is enough not to. Anything no arithmetic covers is shown -
+every one, not only what changed. This answers BUILD/OPEN.md section 2's open auto-accept bar,
+and answers it as a rule about evidence rather than a confidence number, which is the right
+shape because a confidently wrong OCR read is what a probability cannot catch and a failed
+footing can. Change: the confidence router accepts on tie-out coverage plus provenance, not on
+a score; everything uncovered opens a review item. Files: ops/ (router), policy. Evidence: Q18,
+Q19, Q20. Size: medium.
+
+## B-038 The due diligence request list as the coverage schedule
+status: built (2026-09-18, P68) - sections, refs and coverage; the per-engagement item lists are owed
+2026-09-18-1 Q11-Q12: the firm sends a DD request list in seven stable sections (A Financial
+Records, B Corporate Documents, C Operational Matters, D Employment/Labor, E Properties &
+Equipment, F Contracts, G Legal Matters); the items inside vary per engagement and stay similar
+year to year for a repeat client. The same workbook is the tracker - In Model? / notes /
+Provided / Not Applicable - and supporting data gets a tab named after the item number. **Each
+section is a folder in Box and in ShareFile**, so a document's section is known from its path
+rather than from classifying it. Concretises B-009 and B-027: expected_types becomes two-level
+(stable sections, per-engagement items), and the coverage report is this tracker. Evidence:
+Q11, Q12. Size: medium.
+
+## B-039 A client's Excel is carried across, not extracted
+status: proposed
+2026-09-18-1 Q14: when the client provides Excel the analyst moves the tab into the model and
+links it up - it is already cheap, and a tool that re-types it adds nothing and adds risk. The
+input-help workbook should carry the client's tab across the way the analyst does by hand.
+A different operation from extraction, and safer. Evidence: Q14, and session 1's yellow-fill
+convention. Size: small to medium.
+
+## B-040 Nothing sets the acceptance rule's evidence yet
+status: proposed
+2026-09-18, found while building P67. `review.router.Item` now carries `extracted` and
+`arithmetic_cover`, and the rule that reads them is tested and correct - but no procedure
+sets either field, so today every item is still routed as a judgement on its confidence. This
+is the same shape as P55's "built, and wired to nothing" and it is recorded rather than left
+quiet. The producer is the extraction step that does not exist yet: it needs the OCR adapter
+(B-035) to have read something, and `tools/statement_checks.py` to say which figures its
+passing checks actually cover. That second half is the real work - a finding says a total
+re-added, and turning that into "these seven line items are covered" is a mapping nobody has
+written. Until both exist the rule is correct and inert. Size: medium, and it is the step that
+makes B-037 real.

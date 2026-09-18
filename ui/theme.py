@@ -425,6 +425,21 @@ select{width:auto;padding:.35rem .55rem;margin:0}
  cursor:pointer;user-select:none;text-transform:none;letter-spacing:0;margin:0;font-weight:400}
 .toggle input{width:auto;margin:0}
 
+/* A panel's own find box. Sits under the header's why-line, so the thing that narrows a
+   list is beside the sentence saying what the list is. */
+.filter{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s2)}
+.filter input{margin:0;flex:1 1 auto;min-width:0;padding:.3rem var(--s2);font-size:var(--t-xs)}
+.filter .btn{flex:0 0 auto}
+
+/* An engagement, and the runs behind it. The group header is the line an analyst reads
+   first; its runs are indented under it so the nesting is visible without a rule. */
+.grp{margin:0 0 var(--s2)}
+.grp-head{display:flex;align-items:baseline;gap:var(--s2);padding:.3rem .2rem .2rem;
+ border-bottom:1px solid var(--line)}
+.grp-head b{font-size:var(--t-sm);color:var(--navy)}
+.grp-head .sub{margin-left:auto;text-align:right;white-space:nowrap}
+.grp-runs{padding-left:var(--s2)}
+
 /* ---------------------------------------------------------------- steps */
 .steps{display:flex;flex-direction:column;gap:.15rem}
 .step{display:flex;gap:var(--s3);align-items:flex-start;padding:.55rem .6rem;

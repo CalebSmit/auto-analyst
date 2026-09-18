@@ -1821,20 +1821,22 @@
         "Nothing it proposes leaves knowledge/, and the command refuses to print to a file outside it",
         "status and the protocol point at it, so the next session starts by running it",
         "A person can record that the register was reviewed and is deliberately empty, and that acknowledgement expires when a session newer than it is recorded",
-        "register adds a name from the command line, so a session does not hand-edit the file mid-conversation"
+        "register adds a name from the command line, so a session does not hand-edit the file mid-conversation",
+        "A company suffix only ends a name when nothing capitalised follows it"
       ],
       "exit": [
         "suggest names the candidates in this repo's knowledge/ and says which file and line each came from",
         "It writes nothing: identifiers.txt is unchanged after it runs, proved by a test",
         "A term already in the register is not proposed again, and ordinary prose is not proposed at all",
-        "An acknowledged-empty register scans clean and names who reviewed it and when; one with a session recorded after the review refuses again"
+        "An acknowledged-empty register scans clean and names who reviewed it and when; one with a session recorded after the review refuses again",
+        "A suffix word inside a longer capitalised phrase is not proposed as a company, and a real name ending in one still is"
       ],
       "checks": [
         "python -m uv run pytest tests/p56 -q",
         "python -m uv run pytest tests/p37 tests/p53 tests/p54 -q"
       ],
       "notes": "",
-      "closed": "2026-09-17"
+      "closed": "2026-09-18"
     },
     {
       "id": "P57",
@@ -1978,15 +1980,210 @@
       "builds": [],
       "tasks": [
         "The guard asks whether the register is current, not whether it contains particular sentences",
-        "Nothing in the register tells a session to close a phase that is closed or run a checkpoint that is green"
+        "Nothing in the register tells a session to close a phase that is closed or run a checkpoint that is green",
+        "A decision settled with the register's own word for settling a decision is accepted"
       ],
       "exit": [
         "A settled item cannot sit in the register as though it were open, and a test fails if one does",
-        "The four items this build is waiting on are still named, and the test says which are live"
+        "The four items this build is waiting on are still named, and the test says which are live",
+        "A struck-through row settled with Answered and a date passes, and one with neither word still fails"
       ],
       "checks": [
         "python -m uv run pytest tests/p62 -q",
         "python -m uv run pytest tests/regression -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P63",
+      "title": "An engagement view, and a way to find one client",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Everything on Activity is indexed by run. An analyst thinks in clients, and a repeat client has several runs behind one engagement. There is no filter, no search and no grouping, so finding Northgate among ten engagements is scrolling. The route that answers the question already exists and no page calls it. Backlog B-026.",
+      "builds": [
+        "B-026"
+      ],
+      "tasks": [
+        "The runs panel can be narrowed to one client, engagement or scope without a page load",
+        "Runs are grouped by engagement, newest first, so a repeat client reads as one thing",
+        "An engagement line says where it stands: scope, run count, what is open, last activity"
+      ],
+      "exit": [
+        "A person can find one client's runs among many without scrolling the list",
+        "Runs collapse by engagement with the newest on top, and a repeat client reads as one row rather than several",
+        "The filter is built from data through data- attributes and the ACTIONS table, never from a handler written out of a client's text"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p63 -q",
+        "python -m uv run pytest tests/regression -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P64",
+      "title": "An acknowledgement that says what it looked at",
+      "block": "The interview",
+      "gate": "auto",
+      "status": "done",
+      "intent": "interview.py scan refuses an empty register unless a person has recorded that they looked and found nobody. That acknowledgement expires when a later session is logged - by date, with same-day counting as covered, because the legitimate flow is to finish a session and then record it. The consequence is that any session run after an acknowledgement on the same day inherits it. Recording which session logs were reviewed distinguishes the two orderings; a date never can.",
+      "builds": [],
+      "tasks": [
+        "The acknowledgement records the sessions it was made over, not only its date",
+        "A session logged after the acknowledgement does not inherit it, whatever day it falls on",
+        "An acknowledgement written before this change is read conservatively rather than trusted"
+      ],
+      "exit": [
+        "A session recorded after an acknowledgement on the same day does not inherit it, and scan refuses",
+        "The legitimate flow still works: finishing a session and then recording that nobody was named leaves scan clean",
+        "An acknowledgement with no recorded session list covers only sessions strictly before its date"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p64 -q",
+        "python -m uv run pytest tests/p53 tests/p54 tests/p62 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P65",
+      "title": "An acknowledgement is a decision, not a default",
+      "block": "The interview",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The register's acknowledgement records that a person looked and found nobody. Its note is the content of that decision, and the code supplied one when the person did not. Re-recording replaced whatever was there without naming it. Both make a permanent record easy to destroy by accident, which is how this session destroyed one.",
+      "builds": [],
+      "tasks": [
+        "An acknowledgement with no words is refused rather than worded by the code",
+        "Re-recording an acknowledgement that is still current is refused, naming who made it and when",
+        "An unknown topic on mark says why, rather than raising into the session",
+        "Every CLI handler names the knowledge folder it works on, so the module attribute is the only source"
+      ],
+      "exit": [
+        "register --none with no note refuses and records nothing",
+        "An acknowledgement that is still current cannot be silently replaced, and the refusal names who made it and when",
+        "An acknowledgement that has gone stale can still be renewed, because that is the legitimate act",
+        "Every interview command refuses a bad argument with a sentence rather than a traceback",
+        "No interview command reaches the real knowledge/ when the module's KNOWLEDGE has been pointed elsewhere"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p65 -q",
+        "python -m uv run pytest tests/p53 tests/p54 tests/p64 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P66",
+      "title": "Two commands, one answer about the register",
+      "block": "The interview",
+      "gate": "auto",
+      "status": "done",
+      "intent": "status prints its Boundary warning from 'the register is empty and there are answers', which ignores a standing acknowledgement entirely. scan reads the acknowledgement. So the two can print opposite things about the same file, and the one a person reads first is the one that is least precise about what happens next.",
+      "builds": [],
+      "tasks": [
+        "The Boundary section says whether an acknowledgement stands, and what will make it stale",
+        "status and scan cannot report opposite states of the register",
+        "The line that reports a leaked identifier cannot raise instead of reporting it"
+      ],
+      "exit": [
+        "With a standing acknowledgement, status says so and says what expires it, rather than warning of a refusal that is not happening",
+        "With no acknowledgement and answers recorded, status still warns before the first question",
+        "A test runs both commands over the same folder and fails if they disagree about whether the register is satisfied",
+        "scan names a hit in a file outside the repository rather than raising on the path"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p66 -q",
+        "python -m uv run pytest tests/p54 tests/p64 tests/p65 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P67",
+      "title": "Proved by arithmetic, or seen",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The confidence router decides what reaches a person. For a judgement a skill proposed, a confidence score is a reasonable gate. For a figure read out of a client document it is the wrong one: the failure that matters is a misread the model is confident about, and the thing that catches it is arithmetic that does not foot. The analyst will not re-check a figure that carries its page and row and whose totals re-add; he wants to see every figure that no arithmetic covers.",
+      "builds": [
+        "B-037"
+      ],
+      "tasks": [
+        "An extracted figure with no source locator goes to a person, whatever its confidence",
+        "An extracted figure no arithmetic covers goes to a person, whatever its confidence",
+        "An extracted figure with both may be accepted unseen, and the confidence bar does not also have to be met",
+        "Evidence substitutes for the score and never for a review requirement somebody raised"
+      ],
+      "exit": [
+        "A figure carrying its locator and a passing arithmetic cover is accepted without a person, with no confidence stated",
+        "A figure missing either one goes to review, and the reason names which is missing",
+        "Materiality, an always-review category, review_required and a raised review level still send a fully covered figure to a person",
+        "A skill's judgement, which is not an extracted figure, is routed exactly as it was before"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p67 -q",
+        "python -m uv run pytest tests/p15 tests/regression -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P68",
+      "title": "The request list, as the schedule documents arrive against",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Intake classifies a file to a document type from its name and content. That answers what kind of file it is, and not which thing that was asked for it answers - a different axis, and the one the analyst tracks. The folder a file arrives in already carries that answer, and the firm's own numbering (B.6, C.7, D.5) is used as a key on the tabs of the tracker. Building the stable half now means the per-engagement item lists can be dropped in from the analyst's real examples without reshaping anything.",
+      "builds": [
+        "B-038"
+      ],
+      "tasks": [
+        "The seven section groupings are a named vocabulary rather than prose in a document",
+        "A document's section is derived from the folder it arrived in",
+        "An item reference like B.6 is parsed wherever the firm writes one",
+        "A coverage report says, per request item, provided or outstanding or not applicable"
+      ],
+      "exit": [
+        "The section of an arriving file is read from its path, and a path naming no section says so rather than guessing",
+        "A request item reference is parsed from a filename or a folder, and a malformed one is refused rather than half-read",
+        "A coverage report over a request list and a set of arrived files names what is still outstanding",
+        "Nothing here classifies a document type: section and type are separate axes and both are kept"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p68 -q",
+        "python -m uv run pytest tests/p16 tests/p17 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P69",
+      "title": "Last year's model, rolled forward",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The repeat path is copy-forward-and-shift-years. The rules are precise and were given precisely: the historical block is a fixed ten columns and the oldest falls off rather than the block growing; usually only the most recent five are filled; on the Input tab only the valuation date and the latest fiscal year end change, usually to one year later; and the WS line items are carried forward rather than re-decided, so the prior workbook is the chart of accounts. A line that does not match may mean the client changed something or that the firm grouped it differently last year, and the difference is a person's to call.",
+      "builds": [
+        "B-036"
+      ],
+      "tasks": [
+        "A ten-wide year window rolls: the oldest drops, the window does not grow",
+        "The valuation date and latest fiscal year end roll forward a year, including across a leap day",
+        "Last year's line items are carried as this year's schema, and what does not match is reported both ways",
+        "Nothing here decides whether a mismatch is a client change or the firm's own prior grouping"
+      ],
+      "exit": [
+        "Rolling a full ten-year window drops the oldest year and keeps the width at ten",
+        "A window with fewer than ten years filled grows to the width and only then starts dropping",
+        "Rolling 29 February forward a year lands on a real date rather than raising",
+        "A prior line item with no match this year, and a new row matching no prior line item, are both reported and neither is resolved"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p69 -q",
+        "python -m uv run pytest tests/p18 tests/p38 tests/p40 -q"
       ],
       "notes": "",
       "closed": "2026-09-18"
@@ -2376,6 +2573,39 @@
       "proves": "Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c35 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C36",
+      "title": "Finding one client, and what the screen may claim",
+      "after": "P63",
+      "status": "done",
+      "proves": "The engagement fold and the runs panel are two readings of one set of rows and cannot disagree about which runs or how many are open; every state the page names or paints is one RunState can hold; and the register still carries the question that refusing to invent a valuation date opened.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c36 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C37",
+      "title": "The boundary, exercised rather than read",
+      "after": "P66",
+      "status": "done",
+      "proves": "A session walked end to end through the commands a person actually runs - status, session, answers, acknowledgement, scan - reports what the record holds at every point: the acknowledgement covers what it looked at and nothing logged after it, a standing one cannot be silently replaced, status and scan never describe the same file differently, a leaked identifier is named rather than raised on, and no command reaches the repository's own knowledge folder.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c37 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C38",
+      "title": "What version one gathers, and what it refuses to decide",
+      "after": "P69",
+      "status": "done",
+      "proves": "A repeat year rolls through all three pieces together - a ten-wide window dropping its oldest year, two dates moved on, last year's line items carried as this year's schema - and only what no arithmetic covers reaches a person; a request section never stands in for an item; a line-item mismatch is handed over rather than resolved; the sections are not a second document-type vocabulary; a skill's judgement is still routed on its confidence; and the fact that nothing yet sets the acceptance rule's evidence is recorded rather than quiet.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c38 -q"
       ],
       "closed": "2026-09-18"
     }

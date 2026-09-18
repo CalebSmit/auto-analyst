@@ -32,29 +32,38 @@ topics:
     - 'debt detail from the audited financials'' LT debt note; fields: maturity, starting
       amount, years left, rate (Q2)'
     - audited beats internal on disagreement; forecast always internal (Q8, B-024)
+    - PDFs are the hard path because they mean manual entry; client Excel is easy
+      - the tab is moved in and linked
     sessions:
     - 2026-09-16-1
     - 2026-09-17-2
+    - 2026-09-18-1
   spreading:
     status: partial
     notes:
     - first high-level answer (Q1)
     - audited beats internal on disagreement; forecast always internal (Q8, B-024)
+    - For repeat clients line items rarely change; a mismatch is a review item, and
+      the cause may be the firm's own prior grouping rather than a client change
     sessions:
     - 2026-09-16-1
     - 2026-09-17-2
+    - 2026-09-18-1
   repeat-clients:
-    status: covered
+    status: partial
     notes:
     - first high-level answer (Q1)
     - adjustment list carried forward from last year, values refreshed (Q1)
     - copy historicals + enter new period; same forecast method, fresh assumptions;
       new WACC as of valuation date; comps kept unless reason; adjustment items carried
       (Q7, 2026-09-17-1 Q1)
+    - 'The repeat path is the centre of version 1: copy last year''s model forward,
+      shift the years, add the new year from client docs'
     sessions:
     - 2026-09-16-1
     - 2026-09-17-1
     - 2026-09-17-2
+    - 2026-09-18-1
   excel-models:
     status: partial
     notes:
@@ -62,9 +71,15 @@ topics:
     - model has a debt tab; every long-term debt instrument entered individually (Q8)
     - DCF structure is in the template; GPC/transactions/WACC independent; comps multiples
       support exit multiple (Q8)
+    - Tab strip, Input/WS/IS/D tab structures photographed from Model Template - MASTER
+      2026 (v.26-2F); named ranges INPUT and WS exist; yellow marks a typed cell;
+      version 1 targets Input, WS, Sales Detail, IS, BS, D
+    - Historical block is a fixed ten columns, rolling - oldest drops, no growth;
+      usually only the last five years are filled
     sessions:
     - 2026-09-16-1
     - 2026-09-17-1
+    - 2026-09-18-1
   engagement-types:
     status: partial
     notes:
@@ -187,8 +202,15 @@ topics:
     notes:
     - 'no weighting: each method gives an EV range; final EV chosen within ranges
       by the MD (Q10)'
+    - Version 1's output is an input-help workbook matching the model's input format,
+      not a filled model; integration with the real model comes only once that works
+      well
+    - 'Acceptance rule given: a figure is trustworthy without re-checking if it carries
+      its source locator and every total it feeds re-adds and the statements tie;
+      otherwise a person sees it'
     sessions:
     - 2026-09-17-1
+    - 2026-09-18-1
   debt-and-model-checks:
     status: partial
     notes:
@@ -218,3 +240,18 @@ topics:
       (Q12)'
     sessions:
     - 2026-09-17-2
+  document-request:
+    status: partial
+    notes:
+    - 'A real DD request list photographed: seven sections A-G, doubles as the tracker
+      (In Model?/notes/Provided/Not Applicable), supporting tabs named after item
+      numbers, five fiscal years, tailored per engagement'
+    sessions:
+    - 2026-09-18-1
+  extraction-baseline:
+    status: partial
+    notes:
+    - Keying historicals from scanned PDFs takes 1-3+ hours per engagement; that is
+      the baseline to beat
+    sessions:
+    - 2026-09-18-1

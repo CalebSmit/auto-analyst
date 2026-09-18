@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **62 of 62 phases closed**
-- Last green checkpoint: **C35**
+- **69 of 69 phases closed**
+- Last green checkpoint: **C38**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -74,11 +74,18 @@
 - **P53** Three silent wrongs (2026-09-17)
 - **P54** The interview can finish again (2026-09-17)
 - **P55** Built, and wired to nothing (2026-09-17)
-- **P56** The register, fillable from what was already said (2026-09-17)
+- **P56** The register, fillable from what was already said (2026-09-18)
 - **P57** Approving a recipe on a machine that has none (2026-09-17)
 - **P58** The documented command works, or says why (2026-09-18)
 - **P59** The graph owns every loop, in fact (2026-09-18)
 - **P60** A quarantine that leaves something behind (2026-09-18)
 - **P61** What the admin surface records, and what it offers (2026-09-18)
 - **P62** A register that cannot go stale quietly (2026-09-18)
+- **P63** An engagement view, and a way to find one client (2026-09-18)
+- **P64** An acknowledgement that says what it looked at (2026-09-18)
+- **P65** An acknowledgement is a decision, not a default (2026-09-18)
+- **P66** Two commands, one answer about the register (2026-09-18)
+- **P67** Proved by arithmetic, or seen (2026-09-18)
+- **P68** The request list, as the schedule documents arrive against (2026-09-18)
+- **P69** Last year's model, rolled forward (2026-09-18)
 

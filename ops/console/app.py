@@ -124,6 +124,44 @@ class Console:
             )
         return rows
 
+    def engagements(self) -> list[dict[str, Any]]:
+        """The runs, folded by the thing an analyst actually thinks in.
+
+        Everything else on this console is indexed by run, which is the system's unit and
+        not the work's: a repeat client has several runs behind one engagement, and asking
+        "where does Northgate stand" meant reading every row. This folds the same rows the
+        runs panel already reads - no second source, so the two cannot disagree.
+
+        What a line carries is what the console knows. There is deliberately no valuation
+        date: the engagement profile's two `as_of` fields belong to `size_band` and
+        `fiscal_calendar`, neither of which is one, and a date on the screen that nothing
+        in the system means is worse than no date. It is an interview question
+        (BUILD/OPEN.md).
+        """
+        by_engagement: dict[str, list[dict[str, Any]]] = {}
+        for row in self.runs():
+            by_engagement.setdefault(str(row["engagement_id"]), []).append(row)
+
+        lines = []
+        for engagement_id, rows in by_engagement.items():
+            rows.sort(key=lambda r: str(r.get("started_at") or ""), reverse=True)
+            newest = rows[0]
+            lines.append(
+                {
+                    "engagement_id": engagement_id,
+                    **self._label(engagement_id),
+                    "runs": len(rows),
+                    "run_ids": [str(r["run_id"]) for r in rows],
+                    "state": newest["state"],
+                    "latest_run_id": str(newest["run_id"]),
+                    "last_ts": max(str(r.get("last_ts") or "") for r in rows),
+                    "open_review_items": sum(int(r.get("open_review_items") or 0) for r in rows),
+                    "needs_attention": sum(1 for r in rows if str(r["state"]) in NEEDS_ATTENTION),
+                }
+            )
+        lines.sort(key=lambda line: str(line["last_ts"]), reverse=True)
+        return lines
+
     def run(self, run_id: str) -> dict[str, Any]:
         record = self.store.run(run_id)
         card = self.scorecard.score(run_id)
@@ -378,6 +416,10 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
     @app.get("/api/runs")
     def runs(engagement_id: str | None = None) -> list[dict[str, Any]]:
         return console.runs(engagement_id)
+
+    @app.get("/api/engagements")
+    def engagements() -> list[dict[str, Any]]:
+        return console.engagements()
 
     @app.get("/api/runs/{run_id}")
     def run(run_id: str) -> dict[str, Any]:
@@ -784,6 +826,16 @@ that exact name, and a page cannot know every event type this system will ever e
 type it had not seen before was dropped without a word. The type rides in the body, which is
 where the page reads it from anyway."""
 
+NEEDS_ATTENTION = ("quarantined", "waiting")
+"""The run states that want a person. Named once here because the page counts them for its
+chrome and `engagements()` counts them per engagement; two lists would drift, and the one
+that drifted would be the one nobody was reading. A test pins the page's literal to this.
+
+`blocked` was on this list until C36 asked whether every name on it was a state the store
+can produce. It is not: `blocked` is an `Outcome`, carried by a *halted* run, and no run is
+ever in it. Nothing counted it, because nothing could - which is why it survived. A list
+naming a state that cannot occur reads as coverage it has not got."""
+
 
 def _frame(event_type: str, event_id: str, data: dict[str, Any], reducer: TraceReducer) -> bytes:
     body = {
@@ -883,7 +935,15 @@ PAGE = (
  <div class="board">
   <section class="card" style="grid-area:runs">
    <header><h2>Runs<span class="of" id="n-runs"></span></h2>
-    <p class="why">Newest first. Pick one to see what it did, step by step, as it happened.</p></header>
+    <p class="why">Grouped by engagement, newest first, because a repeat client is one
+     job with several runs. Pick one to see what it did, step by step, as it happened.</p>
+    <div class="filter">
+     <input id="q" type="search" placeholder="Find a client, engagement or scope"
+      autocomplete="off" spellcheck="false" aria-label="Filter runs by client, engagement or scope"
+      oninput="applyFilter()">
+     <button class="btn small" id="q-clear" data-act="clearFilter" hidden>Clear</button>
+    </div>
+    <p class="why" id="q-says" hidden></p></header>
    <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 
@@ -954,17 +1014,31 @@ ACTIONS.open = d => open_(d.run);
 ACTIONS.review = d => { open_(d.run); review(d.run, d.item); };
 ACTIONS.runAction = d => runAction(d.run, d.do);
 ACTIONS.reveal = d => revealProposal(d.run, d.item);
+ACTIONS.clearFilter = () => { const q = $('q'); if (q) { q.value = ''; q.focus(); } paintRuns(); };
 
-/* The run states, in the three colours that carry meaning: fine, attention, problem. */
-const STATE_TONE = {delivered: 'good', released: 'good', halted: 'bad', quarantined: 'warn',
-  waiting: 'warn', blocked: 'warn', queued: '', running: 'accent', superseded: ''};
+/* Narrowing is a redraw of what the page already has, not a request: the answer is in
+   RUNS, and asking the server again would make a person wait to be told something the
+   browser knew. Nothing here is interpolated into script - the rows are rebuilt by
+   runRow, which reads data through esc() exactly as the unfiltered list does. */
+function applyFilter() { paintRuns(); }
+
+/* The run states, in the three colours that carry meaning: fine, attention, problem.
+   Every key is a state `RunState` can actually hold - `released` and `blocked` sat here
+   for a while and are neither (the first is called `delivered`, the second is an outcome),
+   so both were dead entries reading as coverage. C36 asks that of every key. */
+const STATE_TONE = {delivered: 'good', halted: 'bad', quarantined: 'warn',
+  waiting: 'warn', queued: '', running: 'accent', superseded: ''};
 const STATE_SAYS = {
   quarantined: 'stopped on itself - a step failed in a way retrying will not fix',
   waiting: 'stopped on a person - it resumes when the review items are answered',
   halted: 'ended without delivering - nothing partial left the system',
   running: 'working now', queued: 'waiting for a worker', superseded: 'replaced by a newer run',
 };
-const NEEDS_ATTENTION = new Set(['quarantined', 'waiting', 'blocked']);
+/* The states that want a person. It must match `NEEDS_ATTENTION` in ops/console/app.py,
+   and a test says so: the page counts them for its chrome and `engagements()` counts them
+   per engagement, and two lists would drift. Not 'blocked' - that is an outcome a halted
+   run carries, never a state a run is in. */
+const NEEDS_ATTENTION = new Set(['quarantined', 'waiting']);
 /* The scorecard's verdicts, which are not the run's states: pass, pass_with_exceptions,
    partial, blocked, halted. Coloured here so the two vocabularies cannot drift apart. */
 const VERDICT_TONE = {pass: 'good', pass_with_exceptions: 'good', partial: 'warn',
@@ -1013,7 +1087,14 @@ async function refresh() {
       + `</span>`
     : '';
 
-  $('runs').innerHTML = RUNS.length ? RUNS.map(r => `<div class="r pick${r.run_id === current ? ' on' : ''}" role="button" tabindex="0" data-act="open" data-run="${esc(r.run_id)}">
+  paintRuns();
+  paintRest(inbox, alerts);
+}
+
+/* One run, as a row. Pulled out of the panel so the grouped list and the filtered list
+   are the same row rather than two that have to be kept looking alike. */
+function runRow(r) {
+  return `<div class="r pick${r.run_id === current ? ' on' : ''}" role="button" tabindex="0" data-act="open" data-run="${esc(r.run_id)}">
      <span class="lbl"><b>${runName(r)}</b>
       <span class="sub" style="display:block;white-space:normal">${esc(r.engagement_id)}${r.scope_path ? ' &middot; ' + esc(r.scope_path) : ''} &middot; <span class="mono" title="run id">${esc(r.run_id)}</span></span>
       ${r.state_reason && r.state !== 'delivered' ? `<span class="why-line" title="${esc(r.state_reason)}">${esc(r.state_reason)}</span>` : ''}
@@ -1023,15 +1104,71 @@ async function refresh() {
       <span class="sub">${esc(ago(r.last_ts || r.started_at))}${r.open_review_items ? ` &middot; <span class="count" title="open review items">${r.open_review_items}</span>` : ''}</span>
       ${r.queue && r.queue.waiting_on ? `<span class="sub">#${r.queue.position} behind ${esc(r.queue.waiting_on)}</span>` : ''}
      </span>
-    </div>`).join('')
+    </div>`;
+}
+
+/* What the find box matches on: the words a person would type looking for one job -
+   the client's name, the engagement, the scope, the run id. Never the state, because
+   "waiting" is a pill you can already see and matching it would hide the rest. */
+function haystack(r) {
+  return [r.client, r.engagement_id, r.scope_path, r.run_id].join(' ').toLowerCase();
+}
+
+function matching() {
+  const q = ($('q') ? $('q').value : '').trim().toLowerCase();
+  return q ? RUNS.filter(r => haystack(r).includes(q)) : RUNS.slice();
+}
+
+/* Runs, folded by engagement. An analyst thinks in clients: a repeat client is one job
+   with several runs behind it, and before this the only way to see that was to read
+   every row and notice the ids repeating. Groups sort by their newest run, runs within
+   a group by their own - so what moved last is at the top at both levels. */
+function paintRuns() {
+  const rows = matching();
+  const q = ($('q') ? $('q').value : '').trim();
+  const clear = $('q-clear'); const says = $('q-says');
+  if (clear) clear.hidden = !q;
+  if (says) {
+    says.hidden = !q;
+    says.textContent = q
+      ? (rows.length ? `${plural(rows.length, 'run', 'runs')} matching “${q}”.`
+                     : `Nothing matches “${q}”. ${plural(RUNS.length, 'run', 'runs')} in all.`)
+      : '';
+  }
+
+  const groups = new Map();
+  for (const r of rows) {
+    const key = r.engagement_id;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  const ordered = [...groups.entries()].sort((a, b) =>
+    String(b[1][0].started_at || '').localeCompare(String(a[1][0].started_at || '')));
+
+  $('runs').innerHTML = rows.length ? ordered.map(([id, rs]) => {
+    const open = rs.reduce((n, r) => n + (r.open_review_items || 0), 0);
+    const attention = rs.filter(r => NEEDS_ATTENTION.has(r.state)).length;
+    const last = rs.map(r => r.last_ts || r.started_at).sort().pop();
+    return `<div class="grp">
+      <div class="grp-head">
+       <b>${esc(rs[0].client || id)}</b>
+       <span class="sub">${esc(rs[0].scope_path || '')}</span>
+       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="open review items">${open}</span> waiting` : ''}${attention ? ` &middot; <b style="color:var(--gold)">${attention} need attention</b>` : ''} &middot; ${esc(ago(last))}</span>
+      </div>
+      <div class="grp-runs">${rs.map(runRow).join('')}</div>
+     </div>`;
+  }).join('')
+   : (RUNS.length ? `<div class="empty"><b>No run matches</b>Nothing here matches what you typed. Clear the box to see all ${RUNS.length}.</div>`
    : `<div class="empty" style="text-align:left;padding:.6rem .2rem"><b>No runs yet - here is how one starts</b>
       <div class="steps" style="margin-top:.6rem">
        <div class="step"><span class="mark">1</span><span><span class="t">Set up an engagement</span><span class="d">On <a href="/admin">Setup</a>: the client, its practice group and its profile.</span></span></div>
        <div class="step"><span class="mark">2</span><span><span class="t">Add the client&rsquo;s files</span><span class="d">The engagement&rsquo;s <b>files</b> button on Setup takes them by drag and drop.</span></span></div>
        <div class="step"><span class="mark">3</span><span><span class="t">Activate it</span><span class="d">When the files stop changing, a run starts and appears here.</span></span></div>
        <div class="step"><span class="mark">4</span><span><span class="t">Answer what it asks</span><span class="d">Items it is not sure about wait for you in <b>Waiting on a person</b>.</span></span></div>
-      </div></div>`;
+      </div></div>`);
+}
 
+function paintRest(inbox, alerts) {
   $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r pick" role="button" tabindex="0" data-act="review" data-run="${esc(i.run_id)}" data-item="${esc(i.item_id)}">
      <span class="lbl"><b>${esc(i.subject || i.item_id)}</b>
       <span class="sub" style="display:block;white-space:normal">${i.client ? esc(i.client) + ' &middot; ' : ''}${esc(i.skill || i.kind || '')}${i.due_at ? ' &middot; due ' + esc(i.due_at.slice(0, 16).replace('T', ' ')) : ''}</span></span>
