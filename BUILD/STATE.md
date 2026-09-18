@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **59 of 59 phases closed**
-- Last green checkpoint: **C32**
+- **60 of 60 phases closed**
+- Last green checkpoint: **C33**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -78,4 +78,5 @@
 - **P57** Approving a recipe on a machine that has none (2026-09-17)
 - **P58** The documented command works, or says why (2026-09-18)
 - **P59** The graph owns every loop, in fact (2026-09-18)
+- **P60** A quarantine that leaves something behind (2026-09-18)
 

@@ -312,6 +312,7 @@
    "PROCESS.REVIEW_SLA_BREACH": "process",
    "PROCESS.RUN_STALLED": "system",
    "PROCESS.STALE_DECISION": "process",
+   "PROCESS.TRANSPORT_EXHAUSTED": "system",
    "PROCESS.UNKNOWN_RUN": "process",
    "PROCESS.WORKER_LOST": "system",
    "SCOPE.ADAPTER_NOT_WIRED": "config",

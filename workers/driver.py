@@ -319,7 +319,7 @@ class RunDriver:
             constraints=w.constraints,
             review=self._reviewer(context),
         )
-        return executor.execute(
+        report = executor.execute(
             plan,
             run_id,
             run_inputs={
@@ -329,6 +329,14 @@ class RunDriver:
                 ),
             },
         )
+        if report.halt_on:
+            # A step declaring `on_failure: halt` failed. The executor stopped the pass and
+            # deliberately did not end the run: `RunState.HALTED` is terminal, and
+            # `store.transition` refuses a terminal state so that there is exactly one door
+            # out of a run with a manifest behind it. This is that door, and it is the same
+            # call `_halt` makes for a run that could not start.
+            self._halt_after(run_id, run.engagement_id, plan.plan_hash, report)
+        return report
 
     def _snapshot(self, run: Any) -> str:
         """The precedent snapshot this run compiles against.
@@ -368,6 +376,44 @@ class RunDriver:
             reason=str(refused.diagnostic)[:400],
         )
         return ExecutionReport(run_id=run.run_id, plan_hash=plan_hash, state=RunState.HALTED)
+
+    def _halt_after(
+        self, run_id: str, engagement_id: str, plan_hash: str, report: ExecutionReport
+    ) -> None:
+        """End a run whose step said `halt`. Terminal, with a manifest, nothing delivered.
+
+        `on_failure` has been on every step of every plan since P06 and was read by nothing,
+        so `halt` on `intake` and `mask` - which every shipped recipe declares - behaved as
+        an ordinary quarantine that a later pass could pick up again. It means what
+        `RunState.HALTED` says it means: ended without delivering, a guard refused, nothing
+        partial escapes.
+        """
+        from ops.manifest import close_out  # noqa: PLC0415
+        from ops.models import Outcome, RunState  # noqa: PLC0415
+
+        w = self.wiring
+        reason = f"{report.halt_on} failed and declares on_failure: halt"
+        w.bus.emit(
+            run_id=run_id,
+            engagement_id=engagement_id,
+            node_id="run_driver",
+            type="run.halted",
+            message=reason,
+            level="error",
+            step_id=report.halt_on,
+            payload={"step_id": report.halt_on},
+        )
+        close_out(
+            w.store,
+            run_id,
+            RunState.HALTED,
+            Outcome.HALTED,
+            w.delivery,
+            bus=w.bus,
+            contracts=w.contracts,
+            reason=reason,
+        )
+        report.state = RunState.HALTED
 
     def _write_precedents(self, run_id: str, entry: Any, profile: dict[str, Any]) -> None:
         """Every decision on this run that writes precedent, into the store, once.

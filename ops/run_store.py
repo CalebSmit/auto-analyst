@@ -1067,8 +1067,24 @@ class SqlRunStore:
     # -- quarantine
 
     def hold(self, run_id: str, record: QuarantineRecord) -> None:
+        """Record that a step was quarantined. Idempotent on `(run_id, step_key)`.
+
+        A quarantined step is not in the ledger, so a resumed pass re-reaches it, re-runs it
+        and quarantines it again. Before P60 nothing called this in production and the
+        question never arose; the moment it did, the second pass hit the table's own unique
+        constraint and raised inside the executor. Holding the same step twice is not new
+        information - the first record already says what happened, and the run's events carry
+        each attempt - so the second is dropped rather than raising or piling up.
+        """
         with self._session() as session:
             self._row(session, run_id)
+            existing = session.scalars(
+                select(Quarantine).where(
+                    Quarantine.run_id == run_id, Quarantine.step_key == record.step_key
+                )
+            ).first()
+            if existing is not None:
+                return
             session.add(
                 Quarantine(
                     run_id=run_id,

@@ -175,6 +175,7 @@ RECIPE_UNREGISTERED = "SCOPE.RECIPE_UNREGISTERED"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 WORKER_LOST = "PROCESS.WORKER_LOST"
+TRANSPORT_EXHAUSTED = "PROCESS.TRANSPORT_EXHAUSTED"
 PATH_UNREADABLE = "CONFIG.PATH_UNREADABLE"
 CREDENTIAL_EXPIRED = "CONFIG.CREDENTIAL_EXPIRED"
 PROFILE_INCOMPLETE = "CONFIG.PROFILE_INCOMPLETE"
@@ -505,6 +506,14 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A review item has been open longer than the review SLA allows. The run is still "
         "waiting and burning no budget; the item needs a decision from the named reviewer "
         "or an escalation to the engagement owner. Nothing here is a system fault.",
+    ),
+    TRANSPORT_EXHAUSTED: (
+        "system",
+        "Every retry this step was allowed failed to reach what it was calling. Retries "
+        "cover transport only - a timeout, a refused connection, a provider that did not "
+        "answer - so the step's own logic has not run and nothing it would have produced "
+        "is lost. Check whatever it was reaching for, then resume the run; resume is "
+        "replay, so only this step is re-attempted and nothing before it is paid for twice.",
     ),
     WORKER_LOST: (
         "system",

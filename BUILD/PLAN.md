@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**59 of 59 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**60 of 60 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -163,4 +163,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 |---|---|---|---|---|
 | [x] | **P59** The graph owns every loop, in fact | auto | A schema, provenance or tie-out rejection on a step declaring the matching region re-runs that step with the guard's failure in its context, and the second pass's context_ref differs from the first's | 2026-09-18 |
 | [x] | **C32 - A loop that can be entered** | integration | A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said. | 2026-09-18 |
+| [x] | **P60** A quarantine that leaves something behind | auto | store.quarantines() is non-empty for every run with a quarantined step, and a resumed pass over the same step key does not write a second record | 2026-09-18 |
+| [x] | **C33 - A run that ends says so** | integration | Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's. | 2026-09-18 |
 

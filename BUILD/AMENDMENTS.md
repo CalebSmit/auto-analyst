@@ -1197,3 +1197,26 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C32 after P59, covering P59
 - proves: A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said.
+
+## 2026-09-18 - P60 A quarantine that leaves something behind
+
+**Why:** RunStore.hold() is the only writer of a quarantine record and is reachable only from LoopController.exhaust, so the quarantine store has never held anything - against constraints.yaml's own rule that exhaustion always produces an artifact. And on_failure, which every recipe declares on every step, is parsed, validated, carried on Step, folded into the plan hash, and read zero times by anything that executes: halt, review and quarantine all behave identically.
+
+- phase added: P60 A quarantine that leaves something behind (The engine, gate: auto)
+- exit criterion: store.quarantines() is non-empty for every run with a quarantined step, and a resumed pass over the same step key does not write a second record
+- exit criterion: on_failure review opens an item, quarantine opens none, and halt ends the pass with the run closed out halted and a manifest written
+- exit criterion: The executor never moves a run into a terminal state
+- exit criterion: Every quarantine event carries the code its failure arrived with, including transport exhaustion
+
+## 2026-09-18 - P60 A quarantine that leaves something behind
+
+**Why:** Adds one public surface: the diagnostic code PROCESS.TRANSPORT_EXHAUSTED, owner system. Transport exhaustion was the one ending reaching _quarantine with no code at all - every other either carried a diagnostic or had one in hand and dropped it - so a run that failed because nothing answered was recorded as uncoded, and ops/analytics.py, which ranks the failure breakdown by that column, could not tell it from any other unlabelled ending. Added to registries/errors.py with a what_now saying what to check, and to the blueprint's ERRCODES table beside the other PROCESS codes, because a diagnostic the design does not list is one nobody reading the design can look up.
+
+- task added: A new diagnostic code for transport exhaustion, in the registry and in the blueprint's table
+
+## 2026-09-18 - C33 A run that ends says so
+
+**Why:** P60 closes the engine block: the loops turn and what an ending leaves behind is real. What remains on OPEN.md needs a decision rather than a fix.
+
+- checkpoint added: C33 after P60, covering P60
+- proves: Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's.

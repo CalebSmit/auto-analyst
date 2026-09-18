@@ -125,9 +125,27 @@ def test_the_record_is_write_once_per_key(store: SqlRunStore, started: str) -> N
         reason="test",
     )
     store.hold(started, record)
-    with pytest.raises(Exception, match="(?i)unique|integrity"):
-        store.hold(started, record)
+    store.hold(started, record)
     assert len(store.quarantines(started)) == 1
+
+    # One record per key, which is the guarantee, and it has not changed. What changed in
+    # P60 is what the second call does about it. This asserted that it *raised*, which was
+    # safe while nothing in production called `hold` at all: the moment the executor started
+    # writing records, a resumed pass - which re-reaches a quarantined step, because a
+    # quarantined step is not in the ledger - hit the table's unique constraint and the
+    # exception came back up through the executor. Resume is replay, not recovery; the same
+    # step quarantining again is the design working, and the first record already says what
+    # happened.
+    again = QuarantineRecord(
+        step_id="ebitda",
+        step_key="sha256:" + "a" * 64,
+        code="LOOP.EXHAUSTED",
+        owner="model",
+        reason="a different reason, on the same key",
+    )
+    store.hold(started, again)
+    (held,) = store.quarantines(started)
+    assert held.reason == "test", "the first record stands; a later pass does not rewrite it"
 
 
 def test_the_executor_builds_its_own_controller_when_given_none(

@@ -52,10 +52,10 @@ from graph.plan_assertions import check_plan
 from harness.loops import LoopController, RepairNeeded
 from ops.blobs import ContentRef, ContentStore, LocalContentStore
 from ops.events import EventBus
-from ops.models import RunState, StepStatus
-from ops.run_store import LateResult, RunStore
+from ops.models import RunState, StepStatus, now_iso
+from ops.run_store import LateResult, QuarantineRecord, RunStore
 from registries.constraints import ConstraintRegistry
-from registries.errors import RegistryError
+from registries.errors import TRANSPORT_EXHAUSTED, RegistryError
 
 __all__ = [
     "Attempt",
@@ -167,6 +167,11 @@ class ExecutionReport:
     halted: list[str] = field(default_factory=list)
     """Steps never started because something they depend on was quarantined."""
     blocked_on: str | None = None
+    halt_on: str | None = None
+    """The step whose `on_failure: halt` ended the pass. The run is over - nothing partial
+    escapes - but the executor does not end it: a terminal state goes through `end_run` so
+    a manifest is written, which is why `store.transition` refuses one. The driver reads
+    this and closes the run out."""
     state: RunState = RunState.RUNNING
     active_seconds: float = 0.0
 
@@ -280,7 +285,7 @@ class StepExecutor:
 
         for step_id in plan.order:
             step = plan.step(step_id)
-            if report.blocked_on or step_id in halted:
+            if report.blocked_on or report.halt_on or step_id in halted:
                 # Blocked: this pass is over, and the frontier is where the next one
                 # resumes from. Halted: something this step needs was quarantined, and
                 # a step whose input never arrived did not fail - it never started.
@@ -301,6 +306,11 @@ class StepExecutor:
             elif outcome is StepOutcome.QUARANTINED:
                 report.quarantined.append(step_id)
                 halted |= dependents(plan, step_id)
+                if step.on_failure == "halt":
+                    # "Nothing partial escapes." Not the Blocked path, which is a question
+                    # in somebody's inbox and leaves the run resumable: this is an ending.
+                    # Every remaining step is NOT_REACHED, including independent branches.
+                    report.halt_on = step_id
             elif outcome is StepOutcome.BLOCKED:
                 report.blocked_on = step_id
 
@@ -406,7 +416,8 @@ class StepExecutor:
                         step,
                         record.reason,
                         key,
-                        diagnostic_code=record.code,
+                        held=True,  # LoopController.exhaust wrote a fuller one
+                        diagnostic_code=str(record.code),
                         review_item_id=record.review_item_id,
                     )
                 inputs = next_inputs
@@ -543,6 +554,7 @@ class StepExecutor:
             step,
             f"{allowed + 1} transport attempt(s) failed: {last}",
             key,
+            diagnostic_code=TRANSPORT_EXHAUSTED,
         )
 
     # -- endings
@@ -565,7 +577,7 @@ class StepExecutor:
         return StepOutcome.BLOCKED
 
     @staticmethod
-    def _code_of(failure: BaseException) -> dict[str, str]:
+    def _code_of(failure: BaseException) -> dict[str, Any]:
         """The failure's diagnostic code as a payload, or nothing at all.
 
         Nothing at all on purpose: a failure that carries no diagnostic - an
@@ -583,12 +595,78 @@ class StepExecutor:
         step: Step,
         reason: str,
         key: str,
+        *,
+        held: bool = False,
         **payload: Any,
     ) -> StepOutcome:
         """Nothing is deleted. A quarantined step can be re-run by key once the cause is
-        fixed, and the ledger makes that safe rather than duplicative."""
+        fixed, and the ledger makes that safe rather than duplicative.
+
+        And something is written. `constraints.yaml` says exhaustion always produces an
+        artifact - a quarantine record or a review item - and until P60 the only code that
+        honoured it was `LoopController.exhaust`, which nothing could reach. So the
+        quarantine store was permanently empty: a run stopped, an event was emitted, and
+        nobody was told. Three of the four endings that reach here wrote nothing at all.
+
+        `held` is passed by the one caller that has already written a record - the loop
+        exhaustion path, which builds a fuller one with the iteration history on it. Exactly
+        one record per quarantine, either way.
+        """
+        code = str(payload.get("diagnostic_code") or "PROCESS.QUARANTINED")
+        if not held:
+            self.store.hold(
+                run_id,
+                QuarantineRecord(
+                    step_id=step.id,
+                    step_key=key,
+                    code=code,
+                    owner=str(payload.get("owner") or "system"),
+                    reason=reason,
+                    loop=None,
+                    diagnostic={"code": code, "detail": reason},
+                    review_item_id=payload.get("review_item_id"),
+                    held_at=now_iso(),
+                ),
+            )
+
+        # `on_failure` has been parsed, validated, carried on every Step and folded into
+        # every plan hash since P06, and read by nothing that executes - so `halt`, `review`
+        # and `quarantine` all ended a step the same way. `review` is the one that costs a
+        # person something when it is ignored: it says a human should look at this, and
+        # nobody was ever told.
+        if step.on_failure == "review" and not payload.get("review_item_id"):
+            item_id = f"quarantine:{step.id}:{key[7:19]}"
+            self.store.open_review_item(
+                run_id,
+                item_id,
+                kind="quarantined",
+                subject=f"{step.label or step.id} stopped: {code}",
+                detail={"step_key": key, "diagnostic": {"code": code}, "quarantine": True},
+            )
+            payload["review_item_id"] = item_id
+            self._emit(
+                run_id,
+                plan,
+                step,
+                "hitl.item.queued",
+                f"{step.id} quarantined and declares on_failure: review",
+                key,
+                level="warn",
+                item_id=item_id,
+            )
+
         self.store.finish_step(run_id, step.id, StepStatus.QUARANTINED, reason=reason)
-        self._emit(run_id, plan, step, "step.quarantined", reason, key, level="error", **payload)
+        self._emit(
+            run_id,
+            plan,
+            step,
+            "step.quarantined",
+            reason,
+            key,
+            level="error",
+            on_failure=step.on_failure,
+            **payload,
+        )
         return StepOutcome.QUARANTINED
 
     def _close_pass(self, run_id: str, report: ExecutionReport) -> ExecutionReport:

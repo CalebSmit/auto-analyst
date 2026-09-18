@@ -1914,6 +1914,35 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P60",
+      "title": "A quarantine that leaves something behind",
+      "block": "The engine",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A run that quarantines tells nobody. The step is finished QUARANTINED, an event is emitted, and that is the whole of it: no quarantine record, no review item, nobody assigned, nothing in the queue. constraints.yaml says exhaustion always produces an artifact - a quarantine record or a review item - and the code that honours it sits behind a path nothing could reach. Beside it, on_failure has been rendered on every plan and read by nothing, so a step declaring 'halt' and a step declaring 'review' end the same way as one declaring neither.",
+      "builds": [],
+      "tasks": [
+        "Every quarantined step leaves exactly one quarantine record, from every ending",
+        "A step declaring on_failure review opens a review item so a person is told; one declaring quarantine does not",
+        "A step declaring on_failure halt ends the run, and the driver closes it out rather than the executor moving it to a terminal state",
+        "A transport exhaustion carries a diagnostic code like every other ending",
+        "A new diagnostic code for transport exhaustion, in the registry and in the blueprint's table"
+      ],
+      "exit": [
+        "store.quarantines() is non-empty for every run with a quarantined step, and a resumed pass over the same step key does not write a second record",
+        "on_failure review opens an item, quarantine opens none, and halt ends the pass with the run closed out halted and a manifest written",
+        "The executor never moves a run into a terminal state",
+        "Every quarantine event carries the code its failure arrived with, including transport exhaustion"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p60 -q",
+        "python -m uv run pytest tests/p08 tests/p14 tests/p23 tests/p35 -q",
+        "python -m uv run pytest tests/checkpoints/c05 tests/checkpoints/c07 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2267,6 +2296,17 @@
       "proves": "A schema, provenance or tie-out rejection on a step whose recipe declares the matching region re-runs that step with the guard's own verdict in its context, masked with the run's identifiers by the one object that holds them - and nothing can name a region the recipe did not declare, substitute one loop for another, or raise a ceiling. The plan hash does not move and the blueprint needs no re-export, because the code caught up to what the design already said.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c32 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C33",
+      "title": "A run that ends says so",
+      "after": "P60",
+      "status": "done",
+      "proves": "Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c33 -q"
       ],
       "closed": "2026-09-18"
     }
