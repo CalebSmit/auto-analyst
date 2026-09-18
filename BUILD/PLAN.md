@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**72 of 72 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**73 of 73 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -181,6 +181,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C40 - An unwired seam is a decision, and the decision is on the record** | integration | The scan is quiet on the tree as it stands, so a failure means something new; every excused seam names a backlog item that exists and does not claim to be built; the two found today are resolved the two different ways they warranted - one deleted because there was nothing to record, one kept because there was; and the earlier findings of the same shape, P55's precedent wiring and P60's on_failure, are still wired. | 2026-09-18 |
 | [x] | **P72** A retry that can happen | auto | A connection error, a timeout, a rate limit and a server error each arrive at the executor as TransportFailure | 2026-09-18 |
 | [x] | **C41 - The retry path, joined at both ends** | integration | The class the adapter raises is the class the executor catches and it belongs to the port so both can see it; something in production raises it, checked the way the gap was found; the executor's retry loop, its event and its exhaustion code are all still there; transient and permanent remain different questions; and the fact that no rehearsal could have caught this - the fake and scripted adapters have no network - is recorded where somebody trusting a clean rehearsal will meet it. | 2026-09-18 |
+| [x] | **P73** An exception nobody raises | auto | An exception class constructed only by tests fails the check and is named | 2026-09-18 |
+| [x] | **C42 - Two scans for one defect, and the shape they share** | integration | Both scans are quiet on the tree, so a failure means something new; neither has stopped finding anything to look at; every excuse in either carries a reason; the two never excuse the same thing, which would let a defect hide behind whichever was read first; and the findings that paid for the scans - P55's precedent wiring, P60's on_failure, P72's retry - are all still fixed. | 2026-09-18 |
 
 ## Version one: the data it gathers
 

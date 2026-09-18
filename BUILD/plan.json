@@ -2260,6 +2260,31 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P73",
+      "title": "An exception nobody raises",
+      "block": "The engine",
+      "gate": "auto",
+      "status": "done",
+      "intent": "An exception class is a claim that something can go wrong in a particular way. When production never constructs one, the claim is false and everything downstream of it - a handler, an event, a diagnostic code, a retry count in a recipe - is unreachable while looking entirely correct. Construction rather than raising is the test, because the three that are properly wired here reach the raise through a factory or a variable and a narrower rule would report them every time.",
+      "builds": [],
+      "tasks": [
+        "An exception class in a shipped package that production never constructs fails the suite",
+        "A class reached through a factory or a variable is not reported, because those are wired",
+        "An exception may be excused only with a reason, as with the unwired functions"
+      ],
+      "exit": [
+        "An exception class constructed only by tests fails the check and is named",
+        "The three reached through a factory or a variable - BudgetExceeded, NotAuthenticated, RepairNeeded - are not reported",
+        "The scan is quiet on the tree as it stands, so a failure means something new"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p73 -q",
+        "python -m uv run pytest tests/p71 tests/p72 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2712,6 +2737,17 @@
       "proves": "The class the adapter raises is the class the executor catches and it belongs to the port so both can see it; something in production raises it, checked the way the gap was found; the executor's retry loop, its event and its exhaustion code are all still there; transient and permanent remain different questions; and the fact that no rehearsal could have caught this - the fake and scripted adapters have no network - is recorded where somebody trusting a clean rehearsal will meet it.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c41 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C42",
+      "title": "Two scans for one defect, and the shape they share",
+      "after": "P73",
+      "status": "done",
+      "proves": "Both scans are quiet on the tree, so a failure means something new; neither has stopped finding anything to look at; every excuse in either carries a reason; the two never excuse the same thing, which would let a defect hide behind whichever was read first; and the findings that paid for the scans - P55's precedent wiring, P60's on_failure, P72's retry - are all still fixed.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c42 -q"
       ],
       "closed": "2026-09-18"
     }

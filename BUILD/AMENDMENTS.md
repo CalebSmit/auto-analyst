@@ -1424,3 +1424,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C41 after P72, covering P72
 - proves: The class the adapter raises is the class the executor catches and it belongs to the port so both can see it; something in production raises it, checked the way the gap was found; the executor's retry loop, its event and its exhaustion code are all still there; transient and permanent remain different questions; and the fact that no rehearsal could have caught this - the fake and scripted adapters have no network - is recorded where somebody trusting a clean rehearsal will meet it.
+
+## 2026-09-18 - P73 An exception nobody raises
+
+**Why:** P71 taught the suite to notice a public function nothing calls, and the same afternoon a hand-run variant of it on exception classes found TransportFailure - declared, documented, caught, given an event and a diagnostic code, wired into every recipe's retries, and raised by nothing outside a test. That is twice this shape has cost real work: P55 found RepairNeeded the same way, by hand. The variant that found it is four lines different from the one now in the suite, and leaving it out means the next one is found by hand again, if at all.
+
+- phase added: P73 An exception nobody raises (The engine, gate: auto)
+- exit criterion: An exception class constructed only by tests fails the check and is named
+- exit criterion: The three reached through a factory or a variable - BudgetExceeded, NotAuthenticated, RepairNeeded - are not reported
+- exit criterion: The scan is quiet on the tree as it stands, so a failure means something new
+
+## 2026-09-18 - C42 Two scans for one defect, and the shape they share
+
+**Why:** P71 and P73 look for the same defect from two directions - something built, correct and unreachable - and the build has paid for it five times between P55, P60 and P72, every one found by a person reading. The checkpoint keeps the pair honest, because the place a check of this kind dies is its allowlist.
+
+- checkpoint added: C42 after P73, covering P73
+- proves: Both scans are quiet on the tree, so a failure means something new; neither has stopped finding anything to look at; every excuse in either carries a reason; the two never excuse the same thing, which would let a defect hide behind whichever was read first; and the findings that paid for the scans - P55's precedent wiring, P60's on_failure, P72's retry - are all still fixed.

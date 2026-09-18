@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **72 of 72 phases closed**
-- Last green checkpoint: **C41**
+- **73 of 73 phases closed**
+- Last green checkpoint: **C42**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -91,4 +91,5 @@
 - **P70** The gate can always say why (2026-09-18)
 - **P71** Nothing is built and wired to nothing (2026-09-18)
 - **P72** A retry that can happen (2026-09-18)
+- **P73** An exception nobody raises (2026-09-18)
 
