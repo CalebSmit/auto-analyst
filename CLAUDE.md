@@ -107,6 +107,13 @@ or fixture; `python tools/interview.py scan` must print `clean` before a
 session ends. Run `python tools/interview.py status` to see where the interview stands and
 what the code says the focus division is still missing.
 
+The scan checks `knowledge/identifiers.txt`, and it refuses rather than passing over an
+empty one. `interview.py suggest` reads the answers already recorded and proposes what has
+the shape of a name; `interview.py register NAME` adds one. If a session genuinely named
+nobody - which was true of the first three - a person records that with
+`interview.py register --none "..."`, and that acknowledgement expires as soon as another
+session is logged. **Never invent a name to fill the register.**
+
 ## What this project is
 
 An AI analyst pipeline for Chartwell: DDR extraction and tagging, financial statement

@@ -91,10 +91,11 @@ Before the next question:
    Use `covered` only when the topic's `done_when` is actually met.
 4. **Queue follow-ups** in `followups.md` as `- [ ] ...` for anything worth returning to
    that you are not asking next. Tick `- [x]` ones you have asked.
-5. **Add identifiers** to `identifiers.txt`: every client name, person's name, entity,
-   place, account or product name that could identify a client, the moment it appears.
-   Not at the end - `scan` is step 6 of the close-out and refuses an empty register, so a
-   session that leaves this until then has left it until after every answer was given.
+5. **Add identifiers** the moment a name appears:
+   `python tools/interview.py register "Northgate Dental Partners" "R. Whitfield"` -
+   every client, person, entity, place, account or product name that could identify a
+   client. Not at the end: `scan` is step 6 of the close-out and refuses an empty register,
+   so a session that leaves this until then has left it until after every answer was given.
    `status` says so at step 2 when the register is empty and there is something to check.
 6. **Contradictions are findings.** If an answer contradicts an earlier answer, the code,
    a skill's reference file or the blueprint, say so plainly and ask which is right. Do
@@ -126,9 +127,18 @@ touched unless something went wrong.
 6. **Close out every session, built or not:**
    - `python tools/interview.py scan` must print `clean`. If it finds an identifier in a
      committable file, remove it from that file (codename or generic wording) and rescan.
-     If it prints `UNCHECKED`, the register is empty and something has been learned: the
-     names go in `identifiers.txt` first. Do not work around it - that refusal is the
-     check. **Never invent a name to fill it**; ask.
+
+     If it prints `UNCHECKED`, the register is empty and something has been learned. Run
+     `python tools/interview.py suggest` - it reads the answers already in `knowledge/` and
+     proposes what has the shape of a name, with where each appeared - then `register` the
+     real ones. **Never invent a name to fill it**; ask.
+
+     If the session genuinely named nobody - which happens, and did for the first three -
+     the person records that they looked:
+     `python tools/interview.py register --none "no client was named this session"`.
+     That is theirs to run, not yours to run for them: it records that a person checked.
+     It expires as soon as another session is logged. Do not work around the refusal any
+     other way - it is the check.
    - `python tools/verify.py --fast`, and the full `python tools/verify.py` if code changed.
    - `python tools/gate.py render`.
    - Tell them in two lines what changed and what the next session will pick up.

@@ -193,7 +193,10 @@ def test_status_says_the_close_out_will_refuse_before_the_first_question(
     out = capsys.readouterr().out
     assert "identifiers kept inside knowledge/: 0" in out
     assert "will refuse" in out
-    assert "identifiers.txt" in out
+    # And it says what to do about it, which is the difference between a warning and a
+    # nag. P56 added the two commands; naming them here keeps the two phases honest.
+    assert "interview.py suggest" in out
+    assert "interview.py register" in out
 
 
 def test_status_stays_quiet_when_there_is_nothing_to_warn_about(

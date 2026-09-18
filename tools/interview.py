@@ -10,6 +10,8 @@ Claude Code on this machine.
     python tools/interview.py session           # open today's session log, print its path
     python tools/interview.py mark <topic> covered --note "..."
     python tools/interview.py scan              # any identifier outside knowledge/
+    python tools/interview.py suggest           # what in knowledge/ looks like a name
+    python tools/interview.py register NAME     # put one in the register (--none if there are none)
     python tools/interview.py topics            # the whole coverage map, in asking order
 
 Everything the interview learns lives under `knowledge/`, committed so it travels with the
@@ -75,7 +77,13 @@ SKELETON: dict[str, str] = {
     "identifiers.txt": (
         "# Client names, people, places, account and entity names that appeared in answers\n"
         "# or documents. One per line. `interview.py scan` refuses any file outside knowledge/\n"
-        "# that contains one of them. Add to it the moment a name is mentioned.\n"
+        "# that contains one of them. Add to it the moment a name is mentioned:\n"
+        "#\n"
+        "#     python tools/interview.py suggest            what already looks like a name\n"
+        "#     python tools/interview.py register NAME      add it\n"
+        "#     python tools/interview.py register --none \"why\"\n"
+        "#         if nobody has been named yet - records that a person looked, and\n"
+        "#         stops counting the moment another session is logged\n"
     ),
     "coverage.yaml": "topics: {}\n",
     "projects/README.md": (
@@ -402,9 +410,11 @@ def _status() -> int:
         # been given. Saying it here, at step 2, is the difference between a note to act on
         # while asking and a wall at the end of the session.
         print("  `interview.py scan` will refuse to close this session: knowledge/ holds")
-        print("  answers and the register is empty. Every client, person, place and entity")
-        print("  named in an answer goes in knowledge/identifiers.txt, one per line - add")
-        print("  them as they come up rather than at the end.")
+        print("  answers and the register is empty. Add names as they come up rather than")
+        print("  at the end:")
+        print("      python tools/interview.py suggest     what already looks like a name")
+        print("      python tools/interview.py register NAME [NAME ...]")
+        print("      python tools/interview.py register --none \"...\"   if nobody was named")
     return 0
 
 
@@ -427,6 +437,14 @@ def _scan() -> int:
         print(f"FAIL: {len(hits)} identifier(s) outside knowledge/")
         return 1
     if not names:
+        reviewed = reviewed_empty()
+        if reviewed and _review_is_current(KNOWLEDGE, reviewed[0]):
+            on, who = reviewed
+            print(f"clean: the register is empty on purpose - reviewed {on} by {who}.")
+            print("       Nothing outside knowledge/ was searched, because nothing has been")
+            print("       named to search for. A session recorded after that date makes this")
+            print("       stale and the check refuses again.")
+            return 0
         if _knowledge_has_answers():
             # `clean` over an empty register is the most dangerous thing this command can
             # print: it is the check CLAUDE.md names as the one that keeps client data inside
@@ -434,10 +452,21 @@ def _scan() -> int:
             # write a name in the file. A check that cannot fail is worse than no check,
             # because the record says it ran.
             print("UNCHECKED: knowledge/ holds answers and knowledge/identifiers.txt is empty.")
-            print("           Nothing was looked for, so nothing was found. Add every client,")
-            print("           person, place and entity named in an answer, one per line, then")
-            print("           re-run. This is the whole of what keeps those names out of a")
-            print("           skill, a methodology file or a fixture.")
+            if reviewed is not None:
+                print(f"           It was reviewed on {reviewed[0]}, and a session has been")
+                print("           recorded since. An acknowledgement covers the answers that")
+                print("           existed when it was written, not the ones that came after.")
+            print("           Nothing was looked for, so nothing was found. Two ways out:")
+            print("")
+            print("             python tools/interview.py suggest")
+            print("                 what in knowledge/ has the shape of a name, and where")
+            print("             python tools/interview.py register NAME [NAME ...]")
+            print("                 add them - every client, person, place and entity")
+            print("             python tools/interview.py register --none \"...\"")
+            print("                 record that you looked and there is nothing to register")
+            print("")
+            print("           This is the whole of what keeps those names out of a skill, a")
+            print("           methodology file or a fixture. Do not work around it.")
             return 1
         # And the other empty case, which is not a failure and must not read like one: a
         # clone before its first interview has nothing to check for, and saying so is the
@@ -487,6 +516,317 @@ def _knowledge_has_answers(knowledge: Path = KNOWLEDGE) -> bool:
     return any(p.is_file() and p.name != "README.md" for p in (knowledge / "projects").rglob("*"))
 
 
+# ------------------------------------------------------- proposing what to put in the register
+
+# Shapes that are worth a person's attention. Each names what it found and where; none of
+# them decides anything. Ordered most distinctive first, because that is the order somebody
+# reading a list wants them in.
+# Dotted forms first: alternation is ordered, and a bare `Co` would otherwise win over
+# `Co.` and leave the dot behind. The trailing lookahead is `(?!\w)` rather than `(?![\w.])`
+# because a company suffix at the end of a sentence is followed by a full stop, which is the
+# common case and which the stricter lookahead silently refused.
+_SUFFIX = (
+    r"L\.L\.C\.|Inc\.|Ltd\.|Corp\.|Co\.|"
+    r"LLC|Inc|Ltd|Corp|PLC|LLP|LP|PC|PA|Co|"
+    r"Partners|Holdings|Group|Capital|Ventures|Industries|Enterprises|Associates|"
+    r"Brands|Systems|Solutions|Technologies|Manufacturing|Properties|Realty|Trust|Foundation"
+)
+_PROPER = r"[A-Z][A-Za-z'&-]+"
+
+CANDIDATE_SHAPES: tuple[tuple[str, str, re.Pattern[str]], ...] = (
+    (
+        "entity",
+        "a proper name ending in a company suffix",
+        re.compile(rf"\b(?:{_PROPER}\s+){{1,4}}(?:{_SUFFIX})(?!\w)"),
+    ),
+    (
+        "person",
+        "an initial and a surname",
+        re.compile(r"\b(?:[A-Z]\.\s*){1,3}[A-Z][a-z]{2,}\b"),
+    ),
+    (
+        "person",
+        "an honorific and a surname",
+        re.compile(r"\b(?:Mr|Mrs|Ms|Miss|Dr|Prof|Messrs|Sr|Jr)\.?\s+[A-Z][a-z]{2,}\b"),
+    ),
+    (
+        "name-shaped",
+        "two or more capitalised words together",
+        re.compile(r"\b[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,}){1,3}\b"),
+    ),
+)
+
+# Words that start a sentence, name a month, or belong to this build rather than to a
+# client. Deliberately short: the real filter is the one below it, which asks whether a
+# phrase already appears in the repo's own committed text.
+_NOT_A_NAME = {
+    "January", "February", "March", "April", "May", "June", "July", "August",
+    "September", "October", "November", "December",
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+    "The", "This", "That", "There", "These", "Those", "They", "Then", "When", "What",
+    "Where", "Which", "While", "With", "Without", "From", "For", "And", "But", "Not",
+    "One", "Two", "Three", "First", "Second", "Third", "Next", "Last", "Each", "Every",
+    "Also", "After", "Before", "Once", "Only", "Both", "Either", "Neither", "Because",
+    "Session", "Answer", "Question", "Notes", "Evidence", "Size", "Status", "Files",
+    "Usually", "Often", "Always", "Never", "Sometimes", "Any", "Some", "Most", "All",
+    "Generally", "Typically", "Normally", "Currently", "Today", "Yesterday", "Tomorrow",
+    "If", "Unless", "Since", "Until", "During", "Between", "Above", "Below", "Per",
+    "Yes", "No", "Maybe", "Probably", "Nothing", "Something", "Anything", "Everything",
+    "It", "He", "She", "We", "You", "His", "Her", "Their", "Our", "Its",
+}
+
+
+@dataclass(frozen=True)
+class Candidate:
+    """Something in `knowledge/` that has the shape of a name. A proposal, never a verdict."""
+
+    text: str
+    kind: str
+    shape: str
+    count: int
+    first_seen: str
+    """`file:line` of the first place it appeared."""
+    outside: bool
+    """Whether it also appears in something git would commit. See `suggest()`."""
+
+
+def suggest(knowledge: Path = KNOWLEDGE, root: Path = ROOT) -> list[Candidate]:
+    """What in `knowledge/` looks like it belongs in the register.
+
+    The register has been empty through three sessions, and the reason is not carelessness:
+    filling it from memory means recalling every name mentioned across hours of conversation.
+    The answers are on disk. This reads them.
+
+    **It proposes and nothing else.** No file is written, the register is not touched, and a
+    name enters it because a person put it there - the same reason `privacy/` is deterministic
+    Python and no model performs re-identification. A shape is not a judgement about who
+    somebody is.
+
+    `outside` is the one piece of real information here rather than pattern-matching. A
+    phrase that already appears in something git would commit is usually this build's own
+    vocabulary - "Precedent Store", "Scope Resolver" - and not a client. But it is marked
+    rather than dropped, because the other reading is that a client's name has already
+    reached a committable file, which is precisely what the register exists to catch. A
+    filter that silently removed those would hide the only case that matters.
+    """
+    answers = _answer_files(knowledge)
+    known = {name.casefold() for name in identifiers(knowledge)}
+    found: dict[str, dict[str, Any]] = {}
+
+    for path in answers:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        where = path.relative_to(knowledge).as_posix()
+        for number, line in enumerate(text.splitlines(), start=1):
+            if line.lstrip().startswith(("#", ">", "|", "-", "*")) and "`" in line:
+                continue  # a heading or a table of the interview's own scaffolding
+            for kind, shape, pattern in CANDIDATE_SHAPES:
+                for match in pattern.finditer(line):
+                    phrase = _trim(match.group(0).strip(" ,;:"))
+                    if not _worth_proposing(phrase, known):
+                        continue
+                    entry = found.setdefault(
+                        phrase,
+                        {"kind": kind, "shape": shape, "count": 0, "first": f"{where}:{number}"},
+                    )
+                    entry["count"] += 1
+
+    # "Brightwater Holdings LLC" and "Brightwater Holdings" are one name proposed twice, and
+    # a list a person has to read is worth only as much as its signal. The longer, more
+    # confident shape wins; the fragment inside it is dropped.
+    stronger = {p for p, e in found.items() if e["kind"] != "name-shaped"}
+    found = {
+        phrase: e
+        for phrase, e in found.items()
+        if e["kind"] != "name-shaped" or not any(phrase in other for other in stronger)
+    }
+
+    committable = committable_files(root)
+    return sorted(
+        (
+            Candidate(
+                text=phrase,
+                kind=str(e["kind"]),
+                shape=str(e["shape"]),
+                count=int(e["count"]),
+                first_seen=str(e["first"]),
+                outside=bool(scan(committable, [phrase])),
+            )
+            for phrase, e in found.items()
+        ),
+        key=lambda c: (c.kind != "entity", c.kind != "person", -c.count, c.text),
+    )
+
+
+def _answer_files(knowledge: Path) -> list[Path]:
+    """Where an answer can have been written down. Not `backlog.md` or `coverage.yaml`,
+    which are the build's own bookkeeping, and not `identifiers.txt`, which is the answer."""
+    if not knowledge.is_dir():
+        return []
+    named = ("profile.md", "workflow.md", "decisions.md", "documents.md", "followups.md")
+    files = [knowledge / name for name in named if (knowledge / name).is_file()]
+    files += sorted((knowledge / "sessions").glob("????-??-??-*.md"))
+    files += sorted(p for p in (knowledge / "projects").rglob("*.md") if p.name != "README.md")
+    return files
+
+
+# ----------------------------------------------- a register that is empty on purpose
+
+_REVIEWED = re.compile(r"^#\s*reviewed\s+(\d{4}-\d{2}-\d{2})\s+by\s+([^:]+):", re.I)
+
+
+def reviewed_empty(knowledge: Path = KNOWLEDGE) -> tuple[str, str] | None:
+    """`(date, who)` if somebody has recorded that they looked and there was nothing.
+
+    An empty register does not have to mean nobody has checked. Three sessions of this
+    interview named no client at all - they were about how the work is done, not about whose
+    work it was - and a refusal that reads "answers exist, therefore names exist" is wrong in
+    exactly that case. The way out is not a cleverer detector. It is the same move
+    methodology clearance makes: a person reads something and records that they did, under
+    their own name, and the record is what the check reads.
+
+    It expires. An acknowledgement is about the answers that existed when it was written, so
+    a session log recorded after it does not inherit it - see `_review_is_current`. Otherwise
+    the first person to run this would have switched the check off permanently, which is the
+    failure P53 and P54 were both about.
+    """
+    path = knowledge / "identifiers.txt"
+    if not path.exists():
+        return None
+    for line in path.read_text(encoding="utf-8").splitlines():
+        found = _REVIEWED.match(line.strip())
+        if found:
+            return found.group(1), found.group(2).strip()
+    return None
+
+
+def _review_is_current(knowledge: Path, on: str) -> bool:
+    """Whether every recorded answer predates the review. A session opened the day of the
+    review counts as covered; one dated after it does not."""
+    logs = sorted((knowledge / "sessions").glob("????-??-??-*.md"))
+    return all(log.stem[:10] <= on for log in logs if _beyond_its_header(log))
+
+
+def add_identifiers(names: list[str], knowledge: Path = KNOWLEDGE) -> list[str]:
+    """Append names to the register, skipping any already there. Returns what was added."""
+    init(knowledge)
+    path = knowledge / "identifiers.txt"
+    known = {n.casefold() for n in identifiers(knowledge)}
+    fresh = [n.strip() for n in names if n.strip() and n.strip().casefold() not in known]
+    if fresh:
+        body = path.read_text(encoding="utf-8")
+        joined = "\n".join(fresh)
+        path.write_text(
+            body + ("" if body.endswith("\n") else "\n") + joined + "\n", encoding="utf-8"
+        )
+    return fresh
+
+
+def record_review(who: str, note: str, knowledge: Path = KNOWLEDGE, on: str | None = None) -> str:
+    """Write the acknowledgement that the register was looked at and is empty on purpose."""
+    init(knowledge)
+    path = knowledge / "identifiers.txt"
+    stamp = on or date.today().isoformat()
+    line = f"# reviewed {stamp} by {who}: {note}"
+    body = path.read_text(encoding="utf-8")
+    kept = [ln for ln in body.splitlines() if not _REVIEWED.match(ln.strip())]
+    path.write_text("\n".join([*kept, line]) + "\n", encoding="utf-8")
+    return line
+
+
+def _trim(phrase: str) -> str:
+    """Drop leading words that only start a sentence.
+
+    "Usually Excel" and "Any Cursor" are one capitalised word with an adverb in front of it,
+    picked up because the sentence began there. Stripping the opener and re-measuring is
+    better than rejecting the phrase: it leaves "Excel", which is one word and falls below
+    the threshold on its own, while "Usually Northgate Dental" keeps the part that matters.
+    """
+    words = phrase.split()
+    while words and words[0].strip(".,") in _NOT_A_NAME:
+        words.pop(0)
+    return " ".join(words)
+
+
+def _worth_proposing(phrase: str, known: set[str]) -> bool:
+    if len(phrase) < 4 or phrase.casefold() in known:
+        return False
+    return len(phrase.split()) > 1 or "." in phrase
+
+
+def _suggest() -> int:
+    candidates = suggest()
+    registered = identifiers()
+    print("# Candidates for knowledge/identifiers.txt\n")
+    print("Read from the answers already in knowledge/. Nothing here has been written")
+    print("anywhere: the register is changed by a person, one name per line. Reject freely -")
+    print("a name that is not a client's costs nothing to leave out, and a shape is not a")
+    print("judgement about who somebody is.\n")
+    if registered:
+        print(f"{len(registered)} already registered, and not proposed again.\n")
+    if not candidates:
+        print("Nothing in knowledge/ has the shape of a name.")
+        return 0
+
+    for kind in ("entity", "person", "name-shaped"):
+        group = [c for c in candidates if c.kind == kind]
+        if not group:
+            continue
+        print(f"## {kind} ({len(group)})")
+        for c in group:
+            times = "once" if c.count == 1 else f"{c.count} times"
+            mark = "  <- ALSO OUTSIDE knowledge/" if c.outside else ""
+            print(f"  {c.text}")
+            print(f"      {c.shape}, {times}, first at {c.first_seen}{mark}")
+        print()
+
+    if any(c.outside for c in candidates):
+        print("A candidate marked ALSO OUTSIDE already appears in a file git would commit.")
+        print("Usually that means it is this build's own vocabulary rather than a client's")
+        print("name - and if it is not, it is a name that has already left knowledge/, which")
+        print("is the one case the register exists to catch. Worth looking at either way.\n")
+
+    print(f"{len(candidates)} candidate(s). Add the real ones to knowledge/identifiers.txt,")
+    print("then run `python tools/interview.py scan`.")
+    return 0
+
+
+def _register(names: list[str], none: str | None, who: str) -> int:
+    if none is not None:
+        if identifiers():
+            print("The register is not empty; there is nothing to acknowledge.")
+            return 1
+        note = none or "reviewed: no client, person or entity has been named in an interview yet"
+        line = record_review(who, note)
+        print(f"recorded in knowledge/identifiers.txt:\n  {line}")
+        print("\nIt covers the answers recorded up to today. The next session makes it stale,")
+        print("which is the point: an acknowledgement is not a way of switching the check off.")
+        return 0
+    if not names:
+        print("Nothing to add. Give one or more names, or --none to record an empty register.")
+        return 2
+    added = add_identifiers(names)
+    skipped = [n for n in names if n not in added]
+    for name in added:
+        print(f"added: {name}")
+    for name in skipped:
+        print(f"already registered: {name}")
+    print(f"\n{len(identifiers())} identifier(s) in the register. Now: interview.py scan")
+    return 0
+
+
+def _who() -> str:
+    """Whoever is at this machine. The same answer the identity adapter gives a run."""
+    import getpass  # noqa: PLC0415
+
+    try:
+        return getpass.getuser()
+    except Exception:  # noqa: BLE001
+        return "unknown"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0] if __doc__ else "")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -494,6 +834,18 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("session", help="start a session log and print its path")
     sub.add_parser("topics", help="the coverage map in asking order")
     sub.add_parser("scan", help="identifiers in anything git would commit")
+    sub.add_parser("suggest", help="what in knowledge/ looks like it belongs in the register")
+    reg = sub.add_parser("register", help="add a name to the register, or record it as empty")
+    reg.add_argument("names", nargs="*", help="every client, person, place or entity name")
+    reg.add_argument(
+        "--none",
+        nargs="?",
+        const="",
+        default=None,
+        metavar="WHY",
+        help="record that you looked and there is nothing to register",
+    )
+    reg.add_argument("--who", default="", help="who reviewed it; defaults to this machine's user")
     marker = sub.add_parser("mark", help="record a topic's coverage")
     marker.add_argument("topic")
     marker.add_argument("status", choices=STATUSES)
@@ -510,6 +862,10 @@ def main(argv: list[str] | None = None) -> int:
         return _topics()
     if args.command == "scan":
         return _scan()
+    if args.command == "suggest":
+        return _suggest()
+    if args.command == "register":
+        return _register(args.names, args.none, args.who or _who())
     if args.command == "mark":
         entry = mark(args.topic, args.status, args.note, args.session)
         print(f"{args.topic}: {entry['status']}")

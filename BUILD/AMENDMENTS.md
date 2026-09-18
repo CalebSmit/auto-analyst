@@ -1094,3 +1094,27 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C28 after P55, covering P55
 - proves: The system the command assembles reads precedent into every context it builds, carries what a release gate is built from, and records a failure under the code it arrived with - each asked of the object build() returns rather than of a double, because a double would have been wired correctly by whoever wrote it.
+
+## 2026-09-17 - P56 The register, fillable from what was already said
+
+**Why:** The register that keeps a client's name inside knowledge/ is empty after three sessions, and the only way to fill it is for a person to remember every name they have ever mentioned. Nobody can do that, which is why it is still empty.
+
+- phase added: P56 The register, fillable from what was already said (The interview, gate: auto)
+- exit criterion: suggest names the candidates in this repo's knowledge/ and says which file and line each came from
+- exit criterion: It writes nothing: identifiers.txt is unchanged after it runs, proved by a test
+- exit criterion: A term already in the register is not proposed again, and ordinary prose is not proposed at all
+
+## 2026-09-17 - P56 The register, fillable from what was already said
+
+**Why:** suggest found no client names in three sessions of answers - the interview has been conducted generically throughout. So the refusal is a false alarm here, and the missing piece is not a better detector but a way for a person to record that they looked and there was nothing to register, which expires the moment a new answer arrives.
+
+- task added: A person can record that the register was reviewed and is deliberately empty, and that acknowledgement expires when a session newer than it is recorded
+- task added: register adds a name from the command line, so a session does not hand-edit the file mid-conversation
+- exit criterion added: An acknowledged-empty register scans clean and names who reviewed it and when; one with a session recorded after the review refuses again
+
+## 2026-09-17 - C29 The register, fillable
+
+**Why:** P56 closes the interview block: the register can now be filled from what was already said, and an empty one can be honest. The engine work that follows is a different block.
+
+- checkpoint added: C29 after P56, covering P56
+- proves: A name enters the register because a person put it there, and a person is given what they need to do it: what in knowledge/ has the shape of a name and where it appeared, a command that adds one, and - for a session that named nobody, which the first three did - an acknowledgement that a person signed and that expires the moment another session is logged. No path lets the check pass without somebody having looked.

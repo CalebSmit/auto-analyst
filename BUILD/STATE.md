@@ -5,9 +5,9 @@
 
 ## Where the build is
 
-- **55 of 55 phases closed**
-- Last green checkpoint: **C27**
-- Every phase is closed. **C28** is owed.
+- **56 of 56 phases closed**
+- Last green checkpoint: **C29**
+- **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
 
@@ -74,4 +74,5 @@
 - **P53** Three silent wrongs (2026-09-17)
 - **P54** The interview can finish again (2026-09-17)
 - **P55** Built, and wired to nothing (2026-09-17)
+- **P56** The register, fillable from what was already said (2026-09-17)
 
