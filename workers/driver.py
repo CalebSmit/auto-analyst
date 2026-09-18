@@ -527,6 +527,7 @@ class RunDriver:
         wired and has never run - which is the thing this whole block is fixing.
         """
         from deliver.builder import ModelBuilder
+        from deliver.release import ReleaseGate
 
         w = self.wiring
         mapping = self._output(attempt, "model")
@@ -538,7 +539,16 @@ class RunDriver:
             run_id=context.run_id,
             engagement_id=context.engagement_id,
         )
-        released = w.delivery and w.release_gate.release(  # type: ignore[attr-defined]
+        # Built here from the wiring rather than carried on it. This line used to read a
+        # gate off the wiring, and the wiring has never had one: `w.delivery` is truthy, so
+        # the `and` never short-circuited, and it would have raised AttributeError into a
+        # quarantine with no diagnostic code the first time any run reached release. It
+        # never has - both shipped recipes end at qc-tieout - so nothing found it.
+        #
+        # A field would have been the same bug waiting: one more thing the composition root
+        # must remember to pass, exactly like the Precedent Store it forgot. The gate needs
+        # a store, a bus and a delivery port, and the wiring already carries all three.
+        released = w.delivery and ReleaseGate(w.store, w.bus, w.delivery).release(
             context.run_id,
             context.engagement_id,
             built.name,

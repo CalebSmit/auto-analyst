@@ -123,6 +123,10 @@ def test_every_seam_reads_as_joined_and_says_why() -> None:
         "intake",
         "step execution",
         "run execution",
+        # P55. It was joined in neither direction: the Precedent Store was built, handed to
+        # the lookup tool and to the driver, and not to the thing that reads it - so there
+        # was a seam here that nobody had noticed was a seam.
+        "precedent retrieval",
     }
     assert all(seam.ready for seam in seams.values()), [
         seam.name for seam in seams.values() if not seam.ready

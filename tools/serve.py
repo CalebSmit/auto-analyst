@@ -86,6 +86,45 @@ def steps_are_wired() -> bool:
     )
 
 
+def served_context(tree: Any, blobs: Any, bus: Any, store: Any, precedents: Any) -> Any:
+    """The Context Builder the served runtime uses. One construction site, on purpose.
+
+    It was two: the pool built one inside its dispatcher factory and handed it everything
+    except `precedents`, so every served run assembled context with `NoPrecedents()` while
+    the Precedent Store sat three lines above, already given to the lookup tool and to the
+    driver. Nothing failed. An answer a person gave on one engagement was simply never shown
+    to the model on the next, which is the whole of what the store is for.
+
+    A default that means "no precedent" is the right thing for a component test and the
+    wrong thing to be reachable by forgetting, so the argument is required here and this is
+    the only place the served graph names it. `precedent_is_wired()` asks this same function.
+    """
+    from harness.context import ContextBuilder  # noqa: PLC0415
+
+    return ContextBuilder(tree, blobs, bus, store=store, precedents=precedents)
+
+
+def precedent_is_wired() -> bool:
+    """Whether the context this server builds can retrieve precedent at all.
+
+    Asked by building one through `served_context` - the production construction site - and
+    looking at what it got, rather than by reading the source or trusting a constant. If
+    that call ever drops the argument again, this goes red on `serve.py --check` before a
+    run does it quietly.
+    """
+    from harness.context import NoPrecedents  # noqa: PLC0415
+
+    class _Probe:
+        def retrieve(self, query: Any) -> tuple[Any, ...]:
+            return ()
+
+    try:
+        built = served_context(None, None, None, None, _Probe())
+    except Exception:  # noqa: BLE001 - a seam report, not a startup path
+        return False
+    return not isinstance(built.precedents, NoPrecedents)
+
+
 def runs_are_wired() -> bool:
     """Whether anything drives a released run: a `PassRunner` the pool can be given.
 
@@ -106,6 +145,7 @@ def readiness() -> tuple[Seam, ...]:
     """What is joined, in the order a piece of work passes through it."""
     steps = steps_are_wired()
     runs = runs_are_wired()
+    precedent = precedent_is_wired()
     return (
         Seam(
             "admin",
@@ -137,6 +177,17 @@ def readiness() -> tuple[Seam, ...]:
             "been given, so a run released by intake sits with its lock taken. The step "
             "half of this is joined; what is missing is the half that carries a whole "
             "run. See BUILD/OPEN.md",
+        ),
+        Seam(
+            "precedent retrieval",
+            precedent,
+            "what a person decided on an earlier engagement is assembled into the context "
+            "for this one, masked, in the same practice group"
+            if precedent
+            else "the served runtime assembles every context with NoPrecedents(), so no "
+            "decision anybody has made is ever shown to the model. The store is built and "
+            "handed to the lookup tool and the driver; the Context Builder is not given "
+            "it. See BUILD/OPEN.md",
         ),
     )
 
@@ -371,7 +422,6 @@ def _pool(
     import ports  # noqa: PLC0415
     from guards.untrusted import UntrustedBoundary  # noqa: PLC0415
     from harness.budget import BudgetGovernor  # noqa: PLC0415
-    from harness.context import ContextBuilder  # noqa: PLC0415
     from harness.dispatch import SkillDispatcher  # noqa: PLC0415
     from harness.door import ModelDoor  # noqa: PLC0415
     from harness.policy import PolicyGate  # noqa: PLC0415
@@ -430,7 +480,7 @@ def _pool(
     def dispatcher_for(_run_id: str) -> SkillDispatcher:
         return SkillDispatcher(
             tree=tree,
-            context=ContextBuilder(tree, blobs, bus, store=store),
+            context=served_context(tree, blobs, bus, store, precedents),
             door=ModelDoor(ports.get_llm(), PayloadScan(bus), governor, meter, bus),
             runtime=runtime,
             contracts=contracts,

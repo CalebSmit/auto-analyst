@@ -1077,3 +1077,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C27 after P54, covering P54
 - proves: The check CLAUDE.md names as what keeps a client's name inside knowledge/ answers honestly in all three states on the repo as it stands - refusing an empty register over real answers, passing on a clone nobody has been interviewed on, and scanning for real when there is something to scan - and the protocol, the map and the session that run it all still describe the same command.
+
+## 2026-09-17 - P55 Built, and wired to nothing
+
+**Why:** Three things are built, registered, tested in isolation and connected to nothing in the only wiring that runs. Two of the three are reproduced rather than caught by the nearest end-to-end test, which is why each passed a full suite while doing nothing.
+
+- phase added: P55 Built, and wired to nothing (The consoles, gate: auto)
+- exit criterion: A served run assembles context from the Precedent Store, proved by a test that fails when the keyword argument is removed
+- exit criterion: serve.py --check reports precedent retrieval, and reports it unjoined when the wiring drops it
+- exit criterion: A release step runs end to end against a constructed ReleaseGate rather than raising AttributeError into an undiagnosed quarantine
+- exit criterion: A guard failure's quarantine carries its diagnostic code and appears in the analytics failure-code breakdown
+
+## 2026-09-17 - C28 Built, and wired to something
+
+**Why:** P55 closes the block: the three joins it makes are separable from the loop work behind them, and each is provable on the assembled system today.
+
+- checkpoint added: C28 after P55, covering P55
+- proves: The system the command assembles reads precedent into every context it builds, carries what a release gate is built from, and records a failure under the code it arrived with - each asked of the object build() returns rather than of a double, because a double would have been wired correctly by whoever wrote it.

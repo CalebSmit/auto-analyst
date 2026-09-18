@@ -215,6 +215,7 @@ def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> 
         "intake",
         "step execution",
         "run execution",
+        "precedent retrieval",
     }
     assert all(isinstance(s, Seam) for s in seams.values())
 

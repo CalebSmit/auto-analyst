@@ -107,7 +107,12 @@ def wiring(
         def dispatcher_for(_run_id: str) -> SkillDispatcher:
             return SkillDispatcher(
                 tree=tree,
-                context=ContextBuilder(tree, blobs, bus, store=store),
+                # `precedents=` on purpose. This is the nearest thing to the served wiring
+                # in the suite, and it reproduced production's omission rather than
+                # catching it: both built a ContextBuilder without it while holding the
+                # store, so a run that should have been shown an earlier decision was shown
+                # nothing, in the test as well as in the server.
+                context=ContextBuilder(tree, blobs, bus, store=store, precedents=precedents),
                 door=ModelDoor(port, PayloadScan(bus), governor, meter, bus),
                 runtime=runtime,
                 contracts=world["contracts"],

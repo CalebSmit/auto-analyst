@@ -471,7 +471,15 @@ class StepExecutor:
                 )
                 continue
             except Exception as failure:  # noqa: BLE001 - not a retry; it is an ending
-                return self._quarantine(run_id, plan, step, str(failure), key)
+                # The code, where the failure carried one. GuardFailed, PolicyDenied,
+                # ScanFailed and BudgetExceeded all subclass DiagnosticError and arrive
+                # holding it; `str(failure)` puts it in the message and nowhere a query can
+                # reach, and ops/analytics.py ranks the failure breakdown by the column. So
+                # no guard failure has ever appeared in it. A failure with no diagnostic
+                # keeps None rather than being given an invented one.
+                return self._quarantine(
+                    run_id, plan, step, str(failure), key, **self._code_of(failure)
+                )
 
             try:
                 self.store.commit_step(
@@ -498,7 +506,16 @@ class StepExecutor:
                 )
                 held = self.store.ledger_entry(key)
                 if held is None:
-                    return self._quarantine(run_id, plan, step, str(late), key)
+                    # PROCESS.LATE_RESULT. In hand two lines above, on the event that
+                    # discarded the result, and dropped on the way to the quarantine.
+                    return self._quarantine(
+                        run_id,
+                        plan,
+                        step,
+                        str(late),
+                        key,
+                        diagnostic_code=late.diagnostic.code,
+                    )
                 available[step.id] = ContentRef(
                     content_hash=held.result_ref,
                     media_type=held.media_type,
@@ -546,6 +563,18 @@ class StepExecutor:
             item_id=blocked.item_id,
         )
         return StepOutcome.BLOCKED
+
+    @staticmethod
+    def _code_of(failure: BaseException) -> dict[str, str]:
+        """The failure's diagnostic code as a payload, or nothing at all.
+
+        Nothing at all on purpose: a failure that carries no diagnostic - an
+        `InputsUnavailable`, an `AttributeError` from a wiring mistake - is better recorded
+        as uncoded than filed under a code somebody invented to fill the column.
+        """
+        diagnostic = getattr(failure, "diagnostic", None)
+        code = getattr(diagnostic, "code", None)
+        return {"diagnostic_code": code} if isinstance(code, str) else {}
 
     def _quarantine(
         self,

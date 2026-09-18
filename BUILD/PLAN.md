@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**54 of 54 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**55 of 55 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -141,6 +141,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P52** The map, answering what a person asks | auto | A person who has never seen the tool can say, from the first screen and without clicking, which run this is and what happened to it | 2026-09-17 |
 | [x] | **P53** Three silent wrongs | auto | A material add-back routes to review whether its figure is positive or negative, and a test proves it by failing without the fix | 2026-09-17 |
 | [x] | **C26 - The map, whole** | integration | The full-design map on the assembled system - the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page - and the three silent wrongs found beside it: materiality read as magnitude, a comparative statement stopped rather than misread, and a person's name refused into the store that is read across clients. | 2026-09-17 |
+| [x] | **P55** Built, and wired to nothing | auto | A served run assembles context from the Precedent Store, proved by a test that fails when the keyword argument is removed | 2026-09-17 |
+| [ ] | **C28 - Built, and wired to something** | integration | The system the command assembles reads precedent into every context it builds, carries what a release gate is built from, and records a failure under the code it arrived with - each asked of the object build() returns rather than of a double, because a double would have been wired correctly by whoever wrote it. |  |
 
 ## The interview
 
