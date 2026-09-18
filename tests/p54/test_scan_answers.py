@@ -64,7 +64,17 @@ def scanning(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     outside = tmp_path / "outside"
     outside.mkdir()
 
-    for fn in (interview.init, interview.identifiers, interview._knowledge_has_answers):
+    # `reviewed_empty` is here because P56 added a call to it inside `_scan`, and its
+    # default is the real `knowledge/`. Without this the scan under test reads this repo's
+    # own register: these tests stayed green for exactly as long as nobody had recorded an
+    # acknowledgement in it, and started failing the hour somebody did. A test that depends
+    # on the state of the machine it runs on is a test that will be green when it matters.
+    for fn in (
+        interview.init,
+        interview.identifiers,
+        interview._knowledge_has_answers,
+        interview.reviewed_empty,
+    ):
         monkeypatch.setattr(fn, "__defaults__", (folder,))
     monkeypatch.setattr(interview, "KNOWLEDGE", folder)
     monkeypatch.setattr(interview, "ROOT", tmp_path)

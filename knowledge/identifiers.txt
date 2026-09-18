@@ -1,3 +1,4 @@
 # Client names, people, places, account and entity names that appeared in answers
 # or documents. One per line. `interview.py scan` refuses any file outside knowledge/
 # that contains one of them. Add to it the moment a name is mentioned.
+# reviewed 2026-09-18 by smitc: reviewed the four candidates suggest found - Gordon Growth, Managing Director, Claude Code, Secrets Port - all method or system vocabulary; no client, person, place or entity has been named in an interview yet

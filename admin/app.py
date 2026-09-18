@@ -217,11 +217,18 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
         rather than `{name:path}` - a recipe is one file in `recipes/`, and a slash in the
         name is somebody reaching somewhere they should not be.
         """
-        return _guard(
-            lambda: console.approve_recipe(
-                name, who=who(request, body.who), reason=body.reason
+        from admin.console import AlreadyApproved  # noqa: PLC0415
+
+        try:
+            return _guard(
+                lambda: console.approve_recipe(
+                    name, who=who(request, body.who), reason=body.reason
+                )
             )
-        )
+        except AlreadyApproved as settled:
+            # 409, not 500 and not a silent success: nothing is wrong, and nothing was
+            # done. The page says who approved it and when.
+            raise HTTPException(status_code=409, detail=str(settled)) from None
 
     @app.post("/api/admin/engagements")
     def register(request: Request, body: Registration) -> dict[str, Any]:

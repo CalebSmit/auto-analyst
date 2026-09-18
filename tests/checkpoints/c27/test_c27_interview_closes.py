@@ -40,15 +40,26 @@ def run(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def test_the_scan_never_reports_a_pass_it_did_not_earn() -> None:
-    """Whatever this repo's state, `clean` and exit 0 together mean one of exactly two
-    things: a register was checked, or there was nothing to check. Never "a check ran"."""
+    """Whatever this repo's state, `clean` and exit 0 together mean one of exactly three
+    things: a register was checked, nothing has been learned yet so there was nothing to
+    check, or a person looked and recorded that there was nothing to add. Never "a check
+    ran". The third was added by P56 and every one of them rests on somebody having looked."""
     done = run("scan")
     assert done.returncode in (0, 1), done.stderr
     if done.returncode == 0:
         assert done.stdout.startswith("clean:")
         checked = interview.identifiers()
+        reviewed = interview.reviewed_empty()
         if checked:
             assert f"clean: {len(checked)} identifiers checked" in done.stdout
+        elif reviewed is not None:
+            # P56's third state, and the one this test did not know about: a person looked
+            # and there was nothing to register. It passes only while every recorded answer
+            # predates the review - a session logged after it makes this stale and the scan
+            # refuses again - so `clean` here still rests on somebody having checked.
+            on, who = reviewed
+            assert on in done.stdout and who in done.stdout
+            assert interview._review_is_current(interview.KNOWLEDGE, on)
         else:
             assert "no answers yet" in done.stdout
             assert not interview._knowledge_has_answers()
@@ -57,10 +68,16 @@ def test_the_scan_never_reports_a_pass_it_did_not_earn() -> None:
 
 
 def test_an_empty_register_over_real_answers_is_refused_rather_than_waved_through() -> None:
-    """The state this repo is in today: three sessions recorded, nothing registered. It must
-    refuse, and it must say what to do about it."""
+    """An empty register over real answers must refuse, and say what to do about it.
+
+    Three ways out of that state and all three need a person: register the names, remove a
+    leaked one from the file it reached, or record that you looked and there was nothing.
+    Skipped rather than passed when this machine is already in one of them, because the
+    refusal is not what is being asked about then."""
     if interview.identifiers():
         pytest.skip("the register has been filled; the refusal no longer applies here")
+    if interview.reviewed_empty() is not None:
+        pytest.skip("a person has recorded that they looked and there was nothing to add")
     assert interview._knowledge_has_answers(), "knowledge/ should hold three sessions of answers"
 
     done = run("scan")
@@ -72,8 +89,8 @@ def test_an_empty_register_over_real_answers_is_refused_rather_than_waved_throug
 def test_the_refusal_is_visible_before_the_first_question_and_not_only_after_the_last() -> None:
     """`status` is protocol step 2; `scan` is step 6. A session that only learns at step 6
     that it cannot be closed has already asked everything it was going to ask."""
-    if interview.identifiers():
-        pytest.skip("the register has been filled")
+    if interview.identifiers() or interview.reviewed_empty() is not None:
+        pytest.skip("the register has been filled, or its emptiness has been acknowledged")
     done = run("status")
     assert done.returncode == 0, done.stderr
     assert "identifiers kept inside knowledge/: 0" in done.stdout

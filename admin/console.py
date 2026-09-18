@@ -34,7 +34,7 @@ from registries.constraints import ConstraintRegistry
 from registries.errors import ADMIN_FORBIDDEN, RECIPE_INVALID, DiagnosticError, diagnose
 from registries.scopes import ScopePath
 
-__all__ = ["REVIEW_LEVELS", "AdminConsole", "AdminRefused"]
+__all__ = ["REVIEW_LEVELS", "AdminConsole", "AdminRefused", "AlreadyApproved"]
 
 # The per-engagement review level ladder, lowest first. Raising is an admin action;
 # lowering is not one at all.
@@ -44,6 +44,15 @@ REVIEW_LEVELS: tuple[str, ...] = ("standard", "elevated")
 # schedules and exports are well under it; a data room is not a thing to upload one file at a
 # time through a browser.
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024
+
+
+class AlreadyApproved(Exception):
+    """This exact file is already approved, so approving it again would record nothing.
+
+    Not a refusal of the kind `AdminRefused` carries - nothing was attempted that an admin
+    may not do. It is the surface answering a question: the answer is "somebody already
+    did, here is who and when".
+    """
 
 
 class AdminRefused(DiagnosticError):
@@ -339,10 +348,27 @@ class AdminConsole:
         if not reason.strip():
             raise ValueError(f"{name} needs a reason for approval, recorded with it")
 
+        from registries.recipes import digest_of_recipe  # noqa: PLC0415
+
         register = register or RecipeRegister()
         path = Path(register.root) / f"{name}.yaml"
         if not path.is_file():
             raise KeyError(f"{name} is not a recipe in {Path(register.root).name}/")
+
+        # Already approved, at exactly these bytes. The register is write-once per digest -
+        # the same file is the same approval, which is right - so `register` would return the
+        # existing row and write nothing. P57 sent it through the board anyway, which
+        # appended a REGISTERED entry to the governance chain naming a person whose approval
+        # produced no registration, beside a register still naming whoever approved it first.
+        # A chain that records approvals which changed nothing is a chain nobody can audit.
+        settled = register.entry(digest_of_recipe(path))
+        if settled is not None:
+            raise AlreadyApproved(
+                f"{name} is already approved at these exact bytes, by "
+                f"{settled.approved_by} on {settled.registered_at[:10]}. Editing the file "
+                f"un-approves it; approving it again without changing it would record a "
+                f"decision that changed nothing."
+            )
 
         # A re-approval after an edit is the next version, not the same one again: the
         # register keeps every approval, and two rows for "version 1" of one workflow would
@@ -654,7 +680,15 @@ class AdminConsole:
             "checkpoint_policy": {
                 "owner": "",
                 "sla_hours": 24,
-                "auto_accept_confidence": 0.85,
+                # A working bar, set 2026-09-18 and revisitable - the conservative end of
+                # what was agreed, because nothing has measured what a safe one is yet. The
+                # sampling audit the blueprint names as the only defence against a
+                # confidently wrong, internally consistent classification does not exist,
+                # and until it does a bar is a judgement rather than a finding. The practice
+                # lead and QC own the real number; see BUILD/OPEN.md.
+                "auto_accept_confidence": 0.90,
+                # Never auto-accepted whatever the confidence. A bar only ever lets through
+                # what no rule forces to review, and materiality forces it separately.
                 "always_review_categories": ["owner_related"],
             },
             "recorded_by": "",

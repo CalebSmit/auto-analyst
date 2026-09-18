@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**60 of 60 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**62 of 62 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -147,6 +147,10 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C30 - A machine that can be started** | integration | A workflow can be approved from /admin by a named person with a recorded reason, through the board and into the governance chain, so a clean clone goes from nothing-will-run to something-will - and the register is still written by nothing but the board, still not committed, and still refuses a recipe edited since somebody read it. | 2026-09-18 |
 | [x] | **P58** The documented command works, or says why | auto | python tools/serve.py --check from a bare interpreter prints what to run and exits non-zero, rather than a traceback | 2026-09-18 |
 | [x] | **C31 - What a person is told to type** | integration | Every command the guide and the session rules give works from a fresh shell, the one tool that must not need the environment still does not, and a tool run without it names the command to type instead of raising somebody else's ImportError five hundred lines in. | 2026-09-18 |
+| [x] | **P61** What the admin surface records, and what it offers | auto | A second approval of the same file is refused with who approved it and when, and appends nothing to the governance chain | 2026-09-18 |
+| [x] | **C34 - The setup surface, used** | integration | The two records a person creates during setup agree with each other and with the chain behind them: approving bytes that are already approved says who did and writes nothing, an edited file is still a second decision, neither register is committed, and the bar the profile form offers is one somebody chose rather than a default nobody did. | 2026-09-18 |
+| [x] | **P62** A register that cannot go stale quietly | auto | A settled item cannot sit in the register as though it were open, and a test fails if one does | 2026-09-18 |
+| [x] | **C35 - What a session is told, and whether it is still true** | integration | Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other. | 2026-09-18 |
 
 ## The interview
 

@@ -1220,3 +1220,34 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C33 after P60, covering P60
 - proves: Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's.
+
+## 2026-09-18 - P61 What the admin surface records, and what it offers
+
+**Why:** Found by using the approval route as a person rather than testing it: approving a recipe whose exact bytes are already approved writes a governance chain entry and no register row, because the register is write-once per digest and returns the existing entry. The chain then says one person approved what the register says another did. Found alongside the auto-accept bar, which had no value a person had chosen.
+
+- phase added: P61 What the admin surface records, and what it offers (The consoles, gate: auto)
+- exit criterion: A second approval of the same file is refused with who approved it and when, and appends nothing to the governance chain
+- exit criterion: A recipe edited since approval can still be approved, and that path is unchanged
+- exit criterion: The profile skeleton offers 0.90 with owner-related always reviewed, and the decision is recorded
+
+## 2026-09-18 - C34 The setup surface, used
+
+**Why:** P61 closes with P57: the approval a person performs, and what using it turned up.
+
+- checkpoint added: C34 after P61, covering P61
+- proves: The two records a person creates during setup agree with each other and with the chain behind them: approving bytes that are already approved says who did and writes nothing, an edited file is still a second decision, neither register is committed, and the bar the profile form offers is one somebody chose rather than a default nobody did.
+
+## 2026-09-18 - P62 A register that cannot go stale quietly
+
+**Why:** The test guarding BUILD/OPEN.md asserts that the register tells a session to run 'gate close P28' and 'gate checkpoint C10'. Both were discharged - P28 was signed off on 2026-09-05 and C10 has been green since - so the guard was holding the register to instructions that had expired, and correcting the register broke the test that was supposed to keep it honest.
+
+- phase added: P62 A register that cannot go stale quietly (The consoles, gate: auto)
+- exit criterion: A settled item cannot sit in the register as though it were open, and a test fails if one does
+- exit criterion: The four items this build is waiting on are still named, and the test says which are live
+
+## 2026-09-18 - C35 What a session is told, and whether it is still true
+
+**Why:** P62 closes the block: the register and the documents a session starts from are held to being current rather than to particular sentences.
+
+- checkpoint added: C35 after P62, covering P62
+- proves: Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other.

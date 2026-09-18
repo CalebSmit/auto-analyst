@@ -84,12 +84,19 @@ def test_every_entry_says_why_it_is_blocked_and_what_happens_next() -> None:
 
 def test_the_register_names_the_things_this_build_is_actually_waiting_on() -> None:
     """The four from this build specifically, so a new session picks them up without
-    reading the whole history."""
+    reading the whole history.
+
+    It used to pin two commands as well - `gate close P28` and `gate checkpoint C10` - and
+    both had been run: P28 was signed off on 2026-09-05 and C10 has been green since. So
+    this guard spent thirteen days requiring the register to give a session instructions
+    that had expired, and when the register was corrected it failed and argued for putting
+    them back. Whether the register is *current* is asked in `tests/p62`, against the plan
+    rather than against a list of sentences, because a guard that names strings goes stale
+    the moment the thing it names is settled.
+    """
     register = text()
-    for item in ("P28 sign-off", "container proof", "P26 sign-off", "Redis"):
+    for item in ("P28", "container proof", "P26 sign-off", "Redis"):
         assert item in register, item
-    assert "gate close P28" in register
-    assert "gate checkpoint C10" in register
 
 
 def test_the_register_is_pointed_at_from_the_rules_a_session_reads() -> None:

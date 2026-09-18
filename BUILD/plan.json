@@ -1943,6 +1943,53 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P61",
+      "title": "What the admin surface records, and what it offers",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Two things the setup surface gets wrong, both found by operating it rather than by reading it. Approving an already-approved recipe is a no-op in the register - same bytes, same approval, correctly write-once - but P57 sent it through the board anyway, so the governance chain gained an entry naming a person whose approval produced nothing and whose name the recipes list does not show. A record that says somebody approved something, beside a register that says somebody else did, is worse than either alone. And the engagement profile offered an auto-accept bar nobody had chosen.",
+      "builds": [],
+      "tasks": [
+        "Approving bytes that are already approved says so, and writes nothing",
+        "The auto-accept bar the profile form offers is the one a person set, at the conservative end"
+      ],
+      "exit": [
+        "A second approval of the same file is refused with who approved it and when, and appends nothing to the governance chain",
+        "A recipe edited since approval can still be approved, and that path is unchanged",
+        "The profile skeleton offers 0.90 with owner-related always reviewed, and the decision is recorded"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p61 -q",
+        "python -m uv run pytest tests/p24 tests/p27 tests/p33 tests/p57 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "P62",
+      "title": "A register that cannot go stale quietly",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Four rows in OPEN.md outlived their findings, and the test meant to keep the register honest was pinning two commands that had already been run. A guard that names specific strings goes stale the moment the thing it names is settled, and then it argues for keeping the register wrong. What a session needs is not that particular words appear, but that nothing in the register is telling it to do something already done.",
+      "builds": [],
+      "tasks": [
+        "The guard asks whether the register is current, not whether it contains particular sentences",
+        "Nothing in the register tells a session to close a phase that is closed or run a checkpoint that is green"
+      ],
+      "exit": [
+        "A settled item cannot sit in the register as though it were open, and a test fails if one does",
+        "The four items this build is waiting on are still named, and the test says which are live"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p62 -q",
+        "python -m uv run pytest tests/regression -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2307,6 +2354,28 @@
       "proves": "Every quarantined step leaves exactly one record whatever ending produced it, a resumed pass over the same key does not write a second, and the three failure policies every recipe declares finally mean three different things - review tells a person, quarantine does not, halt ends the run through the one door that writes a manifest, which is the driver's and never the executor's.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c33 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C34",
+      "title": "The setup surface, used",
+      "after": "P61",
+      "status": "done",
+      "proves": "The two records a person creates during setup agree with each other and with the chain behind them: approving bytes that are already approved says who did and writes nothing, an edited file is still a second decision, neither register is committed, and the bar the profile form offers is one somebody chose rather than a default nobody did.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c34 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C35",
+      "title": "What a session is told, and whether it is still true",
+      "after": "P62",
+      "status": "done",
+      "proves": "Nothing in the open register asks a session to close a phase the plan says is closed, run a checkpoint that is green, or obtain a sign-off that exists; every settled row carries the date that settled it; and the documents a session is told to read all exist and point at each other.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c35 -q"
       ],
       "closed": "2026-09-18"
     }
