@@ -1623,6 +1623,135 @@
       ],
       "notes": "",
       "closed": "2026-09-17"
+    },
+    {
+      "id": "P50",
+      "title": "The map, made correct",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A view that lies when the network drops, loses your selection when you pan slowly, and closes when you clear a search is not one that can be made to look expensive. This phase is the defect list from five reviews: the geometry the drawing is built on, the pointer and keyboard handling, and the states that a person has explicitly asked for and is not given.",
+      "builds": [],
+      "tasks": [
+        "Measure the drag threshold from pointerdown, not from the previous pointermove, so a slow pan keeps the selection",
+        "Escape in the find box clears the box; only Escape outside it closes the view",
+        "Restore focus to a control that still exists, since refresh() replaces the button the map was opened from every five seconds",
+        "Say so when a run's record cannot be read, instead of drawing it as a run that touched nothing",
+        "Keep LAST_TRACE's identity, so the map cannot paint one run's colours under another's title",
+        "A step onto a name the blueprint has no node for must not dim the whole canvas",
+        "Hiding a state hides its nodes and their edges, takes them out of the tab order and out of the pointer, and beats the focus dimming",
+        "Give focus its own ring, distinct from selection, and bring a focused node into view",
+        "Stop .near overwriting the run state of up to nineteen nodes at once",
+        "Guard the shortcuts with modifiers, let ctrl+wheel zoom the page, and scale the wheel by its delta",
+        "Coalesce the address-bar rewrite so a held key cannot exhaust the browser's replaceState budget",
+        "Recompute the view on resize and on crossing the side panel's breakpoint",
+        "Fix the node box to one height in the map's stylesheet, and measure a built node before computing an edge, so the drawing has one source for it"
+      ],
+      "exit": [
+        "A slow pan does not clear the selection; a fast one still does not pick a node",
+        "A failed trace or events fetch is reported, and the 'Nothing ran' statement is never made from a network error",
+        "Hidden states are hidden: not focusable, not clickable, not stepped onto, and their edges go with them",
+        "Every node keeps the colour of what the run did there, whatever else is marked on it",
+        "The node box is exactly the height the edge maths draws to, measured rather than asserted, so the stylesheet and the geometry cannot disagree again"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p50 -q",
+        "python -m uv run pytest tests/p48 tests/p49 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P51",
+      "title": "The map, drawn like a drawing",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make it a drawing of a system rather than a diagram of a data structure: one state family, lines with direction and grammar, a sheet with a ground and a frame, type on the scale, and an opening view at a size its own marks survive.",
+      "builds": [],
+      "tasks": [
+        "One state recipe - a wash, a hairline and a mark - so the five read as a family and hover is the same for all of them",
+        "Arrowheads, and the blueprint's line grammar by the edge kinds that are actually in the data",
+        "The stage becomes a ground and the canvas a sheet, framed, with the dead gradient removed",
+        "The band rules fade, the privacy boundary is drawn as a boundary, and column labels stop borrowing the band label's type",
+        "The step badge joins the state family and adopts the console's own mark",
+        "Every size in the map's stylesheet comes off the type scale and every colour off a token",
+        "The legend is a plate on the drawing whose swatches are the nodes' own treatment, not a second copy of it",
+        "Rank the tool bar so it does not wrap at 1280, and stop the exit being the loudest thing on screen",
+        "Open at a zoom the state marks survive, and glide between steps rather than teleporting"
+      ],
+      "exit": [
+        "The map opens above its far-zoom threshold, so the border that carries state is never drawn sub-pixel on first sight",
+        "Every edge says which way it goes, and guard, loop and masked edges are distinguishable from flow",
+        "A test runs the design system's own two rules - no colour of its own, no size off the scale - over the map's stylesheet, which until now it could not see",
+        "The legend's swatches are generated from the same rules as the nodes, so the key cannot drift from the drawing"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p51 -q",
+        "python -m uv run pytest tests/p46 tests/p48 tests/p49 tests/p50 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P52",
+      "title": "The map, answering what a person asks",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Six questions get asked in front of a stopped run: where did it stop, why, what had it done, what would have happened next, what do I do now, and is the work so far usable. The view answers two and a half. This phase is the other three and a half, in the words the people who ask them use.",
+      "builds": [],
+      "tasks": [
+        "The header names the run and says what happened to it, against a denominator that means something",
+        "Draw the path the run actually took, and mark the hops the blueprint has no edge for rather than implying flow that did not happen",
+        "Separate a node this run was blocked from reaching from one no run has ever used",
+        "Open on the stop, with a button that goes back to it",
+        "The side panel's first screen: the verdict, one sentence on where it stopped, what it got through, what it did not, the time and the cost",
+        "Say what to do now, and carry the button that does it",
+        "Go through every visible string and use the words an analyst and an MD use",
+        "How long each step took, from the events already in hand",
+        "A link to send, and the keys, visible rather than only in a tooltip"
+      ],
+      "exit": [
+        "A person who has never seen the tool can say, from the first screen and without clicking, which run this is and what happened to it",
+        "The nodes this run was blocked from reaching are distinguishable from the ones nothing ever uses",
+        "No accent-coloured edge asserts a flow the run did not take",
+        "Every string on the screen is one of the words the glossary or the analyst uses, and a test holds the list"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p52 -q",
+        "python -m uv run pytest tests/p48 tests/p49 tests/p50 tests/p51 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "P53",
+      "title": "Three silent wrongs",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The tool's claim is that an analyst can rely on the output without redoing it. Each of these three breaks that claim quietly - a wrong answer that passes every guard, or a confidence that is not warranted. Loud failures can wait; these cannot.",
+      "builds": [],
+      "tasks": [
+        "Materiality is magnitude, so a material add-back reaches a person whichever sign it carries",
+        "A statement whose rows hold two columns of figures stops for a person instead of being read as the prior year",
+        "A precedent that reads as naming a person is refused, because the store is read across clients on purpose",
+        "No client is left with no identifier at all when the distinctive-word filter drops every word of its name",
+        "The identifier scan refuses to report clean over a register with nothing in it"
+      ],
+      "exit": [
+        "A material add-back routes to review whether its figure is positive or negative, and a test proves it by failing without the fix",
+        "A comparative statement is flagged and escalated; a single-column one and ordinary prose are not",
+        "A rationale naming a person is refused into the Precedent Store, an ordinary add-back rationale is not, and neither the event nor the diagnostic quotes what was found",
+        "Every client name yields at least one identifier for the masker"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p53 -q",
+        "python -m uv run pytest tests/p12 tests/p16 tests/p17 tests/p18 tests/p19 tests/p20 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-17"
     }
   ],
   "checkpoints": [
@@ -1899,6 +2028,17 @@
       "proves": "The order a run went through the design is derivable from what the console serves, a node's neighbours come from the blueprint's own edges, and the page serves the map's controls in one script namespace",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c25 -q"
+      ],
+      "closed": "2026-09-17"
+    },
+    {
+      "id": "C26",
+      "title": "The map, whole",
+      "after": "P53",
+      "status": "done",
+      "proves": "The full-design map on the assembled system - the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page - and the three silent wrongs found beside it: materiality read as magnitude, a comparative statement stopped rather than misread, and a person's name refused into the store that is read across clients.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c26 -q"
       ],
       "closed": "2026-09-17"
     }

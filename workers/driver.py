@@ -206,16 +206,29 @@ def _distinctive_words(name: str) -> tuple[str, ...]:
     is always masked and always scanned for, whatever its words.
     """
     seen: list[str] = []
+    fallback: list[str] = []
     ordinary = _firm_words()
     for raw in name.replace("&", " ").replace(",", " ").split():
         word = raw.strip(".()'\"-")
         lowered = word.lower()
-        if len(word) < 4 or lowered in GENERIC_NAME_WORDS or word in seen:
+        if lowered in GENERIC_NAME_WORDS or word in seen or word in fallback:
             continue
-        if lowered in ordinary:
+        # Short enough to be an acronym, or a word the firm's own text uses. Held back
+        # rather than dropped, because dropping every word can leave a client with none.
+        if len(word) < 4 or lowered in ordinary:
+            fallback.append(word)
             continue
         seen.append(word)
-    return tuple(seen)
+    if seen:
+        return tuple(seen)
+    # Nothing survived. `BRW Partners` is the shape: "BRW" is three letters and "Partners"
+    # is generic, so the filter used to return nothing at all and only the exact string
+    # "BRW Partners" was ever masked - leaving `BRW FY2025 Trial Balance.xlsx`, `BRW's
+    # owner` and `BRW Holdings II` to reach the model untouched and trip nothing.
+    # A noisy guard is worth having; an absent one is not. If the fallback words turn out
+    # to fire on the firm's own text, that is a quarantine somebody can read and fix,
+    # which is the failure this whole apparatus prefers.
+    return tuple(fallback)
 
 
 @functools.lru_cache(maxsize=1)

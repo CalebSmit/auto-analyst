@@ -79,7 +79,12 @@ class TimingNormalization:
             names = ", ".join(f.filename for f in inputs.files)
             return f"no historical statements to align, only forecasts: {names}"
         for f in historical(inputs):
-            flags = [a for a in f.ambiguous if a.startswith(("scale", "period_type"))]
+            # `columns` joins scale and period_type: a row carrying two figures holds two
+            # periods, and a store with one value per row cannot say which one it kept. It
+            # kept the last, which on a comparative statement is the prior year - so the
+            # alternative to stopping here is a run whose every figure is a year out and
+            # which passes provenance and footing on the way through.
+            flags = [a for a in f.ambiguous if a.startswith(("scale", "period_type", "columns"))]
             if flags:
                 return f"{f.filename} is ambiguous: " + "; ".join(flags)
             if f.scale not in (1, 1000, 1_000_000):

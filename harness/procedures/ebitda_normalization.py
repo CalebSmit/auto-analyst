@@ -416,7 +416,15 @@ class EbitdaNormalization:
             notes.append("did not tie to its rows")
             review = True
 
-        absolute = float(figure["value"]) * int(figure["scale"])
+        # Magnitude, not the signed amount. A statement is read as presented, so a
+        # material line can arrive negative - an interest-income reversal, a credit-balance
+        # expense, a contra account. Compared signed, a -$500,000 add-back scores below a
+        # $250,000 threshold and materiality, the one trigger that is supposed to be
+        # sign-blind, stops firing: with no other trigger the item auto-accepts and no
+        # person ever sees it. `review_items` a few hundred lines up already takes `abs()`
+        # for the reviewer's queue, so the two halves of this file used to disagree about
+        # what "how big is it" means.
+        absolute = abs(float(figure["value"]) * int(figure["scale"]))
         currency = str(figure.get("currency", ""))
         if currency != inputs.materiality_currency:
             above = True

@@ -413,8 +413,32 @@ def _scan() -> int:
     if hits:
         print(f"FAIL: {len(hits)} identifier(s) outside knowledge/")
         return 1
+    if not names and _knowledge_has_answers():
+        # `clean` over an empty register is the most dangerous thing this command can
+        # print: it is the check CLAUDE.md names as the one that keeps client data inside
+        # knowledge/, and it passed unconditionally for as long as nobody remembered to
+        # write a name in the file. A check that cannot fail is worse than no check,
+        # because the record says it ran.
+        print("UNCHECKED: knowledge/ holds answers and knowledge/identifiers.txt is empty.")
+        print("           Nothing was looked for, so nothing was found. Add every client,")
+        print("           person, place and entity named in an answer, one per line, then")
+        print("           re-run. This is the whole of what keeps those names out of a")
+        print("           skill, a methodology file or a fixture.")
+        return 1
     print(f"clean: {len(names)} identifiers checked against every file outside knowledge/")
     return 0
+
+
+def _knowledge_has_answers(knowledge: Path = KNOWLEDGE) -> bool:
+    """Whether there is anything in knowledge/ that could have named somebody.
+
+    An empty register is correct on a clone where no interview has happened yet, and
+    wrong the moment one has. The distinction is what makes the refusal above actionable
+    rather than something to work around on day one.
+    """
+    if not knowledge.is_dir():
+        return False
+    return any(p.is_file() and p.stat().st_size > 400 for p in knowledge.rglob("*.md"))
 
 
 def main(argv: list[str] | None = None) -> int:

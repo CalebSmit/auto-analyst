@@ -40,12 +40,59 @@ def test_every_item_above_the_threshold_is_marked_for_review_by_the_procedure(
     material = [i for i in done.output["addback_schedule"] if i["above_materiality"]]
     assert material, "the case has material items"
     for item in material:
-        absolute = float(item["amount"]["value"]) * int(item["amount"]["scale"])
+        # Magnitude on both sides, because that is what materiality means. Comparing the
+        # signed amount let a large negative add-back score below the threshold.
+        absolute = abs(float(item["amount"]["value"]) * int(item["amount"]["scale"]))
         assert absolute >= threshold.amount
         assert item["review_required"]
     below = [i for i in done.output["addback_schedule"] if not i["above_materiality"]]
     for item in below:
-        assert float(item["amount"]["value"]) * int(item["amount"]["scale"]) < threshold.amount
+        size = abs(float(item["amount"]["value"]) * int(item["amount"]["scale"]))
+        assert size < threshold.amount
+
+
+def test_a_material_add_back_is_material_whichever_sign_it_carries(
+    world: dict[str, Any], ebitda_step: Step, scope: ResolvedScope, case: dict[str, Any]
+) -> None:
+    """A statement is read as presented, so a material line can arrive negative: an
+    interest-income reversal, a credit-balance expense, a contra account. The procedure
+    compared the *signed* amount, so -$500,000 scored below a $250,000 threshold and
+    materiality - the one trigger that is meant to be sign-blind - stopped firing. With no
+    other trigger the item auto-accepted and no person ever saw it.
+
+    Driven through a real dispatch, with one material line's figures negated, because the
+    thing that has to hold is what the procedure decides and not what arithmetic does.
+    """
+    import dataclasses
+
+    before = first_pass(world, ebitda_step, scope, case)
+    material = [i for i in before.output["addback_schedule"] if i["above_materiality"]]
+    assert material, "the case has a material item to flip"
+    ref = material[0]["line_item_ref"]
+
+    # The same run, with that line's figures the other way round.
+    inputs = world["inputs"]
+    flipped = []
+    for line in inputs.lines:
+        if line.line_item_ref != ref:
+            flipped.append(line)
+            continue
+        figures = {
+            period: {**figure, "value": -float(figure["value"])}
+            for period, figure in line.figures.items()
+        }
+        flipped.append(dataclasses.replace(line, figures=figures))
+    world["inputs"] = dataclasses.replace(inputs, lines=tuple(flipped))
+
+    after = first_pass(world, ebitda_step, scope, case)
+    negated = [i for i in after.output["addback_schedule"] if i["line_item_ref"] == ref]
+    assert negated, "the line is still in the schedule"
+    for item in negated:
+        assert float(item["amount"]["value"]) < 0, "the figure really is negative now"
+        assert item["above_materiality"], (
+            "a material line does not stop being material by arriving negative"
+        )
+        assert item["review_required"], "and a material add-back always reaches a person"
 
 
 def test_the_router_never_auto_accepts_a_material_add_back_whatever_the_confidence(

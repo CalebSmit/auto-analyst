@@ -54,6 +54,10 @@ _CURRENCY_CUES: tuple[tuple[re.Pattern[str], str], ...] = (
 _DOLLAR = re.compile(r"\$")
 _MONTHS = "jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec"
 _MONTH_YEAR = re.compile(rf"\b(?P<m>{_MONTHS})[a-z]*\.?[\s'\-/]*(?P<y>\d{{4}}|\d{{2}})\b", re.I)
+# A money-shaped figure: at least four digits, or grouped with commas, optionally in
+# parentheses or carrying a currency mark. Deliberately not "any number" - a page number,
+# a note reference and a year are all numbers, and none of them is a column of figures.
+_TRAILING_FIGURES = re.compile(r"(?<![\w.])\(?-?[$£€]?\s?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?(?![\w.])")
 _FY = re.compile(r"\bFY\s?'?(?P<y>\d{4}|\d{2})\b", re.I)
 _QUARTER = re.compile(r"\bQ(?P<q>[1-4])\s?(?:FY)?\s?'?(?P<y>\d{4}|\d{2})\b", re.I)
 _ISO = re.compile(r"\b(?P<y>\d{4})-(?P<m>\d{2})-(?P<d>\d{2})\b")
@@ -201,6 +205,30 @@ def detect_periods(text: str) -> PeriodDetection:
             cues.setdefault("fiscal_year_end", []).append("from the annual period end dates")
     if fiscal_year_end is None:
         ambiguous.append("fiscal_year_end: not stated")
+
+    # -- how many columns of figures a row carries
+    #
+    # A comparative statement - which is every audited one, and the usual shape of a PDF
+    # arriving from a client - puts this year and last year on the same line. The document
+    # reader matches one figure per row, anchored to the end of the line, so it took the
+    # *last* column: the current year was swallowed into the label and every figure in the
+    # run became the prior year's. Silently, and past every guard - provenance passes
+    # because the number really is at that locator, and footing passes because the rows
+    # are consistently prior-year so the totals still re-add.
+    #
+    # A row store that holds one value per row cannot record the other column, so this
+    # does not guess which one was meant. It says the document has more than one and stops
+    # the run for a person, the way an unstated scale does.
+    widths = [len(_TRAILING_FIGURES.findall(line)) for line in text.splitlines()]
+    tabular = [w for w in widths if w]
+    if tabular:
+        most = max(set(tabular), key=tabular.count)
+        if most > 1:
+            cues.setdefault("columns", []).append(f"{most} figures on a typical row")
+            ambiguous.append(
+                f"columns: rows carry {most} figures, so each line holds more than one "
+                "period - which column belongs to which period is not stated"
+            )
 
     return PeriodDetection(
         period_type=period_type,

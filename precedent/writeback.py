@@ -29,6 +29,7 @@ from ops.run_store import DecisionRecord, RunStore
 from precedent.store import PrecedentRecord, PrecedentStore
 from privacy.mask import Identifier, Masker
 from privacy.payload_scan import PayloadScan
+from privacy.people import looks_like_a_person
 from registries.errors import (
     PRECEDENT_NO_DECISION,
     UNMASKED_PRECEDENT,
@@ -187,6 +188,35 @@ class PrecedentWriteback:
                         UNMASKED_PRECEDENT,
                         f"{run_id}/{item_id}: {field} did not clear the outbound scan "
                         f"({'; '.join(result.reasons)}); the example stays un-learned",
+                        locator=f"{run_id}/{item_id}",
+                    )
+                )
+            # The scan can only look for what was declared, and what is declared is the
+            # client's company name. A natural person - an owner, an officer, a lender -
+            # is never on that list, so a rationale naming one masks to itself and clears
+            # the scan. On the outbound path that is tolerable: the model is already
+            # reading this client's documents. Here it is not, because this is the one
+            # store that is read across clients on purpose.
+            person = looks_like_a_person(masked.text)
+            if person:
+                self._emit(
+                    run_id,
+                    run.engagement_id,
+                    "precedent.writeback.refused",
+                    f"{item_id}: {field} reads as naming a person; not written",
+                    level="warn",
+                    diagnostic_code=UNMASKED_PRECEDENT,
+                    # Shapes and counts, never the text - reporting a leak verbatim into
+                    # an event is the leak, one level up.
+                    payload={"item_id": item_id, "field": field, "reasons": list(person.reasons)},
+                )
+                raise WritebackRefused(
+                    diagnose(
+                        UNMASKED_PRECEDENT,
+                        f"{run_id}/{item_id}: {field} reads as naming a person "
+                        f"({'; '.join(person.reasons)}). A precedent is shown on other "
+                        "clients' engagements, so it stays un-learned rather than carrying "
+                        "a name across.",
                         locator=f"{run_id}/{item_id}",
                     )
                 )

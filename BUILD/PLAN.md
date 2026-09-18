@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**49 of 49 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**53 of 53 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -131,4 +131,14 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C24 - The whole design, painted with one run** | integration | The console serves every node of the blueprint at the position the blueprint gives it, the Activity page carries the map and a way into it, and a run's trace can be laid over that drawing - including the name it records that the design has no node for | 2026-09-17 |
 | [x] | **P49** The map, made to work with | auto | The order a run went through the design is on the map and in the list | 2026-09-17 |
 | [x] | **C25 - The map, made to work with** | integration | The order a run went through the design is derivable from what the console serves, a node's neighbours come from the blueprint's own edges, and the page serves the map's controls in one script namespace | 2026-09-17 |
+
+## The consoles
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P50** The map, made correct | auto | A slow pan does not clear the selection; a fast one still does not pick a node | 2026-09-17 |
+| [x] | **P51** The map, drawn like a drawing | auto | The map opens above its far-zoom threshold, so the border that carries state is never drawn sub-pixel on first sight | 2026-09-17 |
+| [x] | **P52** The map, answering what a person asks | auto | A person who has never seen the tool can say, from the first screen and without clicking, which run this is and what happened to it | 2026-09-17 |
+| [x] | **P53** Three silent wrongs | auto | A material add-back routes to review whether its figure is positive or negative, and a test proves it by failing without the fix | 2026-09-17 |
+| [x] | **C26 - The map, whole** | integration | The full-design map on the assembled system - the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page - and the three silent wrongs found beside it: materiality read as magnitude, a comparative statement stopped rather than misread, and a person's name refused into the store that is read across clients. | 2026-09-17 |
 

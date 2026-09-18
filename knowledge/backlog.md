@@ -235,3 +235,34 @@ them, so a reviewer cannot see that a confident proposal is an echo of a precede
 themselves. Needs: the ids on the item's detail, shown under the reveal, and a line in the
 modal saying the answer becomes precedent. Blocked on nothing but a decision about retiring a
 precedent that turns out to be wrong (BUILD/OPEN.md §5b). Size: medium.
+
+## B-030 A comparative statement, read as two columns
+status: proposed
+2026-09-17. P53 stops a run on a document whose rows carry more than one figure, because the
+reader takes the last column and a row store with one value per row cannot hold the other.
+Stopping is right and it is not the answer: every audited statement is comparative, so the
+honest reading is both columns. Needs: `ops.source_parse.Row` to carry the figures it found
+rather than one, the document and docx readers to capture every trailing figure with the label
+as what precedes the first, those columns aligned to the period ends `intake/readers/periods.py`
+already detects, and the `columns:` escalation narrowed to the case where the counts disagree.
+Touches the parse store's shape and every provenance locator that points into it. Size: large.
+
+## B-031 Person and entity identifiers on the engagement
+status: proposed
+2026-09-17, from the security review. The masker is only ever told the client's company name
+and the distinctive words of it, so an owner, officer, related party or lender is never masked;
+the vault declares a `PERSON` kind that production has never issued. P53 closed the leak route
+(a precedent that reads as naming a person is refused) but did not give the masker the names.
+Needs: an optional `related_names` on the engagement profile - who they are and what they are to
+the client - the admin form field beside it, and `workers/driver._identifiers` declaring them as
+`PERSON`/`ENTITY` beside the client. The interview question that has to come first is which of
+those names an analyst actually has to hand at the point the engagement is set up. Size: medium.
+
+## B-032 The quarantine store has never held anything
+status: proposed
+2026-09-17, from the engine defect hunt. `RunStore.hold()` is called from one place, inside
+`LoopController.exhaust`, which is reachable only from `RepairNeeded` - raised nowhere in
+production. So a quarantined step writes no quarantine record and opens no review item, against
+`constraints.yaml`'s rule that exhaustion always produces an artifact. Nobody is assigned and
+nothing reaches the queue. Fixing the loops (BUILD/OPEN.md §4b) fixes this with them; recorded
+separately because the missing artifact is what a person would notice first. Size: with B-loops.

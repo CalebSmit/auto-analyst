@@ -909,3 +909,155 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C25 after P49, covering P49
 - proves: The order a run went through the design is derivable from what the console serves, a node's neighbours come from the blueprint's own edges, and the page serves the map's controls in one script namespace
+
+## 2026-09-17 - P50 The map, made correct
+
+**Why:** Five reviews of the full-design map - a visual design director, an information-visualization specialist, an accessibility engineer, a frontend engineer and the two people who read it - found defects before they found preferences: edges that miss their boxes by the difference between a CSS height and a hard-coded 52, a drag threshold that measures the wrong interval and deselects on a slow pan, Escape in the find box closing the whole view, a focus-restore target the five-second poll detaches, a fetch failure painted as 'nothing ran', and a step onto run_driver blanking the canvas. Correct first, then draw.
+
+- phase added: P50 The map, made correct (The consoles, gate: auto)
+- exit criterion: The node box is exactly the height the edge maths assumes, and a test holds the two to one exported number
+- exit criterion: A slow pan does not clear the selection; a fast one still does not pick a node
+- exit criterion: A failed trace or events fetch is reported, and the 'Nothing ran' statement is never made from a network error
+- exit criterion: Hidden states are hidden: not focusable, not clickable, not stepped onto, and their edges go with them
+- exit criterion: Every node keeps the colour of what the run did there, whatever else is marked on it
+
+## 2026-09-17 - P51 The map, drawn like a drawing
+
+**Why:** The same five reviews, on the drawing rather than the defects. The visual director's charge was that the map is intelligently specified and barely drawn: five states built from five unrelated recipes with two coloured shadows and a raw hex; 240 edges with no direction and a dash rule keyed on an edge kind that does not exist; a legend that draws its own copy of the nodes and has already drifted from them; ten type sizes, none on the scale, in the one stylesheet the design-system test cannot see; and a stage that paints over its own gradient so there is no sheet, no ground and no frame. The information-visualization review added the measurement that makes it urgent: the view always opens at about 0.31, inside its own far-zoom mode, where a 1px state border renders at a third of a pixel and the five fills sit inside a single deltaE-7 band.
+
+- phase added: P51 The map, drawn like a drawing (The consoles, gate: auto)
+- exit criterion: The map opens above its far-zoom threshold, so the border that carries state is never drawn sub-pixel on first sight
+- exit criterion: Every edge says which way it goes, and guard, loop and masked edges are distinguishable from flow
+- exit criterion: A test runs the design system's own two rules - no colour of its own, no size off the scale - over the map's stylesheet, which until now it could not see
+- exit criterion: The legend's swatches are generated from the same rules as the nodes, so the key cannot drift from the drawing
+
+## 2026-09-17 - P52 The map, answering what a person asks
+
+**Why:** The fifth review read the map as the two people who use it - a managing director with thirty seconds, and a three-month analyst in front of a halted run at seven in the evening - and found that the screen is about the design while both of them came to it about a run. It leads with '20 of 118 touched', which the MD reads as ten per cent complete against a denominator that includes every connector and port no run ever touches. It does not say the verdict, what it cost, how long it took, where it stopped, what would have come next, or what to do now - and the buttons that would do it are on the panel this overlay covers. A node this run was blocked from reaching is drawn exactly like one no run has ever used.
+
+- phase added: P52 The map, answering what a person asks (The consoles, gate: auto)
+- exit criterion: A person who has never seen the tool can say, from the first screen and without clicking, which run this is and what happened to it
+- exit criterion: The nodes this run was blocked from reaching are distinguishable from the ones nothing ever uses
+- exit criterion: No accent-coloured edge asserts a flow the run did not take
+- exit criterion: Every string on the screen is one of the words the glossary or the analyst uses, and a test holds the list
+
+## 2026-09-17 - P50 The map, made correct
+
+**Why:** The blueprint has no node-height constant to export: it measures each box (NODES.forEach(n=>{n._h=n._el.offsetHeight||86})) and routes from the real edge. Copying a number into the exporter would have created a third place for the height to live. The map instead fixes the box at one height in its own stylesheet - correct, because the coordinate grid is absolute pixels and a box that breathes with the fluid root while the grid does not is the drift itself - and measures a built node before computing any edge. The stylesheet is then the single source, and a change to it moves the edges with it.
+
+- task added: Fix the node box to one height in the map's stylesheet, and measure a built node before computing an edge, so the drawing has one source for it
+- task dropped: Bind the node box to the height the edge geometry uses - export node_height from the blueprint beside node_width so one number serves both
+- exit criterion added: The node box is exactly the height the edge maths draws to, measured rather than asserted, so the stylesheet and the geometry cannot disagree again
+- exit criterion dropped: The node box is exactly the height the edge maths assumes, and a test holds the two to one exported number
+
+## 2026-09-17 - C26 The map, whole
+
+**Why:** P50, P51 and P52 are one piece of work on one view - the defects five reviews found in the full-design map, the drawing itself, and the questions a person brings to it. A checkpoint covering the three is what proves they agree with each other and with the console that serves them, rather than each passing alone.
+
+- checkpoint added: C26 after P52, covering P50, P51, P52
+- proves: The full-design map, on the assembled system: the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page.
+
+## 2026-09-17 - P53 Three silent wrongs
+
+**Why:** Three reviews of the whole system - an engine defect hunt, a read of it as the analyst who has to use it, and a security audit - found the same species of defect three times over: the code silently does something other than what it says, and says nothing. A material add-back auto-accepted because materiality was tested on a signed amount. Every figure from a comparative PDF statement was the prior year, past provenance and past footing, because the reader takes the last column. And a person named in an add-back rationale crossed from one client's engagement to another's through the Precedent Store, because the masker is only ever told the client's company name and the check that should have caught it was scanning against an empty register. All three were reproduced against the real code before anything was changed.
+
+- phase added: P53 Three silent wrongs (The consoles, gate: auto)
+- exit criterion: A material add-back routes to review whether its figure is positive or negative, and a test proves it by failing without the fix
+- exit criterion: A comparative statement is flagged and escalated; a single-column one and ordinary prose are not
+- exit criterion: A rationale naming a person is refused into the Precedent Store, an ordinary add-back rationale is not, and neither the event nor the diagnostic quotes what was found
+- exit criterion: Every client name yields at least one identifier for the masker
+
+## 2026-09-17 - C26 The map, whole
+
+**Why:** P53 lands in the same block and past the checkpoint that was meant to close it. The three silent wrongs it fixes are not about the map, but they are the same session's work on the same system, and a checkpoint that stopped at P52 would leave the last phase uncovered - which tests/p01 refuses, correctly.
+
+- proves: "The full-design map, on the assembled system: the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page." -> "The full-design map on the assembled system - the drawing is the blueprint's own geometry at a size its marks survive, the state a run left on each part is what the console serves, and the view answers where a run stopped without contradicting the run's own page - and the three silent wrongs found beside it: materiality read as magnitude, a comparative statement stopped rather than misread, and a person's name refused into the store that is read across clients."
+- after: P52 -> P53
+
+## 2026-09-17 - P50 The map, made correct
+
+**Why:** The checks were written as `python -m pytest`, where every other phase in the plan writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase closes, or refuses, on a verdict about nothing.
+
+- check added: python -m uv run pytest tests/p50 -q
+- check dropped: python -m pytest tests/p50 -q
+
+## 2026-09-17 - P50 The map, made correct
+
+**Why:** The checks were written as `python -m pytest`, where every other phase in the plan writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase closes, or refuses, on a verdict about nothing.
+
+- check added: python -m uv run pytest tests/p48 tests/p49 -q
+- check dropped: python -m pytest tests/p48 tests/p49 -q
+
+## 2026-09-17 - P50 The map, made correct
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python tools/verify.py
+
+## 2026-09-17 - P51 The map, drawn like a drawing
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python -m pytest tests/p51 -q
+- check added: python -m uv run pytest tests/p51 -q
+
+## 2026-09-17 - P51 The map, drawn like a drawing
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python -m pytest tests/p46 tests/p48 tests/p49 tests/p50 -q
+- check added: python -m uv run pytest tests/p46 tests/p48 tests/p49 tests/p50 -q
+
+## 2026-09-17 - P51 The map, drawn like a drawing
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python tools/verify.py
+- check added: python -m uv run python tools/verify.py
+
+## 2026-09-17 - P52 The map, answering what a person asks
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python -m pytest tests/p52 -q
+- check added: python -m uv run pytest tests/p52 -q
+
+## 2026-09-17 - P52 The map, answering what a person asks
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python -m pytest tests/p48 tests/p49 tests/p50 tests/p51 -q
+- check added: python -m uv run pytest tests/p48 tests/p49 tests/p50 tests/p51 -q
+
+## 2026-09-17 - P52 The map, answering what a person asks
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python tools/verify.py
+- check added: python -m uv run python tools/verify.py
+
+## 2026-09-17 - P53 Three silent wrongs
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python -m pytest tests/p53 -q
+- check added: python -m uv run pytest tests/p53 -q
+
+## 2026-09-17 - P53 Three silent wrongs
+
+**Why:** The checks were written as `python -m pytest`, where every other phase writes `python -m uv run pytest`. The gate only rewrites the uv form, so these ran the system interpreter, found no dependencies, and reported FAIL for four phases' worth of tests that all pass. A check in the wrong shape is worse than no check: the phase refuses, or closes, on a verdict about nothing.
+
+- check dropped: python -m pytest tests/p12 tests/p16 tests/p17 tests/p18 tests/p19 tests/p20 -q
+- check added: python -m uv run pytest tests/p12 tests/p16 tests/p17 tests/p18 tests/p19 tests/p20 -q
+
+## 2026-09-17 - P51 The map, drawn like a drawing
+
+**Why:** No other phase in the plan names `tools/verify.py` as a check - verify is run once over the tree, not three times inside three closes, and running the whole suite per phase is what made these closes take an hour each. The phase checks stay the tests the phase is about; verify stays the thing run at the end of a session.
+
+- check dropped: python -m uv run python tools/verify.py
+
+## 2026-09-17 - P52 The map, answering what a person asks
+
+**Why:** No other phase in the plan names `tools/verify.py` as a check - verify is run once over the tree, not three times inside three closes, and running the whole suite per phase is what made these closes take an hour each. The phase checks stay the tests the phase is about; verify stays the thing run at the end of a session.
+
+- check dropped: python -m uv run python tools/verify.py
