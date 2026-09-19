@@ -1538,3 +1538,42 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - task added: The portability claim is kept and scoped rather than weakened
 - exit criterion added: The packet still says .env changes and nothing else, and says what that claim is about
+
+## 2026-09-19 - P79 Where last year's model is
+
+**Why:** Reviewing the setup surface as a beginner would meet it found the field the analyst asked for by name and that nobody built. Asked in the fourth interview how the system should get hold of last year's model for a repeat client, he said: 'In the set up, I would point it to the right box file location.' There is no such field on the engagement, in the profile, or anywhere else - and 75% of engagements are repeat clients whose whole path begins by reading last year's workbook. Everything in B-036 waits behind a path nobody can type in.
+
+- phase added: P79 Where last year's model is (Version one: the data it gathers, gate: auto)
+- exit criterion: A repeat engagement can be pointed at last year's workbook and the setting survives a reload
+- exit criterion: A path that is not there is refused while the person is still looking at it, naming what was not found
+- exit criterion: A new-client engagement is neither asked for one nor faulted for having none
+
+## 2026-09-19 - P79 Where last year's model is
+
+**Why:** The public surface moved by exactly two entries and both are the new configuration contract: config_document@1.3.0 and its schema hash. A version was added rather than 1.2.0 edited, which is the rule the registry states in its own note - a document already written is still a document that has to be readable - so 1.1.0 and 1.2.0 stay listed and stay loadable, and a configuration naming no prior model stays the version it was. The snapshot is accepted here with that reason rather than silently.
+
+- exit criterion added: Older configuration versions stay listed and readable, and a document naming no prior model is not upgraded
+
+## 2026-09-19 - C47 Setting up a repeat client, with everything that needs saying
+
+**Why:** P79 added a per-engagement setting and with it a configuration contract version. The checkpoint guards the half that is easy to get wrong later: versioned contracts are only worth their cost if the old versions keep working, and the temptation when adding a field is to migrate every document to the newest because it is tidier. A first-year client's configuration should never acquire a field about last year.
+
+- checkpoint added: C47 after P79, covering P79
+- proves: The newest configuration version is the one a write produces and every supported version still loads; no version was edited in place, so 1.1.0 knows nothing of a recipe and 1.2.0 nothing of a prior model; an engagement naming no prior model is not upgraded because another one was; a repeat engagement is told on the roster that it has not been pointed at last year's workbook, and stops being told once it has; and the page is handed which engagements are repeat rather than splitting a scope path itself.
+
+## 2026-09-19 - P80 Setup, in the analyst's words
+
+**Why:** The setup review found the rest of what stops a beginner. The checklist promises six steps in order, and the hardest job is not one of them: step six says preflight has to pass, and preflight refuses until an engagement profile of twelve required fields is complete - a NAICS code, a size band with an as-of date, an owner compensation baseline with amount, currency, basis, source and as-of. Five easy ticks, then a wall nobody was warned about. Whether a client is repeat or new - the flag three quarters of the work turns on - is the last segment of a control labelled Practice group, written as non-repeat. The word model means the Excel template in three places, so somebody looking for which AI model is used finds three controls named model and none of them is it. And archive has an API route and no button, so an engagement can be made and paused but never retired.
+
+- phase added: P80 Setup, in the analyst's words (The consoles, gate: auto)
+- exit criterion: The checklist names the profile as a step, before the step that refuses without it
+- exit criterion: A person choosing repeat or new sees those words, and the scope path follows from the choice
+- exit criterion: Every control that says model says which kind, and the AI model in use is visible somewhere
+- exit criterion: Archive is reachable from the roster and asks before it acts
+
+## 2026-09-19 - C48 The setup a beginner can finish
+
+**Why:** P80 renamed and resequenced the Setup surface around the analyst's vocabulary rather than the appraiser's, and changed the shape of the scope path a person submits. Nothing behind it moved, which is exactly when a console and the code under it start to disagree quietly - so it is checkpointed against the whole build rather than trusted to its own tests.
+
+- checkpoint added: C48 after P80, covering P80
+- proves: An engagement can be taken from an empty environment to an active run through the page alone, in the words the person doing the work uses, with the profile met as a step rather than a refusal.

@@ -53,7 +53,7 @@ PAGE = f"""<!doctype html>
  <div class="board">
   <section class="card" style="grid-area:steps">
    <header><h2>Getting set up</h2>
-    <p class="why">Six steps, in order. Each is checked against the live configuration, so
+    <p class="why">Seven steps, in order. Each is checked against the live configuration, so
      this cannot tell you something is done when it is not.</p></header>
    <div class="body"><div id="checklist"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
@@ -119,6 +119,13 @@ PAGE = f"""<!doctype html>
      <input id="e_id" placeholder="HEND-2026-01" oninput="this.dataset.typed=1">
      <label for="e_scope">Practice group</label>
      <select id="e_scope" style="width:100%;margin-bottom:.55rem"></select>
+     <label for="e_kind">Is this a repeat client?</label>
+     <select id="e_kind" style="width:100%;margin-bottom:.55rem">
+      <option value="repeat">Repeat &mdash; we valued them before, and last year&rsquo;s model exists</option>
+      <option value="non-repeat">New &mdash; first time we have valued this client</option>
+     </select>
+     <div class="sub">Three quarters of our work is repeat. It decides what last year&rsquo;s
+      workbook is used for, and what the run may look at from previous years.</div>
     </div>
     <div>
      <label for="e_watch">Watched folder</label>
@@ -129,7 +136,7 @@ PAGE = f"""<!doctype html>
      <input id="e_folder" placeholder="Henderson Manufacturing/2026 Valuation" oninput="this.dataset.typed=1">
     </div>
    </div>
-   <label for="e_pin">Model template <span style="color:var(--ink-4);text-transform:none;letter-spacing:0">&mdash; optional</span></label>
+   <label for="e_pin">Excel model template <span style="color:var(--ink-4);text-transform:none;letter-spacing:0">&mdash; optional, not the AI model</span></label>
    <input id="e_pin" placeholder="Leave blank to use the practice group&rsquo;s default">
   </div>
   <div class="foot">
@@ -142,6 +149,13 @@ PAGE = f"""<!doctype html>
 {SHELL}
 <script>
 let SETUP = null, SCOPES = null, METH = {{files: []}}, ME = null;
+
+/* The registry names a disposition "Repeat client"; this is what it means to somebody
+   setting one up. Keyed by the registry's id so the two cannot drift apart silently. */
+const KIND_SAYS = {{
+  'repeat': 'Repeat — we valued them before, and last year’s model exists',
+  'non-repeat': 'New — first time we have valued this client',
+}};
 
 /* The name on a change is the system's, not one anybody types here. The page reads it so
    it can show you whose name is going on what you are about to do; it sends nothing, and
@@ -162,7 +176,7 @@ function checklist() {{
   const steps = [
     {{done: configured, t: 'Set this environment up',
       d: 'Writes the first configuration. Nothing else can be saved until it exists.',
-      go: configured ? null : ['Set it up', 'initialise()']}},
+      go: configured ? null : ['Set it up', 'initialise']}},
     {{done: watches > 0, t: 'Say which folder to watch',
       d: watches ? (SETUP.watches || []).map(w => w.name + ' (' + (w.root || 'the whole inbox') + ')').join('; ')
                  : 'The folder client files arrive in' + (SETUP && SETUP.inbox_root ? ', under ' + SETUP.inbox_root : '') + '.',
@@ -181,6 +195,18 @@ function checklist() {{
       d: roster.length ? plural(roster.length, 'engagement', 'engagements') + ' on the roster'
                        : 'The client work itself, and the practice group it belongs to.',
       go: (configured && watches && dests && !roster.length) ? ['Add one', 'showAdd'] : null}},
+    {{done: roster.length > 0 && roster.every(r => !(r.profile_gaps || []).length), t: 'Fill in the engagement profile',
+      d: (() => {{
+        const missing = roster.filter(r => (r.profile_gaps || []).length);
+        if (!roster.length) return 'Twelve things about the client the skills read - the industry, the size, the year end, what owner pay should be. It takes about ten minutes and nothing runs without it.';
+        if (!missing.length) return 'Complete for ' + plural(roster.length, 'engagement', 'engagements');
+        return missing[0].client + ' still needs ' + plural(missing[0].profile_gaps.length, 'answer', 'answers')
+          + (missing.length > 1 ? ', and ' + (missing.length - 1) + ' more like it' : '');
+      }})(),
+      go: (() => {{
+        const first = roster.find(r => (r.profile_gaps || []).length);
+        return first ? ['Fill it in', 'editProfile', {{id: first.engagement_id}}] : null;
+      }})()}},
     {{done: active > 0, t: 'Activate it',
       d: active ? plural(active, 'engagement active', 'engagements active')
                 : 'Preflight has to pass for it first. Until then nothing is read.',
@@ -209,12 +235,14 @@ function checklist() {{
 /* What a button does, by name. The values ride in data attributes: an engagement id, a
    client's folder and a methodology filename are all free text, and none of them is
    allowed to become script. */
+ACTIONS.initialise = () => initialise();
 ACTIONS.addWatch = () => addWatch();
 ACTIONS.addDestination = () => addDestination();
 ACTIONS.showAdd = () => showAdd();
 ACTIONS.clearFile = d => clearFile(d.name);
 ACTIONS.approveRecipe = d => approveRecipe(d.name, d.state);
 ACTIONS.move = d => move(d.id, d.to);
+ACTIONS.retire = d => retire(d.id);
 ACTIONS.showFiles = d => showFiles(d.id);
 ACTIONS.settings = d => settings(d.id);
 ACTIONS.setRecipe = d => setRecipe(d.id, d.recipe);
@@ -260,7 +288,8 @@ function roster() {{
   $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r engagement">
      <span class="lbl"><b>${{esc(r.client || r.engagement_id)}}</b><br>
       <span class="sub" style="white-space:normal">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>
-      ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}</span>
+      ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}
+      ${{r.is_repeat && !r.prior_model ? `<span class="why-line"><a href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="A repeat client's work starts from last year's workbook. Until this is set there is nothing to roll forward from.">last year&rsquo;s model: not set</a></span>` : ''}}</span>
      <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
      <span class="acts">
       <button class="quiet" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</button>
@@ -270,6 +299,7 @@ function roster() {{
       ${{r.state === 'active'
         ? `<button data-act="move" data-id="${{esc(r.engagement_id)}}" data-to="pause">Pause</button>`
         : `<button class="primary" data-act="move" data-id="${{esc(r.engagement_id)}}" data-to="activate">Activate</button>`}}
+      ${{r.state === 'archived' ? '' : `<button class="quiet" data-act="retire" data-id="${{esc(r.engagement_id)}}" title="Retire this engagement. It stops being swept and stays on the record.">retire</button>`}}
      </span></div>`).join('')
    : '<div class="empty"><b>No engagements yet</b>An engagement is one piece of client work.</div>';
 }}
@@ -345,9 +375,19 @@ async function workflows() {{
 async function seams() {{
   const r = await get('/api/readiness').catch(() => null);
   if (!r) {{ $('seams').innerHTML = '<div class="empty">Unavailable</div>'; return; }}
-  $('seams').innerHTML = r.seams.map(s => `<div class="r">
+  /* `needs_installing` is software somebody adds, not a join this build left unmade, and
+     saying "not wired" about it would send a person looking in the wrong place. */
+  const ai = SETUP && SETUP.ai_model;
+  $('seams').innerHTML =
+    (ai ? `<div class="r">
+      <span class="lbl">AI model<span class="d">${{esc(ai.adapter)}} &mdash; ${{esc(ai.means)}}${{
+        ai.reaches_a_model ? '. Skills ask for low, mid or high: ' + esc(Object.values(ai.tiers).join(', ')) : ''}}</span></span>
+      <span class="pill ${{ai.reaches_a_model ? 'good' : ''}}"><i class="dot"></i>${{ai.reaches_a_model ? 'live' : 'no spend'}}</span>
+     </div>` : '')
+    + r.seams.map(s => `<div class="r">
      <span class="lbl">${{esc(s.name)}}<span class="d">${{esc(s.detail)}}</span></span>
-     <span class="pill ${{s.ready ? 'good' : 'bad'}}"><i class="dot"></i>${{s.ready ? 'wired' : 'not wired'}}</span>
+     <span class="pill ${{s.ready ? 'good' : (s.needs_installing ? 'warn' : 'bad')}}"><i class="dot"></i>${{
+       s.ready ? 'wired' : (s.needs_installing ? 'not installed' : 'not wired')}}</span>
     </div>`).join('');
 }}
 
@@ -357,6 +397,23 @@ function initialise() {{
     {{who: who(), reason: 'first configuration for this environment'}}),
     'Environment set up.');
 }}
+/* Retiring is the only thing on this page that ends something, so it asks first. The
+   route has existed since P24 and no button ever called it, which meant an engagement
+   could be made and paused and never put away - and a roster nobody can tidy is one
+   people stop reading. */
+async function retire(id) {{
+  const answer = await ask({{
+    title: 'Retire ' + id,
+    why: 'It stops being swept and no new run starts. Nothing already recorded is removed - '
+      + 'the runs, decisions and manifests stay exactly as they are.',
+    fields: [{{name: 'reason', label: 'Why', kind: 'textarea', required: true}}],
+    ok: 'Retire it', danger: true,
+  }});
+  if (!answer) return;
+  act(() => post(`/api/admin/engagements/${{id}}/archive`, {{who: who(), reason: answer.reason}}),
+    id + ' retired.');
+}}
+
 function move(id, what) {{
   act(() => post(`/api/admin/engagements/${{id}}/${{what}}`,
     {{who: who(), reason: what + 'd from the setup page'}}),
@@ -364,9 +421,25 @@ function move(id, what) {{
 }}
 function showAdd() {{
   const opts = (list, value, label) => list.map(x => `<option value="${{esc(value(x))}}">${{esc(label(x))}}</option>`).join('');
-  $('e_scope').innerHTML = opts(SCOPES ? SCOPES.paths : [], p => p.scope_path,
-    p => p.scope_path + (p.focus ? '  (focus)' : '') + (p.parked ? '  (parked)' : '')
-      + (p.firm_layer_only ? '  (nothing defined yet)' : ''));
+  /* The practice group and "is this a repeat client" are one string in the scope path -
+     valuation/non-esop/repeat - and two questions in somebody's head. Asked separately and
+     joined on submit: the group comes from the registry without its disposition, and
+     `addEngagement` puts the disposition back. Three quarters of the work turns on that
+     last segment, and it was the last word of a control called Practice group, written as
+     "non-repeat".
+
+     Both lists are handed over by the console. The page never takes a scope path apart:
+     which segment means which question is the registry's business, and a page that sliced
+     the string would be a second place to be wrong about it. */
+  const groups = SCOPES ? SCOPES.groups || [] : [];
+  const kinds = SCOPES ? SCOPES.dispositions || [] : [];
+  $('e_scope').innerHTML = opts(groups, p => p.group,
+    p => (p.name || p.group) + (p.focus ? '  (focus)' : '') + (p.parked ? '  (parked)' : ''));
+  /* The markup carries the two dispositions that exist, so the control is right before
+     anything loads. The registry is still asked, so a third disposition added to
+     scopes.yaml appears here instead of being silently unofferable - in the registry's
+     own words if nobody has written a plainer one. */
+  if (kinds.length) $('e_kind').innerHTML = opts(kinds, d => d.id, d => KIND_SAYS[d.id] || d.name);
   $('e_watch').innerHTML = opts(SETUP ? SETUP.watches || [] : [], w => w.id, w => w.id + ' \\u2014 ' + (w.root || '/'));
   $('e_dest').innerHTML = opts(SETUP ? SETUP.destinations || [] : [], d => d.id, d => d.id + ' \\u2014 ' + (d.name || d.path || ''));
   if (!SETUP) {{
@@ -396,7 +469,7 @@ function addEngagement() {{
   const body = {{
     who: who(), reason: 'registered from the setup page',
     engagement_id: $('e_id').value.trim(), client: $('e_client').value.trim(),
-    scope_path: $('e_scope').value, watch_id: $('e_watch').value,
+    scope_path: $('e_scope').value + '/' + $('e_kind').value, watch_id: $('e_watch').value,
     destination_id: $('e_dest').value, folder: $('e_folder').value.trim(),
     template_pin: $('e_pin').value.trim(),
   }};
@@ -494,10 +567,13 @@ async function settings(id) {{
     title: 'Settings for ' + (row.client || id),
     why: 'Each change is recorded with its reason. A budget cannot go above the firm ceiling, a review level can be raised but not lowered, and files can be held for less time than the environment allows, never more.',
     fields: [
-      {{name: 'budget', label: 'Model budget per run (USD)', value: row.budget_usd ?? '', hint: 'Firm ceiling: $' + SETUP.firm_ceiling_usd + '. Blank leaves it as it is.', required: false}},
+      {{name: 'budget', label: 'Spend limit per run (USD)', value: row.budget_usd ?? '', hint: 'What one run of this engagement may cost in model calls. Firm ceiling: $' + SETUP.firm_ceiling_usd + '. This is per run, not per month. Blank leaves it as it is.', required: false}},
       {{name: 'level', label: 'Review level', kind: 'select', value: row.review_level || 'standard',
         options: (SETUP.review_levels || ['standard', 'elevated']).map(v => ({{value: v, label: v}}))}},
       {{name: 'quiet', label: 'Quiet period - minutes files must stop changing before a run', value: '', placeholder: quiet ? 'environment default: ' + quiet : '', required: false}},
+      ...(row.is_repeat ? [{{name: 'prior', label: 'Last year’s model', value: row.prior_model || '',
+        hint: 'The workbook this year is rolled forward from. A file on this machine - a synced Box or OneDrive path, not a web link. Blank leaves it as it is.',
+        required: false}}] : []),
       {{name: 'reason', label: 'Why', kind: 'textarea', required: true}},
     ],
     ok: 'Save settings',
@@ -506,6 +582,8 @@ async function settings(id) {{
   const jobs = [];
   if (String(answer.budget).trim() !== '' && Number(answer.budget) !== row.budget_usd)
     jobs.push(() => post(`/api/admin/engagements/${{id}}/budget`, {{who: who(), reason: answer.reason, usd: Number(answer.budget)}}));
+  if (answer.prior !== undefined && String(answer.prior).trim() !== (row.prior_model || ''))
+    jobs.push(() => post(`/api/admin/engagements/${{id}}/prior-model`, {{who: who(), reason: answer.reason, prior_model: String(answer.prior).trim()}}));
   if (answer.level && answer.level !== row.review_level)
     jobs.push(() => post(`/api/admin/engagements/${{id}}/review-level`, {{who: who(), reason: answer.reason, level: answer.level}}));
   if (String(answer.quiet).trim() !== '')

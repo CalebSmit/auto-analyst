@@ -130,6 +130,17 @@ contracts:
       listed: a version is never edited in place, and a document already written is
       still a document that has to be readable.
 
+  - id: config_document
+    version: 1.3.0
+    file: config_document@1.3.0.schema.json
+    kind: configuration
+    note: >-
+      P79: where last year's model is, per engagement. The analyst asked for this by name
+      and said where it comes from - pointed at the right Box location during set-up - and
+      the repeat path, which is 75% of the work, begins by opening it. Absent means not
+      pointed at one yet, which for a first-year client is the permanent and correct
+      answer. 1.2.0 stays listed for the same reason 1.1.0 did.
+
   - id: participant_census
     version: 1.0.0
     file: participant_census.schema.json

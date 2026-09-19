@@ -98,6 +98,11 @@ class AdminConsole:
             "inbox_root": _local_root(self.preflight.storage),
             "outbox_root": _local_root(self.preflight.delivery),
             "review_levels": list(REVIEW_LEVELS),
+            # Which *AI* model answers, which no screen said anywhere. The word "model"
+            # means the Excel template in three other places on this page, so somebody
+            # looking for this found three controls named model and none of them was it.
+            # Read from the ports rather than declared, so it cannot drift from the run.
+            "ai_model": self._ai_model(),
             "can": CAN,
             "cannot": CANNOT,
         }
@@ -223,6 +228,7 @@ class AdminConsole:
         """
         registry = self.preflight._resolver().scopes  # noqa: SLF001
         paths = []
+        groups: dict[str, dict[str, Any]] = {}
         for path in registry.combinations():
             practice = registry.practice(path.practice)
             segment = practice.segment(path.segment)
@@ -237,11 +243,30 @@ class AdminConsole:
                     "firm_layer_only": resolved.firm_layer_only,
                 }
             )
+            # A practice group is the path without its disposition, and the page asks for
+            # the two separately because they are two questions. Built here from the parts
+            # the registry already has rather than by splitting the joined string on the
+            # page: which segment means what is this module's business, and a page that
+            # sliced the path would be a second place to be wrong about it - which is what
+            # C47 holds the page to.
+            group = f"{path.practice}/{path.segment}"
+            groups.setdefault(
+                group,
+                {
+                    "group": group,
+                    "name": f"{practice.name} - {segment.name}" if segment else practice.name,
+                    "focus": registry.in_focus(path),
+                    "parked": bool(segment and segment.parked),
+                    "defined": practice.defined and bool(segment and segment.defined),
+                },
+            )
         # The focus first, parked last; declaration order otherwise. Sorting is stable.
         paths.sort(key=lambda p: (not p["focus"], p["parked"]))
+        ordered = sorted(groups.values(), key=lambda g: (not g["focus"], g["parked"]))
         return {
             "focus": "/".join(registry.focus) if registry.focus else None,
             "layer_order": list(registry.layer_order),
+            "groups": ordered,
             "practices": [
                 {
                     "id": p.id,
@@ -535,6 +560,90 @@ class AdminConsole:
                 )
             )
         return self.roster.update(engagement_id, who=who, reason=reason, review_level=level)
+
+    def set_prior_model(
+        self, engagement_id: str, path: str, *, who: str, reason: str
+    ) -> int:
+        """Where last year's model is, for an engagement that has a last year.
+
+        The analyst asked for exactly this and said exactly where it comes from: *"In the
+        set up, I would point it to the right box file location."* Three quarters of this
+        practice's engagements are repeat clients, and for those the work begins by opening
+        last year's workbook - the historicals are copied forward, the years shifted, the
+        WS line items carried across as this year's schema. Without this the roll-forward
+        has nothing to roll forward from.
+
+        **Checked here, while the person is still reading.** A path that does not resolve
+        is the failure this surface keeps producing in other forms: the engagement
+        registers, everything looks right, and nothing ever happens. By the time a run
+        needs the file, whoever typed the path is somewhere else. Box Drive presents a
+        local path, so this is an ordinary file that either exists or does not.
+
+        An empty path clears it, which is how a mistake is undone and how an engagement
+        that turns out not to have a usable prior year says so.
+        """
+        entry = self.roster.get(engagement_id)
+        if entry is None:
+            raise KeyError(f"{engagement_id} is not on the roster")
+
+        chosen = path.strip().strip('"')
+        if chosen:
+            from pathlib import Path as _Path  # noqa: PLC0415
+
+            where = _Path(chosen).expanduser()
+            if not where.is_file():
+                raise AdminRefused(
+                    (
+                        diagnose(
+                            ADMIN_FORBIDDEN,
+                            f"no file at {chosen!r}. Last year's model has to be a file "
+                            "this machine can open - a Box or OneDrive folder that is "
+                            "synced locally, not a web link.",
+                            locator=f"engagements/{engagement_id}/prior_model",
+                            expected="a path to an existing workbook",
+                            found=chosen,
+                        ),
+                    )
+                )
+            chosen = str(where.resolve())
+
+        doc = self.config.document()
+        engagements = dict(doc.get("engagements") or {})
+        over = dict(engagements.get(engagement_id) or {})
+        if chosen:
+            over["prior_model"] = chosen
+        else:
+            over.pop("prior_model", None)
+        engagements[engagement_id] = over
+        doc["engagements"] = engagements
+
+        # `prior_model` has no home before 1.3.0, so writing one upgrades the document -
+        # the same move the recipe made at 1.2.0. Nothing else does: a configuration that
+        # names no prior model stays the version it was, and an older document written
+        # before this existed still means exactly what it meant.
+        if chosen and doc.get("schema_version") != CONTRACT:
+            doc["schema_version"] = CONTRACT
+        return self._write(doc, who, reason)
+
+    def prior_model(self, engagement_id: str) -> str:
+        """The recorded path, or empty. Read from the configuration like the recipe."""
+        doc = self.config.document()
+        over = (doc.get("engagements") or {}).get(engagement_id) or {}
+        return str(over.get("prior_model") or "")
+
+    def needs_a_prior_model(self, engagement_id: str) -> bool:
+        """Whether this engagement is one that should have been pointed at last year.
+
+        Only a repeat engagement. A first-year client has no last year, and asking for one
+        would be demanding a file that does not exist - which is how a checklist teaches
+        somebody to ignore it.
+        """
+        entry = self.roster.get(engagement_id)
+        if entry is None:
+            return False
+        return entry.scope_path.rsplit("/", 1)[-1] == "repeat" and not self.prior_model(
+            engagement_id
+        )
 
     def set_recipe(self, engagement_id: str, recipe: str, *, who: str, reason: str) -> int:
         """Choose the recipe this engagement runs, or clear it back to the watch's.
@@ -900,6 +1009,30 @@ class AdminConsole:
         """Every write is validated by the store and logged field by field there."""
         return self.config.write(doc, who=who, reason=reason)
 
+    def _ai_model(self) -> dict[str, Any]:
+        """Which adapter answers a skill, and what it costs to ask.
+
+        Not settable here on purpose: the adapter is an environment choice and the concrete
+        model comes from the skill's own tier, which is a budgeting decision made per skill
+        rather than per client. What was missing was not a control - it was the answer to
+        "which AI is this using", which the page could not give at all.
+        """
+        import ports  # noqa: PLC0415
+        from ports.llm import TIER_MODELS  # noqa: PLC0415
+
+        adapter = ports.selected("llm")
+        says = {
+            "fake": "replays recorded fixtures - no API call, no spend",
+            "scripted": "a stand-in answering for the model, for a rehearsal",
+            "anthropic_messages": "the Anthropic API, with the firm's key",
+        }
+        return {
+            "adapter": adapter,
+            "means": says.get(adapter, "an adapter this page does not recognise"),
+            "reaches_a_model": adapter not in ("fake", "scripted"),
+            "tiers": dict(TIER_MODELS),
+        }
+
     def _entry_row(self, entry: RosterEntry) -> dict[str, Any]:
         return {
             "engagement_id": entry.engagement_id,
@@ -916,6 +1049,13 @@ class AdminConsole:
             "note": entry.note,
             "profile_recorded": self.config.profile(entry.engagement_id) is not None,
             "profile_gaps": self._gaps(entry),
+            # A repeat engagement's work starts by opening last year's workbook, so the
+            # roster says whether it has been pointed at one. `is_repeat` rather than the
+            # page parsing the scope path: which segment means repeat is this module's
+            # business, and a page that split the string would be a second place to be
+            # wrong about it.
+            "is_repeat": entry.scope_path.rsplit("/", 1)[-1] == "repeat",
+            "prior_model": self.prior_model(entry.engagement_id),
         }
 
     def _gaps(self, entry: RosterEntry) -> list[str]:

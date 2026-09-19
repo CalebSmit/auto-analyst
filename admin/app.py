@@ -70,6 +70,11 @@ class RecipeChoice(Change):
     """Empty means inherit the watch's, which is how an engagement undoes a choice."""
 
 
+class PriorModel(Change):
+    prior_model: str = ""
+    """Where last year's workbook is, for a repeat engagement. Empty clears it."""
+
+
 class Clearance(BaseModel):
     who: str = ""
     """A clearance names a person and nothing else - and the person is the identity the
@@ -316,6 +321,20 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
             lambda: {
                 "version": console.set_recipe(
                     engagement_id, body.recipe, who=who(request, body.who), reason=body.reason
+                )
+            }
+        )
+
+    @app.post("/api/admin/engagements/{engagement_id}/prior-model")
+    def prior_model(engagement_id: str, request: Request, body: PriorModel) -> dict[str, Any]:
+        """Where last year's model is. The repeat path begins by opening it."""
+        return _guard(
+            lambda: {
+                "version": console.set_prior_model(
+                    engagement_id,
+                    body.prior_model,
+                    who=who(request, body.who),
+                    reason=body.reason,
                 )
             }
         )

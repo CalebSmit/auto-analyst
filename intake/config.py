@@ -30,12 +30,12 @@ from registries.errors import UNKNOWN_TYPE, WATCH_OVERLAP, RegistryError, diagno
 
 __all__ = ["ChangeRecord", "ConfigStore", "Credential", "Destination", "IntakeTiming", "Watch"]
 
-CONTRACT = "config_document@1.2.0"
-SUPPORTED = ("config_document@1.2.0", "config_document@1.1.0")
-"""Every version this store can read. A document written against 1.1.0 says what it always
-said - 1.2.0 only adds the per-engagement recipe, and absent means inherit - so an older
-document is read rather than migrated. It is written back at the current version, which is
-the only moment it changes."""
+CONTRACT = "config_document@1.3.0"
+SUPPORTED = ("config_document@1.3.0", "config_document@1.2.0", "config_document@1.1.0")
+"""Every version this store can read. An older document says what it always said - 1.2.0
+added the per-engagement recipe and 1.3.0 where last year's model is, and absent means
+inherit and not-yet-pointed respectively - so an older document is read rather than
+migrated. It is written back at the current version, which is the only moment it changes."""
 PROFILE_CONTRACT = "engagement_profile@1.0.0"
 
 

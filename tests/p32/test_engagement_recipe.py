@@ -179,7 +179,13 @@ def test_the_document_is_checked_against_the_version_it_declares(
     """1.1.0 stays listed and stays readable. Checking every document against the newest
     version would make each new version retroactively invalidate every document already
     written, which is the opposite of leaving the old one listed."""
-    assert SUPPORTED == ("config_document@1.2.0", "config_document@1.1.0")
+    # 1.3.0 joined at P79 (where last year's model is). Every older version stays, and
+    # the newest is first - which is the order `write` picks from.
+    assert SUPPORTED == (
+        "config_document@1.3.0",
+        "config_document@1.2.0",
+        "config_document@1.1.0",
+    )
 
     document = config.document()
     assert document["schema_version"] == "config_document@1.1.0", "written by the fixture"
@@ -214,9 +220,9 @@ def test_both_versions_are_registered_and_1_1_0_is_still_there() -> None:
     versions = [
         row["version"] for row in registry["contracts"] if row["id"] == "config_document"
     ]
-    assert versions == ["1.0.0", "1.1.0", "1.2.0"]
+    assert versions == ["1.0.0", "1.1.0", "1.2.0", "1.3.0"]
 
-    for version in ("1.1.0", "1.2.0"):
+    for version in ("1.1.0", "1.2.0", "1.3.0"):
         schema = json.loads(
             (ROOT / "contracts" / f"config_document@{version}.schema.json").read_text(
                 encoding="utf-8"

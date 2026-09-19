@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**78 of 78 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**80 of 80 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -159,6 +159,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C45 - The documents a person arrives at, agreeing with each other** | integration | CLAUDE.md, the interview protocol, the using guide, the handoff packet and .env.example still say the same thing about how to run it, about the setting that decides whether a scanned page can be read, and about what version 1 is for; every adapter they name is one the ports actually register; the shared vocabulary the protocol guard stands on survived the rewrite; and every document a session is sent to read still exists. | 2026-09-19 |
 | [x] | **P78** The packet that meets somebody at work | auto | No document claims that only .env changes at handoff | 2026-09-19 |
 | [x] | **C46 - The first hour on a machine that has never seen this** | integration | The documents that tell somebody how to start agree with each other; the OCR step is the same wherever it is told and every adapter named is one the ports accept; the quiet failure of skipping the engine is described where somebody will look; what is owed is one list rather than two; every pytest flag a document offers is one the suite defines; and the rules and the packet describe the same version 1. | 2026-09-19 |
+| [x] | **P80** Setup, in the analyst's words | auto | The checklist names the profile as a step, before the step that refuses without it | 2026-09-19 |
+| [x] | **C48 - The setup a beginner can finish** | integration | An engagement can be taken from an empty environment to an active run through the page alone, in the words the person doing the work uses, with the profile met as a step rather than a refusal. | 2026-09-19 |
 
 ## The interview
 
@@ -201,4 +203,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P75** An OCR engine that installs without an administrator | auto | The adapter satisfies the port and is built like the others, on a machine without its dependencies installed | 2026-09-19 |
 | [x] | **P76** A real filing, kept as the document that finds things | auto | The reader reads the real filing, and what it gets wrong on a comparative statement is pinned rather than discovered again | 2026-09-19 |
 | [x] | **C44 - Two engines, one real document, and a rule widened on purpose** | integration | Every registered OCR engine is local, reaches no model and no network, and can be built on a machine that has installed none of them; none of them silently falls back to another, so a scan is never read by an engine nobody chose; the real filing is still read and the comparative-column defect it found is pinned along with the escalation that is the only thing stopping a run on it; and widening the fixtures rule to allow a public document did not loosen what it always forbade - no client data, a named public source, and the identifier register checking the fixture like anything else. | 2026-09-19 |
+| [x] | **P79** Where last year's model is | auto | A repeat engagement can be pointed at last year's workbook and the setting survives a reload | 2026-09-19 |
+| [x] | **C47 - Setting up a repeat client, with everything that needs saying** | integration | The newest configuration version is the one a write produces and every supported version still loads; no version was edited in place, so 1.1.0 knows nothing of a recipe and 1.2.0 nothing of a prior model; an engagement naming no prior model is not upgraded because another one was; a repeat engagement is told on the roster that it has not been pointed at last year's workbook, and stops being told once it has; and the page is handed which engagements are repeat rather than splitting a scope path itself. | 2026-09-19 |
 
