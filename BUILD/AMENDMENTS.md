@@ -1498,3 +1498,43 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C44 after P76, covering P75, P76
 - proves: Every registered OCR engine is local, reaches no model and no network, and can be built on a machine that has installed none of them; none of them silently falls back to another, so a scan is never read by an engine nobody chose; the real filing is still read and the comparative-column defect it found is pinned along with the escalation that is the only thing stopping a run on it; and widening the fixtures rule to allow a public document did not loosen what it always forbade - no client data, a named public source, and the identifier register checking the fixture like anything else.
+
+## 2026-09-19 - P77 The first thing a session reads, made true again
+
+**Why:** CLAUDE.md is the first thing every session reads, and four things in it are now out of date in ways that would mislead one. It says the project is DDR extraction, normalization and model building - and the fourth interview session redefined version 1 as gathering and organising data into a workbook the analyst types from, explicitly not running the model. It describes the identifier register as empty with an acknowledgement standing in, which was true of the first three sessions and is not true now that ten names are in it. It says nothing about the OCR port, which is the one setting that decides whether most of this firm's documents can be read at all on the machine it is about to be moved to. And it does not carry the acceptance rule the analyst gave - proved by arithmetic or seen - which is now the rule the confidence router applies.
+
+- phase added: P77 The first thing a session reads, made true again (The consoles, gate: auto)
+- exit criterion: Nothing in CLAUDE.md describes version 1 as building the model
+- exit criterion: What it says about the register matches what the register holds and what the command does
+- exit criterion: Every command and setting it names exists, checked rather than read
+- exit criterion: The guards that already hold it - the gate prefix, the protocol's words, the blueprint's numbers - still pass
+
+## 2026-09-19 - C45 The documents a person arrives at, agreeing with each other
+
+**Why:** P77 rewrote the document every session starts from, and the risk of rewriting one of a set is that it stops agreeing with the others. The work machine is next, which makes HANDOFF.md the document that will meet somebody with no context and no session history - so the four are asked together rather than one at a time.
+
+- checkpoint added: C45 after P77, covering P77
+- proves: CLAUDE.md, the interview protocol, the using guide, the handoff packet and .env.example still say the same thing about how to run it, about the setting that decides whether a scanned page can be read, and about what version 1 is for; every adapter they name is one the ports actually register; the shared vocabulary the protocol guard stands on survived the rewrite; and every document a session is sent to read still exists.
+
+## 2026-09-19 - P78 The packet that meets somebody at work
+
+**Why:** The work machine is next, and HANDOFF.md is what meets somebody there with no session history. Its headline claim is that .env changes and nothing else - which was true until P74, and is not: an OCR engine is software to install, and without it every PDF this firm's clients send reads as nothing. That failure looks like nothing happening, which is the worst kind to meet on a first evening. Its list of what is still owed is the P28-era list and does not carry what the fourth interview session established: the real model that the input-help workbook has to match, the per-engagement request items, and the fact that OCR accuracy on a genuine scan is still unmeasured.
+
+- phase added: P78 The packet that meets somebody at work (The consoles, gate: auto)
+- exit criterion: No document claims that only .env changes at handoff
+- exit criterion: The getting-started path names the OCR engine, and what is lost by skipping it
+- exit criterion: What is still owed names the real model, the request items and the unmeasured accuracy
+
+## 2026-09-19 - C46 The first hour on a machine that has never seen this
+
+**Why:** P77 and P78 exist for one moment: somebody at the work machine with a clone, no session history and an evening. The checkpoint asks them together because the failure they guard against is a quiet one - skipping the OCR engine produces no error, only documents going in and nothing coming out - and because two documents describing the same product differently is the drift that survives longest, each reading fine alone.
+
+- checkpoint added: C46 after P78, covering P78
+- proves: The documents that tell somebody how to start agree with each other; the OCR step is the same wherever it is told and every adapter named is one the ports accept; the quiet failure of skipping the engine is described where somebody will look; what is owed is one list rather than two; every pytest flag a document offers is one the suite defines; and the rules and the packet describe the same version 1.
+
+## 2026-09-19 - P78 The packet that meets somebody at work
+
+**Why:** The first correction overshot and C10 caught it. Replacing the portability claim - .env changes and nothing else - with 'settings change and software gets installed' weakened a load-bearing sentence: the packet says that anything else needing to change to make the suite pass is a defect in the portability claim rather than a step to add quietly, and blurring it invites exactly those steps. The suite does pass with no OCR engine, so the claim is true. What needed saying is that it is a claim about the build, and that reading this firm's documents needs one operational dependency beyond it - the way the production store needs Postgres.
+
+- task added: The portability claim is kept and scoped rather than weakened
+- exit criterion added: The packet still says .env changes and nothing else, and says what that claim is about

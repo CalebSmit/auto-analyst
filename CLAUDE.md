@@ -41,6 +41,12 @@ Then, situationally:
 6. **A red checkpoint blocks the next phase.** It means phases that each passed alone
    disagree with each other, which is the whole reason checkpoints exist. Do not work
    around one.
+7. **Do not leave something built and wired to nothing.** It is this build's most repeated
+   defect — P55 found three, P60 one, P72 one more, and every one was found by a person
+   reading rather than by a test. Two scans now look for it: `tests/p71` fails on a public
+   function nothing calls, `tests/p73` on an exception class production never constructs.
+   Both take an allowlist, and an entry without a reason fails as loudly as the defect.
+   If a seam is deliberately unjoined, say so in the backlog and point the allowlist at it.
 
 ## The gate
 
@@ -86,8 +92,17 @@ Pages build no handler out of data - values reach a handler through `data-` attr
 `serve.py` reads `.env` into the environment on start (the shell wins; `AA_NO_ENV_FILE=1`
 opts out, and the rehearsal sets it). Before that fix, only secrets were read from the file.
 
+**On a machine doing real work, set `AA_OCR_ADAPTER`.** Every PDF this firm's clients send
+is a scan and they send a lot of them, so with the default (`none`) most of the inbound path
+reads as nothing — correctly, because a page that yields nothing is reported rather than
+filled in, but it reads as nothing all the same. `rapidocr` is a wheel and needs no
+administrator; `tesseract` needs its executable on PATH. `serve.py --check` says which of
+them is actually working, by trying it.
+
 `readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
 need updating when a seam is filled - and it is the honest answer to "does this work yet".
+A seam marked NOT INSTALLED waits on software a person installs; NOT WIRED is a join this
+build has left unmade, and they are different problems.
 [`docs/USING.md`](docs/USING.md) is the guide for the people who use the tool rather than
 build it; keep it true, because a test holds it to the setup path it describes.
 
@@ -109,16 +124,37 @@ what the code says the focus division is still missing.
 
 The scan checks `knowledge/identifiers.txt`, and it refuses rather than passing over an
 empty one. `interview.py suggest` reads the answers already recorded and proposes what has
-the shape of a name; `interview.py register NAME` adds one. If a session genuinely named
-nobody - which was true of the first three - a person records that with
-`interview.py register --none "..."`, and that acknowledgement expires as soon as another
-session is logged. **Never invent a name to fill the register.**
+the shape of a name; `interview.py register NAME` adds one. **The register holds real
+client names now** — the fourth session named six clients, an auditor and two locations —
+so the scan is a real search rather than an acknowledgement standing in for one. It caught
+a leak the first day it had names to look for.
+
+If a session genuinely names nobody, a person records that with
+`interview.py register --none "..."`. It needs words of your own: the note is the decision,
+and the code will not write one for you. It records the sessions it was made over and
+expires as soon as another is logged, and it refuses to replace an acknowledgement that
+still stands rather than overwriting somebody's record. **Never invent a name to fill the
+register.**
 
 ## What this project is
 
 An AI analyst pipeline for Chartwell: DDR extraction and tagging, financial statement
 normalization, and model building — the mechanical stages of deal work, done under
 guarantees strong enough that an analyst can trust the output without redoing it.
+
+**What version 1 is, which is narrower.** The analyst set the scope in the fourth interview
+session (2026-09-18): *"gathering data and putting it into the same format every time so it
+is really easy for me to do the work in the model. Version 1 of this is not for you to run
+the actual model."* It fills an **input-help workbook** matching the model's input format
+and never touches the real model. So `gpc`, `cost-of-capital`, `dcf-build` and `qc-tieout`
+are out of version 1's path, and building them is not progress toward it.
+
+**The centre of gravity is the repeat client.** 75% of engagements are repeat clients, and
+for those *everything starts from last year's version of itself* — the model, the WS
+grouping, the Input tab, the request list. That is one mechanism applied four times, not
+four features. Only two Input fields change in a year (valuation date, latest fiscal year
+end), the WS line items are carried forward rather than re-decided — so for three quarters
+of the work **the prior workbook is the chart of accounts**, not `taxonomy/`.
 
 The architecture is settled and lives in a single file:
 
@@ -150,6 +186,16 @@ These are not style preferences. Each one is an invariant with a test behind it.
   one, and never disable a guard that fails closed.
 - **Nothing concludes, signs or certifies.** No schema has a field a concluded value
   could be recorded in. The appraiser signs, outside this system.
+- **A figure is proved by arithmetic, or it is seen.** The analyst's rule, given on
+  2026-09-18 and built in P67: a figure read out of a client document is accepted unseen
+  only when it carries its source locator *and* every total it feeds re-adds. Everything no
+  arithmetic covers is shown — every one, not only what changed. Evidence, not a confidence
+  score, because the failure that matters is a confidently wrong OCR read, which no
+  probability catches and a total that stops adding up does.
+- **OCR is local, and that is not a preference.** Masking needs text; text from a scan
+  needs OCR; OCR by a vision model would put the unmasked client document in front of a
+  model *before* masking could happen. `tests/p74` walks the imports to prove nothing on
+  that path can reach one.
 
 ## Working style here
 

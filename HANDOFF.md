@@ -7,6 +7,17 @@ a fact about one laptop is behind a port or an environment variable, and this do
 the list. If something not on this list has to change to make the suite pass, that is a
 defect in the portability claim, not a step to add here quietly.
 
+**That claim is about the build, and there is one thing the *work* needs beyond it: an OCR
+engine.** The suite passes without one and the system starts without one, so this is not a
+portability exception - it is an operational dependency, the way Postgres is for the
+production store. But every PDF this firm's clients send is a scan with no text layer, and
+they send a lot of them. Without an engine the reader reports those pages rather than
+inventing content for them, which is correct and also means most of the inbound path
+arrives empty. **That failure looks like nothing happening**, which is the hardest kind to
+diagnose on a first evening. `python -m uv run python tools/serve.py --check` says whether
+it is working, and reports it as NOT INSTALLED rather than NOT WIRED - software to add,
+not a join this build has left unmade.
+
 ---
 
 ## 1. Get it running
@@ -18,6 +29,24 @@ cp .env.example .env          # then fill in the two values below
 python -m uv sync --all-groups
 python -m uv run pytest -q
 python tools/gate.py status
+```
+
+Then the OCR engine, which is the one thing that is software rather than a setting:
+
+```
+python -m uv pip install pypdfium2 rapidocr-onnxruntime   # a wheel; no administrator
+```
+
+and set `AA_OCR_ADAPTER=rapidocr` in `.env`. `tesseract` is the alternative and reads as
+well, but it needs the Tesseract executable on PATH, which on a managed laptop is a request
+to somebody. Neither package is a project dependency: an ONNX runtime in every clone that
+never reads a scan is a cost nobody asked for.
+
+To check it took, and to measure it:
+
+```
+python -m uv run python tools/serve.py --check        # the "reading a scan" seam
+python -m uv run pytest tests/p76 --ocr               # accuracy on a real public filing
 ```
 
 Two values have to be filled in before anything runs for real:
@@ -153,6 +182,26 @@ them is a code change waiting to happen; each is evidence somebody has to produc
    `fixtures/skills/ebitda-normalization`.
 4. **The model builder.** Reconcile its named-range binding with `tools/write_template.py`
    and register the real templates with their input schemas under `templates/inputs/`.
+
+**And from the fourth interview session (2026-09-18), which redefined what version 1 is
+for** — it gathers and organises data into an *input-help workbook* the analyst types from,
+and does not run the model:
+
+5. **`Model Template - MASTER 2026` itself.** The input-help workbook has to match its
+   input format, and the roll-forward's Excel half has to bind its named ranges. The tab
+   strip and the Input, WS, IS and D structures are recorded in
+   `knowledge/sessions/2026-09-18-1.md` from photographs; the named ranges are not knowable
+   from a photograph. This is the largest single thing waiting, and everything about the
+   repeat-client path waits behind it.
+6. **The per-engagement request items.** The seven request-list sections are stable and are
+   in `intake/request_list.py`; the numbered items inside them are written per engagement,
+   and the only example in hand belongs to a client. There are many on the work computer.
+7. **What OCR actually reads on a real scan.** `pytest tests/p76 --ocr` measures an engine
+   against a public SEC filing, and it read 98.5%, 100% and 100% of the figures on three
+   statement pages. Those pages were born digital and rendered to images - no skew, no
+   scanner noise, no photocopy generation loss. **That is an upper bound, not a forecast.**
+   The real number needs one hand-keyed engagement as ground truth (B-011).
+8. **A local OCR engine, installed.** Confirmed possible on the work machine; see section 1.
 
 Also open, from earlier phases:
 

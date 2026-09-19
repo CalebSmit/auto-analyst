@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**76 of 76 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**78 of 78 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -155,6 +155,10 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C36 - Finding one client, and what the screen may claim** | integration | The engagement fold and the runs panel are two readings of one set of rows and cannot disagree about which runs or how many are open; every state the page names or paints is one RunState can hold; and the register still carries the question that refusing to invent a valuation date opened. | 2026-09-18 |
 | [x] | **P70** The gate can always say why | auto | A check whose output contains a character the console cannot encode is still reported, and the gate still refuses | 2026-09-18 |
 | [x] | **C39 - The gate reports a failure rather than becoming one** | integration | A real check that fails with output the console cannot encode is still reported, as a failure, with its text intact and the unencodable character replaced; the gate runs as a process under that console encoding without a traceback; a passing check still reads as passing; and no phase sits past the last checkpoint. | 2026-09-18 |
+| [x] | **P77** The first thing a session reads, made true again | auto | Nothing in CLAUDE.md describes version 1 as building the model | 2026-09-19 |
+| [x] | **C45 - The documents a person arrives at, agreeing with each other** | integration | CLAUDE.md, the interview protocol, the using guide, the handoff packet and .env.example still say the same thing about how to run it, about the setting that decides whether a scanned page can be read, and about what version 1 is for; every adapter they name is one the ports actually register; the shared vocabulary the protocol guard stands on survived the rewrite; and every document a session is sent to read still exists. | 2026-09-19 |
+| [x] | **P78** The packet that meets somebody at work | auto | No document claims that only .env changes at handoff | 2026-09-19 |
+| [x] | **C46 - The first hour on a machine that has never seen this** | integration | The documents that tell somebody how to start agree with each other; the OCR step is the same wherever it is told and every adapter named is one the ports accept; the quiet failure of skipping the engine is described where somebody will look; what is owed is one list rather than two; every pytest flag a document offers is one the suite defines; and the rules and the packet describe the same version 1. | 2026-09-19 |
 
 ## The interview
 

@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **76 of 76 phases closed**
-- Last green checkpoint: **C44**
+- **78 of 78 phases closed**
+- Last green checkpoint: **C46**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -95,4 +95,6 @@
 - **P74** The scanned page, read locally (2026-09-18)
 - **P75** An OCR engine that installs without an administrator (2026-09-19)
 - **P76** A real filing, kept as the document that finds things (2026-09-19)
+- **P77** The first thing a session reads, made true again (2026-09-19)
+- **P78** The packet that meets somebody at work (2026-09-19)
 
