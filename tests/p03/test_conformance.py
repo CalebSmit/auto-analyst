@@ -26,6 +26,7 @@ from ports.compute import ComputePort, ComputeTarget
 from ports.delivery import DeliveryPort
 from ports.identity import IdentityPort
 from ports.llm import LLMPort, LLMRequest, LLMResponse, Message, ModelPin, Usage
+from ports.ocr import OCRPort
 from ports.queue import JobState, QueuePort
 from ports.secrets import Secret, SecretsPort
 from ports.storage import FileRef, StoragePort
@@ -39,6 +40,7 @@ from registries.errors import (
 
 PROTOCOLS: dict[str, Any] = {
     "identity": IdentityPort,
+    "ocr": OCRPort,
     "storage": StoragePort,
     "delivery": DeliveryPort,
     "secrets": SecretsPort,
@@ -101,12 +103,20 @@ def test_every_port_has_a_protocol_and_at_least_one_adapter(port: str) -> None:
 
 
 def test_the_ports_are_the_ones_the_blueprint_names() -> None:
-    """Storage, delivery, secrets, queue, llm, compute, identity.
+    """Storage, delivery, secrets, queue, llm, compute, identity, ocr.
 
     Each is a port because each is a deployment choice rather than an architecture.
     Compute so the manifest can record where a run happened and the pool can ask how much
     concurrency exists instead of guessing. Identity so a laptop can have one person and
     no accounts while the firm has a provider, without the admin surface knowing which.
+    OCR because every PDF this firm receives is a scan, and which engine reads one is a
+    choice a machine makes - while *that it is local* is not a choice at all, since the
+    text has to exist before masking can happen (P74).
+
+    The blueprint draws five port nodes and the code has eight. That is not a drift: a
+    port is a choice behind an existing node rather than a new box on the map, which is
+    why compute, identity and now ocr add none. The Document Reader is the node; the
+    engine is what sits behind it, as a folder sits behind delivery.
 
     Every one has a protocol here, and adding a port without one would mean an adapter
     nothing checks - so the two sets are compared rather than the count.
@@ -119,6 +129,7 @@ def test_the_ports_are_the_ones_the_blueprint_names() -> None:
         "llm",
         "compute",
         "identity",
+        "ocr",
     }
     assert set(PROTOCOLS) == set(ports.PORTS), "every port has a protocol to satisfy"
 

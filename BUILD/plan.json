@@ -2285,6 +2285,40 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P74",
+      "title": "The scanned page, read locally",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "An eighth port, chosen the way the other seven are. The port takes a document and returns the text on each page, so the adapter owns rendering and the reader needs no new dependency; OCR produces lines, and the existing table recovery turns lines into rows, so every provenance locator downstream works unchanged. A figure read by OCR is less certain than one lifted from a text layer and has to say so, because the acceptance rule now turns on evidence. And the whole point is that no model is in this path: masking happens after the text exists, so an adapter that reached one would invert the order the guarantee rests on.",
+      "builds": [
+        "B-035"
+      ],
+      "tasks": [
+        "An OCR port beside the other seven, with the adapter chosen by configuration",
+        "A scanned page is read through it, and its lines become rows the way a text layer's do",
+        "A line that came from OCR says so, and carries what the engine thought of it",
+        "No adapter on this path may reach a model, and a test walks the imports to say so",
+        "With no engine installed, a scanned page is still reported rather than silently read as empty",
+        "The conformance suite knows the port, so its adapters are checked like every other",
+        "The readiness report says whether a scanned page can be read here, and what it means when it cannot"
+      ],
+      "exit": [
+        "A scanned page read through the port produces lines, and the table recovery finds its rows with the locators it would have had from a text layer",
+        "An OCR-derived line is distinguishable from one lifted out of a text layer",
+        "Nothing under ports/ocr imports ports/llm, and the import walk fails if it ever does",
+        "Absence is not a pass: with no OCR adapter configured a scanned page stays reported, exactly as before",
+        "The OCR adapters are checked against the protocol by the same conformance suite as the other seven ports",
+        "serve.py --check names the OCR seam, green when an engine is configured and honest about what is lost when it is not"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p74 -q",
+        "python -m uv run pytest tests/p17 tests/p03 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-18"
     }
   ],
   "checkpoints": [
@@ -2748,6 +2782,17 @@
       "proves": "Both scans are quiet on the tree, so a failure means something new; neither has stopped finding anything to look at; every excuse in either carries a reason; the two never excuse the same thing, which would let a defect hide behind whichever was read first; and the findings that paid for the scans - P55's precedent wiring, P60's on_failure, P72's retry - are all still fixed.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c42 -q"
+      ],
+      "closed": "2026-09-18"
+    },
+    {
+      "id": "C43",
+      "title": "The scan is read here, and read before anything masks it",
+      "after": "P74",
+      "status": "done",
+      "proves": "Nothing on the OCR path can reach a model - not the port, not the adapters, not the document reader that calls them - and privacy/ is still deterministic Python; the eighth port is chosen by configuration and refuses an unknown name like the other seven; a machine with no engine reads everything it always could and still reports a scan rather than reading it as an empty page; and the adapter the analyst confirmed he can install is registered and buildable without it, so a clone, a container and the work laptop are the same code with different configuration.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c43 -q"
       ],
       "closed": "2026-09-18"
     }

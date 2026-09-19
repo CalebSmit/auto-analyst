@@ -66,8 +66,11 @@ def test_the_assembled_system_reads_precedent_and_can_release(system: Any) -> No
 def test_every_seam_is_reported_and_every_one_is_joined(system: Any) -> None:
     seams = {seam.name: seam for seam in readiness()}
     assert "precedent retrieval" in seams
-    assert all(seam.ready for seam in seams.values()), [
-        seam.name for seam in seams.values() if not seam.ready
+    # `needs_installing` seams are excluded: P74's OCR waits on an engine a person
+    # installs, not on a join this build has left unmade, and counting it here would make
+    # every machine without one report an unfinished system.
+    assert all(seam.ready for seam in seams.values() if not seam.needs_installing), [
+        seam.name for seam in seams.values() if not seam.ready and not seam.needs_installing
     ]
     for seam in seams.values():
         assert "NoPrecedents" not in seam.detail, seam.name

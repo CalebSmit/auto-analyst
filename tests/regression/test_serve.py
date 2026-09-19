@@ -213,15 +213,24 @@ def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> 
         "admin",
         "ops console",
         "intake",
+        "reading a scan",
         "step execution",
         "run execution",
         "precedent retrieval",
     }
     assert all(isinstance(s, Seam) for s in seams.values())
 
-    assert all(seam.ready for seam in seams.values()), [
-        s.name for s in seams.values() if not s.ready
+    # Every seam this machine can join is joined. `reading a scan` is the exception and is
+    # not a regression: it needs an OCR engine installed, which most machines do not have,
+    # and the point of the seam is to say so rather than to be green. P74 added it, and a
+    # report that could only ever be all-green would be the flattery this test is named for.
+    assert all(seam.ready for seam in seams.values() if not seam.needs_installing), [
+        s.name for s in seams.values() if not s.ready and not s.needs_installing
     ]
+    assert seams["reading a scan"].needs_installing, (
+        "OCR waits on software rather than on wiring; counting it as an unmade seam would "
+        "make a clean clone, a container and CI all report an unfinished build"
+    )
     assert seams["step execution"].ready, "P34 joined the executor to the dispatcher"
     assert seams["run execution"].ready, "P35 joined the pool to a released run"
 
@@ -285,8 +294,18 @@ def test_the_command_reports_without_starting_anything(tmp_path: Path) -> None:
         check=False,
     )
     assert "Chartwell Automated Analyst" in result.stdout
-    assert "NOT WIRED" not in result.stdout, "every seam is joined"
     assert "no configuration document yet" in result.stdout
+
+    # Every seam that composition can join is joined. The one that is not is `reading a
+    # scan`, which needs software installed rather than wiring - and saying so is the
+    # report doing its job. This used to assert that nothing was unwired at all, which was
+    # true until P74 and would now quietly require every machine to have an OCR engine
+    # before this test could pass.
+    assert "NOT WIRED" not in result.stdout, "every seam composition can join is joined"
+    missing = [line.strip() for line in result.stdout.splitlines() if "NOT INSTALLED" in line]
+    assert all("reading a scan" in line for line in missing), missing
+    for line in missing:
+        assert "AA_OCR_ADAPTER" in line, "it must say what would supply it"
     assert result.returncode == 1, "an unconfigured machine still cannot take work"
 
 

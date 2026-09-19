@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**73 of 73 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**74 of 74 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -192,4 +192,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P68** The request list, as the schedule documents arrive against | auto | The section of an arriving file is read from its path, and a path naming no section says so rather than guessing | 2026-09-18 |
 | [x] | **P69** Last year's model, rolled forward | auto | Rolling a full ten-year window drops the oldest year and keeps the width at ten | 2026-09-18 |
 | [x] | **C38 - What version one gathers, and what it refuses to decide** | integration | A repeat year rolls through all three pieces together - a ten-wide window dropping its oldest year, two dates moved on, last year's line items carried as this year's schema - and only what no arithmetic covers reaches a person; a request section never stands in for an item; a line-item mismatch is handed over rather than resolved; the sections are not a second document-type vocabulary; a skill's judgement is still routed on its confidence; and the fact that nothing yet sets the acceptance rule's evidence is recorded rather than quiet. | 2026-09-18 |
+| [x] | **P74** The scanned page, read locally | auto | A scanned page read through the port produces lines, and the table recovery finds its rows with the locators it would have had from a text layer | 2026-09-18 |
+| [x] | **C43 - The scan is read here, and read before anything masks it** | integration | Nothing on the OCR path can reach a model - not the port, not the adapters, not the document reader that calls them - and privacy/ is still deterministic Python; the eighth port is chosen by configuration and refuses an unknown name like the other seven; a machine with no engine reads everything it always could and still reports a scan rather than reading it as an empty page; and the adapter the analyst confirmed he can install is registered and buildable without it, so a clone, a container and the work laptop are the same code with different configuration. | 2026-09-18 |
 

@@ -771,6 +771,15 @@
    "default": "fake",
    "env_var": "AA_LLM_ADAPTER"
   },
+  "ocr": {
+   "adapters": [
+    "none",
+    "tesseract"
+   ],
+   "contracts": [],
+   "default": "none",
+   "env_var": "AA_OCR_ADAPTER"
+  },
   "queue": {
    "adapters": [
     "in_process",

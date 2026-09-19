@@ -102,10 +102,16 @@ def test_the_dependency_list_names_no_vendor_sdk() -> None:
 
 
 def test_every_deployment_choice_is_a_port() -> None:
-    """Six ports, and the two that are contracts for the firm's connectors are declared
-    rather than absent - so choosing one is a refusal somebody can read."""
+    """Eight ports, and the two that are contracts for the firm's connectors are declared
+    rather than absent - so choosing one is a refusal somebody can read.
+
+    `ocr` joined at P74, for the same reason as the rest: which engine reads a scanned page
+    is a machine's choice, and this firm's clients send nothing else. That it is a *local*
+    engine is not a choice - masking needs text, text from a scan needs OCR, and OCR by a
+    model would put the unmasked document in front of one before masking could happen.
+    """
     assert set(ports.PORTS) == {
-        "storage", "delivery", "secrets", "queue", "llm", "compute", "identity",
+        "storage", "delivery", "secrets", "queue", "llm", "compute", "identity", "ocr",
     }
     assert ports.contracts("storage") == ("sharefile",)
     assert ports.contracts("delivery") == ("box",)

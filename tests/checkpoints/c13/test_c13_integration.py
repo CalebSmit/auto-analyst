@@ -127,9 +127,14 @@ def test_every_seam_reads_as_joined_and_says_why() -> None:
         # the lookup tool and to the driver, and not to the thing that reads it - so there
         # was a seam here that nobody had noticed was a seam.
         "precedent retrieval",
+        # P74. Reported beside the seams because it is the first thing that matters on a
+        # machine doing real work, but it waits on software rather than on wiring - so it
+        # is excluded from "every seam is joined" below, or a clone with no OCR engine
+        # would read as an unfinished build.
+        "reading a scan",
     }
-    assert all(seam.ready for seam in seams.values()), [
-        seam.name for seam in seams.values() if not seam.ready
+    assert all(seam.ready for seam in seams.values() if not seam.needs_installing), [
+        seam.name for seam in seams.values() if not seam.ready and not seam.needs_installing
     ]
 
 

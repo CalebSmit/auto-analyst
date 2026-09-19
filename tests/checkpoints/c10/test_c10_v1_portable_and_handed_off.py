@@ -73,7 +73,7 @@ def test_a_clean_clone_plus_env_is_the_whole_setup() -> None:
 def test_nothing_in_the_build_is_a_fact_about_one_machine() -> None:
     """Six ports, no vendor SDK, and the deployment target is an environment."""
     assert set(ports.PORTS) == {
-        "storage", "delivery", "secrets", "queue", "llm", "compute", "identity",
+        "storage", "delivery", "secrets", "queue", "llm", "compute", "identity", "ocr",
     }
     for port in ports.PORTS:
         assert ports.ready(port), port

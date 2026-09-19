@@ -43,6 +43,17 @@ class Line:
     hidden: bool = False
     font_size: float | None = None
 
+    ocr: bool = False
+    """Read by an engine off an image, rather than lifted out of a text layer.
+
+    Carried all the way to a person. A figure a machine recognised on a scan is weaker
+    evidence than the same figure copied from a text layer, and the acceptance rule turns
+    on evidence rather than on a score - so which of the two it was must not be lost here,
+    where it is the only place that knows."""
+
+    confidence: float | None = None
+    """What the engine thought of this line, 0 to 1, where one read it."""
+
 
 @dataclass(frozen=True)
 class Table:
@@ -142,11 +153,53 @@ def _read_pdf(data: bytes, filename: str) -> ParsedDocument:
             for raw_line in text.splitlines():
                 if raw_line.strip():
                     parsed.lines.append(Line(raw_line.strip(), hidden=hidden, font_size=size))
-        parsed.tables.extend(
-            _tables_from_lines(number, [line for line in parsed.lines if not line.hidden])
-        )
         doc.pages.append(parsed)
+
+    _ocr_the_scanned_pages(doc, data)
+    for parsed in doc.pages:
+        parsed.tables.extend(
+            _tables_from_lines(
+                parsed.number, [line for line in parsed.lines if not line.hidden]
+            )
+        )
     return doc
+
+
+def _ocr_the_scanned_pages(doc: ParsedDocument, data: bytes) -> None:
+    """Fill in the pages pypdf found nothing on, if an engine is configured.
+
+    Tables are built afterwards rather than before, so an OCR'd page reaches
+    `_tables_from_lines` exactly as a page with a text layer does - which is the point:
+    from here on a scan and a text layer travel the same road, and no locator, guard or
+    citation downstream needs to know which it was.
+
+    Nothing is invented. With no engine the port raises, the pages stay empty, and
+    `Page.scanned` goes on being true - which is what the manifest has always carried and
+    is the honest answer. An engine that fails mid-document leaves the pages it did not
+    reach in exactly that state.
+    """
+    if not any(page.scanned for page in doc.pages):
+        return
+    from ports import get_ocr  # noqa: PLC0415 - deferred: reading a text PDF must not need it
+    from ports.ocr import OCRUnavailable  # noqa: PLC0415
+
+    try:
+        read = get_ocr().read(data, kind="pdf")
+    except OCRUnavailable:
+        return
+
+    by_number = {page.number: page for page in read}
+    for page in doc.pages:
+        if not page.scanned:
+            continue
+        found = by_number.get(page.number)
+        if found is None:
+            continue
+        for line in found.lines:
+            if line.text.strip():
+                page.lines.append(
+                    Line(line.text.strip(), ocr=True, confidence=line.confidence)
+                )
 
 
 def _tables_from_lines(page: int, lines: list[Line]) -> list[Table]:

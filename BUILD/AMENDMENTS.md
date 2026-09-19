@@ -1440,3 +1440,35 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C42 after P73, covering P73
 - proves: Both scans are quiet on the tree, so a failure means something new; neither has stopped finding anything to look at; every excuse in either carries a reason; the two never excuse the same thing, which would let a defect hide behind whichever was read first; and the findings that paid for the scans - P55's precedent wiring, P60's on_failure, P72's retry - are all still fixed.
+
+## 2026-09-18 - P74 The scanned page, read locally
+
+**Why:** The analyst confirmed a local OCR engine can be installed on the work machine, which was the one thing B-035 waited on. Any PDF the clients send cannot be copied from and they send a lot of them, so most of the inbound path needs OCR before anything downstream can touch it - and keying those by hand is the one to three hours a repeat engagement costs. intake/readers/documents.py already reports a scanned page rather than reading it, by design, and says the OCR path is a later adapter. This is that adapter, and the reason it must be local rather than a vision model is the masking order: masking needs text, text from a scan needs OCR, and OCR by a model would put unmasked client documents in front of one before masking could happen.
+
+- phase added: P74 The scanned page, read locally (Version one: the data it gathers, gate: auto)
+- exit criterion: A scanned page read through the port produces lines, and the table recovery finds its rows with the locators it would have had from a text layer
+- exit criterion: An OCR-derived line is distinguishable from one lifted out of a text layer
+- exit criterion: Nothing under ports/ocr imports ports/llm, and the import walk fails if it ever does
+- exit criterion: Absence is not a pass: with no OCR adapter configured a scanned page stays reported, exactly as before
+
+## 2026-09-18 - P74 The scanned page, read locally
+
+**Why:** The conformance suite refused the eighth port, correctly, on three counts: no protocol registered for it, the port set no longer matching the one the suite names, and a moved public surface. Two of those are the work of adding a port and are done here. The third is a question about the blueprint, and it is worth answering rather than waving through: the blueprint draws five port nodes - storage, delivery, secrets, queue, llm - and the code has had seven since P25 and P36, because compute and identity are deployment choices behind existing nodes rather than new boxes on the map. OCR is the same shape. The Document Reader is the node; which engine reads a scan is a choice behind it, exactly as which folder receives a workbook is a choice behind the delivery node. So no node is added, and the reason is recorded here rather than inferred later from its absence.
+
+- task added: The conformance suite knows the port, so its adapters are checked like every other
+- exit criterion added: The OCR adapters are checked against the protocol by the same conformance suite as the other seven ports
+
+## 2026-09-18 - C43 The scan is read here, and read before anything masks it
+
+**Why:** P74 puts a new step at the very front of the privacy ordering - image, then text, then mask, then model - and the checkpoint asks the thing that is invisible from inside the phase: whether that ordering still holds. The danger was never that OCR reads a page badly; it is that OCR becomes a model call and the unmasked document reaches a model before masking exists to stop it, which nothing downstream can recover from.
+
+- checkpoint added: C43 after P74, covering P74
+- proves: Nothing on the OCR path can reach a model - not the port, not the adapters, not the document reader that calls them - and privacy/ is still deterministic Python; the eighth port is chosen by configuration and refuses an unknown name like the other seven; a machine with no engine reads everything it always could and still reports a scan rather than reading it as an empty page; and the adapter the analyst confirmed he can install is registered and buildable without it, so a clone, a container and the work laptop are the same code with different configuration.
+
+## 2026-09-18 - P74 The scanned page, read locally
+
+**Why:** The rehearsals are clean and serve.py --check says nothing about OCR, which makes the readiness report quietly wrong about the thing that matters most on the work machine. CLAUDE.md calls readiness() the honest answer to 'does this work yet', and it derives what is joined by asking the code rather than by being updated. With AA_OCR_ADAPTER=none - the default, and what a fresh work machine has until somebody sets it - every scanned PDF reads as nothing, which is most of the inbound path for this firm, and the one screen built to say what is wired does not mention it.
+
+- task added: The readiness report says whether a scanned page can be read here, and what it means when it cannot
+- exit criterion added: serve.py --check names the OCR seam, green when an engine is configured and honest about what is lost when it is not
+- status: done -> open

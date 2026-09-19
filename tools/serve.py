@@ -63,8 +63,24 @@ class Seam:
     ready: bool
     detail: str
 
+    needs_installing: bool = False
+    """This one is not about wiring. It waits on software a person installs.
+
+    The distinction matters or `ready` stops meaning anything. A seam is where two halves
+    of *this* system meet, and one that is not made is a thing the build has left undone.
+    OCR is not that: every half is finished and joined, and what is absent is an engine on
+    the machine. Counting it as an unmade seam would make a clean clone, a container and CI
+    all report an unfinished build - and a flag that is false everywhere is one nobody
+    reads.
+
+    So it is reported, prominently, and it does not make the system unready to compose.
+    """
+
     def line(self) -> str:
-        return f"  [{'ok' if self.ready else 'NOT WIRED'}] {self.name}: {self.detail}"
+        if self.ready:
+            return f"  [ok] {self.name}: {self.detail}"
+        mark = "NOT INSTALLED" if self.needs_installing else "NOT WIRED"
+        return f"  [{mark}] {self.name}: {self.detail}"
 
 
 def steps_are_wired() -> bool:
@@ -143,11 +159,50 @@ def runs_are_wired() -> bool:
     return hasattr(driver, "RunDriver")
 
 
+def scans_can_be_read() -> tuple[bool, str]:
+    """Whether a scanned page can be read on this machine, and which engine says so.
+
+    Asked by building the configured adapter and trying it, rather than by reading the
+    variable: an adapter selected but missing its executable is exactly the case a person
+    needs told about, and it looks identical to a working one from the configuration
+    alone.
+
+    Every PDF this firm's clients send is a scan. With no engine the reader goes on
+    reporting such a page rather than inventing content for it - which is correct, and is
+    also most of the inbound path arriving empty.
+    """
+    from ports import get_ocr, selected  # noqa: PLC0415
+    from ports.ocr import OCRUnavailable  # noqa: PLC0415
+
+    name = selected("ocr")
+    try:
+        engine = get_ocr()
+    except Exception as refused:  # noqa: BLE001 - an unknown adapter is a config answer
+        return False, f"the OCR adapter {name!r} could not be built: {refused}"
+
+    import io  # noqa: PLC0415
+
+    from pypdf import PdfWriter  # noqa: PLC0415
+
+    writer = PdfWriter()
+    writer.add_blank_page(width=612, height=792)
+    probe = io.BytesIO()
+    writer.write(probe)
+    try:
+        engine.read(probe.getvalue(), kind="pdf")
+    except OCRUnavailable as unavailable:
+        return False, str(unavailable)
+    except Exception as broke:  # noqa: BLE001 - installed but not working is not ready
+        return False, f"the {name!r} engine is selected but failed: {broke}"
+    return True, name
+
+
 def readiness() -> tuple[Seam, ...]:
     """What is joined, in the order a piece of work passes through it."""
     steps = steps_are_wired()
     runs = runs_are_wired()
     precedent = precedent_is_wired()
+    scans, ocr = scans_can_be_read()
     return (
         Seam(
             "admin",
@@ -160,6 +215,18 @@ def readiness() -> tuple[Seam, ...]:
             True,
             "a watched folder is swept, files are bound to engagements and held through "
             "their quiet period, and a complete set is released as a run",
+        ),
+        Seam(
+            "reading a scan",
+            scans,
+            f"scanned pages are read here by the {ocr!r} engine, before anything is masked "
+            "and without a model seeing the page"
+            if scans
+            else f"{ocr} Every PDF this firm receives is a scan, so most of the inbound "
+            "path reads as nothing until an engine is installed and AA_OCR_ADAPTER names "
+            "it. A page still reports as scanned rather than being read as empty. "
+            "See HANDOFF.md",
+            needs_installing=True,
         ),
         Seam(
             "step execution",
@@ -387,8 +454,16 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
     def _readiness() -> dict[str, Any]:
         seams = readiness()
         return {
-            "ready": all(s.ready for s in seams),
-            "seams": [{"name": s.name, "ready": s.ready, "detail": s.detail} for s in seams],
+            "ready": all(s.ready for s in seams if not s.needs_installing),
+            "seams": [
+                {
+                    "name": s.name,
+                    "ready": s.ready,
+                    "detail": s.detail,
+                    "needs_installing": s.needs_installing,
+                }
+                for s in seams
+            ],
         }
 
     return Served(

@@ -104,6 +104,7 @@ Everything in this table is configuration. None of it is a code change.
 | **Delivery** | `AA_DELIVERY_ADAPTER=local_folder`, `./outbox` | `box`, once the firm's connector is wired in |
 | **State store** | SQLite at `AA_DB_URL=sqlite:///./runs/run_store.db` | Postgres — one URL, no other change |
 | **Queue** | `in_process`, a bounded thread pool | `redis_rq` when runs outlive a process |
+| **Reading a scan** | `AA_OCR_ADAPTER=none` — a scanned page is reported, not read | `tesseract`, with the Tesseract executable on PATH plus `pypdfium2` and `pytesseract`. Every PDF this firm's clients send is a scan, so without it most of the inbound path reads nothing. It must be a **local** engine: masking needs text, text from a scan needs OCR, and OCR by a vision model would put the unmasked client document in front of a model before masking could happen |
 | **Concurrency** | `AA_MAX_PARALLELISM=1` | whatever the host allows; the Engagement Lock still serialises within a deal |
 | **Postgres for tests** | portable binaries via `python tools/postgres.py start` | a server, or the compose file's |
 | **Templates** | two synthetic masters, generated | the firm's real `.xlsx` masters, registered with input schemas |

@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **73 of 73 phases closed**
-- Last green checkpoint: **C42**
+- **74 of 74 phases closed**
+- Last green checkpoint: **C43**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -92,4 +92,5 @@
 - **P71** Nothing is built and wired to nothing (2026-09-18)
 - **P72** A retry that can happen (2026-09-18)
 - **P73** An exception nobody raises (2026-09-18)
+- **P74** The scanned page, read locally (2026-09-18)
 

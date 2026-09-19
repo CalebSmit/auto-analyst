@@ -815,6 +815,15 @@ def main(argv: list[str] | None = None) -> int:
         wait_for(api)
         _, ready = api.get("/api/readiness")
         for seam in ready["seams"]:
+            if seam.get("needs_installing"):
+                # Not a finding. This one waits on software a person installs rather than
+                # on a join the build has left unmade, and a rehearsal that reported it as
+                # a defect would cry wolf on every machine without an OCR engine - which is
+                # this one, every container, and CI. It is still said out loud, because on
+                # the work machine it is the first thing that matters.
+                state = "installed" if seam["ready"] else "NOT INSTALLED"
+                out.say(f"  [--] {seam['name']}: {state}")
+                continue
             out.check(seam["ready"], f"wired: {seam['name']}")
         set_up(api, out)
         seen = run_the_firm(api, inbox, out, scripted=args.scripted)
