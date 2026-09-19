@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-18.*
+*Last written 2026-09-19.*
 
 ## Where the build is
 
-- **74 of 74 phases closed**
-- Last green checkpoint: **C43**
+- **76 of 76 phases closed**
+- Last green checkpoint: **C44**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -93,4 +93,6 @@
 - **P72** A retry that can happen (2026-09-18)
 - **P73** An exception nobody raises (2026-09-18)
 - **P74** The scanned page, read locally (2026-09-18)
+- **P75** An OCR engine that installs without an administrator (2026-09-19)
+- **P76** A real filing, kept as the document that finds things (2026-09-19)
 

@@ -205,7 +205,9 @@ def test_it_is_registered_beside_the_others() -> None:
     assert "ocr" in ports.PORTS
     assert ports.PORTS["ocr"].env_var == "AA_OCR_ADAPTER"
     assert ports.PORTS["ocr"].default == "none"
-    assert set(ports.adapters("ocr")) == {"none", "tesseract"}
+    # `rapidocr` joined at P75: a second local engine, registered because which reads this
+    # firm's scans better is a benchmark's question rather than an opinion.
+    assert set(ports.adapters("ocr")) == {"none", "rapidocr", "tesseract"}
 
 
 def test_both_adapters_satisfy_the_port() -> None:

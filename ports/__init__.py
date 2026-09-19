@@ -137,6 +137,11 @@ PORTS: dict[str, PortSpec] = {
         default="none",
         adapters={
             "none": "ports.ocr.none",
+            # Two local engines, and the difference that matters on a managed laptop is
+            # how they install: tesseract wants an executable on PATH, rapidocr is a wheel
+            # with its models in it. Which reads this firm's scans better is a question for
+            # a benchmark, which is why both stay registered.
+            "rapidocr": "ports.ocr.rapidocr",
             "tesseract": "ports.ocr.tesseract",
         },
     ),

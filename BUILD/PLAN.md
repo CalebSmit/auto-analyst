@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**74 of 74 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**76 of 76 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -194,4 +194,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C38 - What version one gathers, and what it refuses to decide** | integration | A repeat year rolls through all three pieces together - a ten-wide window dropping its oldest year, two dates moved on, last year's line items carried as this year's schema - and only what no arithmetic covers reaches a person; a request section never stands in for an item; a line-item mismatch is handed over rather than resolved; the sections are not a second document-type vocabulary; a skill's judgement is still routed on its confidence; and the fact that nothing yet sets the acceptance rule's evidence is recorded rather than quiet. | 2026-09-18 |
 | [x] | **P74** The scanned page, read locally | auto | A scanned page read through the port produces lines, and the table recovery finds its rows with the locators it would have had from a text layer | 2026-09-18 |
 | [x] | **C43 - The scan is read here, and read before anything masks it** | integration | Nothing on the OCR path can reach a model - not the port, not the adapters, not the document reader that calls them - and privacy/ is still deterministic Python; the eighth port is chosen by configuration and refuses an unknown name like the other seven; a machine with no engine reads everything it always could and still reports a scan rather than reading it as an empty page; and the adapter the analyst confirmed he can install is registered and buildable without it, so a clone, a container and the work laptop are the same code with different configuration. | 2026-09-18 |
+| [x] | **P75** An OCR engine that installs without an administrator | auto | The adapter satisfies the port and is built like the others, on a machine without its dependencies installed | 2026-09-19 |
+| [x] | **P76** A real filing, kept as the document that finds things | auto | The reader reads the real filing, and what it gets wrong on a comparative statement is pinned rather than discovered again | 2026-09-19 |
+| [x] | **C44 - Two engines, one real document, and a rule widened on purpose** | integration | Every registered OCR engine is local, reaches no model and no network, and can be built on a machine that has installed none of them; none of them silently falls back to another, so a scan is never read by an engine nobody chose; the real filing is still read and the comparative-column defect it found is pinned along with the escalation that is the only thing stopping a run on it; and widening the fixtures rule to allow a public document did not loosen what it always forbade - no client data, a named public source, and the identifier register checking the fixture like anything else. | 2026-09-19 |
 

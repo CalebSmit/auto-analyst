@@ -1472,3 +1472,29 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - task added: The readiness report says whether a scanned page can be read here, and what it means when it cannot
 - exit criterion added: serve.py --check names the OCR seam, green when an engine is configured and honest about what is lost when it is not
 - status: done -> open
+
+## 2026-09-19 - P75 An OCR engine that installs without an administrator
+
+**Why:** Testing P74 against a real SEC filing turned up a better answer to the question P74 assumed. Tesseract needs an executable installed on PATH, which on a managed work laptop is a request to somebody. rapidocr-onnxruntime is a wheel with its models bundled - pip installs it, no admin rights, no system binary - and on the three financial statement pages of a real annual report it read every figure in every column correctly at about 0.99 confidence. A choice that needs no administrator is a materially different choice on the machine this has to run on, and it costs one adapter file beside the one already there.
+
+- phase added: P75 An OCR engine that installs without an administrator (Version one: the data it gathers, gate: auto)
+- exit criterion: The adapter satisfies the port and is built like the others, on a machine without its dependencies installed
+- exit criterion: Nothing on this path reaches a model either, checked the same way
+- exit criterion: With the packages absent it raises OCRUnavailable naming what to install, rather than failing as an import error
+
+## 2026-09-19 - P76 A real filing, kept as the document that finds things
+
+**Why:** Every fixture in this repo is synthetic, and that is why the reader had never met a real financial statement until a test against a public SEC filing found it reading the wrong column of a comparative balance sheet - taking the prior year and swallowing the current one into the label. The behaviour was predicted in B-030 and had never been demonstrated. A public filing is the document that finds these: real typography, real comparative columns, real image-only pages, and no client data of any kind. CLAUDE.md says fixtures are masked or synthetic always, which was written when those were the only two ways to have no client data in a file. The rule's purpose is that no client data is in the repository; a document the SEC publishes satisfies it, and the rule is widened here deliberately rather than by quietly adding a third kind.
+
+- phase added: P76 A real filing, kept as the document that finds things (Version one: the data it gathers, gate: auto)
+- exit criterion: The reader reads the real filing, and what it gets wrong on a comparative statement is pinned rather than discovered again
+- exit criterion: The escalation that stops a run on that document fires, checked on the real pages
+- exit criterion: The fixtures rule permits a public document and says what makes one public, everywhere the rule appears
+- exit criterion: The OCR benchmark runs when an engine is present and reports that it did not when one is absent
+
+## 2026-09-19 - C44 Two engines, one real document, and a rule widened on purpose
+
+**Why:** P75 and P76 came out of putting the build in front of a document nobody here wrote. The checkpoint holds the two together: every engine local and none of them a fallback for another, and the real filing still finding what a synthetic one could not.
+
+- checkpoint added: C44 after P76, covering P75, P76
+- proves: Every registered OCR engine is local, reaches no model and no network, and can be built on a machine that has installed none of them; none of them silently falls back to another, so a scan is never read by an engine nobody chose; the real filing is still read and the comparative-column defect it found is pinned along with the escalation that is the only thing stopping a run on it; and widening the fixtures rule to allow a public document did not loosen what it always forbade - no client data, a named public source, and the identifier register checking the fixture like anything else.

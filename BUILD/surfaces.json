@@ -774,6 +774,7 @@
   "ocr": {
    "adapters": [
     "none",
+    "rapidocr",
     "tesseract"
    ],
    "contracts": [],

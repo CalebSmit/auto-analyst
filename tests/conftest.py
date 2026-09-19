@@ -212,6 +212,19 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
     parser.addoption(
+        "--ocr",
+        action="store_true",
+        default=False,
+        help=(
+            "Measure an OCR engine against the real filing in fixtures/public/, scoring it "
+            "on the document's own text layer. Needs pypdfium2 and an engine - "
+            "`uv run --with pypdfium2 --with rapidocr-onnxruntime pytest --ocr`. Neither is "
+            "a project dependency: an ONNX runtime in every clone that never reads a scan "
+            "is a cost nobody asked for."
+        ),
+    )
+
+    parser.addoption(
         "--container",
         action="store_true",
         default=False,
@@ -220,6 +233,78 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             "docker, nerdctl or finch - and no step depends on Docker Desktop."
         ),
     )
+
+
+OCR = {"ran": False, "not_run": False, "engine": ""}
+
+
+@pytest.fixture
+def ocr_engine(request: Any) -> Any:
+    """An OCR engine and a renderer, or a skip that is reported rather than silent.
+
+    The adapter under test is the one configured, so this measures what a run would
+    actually use rather than a library this test happened to import.
+    """
+    if not request.config.getoption("--ocr"):
+        OCR["not_run"] = True
+        pytest.skip("--ocr not given: the OCR benchmark needs an engine on this machine")
+
+    import ports
+    from ports.ocr import OCRUnavailable
+
+    name = ports.selected("ocr")
+    if name == "none":
+        name = "rapidocr"
+    engine = ports.get_ocr(name)
+
+    try:
+        import pypdfium2
+    except ImportError:  # pragma: no cover - depends on the machine
+        pytest.fail(
+            "--ocr was given and pypdfium2 is not installed. Run it with "
+            "`uv run --with pypdfium2 --with rapidocr-onnxruntime pytest --ocr`."
+        )
+
+    class OnePage:
+        """Reads a single page, so a benchmark does not OCR a hundred of them."""
+
+        def read_one(self, document: Any, number: int) -> Any:
+            import io
+
+            from ports.ocr import OCRPage
+
+            image = document[number - 1].render(scale=300 / 72).to_pil()
+            buffer = io.BytesIO()
+            image.save(buffer, format="PNG")
+            try:
+                lines = engine._lines(engine._tools()[1], buffer.getvalue())  # noqa: SLF001
+            except OCRUnavailable as unavailable:  # pragma: no cover - machine dependent
+                pytest.fail(f"--ocr was given and the engine refused: {unavailable}")
+            return OCRPage(number=number, lines=lines)
+
+    OCR["ran"] = True
+    OCR["engine"] = name
+    return OnePage(), pypdfium2
+
+
+def _ocr_summary(terminalreporter: Any) -> None:
+    write = terminalreporter.write_line
+    if OCR["ran"]:
+        write(
+            f"\nOCR MEASURED - against the {OCR['engine']} engine on the public filing.",
+            bold=True,
+        )
+    elif OCR["not_run"]:
+        write(
+            "\nOCR NOT MEASURED - the accuracy of a scanned page is unknown on this run.",
+            yellow=True,
+            bold=True,
+        )
+        write(
+            "  Every PDF this firm receives is a scan. To measure it: "
+            "uv run --with pypdfium2 --with rapidocr-onnxruntime pytest tests/p76 --ocr",
+            yellow=True,
+        )
 
 
 def container_runtime_name() -> str:
@@ -254,6 +339,7 @@ def pytest_terminal_summary(terminalreporter: Any, exitstatus: int, config: pyte
         for fixture_id, guard, built_by in pending:
             write(f"  {fixture_id}: waits for {guard} ({built_by})", yellow=True)
     _redis_summary(terminalreporter)
+    _ocr_summary(terminalreporter)
     _container_summary(terminalreporter)
     if not POSTGRES["not_run"] and not POSTGRES["ran"] and not POSTGRES["error"]:
         return  # this invocation did not include the store conformance suite

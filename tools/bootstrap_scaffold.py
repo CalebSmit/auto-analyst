@@ -77,7 +77,7 @@ DIRS = {
     "fixtures": (
         "Golden fixtures per skill and per scope, plus one adversarial fixture per guard - "
         "built specifically to defeat the guard it targets.",
-        "No client data. Fixtures are masked or synthetic, always.",
+        "No client data, ever. Fixtures are masked, synthetic, or public - see fixtures/public/.",
     ),
     "tests": (
         "One directory per phase, plus checkpoints/. The gate runs tests/pNN for a phase "

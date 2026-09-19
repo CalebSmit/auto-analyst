@@ -157,6 +157,10 @@ These are not style preferences. Each one is an invariant with a test behind it.
   true without costing anything later.
 - The fake LLM adapter replays fixtures, so phases 4–10 need no API key and cost nothing.
 - Client data enters the repo only under `knowledge/`, and only because the repo is private
-  (decided 2026-09-16). `fixtures/` is masked or synthetic, always.
+  (decided 2026-09-16). `fixtures/` is masked, synthetic, or **public** - a document a
+  regulator publishes, kept under `fixtures/public/` with where it came from and when.
+  Never a document a client sent. The rule has always been that no client data enters
+  the repo; masked and synthetic were the two ways to satisfy it, and a real SEC filing
+  is a third that finds what a synthetic one cannot (P76).
 - Ask rather than assume when a decision would be expensive to reverse — the blueprint
   records nine such decisions that belong to people, not to code.

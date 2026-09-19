@@ -76,7 +76,9 @@ def test_the_eighth_port_is_a_port_like_the_others() -> None:
     about a machine where nobody has installed anything."""
     assert ports.PORTS["ocr"].env_var == "AA_OCR_ADAPTER"
     assert ports.PORTS["ocr"].default == "none"
-    assert set(ports.ready("ocr")) == {"none", "tesseract"}
+    # `rapidocr` joined at P75. Two local engines rather than one, because which reads
+    # this firm's scans better is a benchmark's question and a benchmark needs two.
+    assert set(ports.ready("ocr")) == {"none", "rapidocr", "tesseract"}
 
 
 def test_a_machine_with_no_engine_reads_what_it_always_could() -> None:

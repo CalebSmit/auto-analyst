@@ -2319,6 +2319,60 @@
       ],
       "notes": "",
       "closed": "2026-09-18"
+    },
+    {
+      "id": "P75",
+      "title": "An OCR engine that installs without an administrator",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The port exists so the engine is configuration. This is the first time that has been worth anything: a second local engine, chosen the same way, that removes the one step of P74 nobody on this side controls. Both stay registered, because which reads this firm's scans better is a question a benchmark answers rather than an opinion - and the benchmark needs two engines to be a comparison.",
+      "builds": [],
+      "tasks": [
+        "A rapidocr adapter beside the tesseract one, selected by the same variable",
+        "Its dependencies are imported inside the call, so listing adapters costs nothing without them",
+        "It refuses the way the others do when what it needs is absent"
+      ],
+      "exit": [
+        "The adapter satisfies the port and is built like the others, on a machine without its dependencies installed",
+        "Nothing on this path reaches a model either, checked the same way",
+        "With the packages absent it raises OCRUnavailable naming what to install, rather than failing as an import error"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p75 -q",
+        "python -m uv run pytest tests/p74 tests/p03 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-19"
+    },
+    {
+      "id": "P76",
+      "title": "A real filing, kept as the document that finds things",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A benchmark needs a stable document, so the filing is committed rather than fetched - a test that downloads from sec.gov is a test that fails when the network does, and a document that can move is not a baseline. What the reader does with it runs on every suite, because that is evidence about the reader and needs no engine. What an OCR engine makes of it runs behind a flag, like postgres and redis and the container, because it needs software most machines do not have and saying so is better than skipping quietly.",
+      "builds": [
+        "B-030"
+      ],
+      "tasks": [
+        "The filing is committed with its provenance: where it came from, when, and why it carries no client data",
+        "The fixtures rule names public alongside masked and synthetic, in every place it is written down",
+        "The reader's behaviour on it is pinned, including the comparative-column defect and the escalation that catches it",
+        "An OCR accuracy run over it, behind a flag, reported rather than skipped silently"
+      ],
+      "exit": [
+        "The reader reads the real filing, and what it gets wrong on a comparative statement is pinned rather than discovered again",
+        "The escalation that stops a run on that document fires, checked on the real pages",
+        "The fixtures rule permits a public document and says what makes one public, everywhere the rule appears",
+        "The OCR benchmark runs when an engine is present and reports that it did not when one is absent"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p76 -q",
+        "python -m uv run pytest tests/p17 tests/p74 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-19"
     }
   ],
   "checkpoints": [
@@ -2795,6 +2849,17 @@
         "python -m uv run pytest tests/checkpoints/c43 -q"
       ],
       "closed": "2026-09-18"
+    },
+    {
+      "id": "C44",
+      "title": "Two engines, one real document, and a rule widened on purpose",
+      "after": "P76",
+      "status": "done",
+      "proves": "Every registered OCR engine is local, reaches no model and no network, and can be built on a machine that has installed none of them; none of them silently falls back to another, so a scan is never read by an engine nobody chose; the real filing is still read and the comparative-column defect it found is pinned along with the escalation that is the only thing stopping a run on it; and widening the fixtures rule to allow a public document did not loosen what it always forbade - no client data, a named public source, and the identifier register checking the fixture like anything else.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c44 -q"
+      ],
+      "closed": "2026-09-19"
     }
   ]
 }

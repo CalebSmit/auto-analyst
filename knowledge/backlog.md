@@ -249,7 +249,7 @@ modal saying the answer becomes precedent. Blocked on nothing but a decision abo
 precedent that turns out to be wrong (BUILD/OPEN.md §5b). Size: medium.
 
 ## B-030 A comparative statement, read as two columns
-status: proposed
+status: proposed - now demonstrated on a real filing (P76), not just predicted
 2026-09-17. P53 stops a run on a document whose rows carry more than one figure, because the
 reader takes the last column and a row store with one value per row cannot hold the other.
 Stopping is right and it is not the answer: every audited statement is comparative, so the
@@ -392,3 +392,18 @@ board. Left unwired and recorded rather than deleted, because deleting removes t
 trace of the intent, and wiring it changes what promotion measures - a decision about the
 governance chain rather than a tidy-up. Allowlisted in `tests/p71` with this reason. Size:
 small to wire, plus a decision about whether the rate becomes a gate.
+
+## B-042 Which OCR engine reads this firm's scans better
+status: proposed
+2026-09-19, from P75 and P76. Two local engines are registered - tesseract, which needs an
+executable on PATH, and rapidocr, which is a wheel with its models bundled and needs no
+administrator. On the public filing in fixtures/public/, rapidocr read 98.5% of the figures
+on the balance sheet page and 100% on the two statement pages after it, at about 0.99 mean
+confidence; tesseract has not been measured at all, because it is not installed here. The
+benchmark exists and takes the engine from configuration (`pytest tests/p76 --ocr`), so
+measuring the other one is running it with AA_OCR_ADAPTER=tesseract.
+**What neither number means yet.** Those pages were born digital and rendered to images:
+no skew, no scanner noise, no photocopy generation loss. A client's scan has all three, so
+this is an upper bound rather than a forecast, and the real number needs a hand-keyed
+engagement (B-011) or at least a genuinely scanned document. Size: small - it is a
+measurement, not a build.
