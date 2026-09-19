@@ -1,6 +1,6 @@
 # ruff: noqa: E501 - this module is a stylesheet held in a string. Wrapping CSS to a
 # hundred columns makes it harder to read, not easier.
-"""The design language: Chartwell's colours and type, one screen per page, nine components.
+"""The design language: Chartwell's colours and type, one screen per page, one set of parts.
 
 **The palette is the firm's, not ours.** Every colour below is a token from the brand
 sheet (`Chartwell Templates/shared/brand.css`, which mirrors the brand guidelines) or a
@@ -42,7 +42,21 @@ the tests rather than asserted here, because "it looks legible" is how it stoppe
 ones it did not touch are named rather than drawn - no chip, no border. A diagnostic is a
 rule beside the text rather than a pink wash behind it. A figure carries more weight than
 its label. A pill is a wash, a hairline and a dot, because a row of saturated badges is the
-thing that makes a tool look like a toy.
+thing that makes a tool look like a toy - and one row carries one pill, because three of
+them is the same mistake made three times.
+
+**A sequence is drawn as a sequence.** Steps are joined by a rail, which is the whole
+difference between "here are seven tasks" and "here is where you are in one"; the rail
+carries the colour of the part already done, so it measures rather than decorates. The step
+somebody is on is the subject of the panel and a finished one costs a single line, because
+the alternative puts most of the ink on the part nobody has to read again. Three pages wear
+this and only one of them ever marks a step done - so nothing in it may depend on that.
+
+**A component lives here or it does not exist.** The sheet is where a value is decided; a
+page decides only which panel goes where. That rule was not free - P81 found nine things a
+page had styled by hand, two of them in pixels on a page whose root is fluid, so they got
+*proportionally smaller* on a bigger monitor. Anything with a general name and a value
+chosen by eye is a local fix waiting to be reached for generally.
 """
 
 from __future__ import annotations
@@ -295,6 +309,11 @@ button.primary{background:linear-gradient(180deg,#17465f,var(--navy));color:#fff
  border-color:var(--navy);box-shadow:0 1px 2px rgba(12,46,63,.24)}
 button.primary:hover{background:linear-gradient(180deg,#1b5271,#103a4f);border-color:var(--navy);
  box-shadow:0 2px 6px -1px rgba(12,46,63,.3)}
+/* The one button that ends something. Plum rather than red: it is the palette's colour for
+   a problem, and a dialog that turns red reads as an alarm somebody bolted on. */
+button.primary.danger{background:linear-gradient(180deg,#633553,var(--bad));border-color:var(--bad);
+ box-shadow:0 1px 2px rgba(81,42,68,.26)}
+button.primary.danger:hover{background:linear-gradient(180deg,#713d60,#46243b);border-color:var(--bad)}
 button.quiet{background:transparent;border-color:transparent;color:var(--accent-ink);
  padding:.4rem .55rem;box-shadow:none}
 button.quiet:hover{color:var(--navy);background:var(--accent-soft);border-color:transparent}
@@ -321,6 +340,8 @@ select{width:auto;padding:.35rem .55rem;margin:0}
 .empty b{display:block;color:var(--navy);font:400 var(--t-subtitle)/1.3 var(--serif);
  margin-bottom:.35rem;letter-spacing:-.005em}
 .note{font-size:var(--t-xs);color:var(--ink-3);margin-top:var(--s3);line-height:1.5}
+/* A note that follows straight on from what it is about, rather than closing a section. */
+.note.tight{margin-top:0}
 .skel{height:.7rem;border-radius:3px;background:linear-gradient(90deg,var(--surface-2),var(--surface-sunken),var(--surface-2));
  background-size:200% 100%;animation:sh 1.4s ease-in-out infinite;margin:.6rem 0}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -383,15 +404,48 @@ select{width:auto;padding:.35rem .55rem;margin:0}
 .modal>.card.narrow{width:min(34rem,100%)}
 .modal .foot{display:flex;gap:var(--s2);align-items:center;justify-content:flex-end}
 .modal .foot .spacer{margin-right:auto;font-size:var(--t-xs);color:var(--ink-3)}
+/* A row that introduces the list under it: the count, the state, no rule beneath. */
+.r.lede{border-bottom:0;padding:0 0 var(--s3)}
+/* A textarea holding a document rather than a sentence. */
+.code-area{height:min(20rem,40vh);font-family:var(--mono);font-size:var(--t-sm)}
+/* One step down from body, for a line that explains a control beside it. */
+.sm{font-size:var(--t-sm)}
 .field{margin:0 0 var(--s3)}
-.field .hint{font-size:var(--t-xs);color:var(--ink-3);margin:-.2rem 0 .4rem;line-height:1.45}
+.field .hint{font-size:var(--t-xs);color:var(--ink-3);margin:0 0 var(--s1);line-height:1.45}
 .field select{width:100%;padding:.5rem .65rem}
+.field input,.field textarea,.field select{margin-bottom:var(--s1)}
+/* A form with a shape. Fields pair up, one that carries a path or a sentence takes the
+   width, and the gaps are the same gaps as everywhere else - a dialog whose spacing was
+   chosen by eye is most of what makes a dialog look like an internal tool. */
+.cols.two.ask{gap:0 var(--s5);margin-bottom:var(--s2)}
+.cols.two.ask>.field.wide{grid-column:1 / -1}
+/* The qualifier inside something set in caps, put back into sentence case: a label
+   reading "EXCEL MODEL TEMPLATE - OPTIONAL, AND NOT THE AI MODEL" is a label nobody
+   finishes. Not scoped to `label`, because a section heading takes a qualifier the same
+   way and the activity console was writing this out by hand to get it. */
+.aside{text-transform:none;letter-spacing:0;color:var(--ink-4);font-weight:400}
 
 /* ---------------------------------------------------------------- review panel */
 .excerpt{font-family:var(--mono);font-size:var(--t-sm);line-height:1.6;white-space:pre-wrap;
  background:var(--surface-sunken);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:.75rem .9rem;
  margin:.25rem 0 var(--s3);box-shadow:inset 3px 0 0 var(--accent);color:var(--ink);
  max-height:14rem;overflow:auto}
+/* Something said rather than something typed: a dialog quoting a document or a model's
+   answer back, so it is set in the reading face and given the room a paragraph needs. */
+.excerpt.said{max-height:min(22rem,45vh);font-family:var(--sans);font-size:var(--t-body)}
+/* A path rather than a passage: one line, a button beside it, and the gold rule because
+   it is a place on the machine and not something a model said. */
+.excerpt.path{display:flex;gap:var(--s3);align-items:center;white-space:normal;
+ box-shadow:inset 3px 0 0 var(--gold)}
+.excerpt.path>span{flex:1;min-width:0;overflow-wrap:anywhere}
+/* Somewhere to drop a client's files. Dashed because the border is an invitation rather
+   than an edge, and it answers the keyboard as well as the mouse. */
+.drop{border:2px dashed var(--line);border-radius:var(--radius);padding:var(--s5);
+ text-align:center;color:var(--ink-3);margin:var(--s1) 0 var(--s3);cursor:pointer;
+ background:var(--surface-2);
+ transition:border-color .16s var(--ease),background .16s var(--ease)}
+.drop:hover{border-color:var(--accent-line);background:var(--accent-soft)}
+.drop b{color:var(--navy);font-weight:600}
 .kv{display:grid;grid-template-columns:minmax(7rem,auto) 1fr;gap:.5rem var(--s4);
  font-size:var(--t-sm);margin:.25rem 0 var(--s3);align-items:baseline}
 .kv dt{color:var(--ink-3);font-size:var(--t-label);letter-spacing:.1em;text-transform:uppercase;
@@ -441,20 +495,54 @@ select{width:auto;padding:.35rem .55rem;margin:0}
 .grp-runs{padding-left:var(--s2)}
 
 /* ---------------------------------------------------------------- steps */
-.steps{display:flex;flex-direction:column;gap:.15rem}
-.step{display:flex;gap:var(--s3);align-items:flex-start;padding:.55rem .6rem;
- border-radius:var(--radius-sm);transition:background .16s var(--ease)}
+/* Seven marks in a column read as a list of unrelated things until a rule joins them.
+   The rail is the whole difference between "here are seven tasks" and "here is where you
+   are in one sequence", and it costs one pseudo-element: drawn from each mark to the next,
+   never after the last, and carrying the colour of the step above it so the finished part
+   of the run is visibly the finished part.
+
+   A finished step costs one line and an unfinished one costs three. Five done and two
+   left used to fill the panel evenly, which put most of the ink on the part nobody has to
+   read again. */
+.steps{display:flex;flex-direction:column;--mark:1.6rem}
+.step{display:flex;gap:var(--s3);align-items:flex-start;padding:var(--s2) var(--s3);
+ border-radius:var(--radius-sm);position:relative;
+ transition:background .16s var(--ease)}
+/* Centred on the mark by construction rather than by two numbers that happen to agree:
+   the step's own left padding, plus half a mark. Change --mark and the rail follows. */
+.step::before{content:"";position:absolute;
+ left:calc(var(--s3) + var(--mark) / 2);top:calc(var(--s2) + var(--mark));
+ bottom:calc(var(--s2) * -1);width:1px;background:var(--line);
+ transition:background .16s var(--ease)}
+.step:last-child::before{display:none}
+.step.done::before{background:var(--good-line)}
 .step.now{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line)}
-.step .mark{width:1.4rem;height:1.4rem;border-radius:99px;flex:none;margin-top:.05rem;
- display:grid;place-items:center;font-size:var(--t-xs);font-weight:600;
- background:var(--surface-2);color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
+.step .mark{width:var(--mark);height:var(--mark);border-radius:99px;flex:none;margin-top:.05rem;
+ display:grid;place-items:center;font-size:var(--t-xs);font-weight:600;position:relative;
+ z-index:1;font-variant-numeric:tabular-nums;
+ background:var(--surface);color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
 .step.done .mark{background:var(--good-soft);color:var(--good);box-shadow:inset 0 0 0 1px var(--good-line)}
-.step.now .mark{background:var(--navy);color:#fff;box-shadow:none}
+/* The one the person is on: filled navy and ringed off the wash behind it, so it reads as
+   the position on the rail rather than as one more coloured dot. */
+.step.now .mark{background:linear-gradient(180deg,#17465f,var(--navy));color:#fff;
+ box-shadow:0 0 0 3px var(--accent-soft),0 1px 2px rgba(12,46,63,.24)}
 .step>span:not(.mark):not(.go){flex:1;min-width:0}
 .step .t{display:block;font-size:var(--t-sm);color:var(--navy);font-weight:600}
 .step.done .t{color:var(--ink-3);font-weight:500}
+.step.now .t{font-size:var(--t-subtitle);letter-spacing:-.006em}
 .step .d{display:block;font-size:var(--t-xs);color:var(--ink-3);margin-top:.1rem;line-height:1.5}
+/* Confirmation, not instruction: what a finished step says is worth one line and no more. */
+.step.done .d{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .step .go{margin-left:auto}
+
+/* The count, set as a figure. The panel had no anchor at all - its largest element was a
+   heading, so the eye had nowhere to land and the screen read as reference material. */
+.progress{display:flex;align-items:baseline;gap:var(--s3);margin:0 0 var(--s2)}
+.progress .n{font:400 var(--t-display)/1 var(--serif);color:var(--navy);letter-spacing:-.02em;
+ font-variant-numeric:lining-nums tabular-nums}
+.progress .of{font-size:var(--t-sm);color:var(--ink-3);line-height:1.4}
+.progress .of b{display:block;color:var(--navy);font-weight:600}
+.progress .done{margin-left:auto;text-align:right}
 
 /* ---------------------------------------------------------------- node map */
 .map-groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));
@@ -636,17 +724,17 @@ function ask({title, why = '', body = '', fields = [], ok = 'Continue', danger =
     box.className = 'modal';
     box.innerHTML = `<section class="card${body ? '' : ' narrow'}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
       <header><h2>${esc(title)}</h2>${why ? `<p class="why">${esc(why)}</p>` : ''}</header>
-      <div class="body">${body ? `<div class="excerpt" style="max-height:min(22rem,45vh);font-family:var(--sans);font-size:.9rem">${esc(body)}</div>` : ''}${fields.map((f, n) => `<div class="field">
-        <label for="ask_${n}">${esc(f.label)}${f.required ? '' : ' <span style="text-transform:none;letter-spacing:0">(optional)</span>'}</label>
+      <div class="body">${body ? `<div class="excerpt said">${esc(body)}</div>` : ''}${fields.map((f, n) => `<div class="field">
+        <label for="ask_${n}">${esc(f.label)}${f.required ? '' : ' <span class="aside">(optional)</span>'}</label>
         ${f.hint ? `<p class="hint">${esc(f.hint)}</p>` : ''}
         ${f.kind === 'select'
           ? `<select id="ask_${n}">${(f.options || []).map(o => `<option value="${esc(o.value)}"${o.value === f.value ? ' selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`
           : f.kind === 'textarea'
             ? `<textarea id="ask_${n}" rows="3" placeholder="${esc(f.placeholder || '')}">${esc(f.value || '')}</textarea>`
             : `<input id="ask_${n}" value="${esc(f.value || '')}" placeholder="${esc(f.placeholder || '')}">`}
-      </div>`).join('')}${note ? `<p class="note" style="margin-top:0">${esc(note)}</p>` : ''}</div>
+      </div>`).join('')}${note ? `<p class="note tight">${esc(note)}</p>` : ''}</div>
       <div class="foot"><button class="quiet" data-act="cancel">Cancel</button>
-       <button class="primary" data-act="ok"${danger ? ' style="background:var(--bad);border-color:var(--bad)"' : ''}>${esc(ok)}</button></div>
+       <button class="primary${danger ? ' danger' : ''}" data-act="ok">${esc(ok)}</button></div>
     </section>`;
     // Inside this dialog, never by document id: two dialogs carry the same field ids, and
     // getElementById answers with whichever came first in the document - which is how the

@@ -35,10 +35,23 @@ PAGE = f"""<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Setup - Automated Analyst</title>
 <style>{CSS}
+/* Six panels and a checklist. The checklist holds three rows of the left column because
+   while there is work in it, it is the screen. */
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
  grid-template-rows:repeat(6,minmax(0,1fr));
  grid-template-areas:"steps pre scopes" "steps pre scopes" "steps pre recipes"
   "eng meth recipes" "eng meth seams" "eng meth seams"}}
+
+/* And gives them back when it is finished. A checklist with every box ticked is the least
+   useful thing on a screen and it was holding the best position on it permanently: on a
+   machine that has been set up, the engagements are what somebody came to look at. The
+   steps stay one keystroke away rather than being removed, because "how did this get set
+   up" is a real question and the answer should not require reading the code. */
+body.all-done .board{{grid-template-areas:"steps pre scopes" "eng pre scopes" "eng pre recipes"
+  "eng meth recipes" "eng meth seams" "eng meth seams"}}
+body.all-done #checklist .bar{{display:none}}
+#checklist .bar{{margin-bottom:var(--s4)}}
+#checklist details{{margin-top:var(--s2)}}
 </style>
 {shell("Setup", "/admin")}
 <div class="wrap">
@@ -64,7 +77,7 @@ PAGE = f"""<!doctype html>
      which skills it gets, which methodology it carries and which model it builds into.</p></header>
    <div class="body"><div id="roster"><div class="skel"></div></div></div>
    <div class="foot">
-    <button onclick="showAdd()">Add an engagement</button>
+    <button data-act="showAdd">Add an engagement</button>
     <span class="note" style="margin:0">It starts paused. Nothing is read until you activate it.</span>
    </div>
   </section>
@@ -74,7 +87,7 @@ PAGE = f"""<!doctype html>
     <p class="why">Fourteen checks over the live configuration. A setup mistake found here
      is one that does not stop a run at three in the afternoon.</p></header>
    <div class="body"><div id="pre"><div class="skel"></div></div></div>
-   <div class="foot"><button onclick="refresh()">Run again</button></div>
+   <div class="foot"><button data-act="refresh">Run again</button></div>
   </section>
 
   <section class="card" style="grid-area:meth">
@@ -111,37 +124,64 @@ PAGE = f"""<!doctype html>
   <header><h2>New engagement</h2>
    <p class="why">Start with the client; the id and folder are suggested from it and can be changed.</p></header>
   <div class="body">
-   <div class="cols two" style="gap:0 1rem">
-    <div>
+   <!-- Three questions, asked in the order somebody answers them: who it is, where their
+        files are, how it runs. Eight controls in one stack is a form; the same eight under
+        three rules is a thing with a shape, and the shape is what tells you how much is
+        left before you start. -->
+   <p class="section-label">Who it is</p>
+   <div class="cols two ask">
+    <div class="field">
      <label for="e_client">Client</label>
-     <input id="e_client" placeholder="Henderson Manufacturing" oninput="suggest()">
+     <input id="e_client" placeholder="Henderson Manufacturing">
+    </div>
+    <div class="field">
      <label for="e_id">Engagement id</label>
-     <input id="e_id" placeholder="HEND-2026-01" oninput="this.dataset.typed=1">
+     <input id="e_id" placeholder="HEND-2026-01">
+     <p class="hint">Suggested from the client name. Change it if the firm numbers these differently.</p>
+    </div>
+    <div class="field">
      <label for="e_scope">Practice group</label>
-     <select id="e_scope" style="width:100%;margin-bottom:.55rem"></select>
+     <select id="e_scope"></select>
+    </div>
+    <div class="field">
      <label for="e_kind">Is this a repeat client?</label>
-     <select id="e_kind" style="width:100%;margin-bottom:.55rem">
+     <select id="e_kind">
       <option value="repeat">Repeat &mdash; we valued them before, and last year&rsquo;s model exists</option>
       <option value="non-repeat">New &mdash; first time we have valued this client</option>
      </select>
-     <div class="sub">Three quarters of our work is repeat. It decides what last year&rsquo;s
-      workbook is used for, and what the run may look at from previous years.</div>
-    </div>
-    <div>
-     <label for="e_watch">Watched folder</label>
-     <select id="e_watch" style="width:100%;margin-bottom:.55rem"></select>
-     <label for="e_dest">Deliverables go to</label>
-     <select id="e_dest" style="width:100%;margin-bottom:.55rem"></select>
-     <label for="e_folder">Their folder, under the watch root</label>
-     <input id="e_folder" placeholder="Henderson Manufacturing/2026 Valuation" oninput="this.dataset.typed=1">
+     <p class="hint">Three quarters of our work is repeat. It decides what last year&rsquo;s
+      workbook is used for, and what a run may look at from previous years.</p>
     </div>
    </div>
-   <label for="e_pin">Excel model template <span style="color:var(--ink-4);text-transform:none;letter-spacing:0">&mdash; optional, not the AI model</span></label>
-   <input id="e_pin" placeholder="Leave blank to use the practice group&rsquo;s default">
+
+   <p class="section-label">Where its files are</p>
+   <div class="cols two ask">
+    <div class="field">
+     <label for="e_watch">Watched folder</label>
+     <select id="e_watch"></select>
+    </div>
+    <div class="field">
+     <label for="e_dest">Deliverables go to</label>
+     <select id="e_dest"></select>
+    </div>
+    <div class="field wide">
+     <label for="e_folder">Their folder, under the watch root</label>
+     <input id="e_folder" placeholder="Henderson Manufacturing/2026 Valuation">
+    </div>
+   </div>
+
+   <p class="section-label">How it runs</p>
+   <div class="field">
+    <label for="e_pin">Excel model template <span class="aside">&mdash; optional, and not the AI model</span></label>
+    <input id="e_pin" placeholder="Leave blank to use the practice group&rsquo;s default">
+    <p class="hint">The workbook a finished run writes into. Which AI model answers a skill is
+     set for the whole machine, not per engagement, and the panel behind this says which one it is.</p>
+   </div>
   </div>
   <div class="foot">
-   <button class="primary" onclick="addEngagement()">Register</button>
-   <button class="quiet" onclick="hideAdd()">Cancel</button>
+   <span class="spacer">It starts paused. Nothing is read until you activate it.</span>
+   <button class="quiet" data-act="hideAdd">Cancel</button>
+   <button class="primary" data-act="addEngagement">Register</button>
   </div>
  </section>
 </div>
@@ -217,24 +257,48 @@ function checklist() {{
   const next = steps.findIndex(s => !s.done);
   const done = steps.filter(s => s.done).length;
 
-  $('checklist').innerHTML =
-    `<div class="r" style="border:0;padding:0 0 12px">
-      <span class="lbl"><b>${{done}} of ${{steps.length}} done</b></span>
-      <span class="sub">${{next === -1 ? 'Ready to run' : 'Next: ' + esc(steps[next].t.toLowerCase())}}</span>
-     </div>
-     <div class="bar ${{next === -1 ? 'good' : ''}}" style="margin-bottom:14px">
-      <i style="width:${{(done / steps.length * 100).toFixed(0)}}%"></i></div>
-     <div class="steps">` +
-    steps.map((s, i) => `<div class="step ${{s.done ? 'done' : ''}} ${{i === next ? 'now' : ''}}">
+  const left = steps.length - done;
+  const drawn = '<div class="steps">' + steps.map((s, i) =>
+    `<div class="step ${{s.done ? 'done' : ''}} ${{i === next ? 'now' : ''}}">
        <span class="mark">${{s.done ? '&#10003;' : i + 1}}</span>
        <span><span class="t">${{esc(s.t)}}</span><span class="d">${{esc(s.d)}}</span></span>
        ${{s.go && i === next ? `<span class="go"><button class="primary" data-act="${{esc(s.go[1])}}"${{data(s.go[2])}}>${{esc(s.go[0])}}</button></span>` : ''}}
       </div>`).join('') + '</div>';
+
+  /* The figure is what is left, not what is finished. "5 of 7 done" is a score; "2 steps
+     left" is the thing somebody is actually holding in their head, and it counts down to a
+     word rather than to a number. */
+  $('checklist').innerHTML =
+    `<div class="progress">
+      <span class="n">${{left || '&#10003;'}}</span>
+      <span class="of">${{left
+        ? `<b>${{left === 1 ? 'step left' : 'steps left'}}</b>Next: ${{esc(steps[next].t.toLowerCase())}}`
+        : '<b>Ready to run</b>Every step is done and checked against the live configuration.'}}</span>
+      <span class="of done">${{done}} of ${{steps.length}}<br>done</span>
+     </div>
+     <div class="bar ${{next === -1 ? 'good' : ''}}">
+      <i style="width:${{(done / steps.length * 100).toFixed(0)}}%"></i></div>` +
+    (next === -1
+      ? `<details><summary>What was done, in order</summary>${{drawn}}</details>`
+      : drawn);
+
+  /* And it stops holding the best position on the screen once it has nothing to say. The
+     checklist is the reason a first-time reader is here and dead weight to everybody else,
+     so when every step is done the board gives its rows to the panels and the steps go
+     behind a summary line. Written on the wrapper rather than by rebuilding the grid, so
+     there is one place the layout is decided. */
+  document.body.classList.toggle('all-done', next === -1);
 }}
 
 /* What a button does, by name. The values ride in data attributes: an engagement id, a
    client's folder and a methodology filename are all free text, and none of them is
    allowed to become script. */
+ACTIONS.refresh = () => refresh();
+ACTIONS.hideAdd = () => hideAdd();
+ACTIONS.addEngagement = () => addEngagement();
+/* A dialog this page builds itself rather than through `ask()`, so its cancel needs a name
+   like everything else. `el` is the button; the modal is whatever contains it. */
+ACTIONS.closeModal = (d, el) => el.closest('.modal').remove();
 ACTIONS.initialise = () => initialise();
 ACTIONS.addWatch = () => addWatch();
 ACTIONS.addDestination = () => addDestination();
@@ -316,7 +380,7 @@ async function preflight() {{
   const shown = blocking.concat(warnings);
 
   $('pre').innerHTML =
-    `<div class="r" style="border:0;padding:0 0 10px">
+    `<div class="r lede">
       <span class="lbl"><span class="pill ${{p.passed ? 'good' : 'bad'}}"><i class="dot"></i>${{p.passed ? 'All clear' : plural(blocking.length, 'blocker', 'blockers')}}</span></span>
       <span class="sub">${{p.checks.length}} checks${{warnings.length ? ' &middot; ' + plural(warnings.length, 'warning', 'warnings') : ''}}</span>
      </div>` +
@@ -327,7 +391,7 @@ async function preflight() {{
           <span class="pill ${{f.severity === 'fail' ? 'bad' : 'warn'}}">${{f.severity === 'fail' ? 'blocks' : 'warning'}}</span>
          </div>`).join('')
       : '<div class="empty"><b>Nothing is in the way</b>Every check passed against the live configuration.</div>') +
-    `<details style="margin-top:10px"><summary>All ${{p.checks.length}} checks</summary>` +
+    `<details><summary>All ${{p.checks.length}} checks</summary>` +
     p.checks.map(c => `<div class="r"><span class="lbl">${{esc(c.label)}}</span>
        <span class="sub">${{esc(c.detail)}}</span>
        <span class="pill ${{c.status === 'pass' ? 'good' : c.status === 'warn' ? 'warn' : 'bad'}}">${{esc(c.status)}}</span></div>`).join('') +
@@ -340,13 +404,24 @@ async function scopes() {{
     $('scopes').innerHTML = '<div class="empty"><b>Not read</b>' + esc((e && e.text) || 'the practice groups could not be read') + '</div>';
     return;
   }}
+  /* One pill per row. Three of them - focus, parked, firm layer only, defined - put a row
+     of badges beside every line, which is the thing the stylesheet's own note says makes a
+     tool look like a toy. Only one of the four is ever the reason somebody is reading the
+     row, so that one is the pill and the rest are words. */
+  const standing = p => p.parked ? ['parked', '']
+    : p.firm_layer_only ? ['firm layer only', 'warn']
+    : p.focus ? ['focus', 'good'] : ['defined', 'good'];
+
   $('scopes').innerHTML =
-    '<div class="r head"><span class="lbl">Practice group</span><span class="sub">Skills</span></div>' +
-    SCOPES.paths.map(p => `<div class="r"><span class="lbl mono">${{esc(p.scope_path)}}</span>
-      <span class="sub">${{p.skills}}</span>
-      ${{p.focus ? '<span class="pill good">focus</span>' : ''}}${{p.parked ? '<span class="pill">parked</span>' : ''}}
-      ${{p.firm_layer_only ? '<span class="pill warn">firm layer only</span>' : '<span class="pill good">defined</span>'}}
-      </div>`).join('') +
+    '<div class="r head"><span class="lbl">Practice group</span><span class="num">Skills</span><span class="sub">Standing</span></div>' +
+    SCOPES.paths.map(p => {{
+      const [word, tone] = standing(p);
+      return `<div class="r"><span class="lbl mono">${{esc(p.scope_path)}}${{
+        p.focus && p.parked ? '<span class="d">the focus division</span>' : ''}}</span>
+      <span class="num">${{p.skills}}</span>
+      <span class="pill ${{tone}}">${{word}}</span>
+      </div>`;
+    }}).join('') +
     '<p class="note">A group with nothing defined behind it gets the firm&rsquo;s skills and none of its own &mdash; the honest state until its leads name their segments, not an error.</p>';
 }}
 
@@ -449,10 +524,18 @@ function showAdd() {{
   $('add-card').style.display = '';
   if ((SETUP.watches || []).length === 1) $('e_watch').value = SETUP.watches[0].id;
   if ((SETUP.destinations || []).length === 1) $('e_dest').value = SETUP.destinations[0].id;
+  /* Bound here rather than written on the elements: this page dispatches every control
+     through ACTIONS, and a form that wired four of its own was two mechanisms for one job.
+     Bound once - showAdd can be called again and addEventListener is idempotent for an
+     identical listener only if the function is identical, so these are named. */
+  $('e_client').addEventListener('input', suggest);
+  $('e_id').addEventListener('input', wasTyped);
+  $('e_folder').addEventListener('input', wasTyped);
   $('e_client').focus();
 }}
 
 /* A client name suggests an engagement id and a folder, until somebody types their own. */
+function wasTyped(e) {{ e.currentTarget.dataset.typed = 1; }}
 function suggest() {{
   const client = $('e_client').value.trim();
   const year = new Date().getFullYear();
@@ -497,12 +580,12 @@ async function showFiles(id) {{
     <p class="why">${{esc(id)}} &middot; ${{esc(f.state)}}. A run starts once files stop changing for ${{esc(f.quiet_period_minutes)}} minutes${{f.state === 'active' ? '' : ' - and only after the engagement is activated'}}.</p></header>
    <div class="body">
     <div class="section-label">Where they go</div>
-    <div class="excerpt" style="display:flex;gap:.6rem;align-items:center;box-shadow:inset 3px 0 0 var(--gold)">
-     <span style="flex:1;min-width:0;overflow-wrap:anywhere">${{esc(f.absolute || f.relative)}}</span>
+    <div class="excerpt path">
+     <span>${{esc(f.absolute || f.relative)}}</span>
      <button class="small" data-act="copyText" data-text="${{esc(f.absolute || f.relative)}}">Copy path</button></div>
-    ${{f.can_add ? `<div id="drop" tabindex="0" style="border:2px dashed var(--line);border-radius:var(--radius);padding:1.1rem;text-align:center;color:var(--ink-3);margin:.2rem 0 .8rem;cursor:pointer">
-      <b style="color:var(--navy);font-weight:600">Drop client files here</b>, or click to choose them.<br>
-      <span style="font-size:.84rem">Statements, trial balances, forecasts - as the client sent them. Nothing is renamed or opened here; the sweep reads them.</span>
+    ${{f.can_add ? `<div id="drop" class="drop" tabindex="0">
+      <b>Drop client files here</b>, or click to choose them.<br>
+      <span class="sm">Statements, trial balances, forecasts - as the client sent them. Nothing is renamed or opened here; the sweep reads them.</span>
       <input type="file" id="pick" multiple style="display:none"></div>`
       : '<p class="note">Files can be added from this page only when storage is a local folder. Put them in the folder above.</p>'}}
     <div class="section-label">In the folder now (${{f.files.length}})</div>
@@ -730,11 +813,11 @@ function profileForm(profile) {{
   const loose = Object.entries(profile).filter(([k, v]) => !PROFILE_FIXED.has(k) && kindOf(v) !== 'object');
   const groups = Object.entries(profile).filter(([k, v]) => !PROFILE_FIXED.has(k) && kindOf(v) === 'object');
   const f = Object.fromEntries(fixed);
-  return `<p class="note" style="margin:0 0 .8rem"><span class="mono">${{esc([f.practice, f.segment, f.disposition].filter(Boolean).join('/'))}}</span>
+  return `<p class="note" style="margin:0 0 var(--s3)"><span class="mono">${{esc([f.practice, f.segment, f.disposition].filter(Boolean).join('/'))}}</span>
      &middot; ${{esc(f.schema_version || '')}}${{f.recorded_by ? ' &middot; last recorded by ' + esc(f.recorded_by) + (f.recorded_at ? ' on ' + esc(String(f.recorded_at).slice(0, 10)) : '') : ''}}</p>
     ${{loose.map(([k, v]) => profileField(k, k, v)).join('')}}
     ${{groups.map(([k, v]) => `<div class="section-label">${{esc(labelFor(k))}}</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0 .8rem">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0 var(--s4)">
        ${{Object.entries(v).map(([ck, cv]) => kindOf(cv) === 'object'
           ? `<div class="field"><label>${{esc(labelFor(ck))}}</label><textarea class="pf" data-path="${{esc(k + '.' + ck)}}" data-kind="json" rows="2">${{esc(JSON.stringify(cv))}}</textarea></div>`
           : profileField(k + '.' + ck, ck, cv)).join('')}}
@@ -781,12 +864,12 @@ async function editProfile(id) {{
      The blanks are judgements: the industry code, the size band, the owner-compensation
      benchmark, and who reviews this engagement and how quickly.</p>
     <div id="p_form">${{profileForm(t.profile)}}</div>
-    <details style="margin-top:.6rem"><summary>Edit as JSON instead</summary>
-     <p class="note" style="margin:.2rem 0 .4rem">When this is open, the JSON is what is saved.</p>
-     <textarea id="p_body" style="height:min(20rem,40vh);font-family:var(--mono);font-size:.86rem">${{esc(JSON.stringify(t.profile, null, 2))}}</textarea>
+    <details style="margin-top:var(--s3)"><summary>Edit as JSON instead</summary>
+     <p class="note" style="margin:var(--s1) 0">When this is open, the JSON is what is saved.</p>
+     <textarea id="p_body" class="code-area">${{esc(JSON.stringify(t.profile, null, 2))}}</textarea>
     </details>
    </div>
-   <div class="foot"><button class="quiet" onclick="this.closest('.modal').remove()">Cancel</button>
+   <div class="foot"><button class="quiet" data-act="closeModal">Cancel</button>
     <button class="primary" id="p_save">Save profile</button></div></section>`;
   document.body.appendChild(box);
   const onKey = e => {{ if (e.key === 'Escape' && document.body.contains(box) && !document.querySelector('.modal .narrow')) {{ box.remove(); document.removeEventListener('keydown', onKey); }} }};

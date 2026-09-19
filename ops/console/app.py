@@ -1251,7 +1251,7 @@ async function review(runId, itemId) {
     <header><h2>${esc(item.question || item.item_id)}</h2>
      <p class="why">${run.client ? esc(run.client) + ' &middot; ' : ''}${esc(run.engagement_id || '')} &middot; ${esc(item.skill || item.kind)}${item.due_at ? ' &middot; due ' + esc(item.due_at.slice(0, 16).replace('T', ' ')) : ''}</p></header>
     <div class="body">
-     ${item.source_excerpt ? `<div class="section-label">What the source says${item.locator ? ' &middot; <span class="mono" style="text-transform:none;letter-spacing:0">' + esc(item.locator) + '</span>' : ''}</div>
+     ${item.source_excerpt ? `<div class="section-label">What the source says${item.locator ? ' &middot; <span class="mono aside">' + esc(item.locator) + '</span>' : ''}</div>
       <div class="excerpt">${esc(item.source_excerpt)}</div>` : ''}
      ${(item.reasons || []).length ? `<div class="section-label">Why it came to a person</div>
       <ul style="margin:.2rem 0 .8rem 1.1rem;padding:0;font-size:.9rem;color:var(--ink-2)">${item.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}

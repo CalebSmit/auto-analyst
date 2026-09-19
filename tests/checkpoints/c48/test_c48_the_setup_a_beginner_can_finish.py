@@ -268,11 +268,16 @@ def test_every_action_in_the_table_reaches_a_function_that_exists() -> None:
 
     body = PAGE.replace("{{", "{").replace("}}", "}")
     defined = set(re.findall(r"(?:async )?function (\w+)\(", body))
-    wired = re.findall(r"ACTIONS\.(\w+)\s*=\s*[^=]*=>\s*\{?\s*(\w+)\(", body)
-    # A loop over nothing passes. The table has more entries than this matches - one has a
-    # block body - so the floor is what the checklist itself needs to reach.
-    assert len(wired) >= len(dispatch_table()) - 1, f"only {len(wired)} entries were read"
-    for name, call in wired:
+    # Entries that hand straight off to a page function. The rest reach a DOM method on
+    # their element, which is not this test's business.
+    wired = dict(re.findall(r"ACTIONS\.(\w+)\s*=\s*[^=]*=>\s*\{?\s*(\w+)\(", body))
+    # A loop over nothing passes. Rather than counting - which made this fail the first time
+    # an entry was added with a different shape - the floor is the thing the test is for:
+    # every action the checklist offers has to be one of the entries actually checked.
+    assert checklist_actions() <= set(wired), (
+        f"these checklist actions were never checked: {sorted(checklist_actions() - set(wired))}"
+    )
+    for name, call in wired.items():
         assert call in defined, f"ACTIONS.{name} calls {call}(), which is not defined"
 
 

@@ -1577,3 +1577,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C48 after P80, covering P80
 - proves: An engagement can be taken from an empty environment to an active run through the page alone, in the words the person doing the work uses, with the profile met as a step rather than a refusal.
+
+## 2026-09-19 - P81 The setup surface, composed rather than assembled
+
+**Why:** P80 fixed what the setup surface says. This is how it looks while saying it. Read as a design rather than as a feature, the page has one voice repeated seven times: seven panels of equal weight, every row the same rhythm, no figure anywhere, and the checklist - the whole reason a first-time reader is on this screen - framed identically to a reference table nobody needs twice. The stylesheet it is built on is careful, and the page does not spend what the stylesheet gives it.
+
+- phase added: P81 The setup surface, composed rather than assembled (The consoles, gate: auto)
+- exit criterion: The steps read as one sequence: the marks are joined, the current one is the subject, and a finished step costs one line
+- exit criterion: A finished checklist stops taking the space the panels need
+- exit criterion: No control on the page is wired twice over, and no length on it was chosen by eye
+- exit criterion: Nothing the page could do before, it cannot do now
+
+## 2026-09-19 - C49 One design language, still one
+
+**Why:** P81 changed a stylesheet every page in the tool is built from - the steps, the buttons, the dialogs and four new components - while only the setup page was reviewed. A change to shared CSS is the definition of something that passes its own tests and breaks somewhere nobody looked.
+
+- checkpoint added: C49 after P81, covering P81
+- proves: The setup surface reads as composed, and the three pages that were not reviewed are unchanged by a stylesheet that was.

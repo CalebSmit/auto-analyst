@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**80 of 80 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**81 of 81 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -161,6 +161,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C46 - The first hour on a machine that has never seen this** | integration | The documents that tell somebody how to start agree with each other; the OCR step is the same wherever it is told and every adapter named is one the ports accept; the quiet failure of skipping the engine is described where somebody will look; what is owed is one list rather than two; every pytest flag a document offers is one the suite defines; and the rules and the packet describe the same version 1. | 2026-09-19 |
 | [x] | **P80** Setup, in the analyst's words | auto | The checklist names the profile as a step, before the step that refuses without it | 2026-09-19 |
 | [x] | **C48 - The setup a beginner can finish** | integration | An engagement can be taken from an empty environment to an active run through the page alone, in the words the person doing the work uses, with the profile met as a step rather than a refusal. | 2026-09-19 |
+| [x] | **P81** The setup surface, composed rather than assembled | auto | The steps read as one sequence: the marks are joined, the current one is the subject, and a finished step costs one line | 2026-09-19 |
+| [x] | **C49 - One design language, still one** | integration | The setup surface reads as composed, and the three pages that were not reviewed are unchanged by a stylesheet that was. | 2026-09-19 |
 
 ## The interview
 

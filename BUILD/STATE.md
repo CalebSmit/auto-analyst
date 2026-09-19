@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **80 of 80 phases closed**
-- Last green checkpoint: **C48**
+- **81 of 81 phases closed**
+- Last green checkpoint: **C49**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -99,4 +99,5 @@
 - **P78** The packet that meets somebody at work (2026-09-19)
 - **P79** Where last year's model is (2026-09-19)
 - **P80** Setup, in the analyst's words (2026-09-19)
+- **P81** The setup surface, composed rather than assembled (2026-09-19)
 
