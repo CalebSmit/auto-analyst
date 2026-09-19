@@ -303,7 +303,7 @@ named ranges need the real model; until then the schema is an educated guess the
 for. Evidence: Q2, Q3. Size: medium.
 
 ## B-035 Local OCR for scanned PDFs
-status: proposed
+status: built (2026-09-18, P74) - the port, both adapters and the reader; the engine is installed by a person
 2026-09-18-1 Q14-Q16: PDFs are the only path with keying in it, none of them can be copied
 from, and clients send a lot of them - so most of the inbound path needs OCR. intake/readers/
 documents.py reports a scanned page and does not read it, by design ("the OCR path is a later
@@ -313,6 +313,14 @@ masking could happen, breaking the guarantee at its root. Local keeps the order 
 -> mask -> model and keeps privacy/ deterministic Python. Needs: the engine decision and
 confirmation it can be installed on the work machine (Q21, unconfirmed). Evidence: Q14, Q15,
 Q16. Size: large, and it is the single highest-value build in this list.
+Built 2026-09-18 (P74): an eighth port, `AA_OCR_ADAPTER`, with `none` (refuses, so a scan
+stays reported rather than read as empty) and `tesseract`. The port returns lines, so
+`_tables_from_lines` gives an OCR'd page the same locators a text layer would, and an
+OCR'd line carries `ocr=True` and its confidence. Nothing on the path may reach a model
+and an import walk proves it. `serve.py --check` probes the engine by trying it. **What
+remains is on the work machine**: install Tesseract, `pypdfium2` and `pytesseract`, set
+`AA_OCR_ADAPTER=tesseract`, and measure accuracy against a hand-keyed engagement (B-011) -
+until that is done, how good the reading is on this firm's real scans is unknown.
 
 ## B-036 The prior-year rollforward, as the main path
 status: part built (2026-09-18, P69) - the arithmetic half; the Excel half needs the real template
