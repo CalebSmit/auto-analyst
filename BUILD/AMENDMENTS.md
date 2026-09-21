@@ -1594,3 +1594,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C49 after P81, covering P81
 - proves: The setup surface reads as composed, and the three pages that were not reviewed are unchanged by a stylesheet that was.
+
+## 2026-09-20 - P82 Nothing a run cannot reach is called built
+
+**Why:** P71 built a scan for this build's most repeated defect - something built and wired to nothing - and the scan counts a mention in a test as wiring. So a module whose only caller is its own test file passes it, which is the defect exactly. Eleven modules and about two thousand lines are in that state today, including two of the three things the fourth interview session asked for and the unmask integrity check the blueprint asserts gates every deliverable. The backlog records four of them as 'built'.
+
+- phase added: P82 Nothing a run cannot reach is called built (The consoles, gate: auto)
+- exit criterion: A module whose only caller is its own test is reported, and P68 and P69 are among what it reports
+- exit criterion: No port adapter and no command-line tool is on the allowlist
+- exit criterion: An allowlist entry citing a backlog item that does not exist, or one already closed, fails
+- exit criterion: Every backlog item claiming built names something a run can reach
+
+## 2026-09-20 - C50 The check that can be believed
+
+**Why:** P82 changed what counts as evidence that something is built, and made a scan that had reported nothing into one that gates the build. A check with a false positive blocks a phase wrongly and a check with a false negative is decoration, so the mechanism itself wants proving against the tree it now judges.
+
+- checkpoint added: C50 after P82, covering P82
+- proves: The reachability scan's verdict matches what actually happens: a module it calls reachable really is reached, and one it excuses is noticed the moment production touches it.

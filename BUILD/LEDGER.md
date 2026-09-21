@@ -104,3 +104,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** P01 is the one phase that cannot be reopened: it defines where the build is for every structural check. Correct its checks with 'gate amend' in place and record why the phase was not re-closed on them. Any other phase reopens cleanly - P07 and P36 both did.
 
+
+## 2026-09-20 - tests/p23::test_is_it_healthy_what_should_we_fix_is_it_improving_is_anything_stuck failed once inside tools/verify.py at about 00:05 on 2026-09-20, and has not failed since. Tried to reproduce it four ways: the test alone, the test with tests/checkpoints/c50, the whole suite filtered with -k p23, and the whole suite unfiltered. All four green, including the unfiltered one that is the same command verify.py runs.
+
+**Phase:** not phase-specific
+
+**Why it failed:** Not established, and the guesses were checked rather than believed. The ISO-week bucket in Analytics._outcomes was the first suspect because the test unpacks a single week and the run crossed midnight - but 2026-09-19 and 2026-09-20 are both W38, so no bucket could split. The 30-day window is not near a boundary either. What is true and worth knowing: tests/p23/conftest.py's Clock starts at the real wall clock on purpose - 'the store stamps steps and events with wall time, and silence is measured against those stamps' - and ops/run_store stamps ended_at with now_iso(), so this test is time-coupled by construction rather than by accident. A second suspect is tests/checkpoints/c50, which edits guards/__init__.py on disk while the suite runs; it restores in a finally and the tree was observed restoring itself, and no mechanism was found by which p23 could read it.
+
+**Rule:** Do not spend another session reproducing this one by re-running the suite; it has been run four ways. If it recurs, capture the assertion line first - verify.py summarises and drops it, so run pytest directly with --tb=long and keep the output. The two things to check at that point are whether ended_at and the fixture clock disagree across a day boundary, and whether anything in the process reads a production file from disk.
+

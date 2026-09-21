@@ -2510,6 +2510,34 @@
       ],
       "notes": "",
       "closed": "2026-09-19"
+    },
+    {
+      "id": "P82",
+      "title": "Nothing a run cannot reach is called built",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Ask the question the scan meant to ask: can anything a person or a run reaches touch this module. The two ways a module is legitimately reached without being imported - an adapter the ports registry names, a command somebody types - are understood rather than excused, so the allowlist holds only real decisions. Each of those has to cite a live backlog item, because CLAUDE.md already says a deliberately unjoined seam is said out loud in the backlog and nothing checked that it was. And the record gets corrected: 'built' has meant 'the code exists' where it should mean 'a run can reach it'.",
+      "builds": [],
+      "tasks": [
+        "The scan asks about production reachability rather than whether a name is mentioned",
+        "An adapter named by the ports registry and a command somebody types are recognised, not allowlisted",
+        "Every remaining module is excused only with a reason and a backlog item that exists and is open",
+        "The backlog stops recording as built what no run can reach",
+        "The unmask half of the privacy band is recorded as the finding it is"
+      ],
+      "exit": [
+        "A module whose only caller is its own test is reported, and P68 and P69 are among what it reports",
+        "No port adapter and no command-line tool is on the allowlist",
+        "An allowlist entry citing a backlog item that does not exist, or one already closed, fails",
+        "Every backlog item claiming built names something a run can reach"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p82 -q",
+        "python -m uv run pytest tests/p71 tests/p73 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-20"
     }
   ],
   "checkpoints": [
@@ -3052,6 +3080,17 @@
         "python -m uv run pytest tests/checkpoints/c49 -q"
       ],
       "closed": "2026-09-19"
+    },
+    {
+      "id": "C50",
+      "title": "The check that can be believed",
+      "after": "P82",
+      "status": "done",
+      "proves": "The reachability scan's verdict matches what actually happens: a module it calls reachable really is reached, and one it excuses is noticed the moment production touches it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c50 -q"
+      ],
+      "closed": "2026-09-20"
     }
   ]
 }

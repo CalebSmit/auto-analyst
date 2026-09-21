@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-19.*
+*Last written 2026-09-20.*
 
 ## Where the build is
 
-- **81 of 81 phases closed**
-- Last green checkpoint: **C49**
+- **82 of 82 phases closed**
+- Last green checkpoint: **C50**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -100,4 +100,5 @@
 - **P79** Where last year's model is (2026-09-19)
 - **P80** Setup, in the analyst's words (2026-09-19)
 - **P81** The setup surface, composed rather than assembled (2026-09-19)
+- **P82** Nothing a run cannot reach is called built (2026-09-20)
 

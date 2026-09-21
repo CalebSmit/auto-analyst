@@ -75,6 +75,17 @@ python -m uv run python tools/serve.py --check              # what is wired, wha
 python -m uv run python tools/serve.py                      # admin at /admin, ops console at /, help at /help
 python -m uv run python tools/simulate_firm.py              # a generated firm through the real server, no key
 python -m uv run python tools/simulate_firm.py --scripted   # the same, with the review loop walked end to end
+python -m uv run python tools/simulate_files.py             # every document case through the real server
+```
+
+Three more commands, written down here because until P82 each one's invocation existed only
+in its own docstring - so a person could not find them and the reachability scan could not
+tell them from dead code:
+
+```
+python -m uv run python tools/synthesize_templates.py   # rebuild the two synthetic Excel templates
+python -m uv run python tools/bootstrap_scaffold.py     # write the first scaffold of a package
+python -m uv run python -m evals                        # the eval harness, over the candidate skills
 ```
 
 The two rehearsals are the tests the suite cannot be: real process, real HTTP, files

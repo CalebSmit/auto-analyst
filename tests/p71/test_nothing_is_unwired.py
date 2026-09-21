@@ -10,6 +10,13 @@ So this looks. A public function in a shipped package that nothing anywhere refe
 not another module, not its own, not a test - is either dead or a seam somebody meant to
 join and did not. Both want saying out loud.
 
+**What this check does not cover, and P82 does.** A reference from a test counts here, so a
+function whose only caller is its own test file passes - which is the defect this was
+written for, wearing a test. Eleven modules were in that state, including two built three
+phases after this check. `tests/p82` asks the other question: whether anything a person or a
+run reaches touches the *module* at all. The two are complementary, not a replacement: this
+one finds a dead function inside a live module, which reachability cannot see.
+
 The allowlist carries a reason for each entry, because the answer "nothing calls this, on
 purpose" is a decision and decisions belong on the record. An entry with no reason fails
 as loudly as an unwired function, which is the point:

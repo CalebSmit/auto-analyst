@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**81 of 81 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**82 of 82 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -163,6 +163,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C48 - The setup a beginner can finish** | integration | An engagement can be taken from an empty environment to an active run through the page alone, in the words the person doing the work uses, with the profile met as a step rather than a refusal. | 2026-09-19 |
 | [x] | **P81** The setup surface, composed rather than assembled | auto | The steps read as one sequence: the marks are joined, the current one is the subject, and a finished step costs one line | 2026-09-19 |
 | [x] | **C49 - One design language, still one** | integration | The setup surface reads as composed, and the three pages that were not reviewed are unchanged by a stylesheet that was. | 2026-09-19 |
+| [x] | **P82** Nothing a run cannot reach is called built | auto | A module whose only caller is its own test is reported, and P68 and P69 are among what it reports | 2026-09-20 |
+| [x] | **C50 - The check that can be believed** | integration | The reachability scan's verdict matches what actually happens: a module it calls reachable really is reached, and one it excuses is noticed the moment production touches it. | 2026-09-20 |
 
 ## The interview
 

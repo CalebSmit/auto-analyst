@@ -142,7 +142,8 @@ layout - which needs a sample export (promised). Size: medium.
 
 
 ## B-019 Forecast driver baselines, computed
-status: built (2026-09-17, P40)
+status: part built (2026-09-17, P40) - tools/forecast_drivers.py exists and nothing reaches
+it. Version 1 gathers data and does not run the model, so a forecast is not on its path.
 2026-09-17-1 Q5-Q6: a firm-built forecast starts each driver from last year's percentage or an
 average of the last few years. A deterministic tool, like tools/statement_checks.py: from the
 tagged historicals, per period and per driver (revenue growth, COGS % of revenue, opex % of
@@ -159,7 +160,9 @@ whenever CAPM is used. Change: wacc needs gpc again, the comment says why, dcf s
 A new version; a person re-registers it. Size: small.
 
 ## B-021 Beta and cost of debt, the mechanical parts
-status: built (2026-09-17, P41: tools/beta.py; the formula is a required argument until the firm's is confirmed)
+status: part built (2026-09-17, P41) - tools/beta.py exists and nothing reaches it. The
+firm's formula is a required argument rather than a default, and cost of capital is outside
+version 1's path, so there is no caller to give it one.
 2026-09-17-2 Q5: median of the comps' unlevered betas, relevered to the subject's capital
 structure; pretax cost of debt from the credit rating the analyst assigns. A deterministic tool:
 median unlevered beta with the companies it came from; relevered beta at a stated debt-to-equity
@@ -348,7 +351,9 @@ a score; everything uncovered opens a review item. Files: ops/ (router), policy.
 Q19, Q20. Size: medium.
 
 ## B-038 The due diligence request list as the coverage schedule
-status: built (2026-09-18, P68) - sections, refs and coverage; the per-engagement item lists are owed
+status: part built (2026-09-18, P68) - sections, refs and coverage exist in
+intake/request_list.py and nothing reaches them. The items inside a section are written per
+engagement and the only list in hand belongs to a client, so there is nothing yet to carry.
 2026-09-18-1 Q11-Q12: the firm sends a DD request list in seven stable sections (A Financial
 Records, B Corporate Documents, C Operational Matters, D Employment/Labor, E Properties &
 Equipment, F Contracts, G Legal Matters); the items inside vary per engagement and stay similar
@@ -407,3 +412,58 @@ no skew, no scanner noise, no photocopy generation loss. A client's scan has all
 this is an upper bound rather than a forecast, and the real number needs a hand-keyed
 engagement (B-011) or at least a genuinely scanned document. Size: small - it is a
 measurement, not a build.
+
+## B-043 The unmask half of the privacy band reaches nothing
+status: proposed
+2026-09-20, from P82. `privacy/unmask.py` and `privacy/verify.py` are imported by no module
+outside the `privacy/` package itself - production reaches neither. The masking half is
+wired in six places (harness/dispatch, orchestrate/orchestrator, orchestrate/triage,
+precedent/writeback, workers/driver, tools/serve), so every run masks and no run has ever
+resolved a token back.
+Three things say this is wrong rather than deliberate. The blueprint asserts every
+deliverable is dominated by `unmask_verify` - `assert_every_figure_cleared_provenance_and_tieout`
+fails if a skill can reach a deliverable without it. `guards/__init__.py` calls the unmask
+integrity check "the sixth guard". And `deliver/builder.py` opens with "Inputs are unmasked,
+tied-out, locked figures only", which is an assumption nothing upstream satisfies.
+It has not bitten because no run has ever reached `release` (both shipped recipes end at
+qc-tieout, B-004). When one does, `DeliverableQC` - which *is* wired - fails the workbook
+for carrying a residual mask token, and the guard will be right.
+**Why it is not just wired.** Where the unmask belongs is a design decision: on the release
+path before QC, or on each step's output as it returns from the model. The second changes
+what a reviewer sees and what precedent records; the first leaves tokens in the review queue.
+The blueprint draws `unmask_engine` and `unmask_verify` between the model band and the
+deliverable, which points at the first, but "points at" is not the same as decided. Files:
+deliver/release.py or harness/dispatch.py, privacy/verify.py. Size: small to wire, plus the
+decision.
+
+## B-044 conflict_resolution can never be entered
+status: proposed
+2026-09-20, moved here from BUILD/OPEN.md section 4b so the allowlist has something to point
+at. `conflict_resolution` is declared on monthly-refresh over `[tagging, ebitda]` and two
+things stop it: `guards/reconcile.py` is called by nothing outside its own tests, and the
+region spans two steps while the executor re-runs only the head. Neither was in P59's reach -
+the first is a guard nobody calls, the second is executor machinery that does not exist.
+Size: medium.
+
+## B-045 Four commands nobody is told about
+status: built (2026-09-20, P82) - all four are now under "Running it" in CLAUDE.md, which
+both tells a person and makes the reachability scan see them, so none is allowlisted
+2026-09-20, from P82. `tools/simulate_files.py`, `tools/bootstrap_scaffold.py`,
+`tools/synthesize_templates.py` and `python -m evals` are commands rather than libraries, and
+each one's invocation appears only in its own docstring. CLAUDE.md names the two rehearsals
+under "Running it" and not these, so a person reading the file a session starts from cannot
+find them - and the reachability scan cannot tell them from dead code without being told.
+`tools/simulate_files.py` is the one that matters: it drops every document case through the
+real server, which is the third rehearsal beside the two that found twenty-three bugs.
+Change: name them in CLAUDE.md, which both tells a person and makes the scan see them. Files:
+CLAUDE.md, tests/p82. Size: small.
+
+## B-046 Two ways to render a diagnostic
+status: proposed
+2026-09-20, from P82. `registries/diagnostics.py` renders a diagnostic for a person to read
+and nothing calls it; the codes it renders live in `registries/errors.py`, which is imported
+everywhere. So every diagnostic a person actually sees - on the review page, in a toast, in
+a refusal - is formatted somewhere else, and this is a second renderer that has never run.
+Either the surfaces should use it or it should go; what is not defensible is two answers to
+"how is a diagnostic written for a person" with one of them untested against real use.
+Files: registries/diagnostics.py, ui/, admin/page.py. Size: small.
