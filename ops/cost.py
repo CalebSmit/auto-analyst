@@ -67,6 +67,16 @@ class Breakdown:
     by_model: tuple[Line, ...]
     by_tier: tuple[Line, ...]
     total_usd: float
+    cache_read_tokens: int = 0
+    cache_write_tokens: int = 0
+
+    @property
+    def cache_hit_rate(self) -> float | None:
+        """Of the tokens that could have been cached, the share that was read rather than
+        written. `None` when nothing was cacheable at all, which is a different answer from
+        zero and reads differently to whoever is asking whether this is working."""
+        offered = self.cache_read_tokens + self.cache_write_tokens
+        return round(self.cache_read_tokens / offered, 4) if offered else None
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -194,6 +204,7 @@ class CostMeter:
             row[3] += int(e.payload.get("output_tokens", 0))
 
         total = 0.0
+        read = written = 0
         for e in self.store.events(run_id):
             if e.type != "model.answered":
                 continue
@@ -202,12 +213,16 @@ class CostMeter:
             add(by_model, model, e)
             add(by_tier, TIER_OF.get(model, "unpinned"), e)
             total += float(e.cost_usd or 0.0)
+            read += int(e.payload.get("cache_read_tokens", 0))
+            written += int(e.payload.get("cache_write_tokens", 0))
         return Breakdown(
             run_id=run_id,
             by_skill=_lines(by_skill),
             by_model=_lines(by_model),
             by_tier=_lines(by_tier),
             total_usd=round(total, 6),
+            cache_read_tokens=read,
+            cache_write_tokens=written,
         )
 
     def rollup(self, engagement_id: str) -> EngagementSpend:

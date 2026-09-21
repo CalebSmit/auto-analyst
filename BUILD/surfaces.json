@@ -1,7 +1,10 @@
 {
  "constraints": {
   "ceilings": {
-   "note": "transport_retries covers transport failures only. A guard failure is never a retry \u2014 it is a loop iteration, and it must change the input to count.\nper_methodology_layer is bytes of foundations/ per layer, and it is a ceiling on every prompt of every run that resolves through that layer \u2014 the firm layer being every run there is. 64 KiB is roughly sixteen thousand tokens: room for a practice group to say how it works, and not room for a document nobody meant to send with every call. Raising it is a decision about what the firm pays per run.",
+   "note": "transport_retries covers transport failures only. A guard failure is never a retry \u2014 it is a loop iteration, and it must change the input to count.\nper_methodology_layer is bytes of foundations/ per layer, and it is a ceiling on every prompt of every run that resolves through that layer \u2014 the firm layer being every run there is. 64 KiB is roughly sixteen thousand tokens: room for a practice group to say how it works, and not room for a document nobody meant to send with every call. Raising it is a decision about what the firm pays per run.\nper_context is the assembled whole for one step \u2014 skill body, methodology, precedents, profile and the client's document together \u2014 measured before it is sent. The methodology ceiling covers the standing cost; this covers the part that arrives with the engagement, which is the part that varies and the part nobody chose. 400 KB is roughly a hundred thousand tokens, comfortably inside every tier's window, and about three hundred pages of statement text: a year of scans fits and a filing cabinet does not. It is deliberately below the provider's own limit, because a refusal from here can name the document and a refusal from there cannot.",
+   "per_context": {
+    "bytes_max": 400000
+   },
    "per_methodology_layer": {
     "bytes_max": 65536
    },
@@ -281,6 +284,7 @@
    "GUARD.RECONCILE_CONFLICT": "model",
    "GUARD.TIEOUT_MISMATCH": "client-data",
    "GUARD.UNMASK_RESIDUAL": "system",
+   "INTAKE.CONTEXT_TOO_LARGE": "client-data",
    "INTAKE.INJECTION_DETECTED": "client-data",
    "INTAKE.NO_ENGAGEMENT": "client-data",
    "INTAKE.UNKNOWN_TYPE": "client-data",

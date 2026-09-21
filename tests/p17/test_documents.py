@@ -150,8 +150,11 @@ def test_a_word_table_is_a_real_table() -> None:
     assert doc.kind == "docx"
     (table,) = doc.pages[0].tables
     assert table.locator == "p1/t1"
+    # P85: the header row names the column rather than being stored as a data row with no
+    # value. `Response` is prose and holds no figures, so it is not a column at all - only
+    # the positions that carry figures are, which is the same rule the PDF reader follows.
+    assert table.headings == ("Amount",)
     assert [(r.label, r.value) for r in table.rows] == [
-        ("Item", None),
         ("Rent", 96000.0),
         ("Legal", -12500.0),
     ]

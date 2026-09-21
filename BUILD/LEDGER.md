@@ -113,3 +113,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Do not spend another session reproducing this one by re-running the suite; it has been run four ways. If it recurs, capture the assertion line first - verify.py summarises and drops it, so run pytest directly with --tb=long and keep the output. The two things to check at that point are whether ended_at and the fixture clock disagree across a day boundary, and whether anything in the process reads a production file from disk.
 
+
+## 2026-09-20 - Checked which diagnostic-code family prefixes were legal by grepping registries/errors.py for them, and read back CLIENT. as precedent for CLIENT.CONTEXT_TOO_LARGE.
+
+**Phase:** not phase-specific
+
+**Why it failed:** The grep was run after the code had already been added, so it returned my own edit. The file was the only evidence consulted and it had been contaminated by the thing it was being asked about. The real list is in docs/architecture.html's ERRCODES table, which is the source of truth, and it names ten families of which CLIENT is not one - so the error was reachable in one place and I looked in another.
+
+**Rule:** When checking a convention before adding to it, read something that existed before the edit: git show HEAD:<file>, or the blueprint, or a test that asserts the rule. A grep of the working tree after an edit proves the edit exists. Two tests catch this particular case - tests/p14::test_every_registry_code_is_in_the_blueprints_table and the diagnostics registry's own self_check - and both are reached only by a checkpoint, not by the phase that adds the code.
+

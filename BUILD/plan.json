@@ -2538,6 +2538,89 @@
       ],
       "notes": "",
       "closed": "2026-09-20"
+    },
+    {
+      "id": "P83",
+      "title": "A context that says when it will not fit",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Two halves, because one without the other still misleads. Proactive: the context builder measures what it assembled against a ceiling declared in constraints.yaml beside the methodology one, and refuses naming the section that is too big - which is the client's document, by name, not a byte count nobody can act on. Reactive: a refusal that still comes back from the provider is diagnosed by what it says rather than assumed to be a missing model, because a ceiling set here cannot know every provider's limit and the one that is wrong is the one that matters.",
+      "builds": [],
+      "tasks": [
+        "The assembled context is measured against a declared ceiling before it is sent",
+        "The refusal names which section is too big, and what a person does about it",
+        "A provider refusal about length is not reported as a missing model",
+        "The ceiling is a decision in constraints.yaml, beside the methodology ceiling that already exists",
+        "The surface snapshot and the blueprint's ERRCODES table both name the new code"
+      ],
+      "exit": [
+        "An oversized context is refused before the call, naming the largest section and its size",
+        "The diagnostic tells a person which document to look at, not a number in bytes alone",
+        "A provider 400 about length carries a length diagnostic, and a real missing model still carries the model one",
+        "Nothing that fits today is refused"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p83 -q",
+        "python -m uv run pytest tests/p09 tests/p31 tests/p35 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-20"
+    },
+    {
+      "id": "P84",
+      "title": "The stable prefix, cached",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Mark the part that does not vary, and let the run say what that was worth. The system prompt is the unit because it is stable by construction - a skill body and the references that skill declares - rather than stable by luck. What matters as much as the saving is that it is measurable: the manifest already has the fields, so a person can see the hit rate rather than be told caching is on. A miss must cost nothing but the write, and a call that cannot be cached must still be a call.",
+      "builds": [],
+      "tasks": [
+        "The system prompt carries a cache breakpoint, and the request says so rather than the adapter deciding",
+        "The run reports what was read from cache and what was written to it",
+        "A request that opts out is still a correct request"
+      ],
+      "exit": [
+        "The system prompt is sent as a cacheable block and the payload is not",
+        "Cache usage reaches the cost meter and the manifest, which already price it",
+        "What is cacheable is stable by construction: two calls of one skill in one scope share a prefix byte for byte",
+        "Nothing about the content sent to the model changes - only the marker on it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p84 -q",
+        "python -m uv run pytest tests/p09 tests/p11 tests/p23 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-20"
+    },
+    {
+      "id": "P85",
+      "title": "A comparative statement, read as two columns",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Put the column in the locator rather than more values in the row. A table with three columns writes three blocks - p12/t1/c1, c2, c3 - each with one value per row, each aligned to a period end the detector already found. Row keeps its shape, so provenance, tie-out and the numeric lock are untouched, and footing gets more correct rather than less: a total is re-added against its own column instead of a mixture. The escalation narrows to what is actually ambiguous - rows that disagree about how many figures they carry, or columns that cannot be matched to periods - rather than firing on every comparative document. And because the columns are known, what the model is shown can be a table instead of a flattened line, which is what the extraction literature attributes its accuracy to.",
+      "builds": [],
+      "tasks": [
+        "The locator grammar carries a column, and a document writes one block per column",
+        "The reader takes the label from what precedes the first figure, not what precedes the last",
+        "Columns are aligned to the period ends already detected, and say so",
+        "The columns escalation fires on real ambiguity rather than on every comparative statement",
+        "What the model is shown preserves the table rather than flattening it"
+      ],
+      "exit": [
+        "A comparative statement reaches a model, with each column under its own locator and period",
+        "The current year is no longer absorbed into the label",
+        "A document whose rows disagree about their figure count still stops, and says why",
+        "Provenance, tie-out and the numeric lock resolve against the new locators unchanged",
+        "The real filing in fixtures/public is read as columns, measured rather than asserted"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p85 -q",
+        "python -m uv run pytest tests/p17 tests/p13 tests/p53 tests/p76 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-20"
     }
   ],
   "checkpoints": [
@@ -3089,6 +3172,28 @@
       "proves": "The reachability scan's verdict matches what actually happens: a module it calls reachable really is reached, and one it excuses is noticed the moment production touches it.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c50 -q"
+      ],
+      "closed": "2026-09-20"
+    },
+    {
+      "id": "C51",
+      "title": "The door still opens the same way",
+      "after": "P84",
+      "status": "done",
+      "proves": "A call that fits is sent exactly as it was, a call that does not is refused where a person can act on it, and the caching marker changes the bill without changing the question.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c51 -q"
+      ],
+      "closed": "2026-09-20"
+    },
+    {
+      "id": "C52",
+      "title": "Two columns, and three guards that did not move",
+      "after": "P85",
+      "status": "done",
+      "proves": "A comparative statement is read as columns, written under locators the guards already understand, and footed against its own column rather than a mixture of years.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c52 -q"
       ],
       "closed": "2026-09-20"
     }

@@ -171,6 +171,7 @@ SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
 METHODOLOGY_UNCLEARED = "CONFIG.METHODOLOGY_UNCLEARED"
 METHODOLOGY_UNSAFE = "CONFIG.METHODOLOGY_UNSAFE"
 METHODOLOGY_TOO_LARGE = "CONFIG.METHODOLOGY_TOO_LARGE"
+CONTEXT_TOO_LARGE = "INTAKE.CONTEXT_TOO_LARGE"
 RECIPE_UNREGISTERED = "SCOPE.RECIPE_UNREGISTERED"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
@@ -445,6 +446,19 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "not knowing which document caused it. Either take something out of the layer, "
         "or raise the ceiling deliberately, which is a decision about what a run costs "
         "and belongs in constraints.yaml rather than in whatever wanted the room.",
+    ),
+    CONTEXT_TOO_LARGE: (
+        "client-data",
+        "One step's assembled context is past the ceiling in constraints.yaml, and the "
+        "section that pushed it over is named above. Almost always that is one client "
+        "document: a scan of a whole year's statements goes to the model as text, and a "
+        "long enough one does not fit in a single turn however good the model is. Split "
+        "the document, or send the statements the step actually needs - a balance sheet "
+        "step does not need the notes. Raising the ceiling is the other answer and it is "
+        "a decision about what a run costs, so it lives in constraints.yaml rather than "
+        "in whatever wanted the room. Refused here rather than at the provider, because "
+        "a refusal from there says only that the request was too long and not which "
+        "document made it so.",
     ),
     METHODOLOGY_UNSAFE: (
         "config",

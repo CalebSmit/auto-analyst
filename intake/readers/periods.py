@@ -16,10 +16,12 @@ from __future__ import annotations
 
 import calendar
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Any
 
-__all__ = ["PeriodDetection", "detect_periods"]
+__all__ = ["PeriodDetection", "detect_periods", "headings_in"]
 
 _SCALE_CUES: tuple[tuple[re.Pattern[str], int, str], ...] = (
     (
@@ -106,7 +108,46 @@ def _spacing(gaps: list[int]) -> str | None:
     return None
 
 
-def detect_periods(text: str) -> PeriodDetection:
+_BARE_YEAR = re.compile(r"(?<![\w,./-])(?:19|20)\d{2}(?![\w,./-])")
+
+
+def headings_in(line: str) -> tuple[str, ...]:
+    """The period headings on one line, left to right, as they were written.
+
+    For naming the columns of a comparative statement, which is what says which figure
+    belongs to which year. Returned as the text found rather than as a parsed date: a
+    header reading `2025` names a year and not a year end, and turning it into
+    `2025-12-31` here would be inventing a fiscal calendar this function cannot see. The
+    engagement profile knows the year end; this knows what the document said.
+
+    Order matters and a set would lose it, which is why this exists beside the detector
+    rather than inside it - the detector wants to know which periods a document covers,
+    and this wants to know which one is in the third column.
+    """
+    found = [
+        (m.start(), m.group(0).strip())
+        for pattern in (_ISO, _US, _LONG, _MONTH_YEAR, _QUARTER, _FY)
+        for m in pattern.finditer(line)
+    ]
+    if not found:
+        # The commonest header a statement has: two or three bare years over the columns.
+        found = [(m.start(), m.group(0)) for m in _BARE_YEAR.finditer(line)]
+    ordered: list[str] = []
+    seen: set[tuple[int, str]] = set()
+    # Longest first at any one position: `December 31, 2025` is matched by _LONG and its
+    # month by _MONTH_YEAR, both starting at the same character, and the shorter one
+    # winning is how a column headed 2025 ends up labelled `December 31`.
+    for start, text in sorted(found, key=lambda f: (f[0], -len(f[1]))):
+        # Overlapping patterns match the same heading twice - `December 31, 2025` is
+        # caught by _LONG and its year by _MONTH_YEAR. The leftmost, longest wins.
+        if any(start < s + len(t) and s <= start for s, t in seen):
+            continue
+        seen.add((start, text))
+        ordered.append(text)
+    return tuple(ordered)
+
+
+def detect_periods(text: str, tables: Sequence[Any] = ()) -> PeriodDetection:
     ambiguous: list[str] = []
     cues: dict[str, list[str]] = {}
 
@@ -206,29 +247,47 @@ def detect_periods(text: str) -> PeriodDetection:
     if fiscal_year_end is None:
         ambiguous.append("fiscal_year_end: not stated")
 
-    # -- how many columns of figures a row carries
+    # -- whether the columns can be told apart
     #
     # A comparative statement - which is every audited one, and the usual shape of a PDF
-    # arriving from a client - puts this year and last year on the same line. The document
-    # reader matches one figure per row, anchored to the end of the line, so it took the
-    # *last* column: the current year was swallowed into the label and every figure in the
-    # run became the prior year's. Silently, and past every guard - provenance passes
-    # because the number really is at that locator, and footing passes because the rows
-    # are consistently prior-year so the totals still re-add.
+    # arriving from a client - puts this year and last year on the same line. The reader
+    # used to match one figure per row anchored to the end of the line, so on the real
+    # filing in fixtures/public it stored `Revenue $ 386,902 $ 440,121 $` as a label and
+    # -53,219 as the value: the *Change* column, not a year at all. `Loss from operations`
+    # came out as +181,317 on a year the company lost 96,083. Silently, and past every
+    # guard - provenance passed because the number really was at that locator, and footing
+    # passed because the rows were consistently one column so the totals still re-added.
     #
-    # A row store that holds one value per row cannot record the other column, so this
-    # does not guess which one was meant. It says the document has more than one and stops
-    # the run for a person, the way an unstated scale does.
-    widths = [len(_TRAILING_FIGURES.findall(line)) for line in text.splitlines()]
-    tabular = [w for w in widths if w]
-    if tabular:
-        most = max(set(tabular), key=tabular.count)
-        if most > 1:
-            cues.setdefault("columns", []).append(f"{most} figures on a typical row")
-            ambiguous.append(
-                f"columns: rows carry {most} figures, so each line holds more than one "
-                "period - which column belongs to which period is not stated"
+    # Asked of the tables when there are tables. The text form below is a sample - the
+    # caller passes page-one headers and one table's first rows - and on that filing the
+    # sample is a share-buyback table with one figure a row, so it said nothing while
+    # fifty-eight comparative tables were read wrong. A guard on a sample is a guard on
+    # whatever happened to be first.
+    if tables:
+        unnamed = [t for t in tables if len(t.columns) > 1 and not any(t.headings)]
+        if unnamed:
+            where = ", ".join(t.locator for t in unnamed[:3])
+            cues.setdefault("columns", []).append(
+                f"{len(tables) - len(unnamed)} of {len(tables)} tables name their columns"
             )
+            ambiguous.append(
+                f"columns: {len(unnamed)} table(s) carry more than one column of figures "
+                f"and no header row names them - {where}"
+                + (", and others" if len(unnamed) > 3 else "")
+            )
+        elif any(len(t.columns) > 1 for t in tables):
+            cues.setdefault("columns", []).append("every column is named by a header row")
+    else:
+        widths = [len(_TRAILING_FIGURES.findall(line)) for line in text.splitlines()]
+        tabular = [w for w in widths if w]
+        if tabular:
+            most = max(set(tabular), key=tabular.count)
+            if most > 1 and not any(len(headings_in(line)) == most for line in text.splitlines()):
+                cues.setdefault("columns", []).append(f"{most} figures on a typical row")
+                ambiguous.append(
+                    f"columns: rows carry {most} figures and no line names {most} periods, "
+                    "so which column belongs to which period is not stated"
+                )
 
     return PeriodDetection(
         period_type=period_type,

@@ -90,6 +90,9 @@ def read_source(
     headers: list[str] = []
     first_rows: list[str] = []
     sheet_names: list[str] = []
+    read_tables: list[Any] = []
+    """The tables a document reader found, for the columns check. Empty for a workbook,
+    whose columns are cells and were never in doubt."""
 
     if row.kind == "spreadsheet":
         try:
@@ -121,6 +124,7 @@ def read_source(
             text_for_model.append(table.as_text())
     else:
         parsed: ParsedDocument = read_document(data, row.filename)
+        read_tables = [t for page in parsed.pages for t in page.tables]
         for locator, rows in parsed.blocks().items():
             report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
         headers = parsed.headers()
@@ -132,7 +136,11 @@ def read_source(
         filename=row.filename, headers=headers, first_rows=first_rows, sheet_names=sheet_names
     )
     report.classification = classify(evidence)
-    report.periods = detect_periods("\n".join([*headers, *first_rows]))
+    # The tables, not only a sample of the text. The columns check asks whether every
+    # multi-column table names its columns, and it can only ask that of tables it has -
+    # given page-one headers and one table's first rows it said nothing at all about a
+    # filing whose other fifty-eight tables were comparative and read wrong.
+    report.periods = detect_periods("\n".join([*headers, *first_rows]), tables=read_tables)
     if report.classification.document_type == "financial_statements":
         report.audited = audited_evidence("\n".join(text_for_model))
 

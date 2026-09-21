@@ -123,6 +123,13 @@ class ModelDoor:
                 "model": response.model,
                 "input_tokens": charge.input_tokens,
                 "output_tokens": charge.output_tokens,
+                # Split out rather than folded into input_tokens, which is what the run
+                # store gets for its ceiling. The ceiling wants the total; a person asking
+                # whether caching is doing anything wants the two apart, and the whole
+                # point of turning it on is that the answer is measured rather than
+                # assumed. A read is priced at a tenth of input and a write at 1.25x.
+                "cache_read_tokens": charge.cache_read_tokens,
+                "cache_write_tokens": charge.cache_write_tokens,
                 "stop_reason": response.stop_reason,
             },
         )

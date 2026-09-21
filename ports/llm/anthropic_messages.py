@@ -15,7 +15,13 @@ from typing import Any
 
 from ports.llm import LLMRequest, LLMResponse, TransportFailure, Usage
 from ports.secrets import SecretsPort
-from registries.errors import MISSING_CREDENTIAL, MODEL_PIN_UNAVAILABLE, RegistryError, diagnose
+from registries.errors import (
+    CONTEXT_TOO_LARGE,
+    MISSING_CREDENTIAL,
+    MODEL_PIN_UNAVAILABLE,
+    RegistryError,
+    diagnose,
+)
 
 API_KEY = "ANTHROPIC_API_KEY"
 
@@ -35,6 +41,40 @@ _TRANSIENT = frozenset(
         "OverloadedError",
     }
 )
+
+
+# What the provider says when the request was too long rather than the model wrong. Both
+# arrive as a 400 and this build used to read every 400 as a missing model - so a scan
+# nobody could shrink reported itself as "claude-opus-5 is unavailable" and sent whoever
+# read it to the model registry. Matched on the text because the SDK gives both the same
+# class, and kept broad on purpose: a phrase that stops matching costs the old wrong
+# answer, so the test below holds the real message shapes.
+_TOO_LONG = ("prompt is too long", "context length", "context_length", "too many tokens",
+             "maximum context", "exceeds the maximum", "input is too long")
+
+
+def _is_too_long(exc: BaseException) -> bool:
+    said = str(exc).lower()
+    return any(phrase in said for phrase in _TOO_LONG)
+
+
+def _system(request: LLMRequest) -> Any:
+    """The system prompt, marked cacheable when the caller says it is stable.
+
+    A plain string when it is not, because that is what the API took before any of this
+    and a request that opts out should look exactly as it did. The marker changes no
+    content: the same bytes go either way, and a prefix the provider has not seen before
+    is simply written to cache and charged as a write - there is no miss to lose.
+    """
+    if not request.cache_system:
+        return request.system
+    return [
+        {
+            "type": "text",
+            "text": request.system,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
 
 
 def _is_transient(exc: BaseException) -> bool:
@@ -68,7 +108,7 @@ class AnthropicMessagesLLM:
             response = client.messages.create(
                 model=request.pin.model,
                 max_tokens=request.max_tokens,
-                system=request.system,
+                system=_system(request),
                 messages=[{"role": m.role, "content": m.content} for m in request.messages],
                 thinking={"type": "adaptive"},
                 output_config={"effort": request.pin.effort},
@@ -78,6 +118,17 @@ class AnthropicMessagesLLM:
             )
         except Exception as exc:  # noqa: BLE001 - re-raised as a diagnostic below
             if type(exc).__name__ in {"NotFoundError", "BadRequestError"}:
+                # Length first: a 400 about length is not a statement about the model, and
+                # the ceiling in constraints.yaml is deliberately below the provider's, so
+                # reaching here at all means the two disagree and the provider's is lower.
+                if _is_too_long(exc):
+                    raise RegistryError(
+                        diagnose(
+                            CONTEXT_TOO_LARGE,
+                            f"{request.pin.model} refused the request as too long: {exc}",
+                            locator=request.pin.model,
+                        )
+                    ) from exc
                 raise RegistryError(
                     diagnose(MODEL_PIN_UNAVAILABLE, f"{request.pin.model}: {exc}")
                 ) from exc

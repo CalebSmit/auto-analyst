@@ -252,7 +252,16 @@ modal saying the answer becomes precedent. Blocked on nothing but a decision abo
 precedent that turns out to be wrong (BUILD/OPEN.md §5b). Size: medium.
 
 ## B-030 A comparative statement, read as two columns
-status: proposed - now demonstrated on a real filing (P76), not just predicted
+status: built (2026-09-20, P85) - the column is in the locator rather than more values in
+the row, so `Row` keeps its shape and provenance, tie-out and the numeric lock are
+untouched. A table of three columns writes p12/t1/c1..c3; a single-column table keeps the
+locator it always had. The escalation is narrowed from every comparative document to the
+tables whose columns nobody named, and it names them. Three rules came from the real
+filing rather than from reasoning: the columns are the trailing figures and a label may
+contain numbers of its own, the width is what most rows in a run agree on, and a header is
+used only when every token could be one and at least one names a period - the filing has a
+header split over six lines whose last line reads `2024 $ %`, which would otherwise have
+labelled the 2025 column 2024.
 2026-09-17. P53 stops a run on a document whose rows carry more than one figure, because the
 reader takes the last column and a row store with one value per row cannot hold the other.
 Stopping is right and it is not the answer: every audited statement is comparative, so the

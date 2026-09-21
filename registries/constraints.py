@@ -144,6 +144,16 @@ class ConstraintRegistry:
         """Bytes of methodology one layer may add to every prompt that walks through it."""
         return int(self.ceilings["per_methodology_layer"]["bytes_max"])
 
+    def context_ceiling(self) -> int:
+        """Bytes of assembled context one step may send.
+
+        The methodology ceiling above covers what the firm puts in every prompt; this
+        covers the whole, which is mostly whatever the client sent. Deliberately below any
+        provider's own limit, because a refusal raised here can say which document caused
+        it and a refusal raised there cannot.
+        """
+        return int(self.ceilings["per_context"]["bytes_max"])
+
     def materiality_floor(self) -> tuple[float, str]:
         floor = self.materiality["firm_floor"]
         return float(floor["amount"]), str(floor["currency"])

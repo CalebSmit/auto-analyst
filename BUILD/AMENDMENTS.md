@@ -1611,3 +1611,54 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C50 after P82, covering P82
 - proves: The reachability scan's verdict matches what actually happens: a module it calls reachable really is reached, and one it excuses is noticed the moment production touches it.
+
+## 2026-09-20 - P83 A context that says when it will not fit
+
+**Why:** Every document this firm receives is a multi-page scan, and nothing measures the assembled context before it is sent. Over the model's input limit the SDK raises BadRequestError, which ports/llm/anthropic_messages.py maps to SCOPE.MODEL_PIN_UNAVAILABLE - so a sixty-page scan reports itself as 'claude-opus-5 is unavailable' and sends whoever reads it to the model registry instead of to the document. Found 2026-09-20 comparing this build against the harness-engineering literature (BUILD/proposals/harness-research.md).
+
+- phase added: P83 A context that says when it will not fit (The consoles, gate: auto)
+- exit criterion: An oversized context is refused before the call, naming the largest section and its size
+- exit criterion: The diagnostic tells a person which document to look at, not a number in bytes alone
+- exit criterion: A provider 400 about length carries a length diagnostic, and a real missing model still carries the model one
+- exit criterion: Nothing that fits today is refused
+
+## 2026-09-20 - P84 The stable prefix, cached
+
+**Why:** The cost meter prices cache reads at a tenth of input and cache writes at 1.25x, Usage carries cache_read_input_tokens and cache_creation_input_tokens, and the run manifest reports both - and nothing has ever set cache_control, so every one of those fields has been zero on every call this build has made. The accounting for caching was built and the caching was not. Meanwhile the system prompt the dispatcher sends is the skill body plus its references plus a constant rule: byte-identical for every call of that skill in that scope, re-sent and re-charged every time. Observation 2 of the harness study (BUILD/proposals/harness-research.md); Claude Code splits its own prompt at a hashed cache boundary for exactly this.
+
+- phase added: P84 The stable prefix, cached (The consoles, gate: auto)
+- exit criterion: The system prompt is sent as a cacheable block and the payload is not
+- exit criterion: Cache usage reaches the cost meter and the manifest, which already price it
+- exit criterion: What is cacheable is stable by construction: two calls of one skill in one scope share a prefix byte for byte
+- exit criterion: Nothing about the content sent to the model changes - only the marker on it
+
+## 2026-09-20 - C51 The door still opens the same way
+
+**Why:** P83 and P84 both changed what happens at the model door - one refusing a call before it is made, the other changing the shape of what is sent - and that door is the one boundary in this build where a mistake reaches Anthropic rather than staying in the repo. Caleb flagged the outbound path specifically when approving the plan.
+
+- checkpoint added: C51 after P84, covering P83, P84
+- proves: A call that fits is sent exactly as it was, a call that does not is refused where a person can act on it, and the caching marker changes the bill without changing the question.
+
+## 2026-09-20 - P83 A context that says when it will not fit
+
+**Why:** Three public surfaces were added and are accepted deliberately: constraints.ceilings.per_context, the ceilings note that says what it measures and why it sits below the provider's own limit, and diagnostics.codes.INTAKE.CONTEXT_TOO_LARGE owned by client-data. All three are this phase's point rather than a side effect. The code's family was CLIENT first, which the blueprint does not name - caught by checkpoint C51 rather than by this phase, and the method error behind it is in LEDGER.md.
+
+- task added: The surface snapshot and the blueprint's ERRCODES table both name the new code
+
+## 2026-09-20 - P85 A comparative statement, read as two columns
+
+**Why:** Every audited statement is comparative and none of them reaches a model. timing_normalization stops any file the period detector flagged ambiguous on columns, and the real SEC filing in fixtures/public trips it with three figures a row. The refusal is right - the reader anchors on the last figure, so the current year is swallowed into the label and every figure silently becomes the prior year's, past provenance because the number really is at that locator and past footing because consistently prior-year totals still re-add - but stopping is not reading. Recorded as B-030 since 2026-09-17 and demonstrated on a real filing in P76. It also makes the approved P85 moot: layout-preserving markup is downstream of a document that never arrives.
+
+- phase added: P85 A comparative statement, read as two columns (The consoles, gate: auto)
+- exit criterion: A comparative statement reaches a model, with each column under its own locator and period
+- exit criterion: The current year is no longer absorbed into the label
+- exit criterion: A document whose rows disagree about their figure count still stops, and says why
+- exit criterion: Provenance, tie-out and the numeric lock resolve against the new locators unchanged
+- exit criterion: The real filing in fixtures/public is read as columns, measured rather than asserted
+
+## 2026-09-20 - C52 Two columns, and three guards that did not move
+
+**Why:** P85 changed the shape of what the Source Parse Store holds and the grammar of the locators that address it, and three guards resolve against exactly that - Provenance asks whether a cited locator exists and matches, Tie-Out asks for the rows behind a stated total, and the Numeric Lock compares a released figure to the value first read. The whole design was chosen so those three would not have to change; a checkpoint is how that claim is tested rather than asserted.
+
+- checkpoint added: C52 after P85, covering P85
+- proves: A comparative statement is read as columns, written under locators the guards already understand, and footed against its own column rather than a mixture of years.

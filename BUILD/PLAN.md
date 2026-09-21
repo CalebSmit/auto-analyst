@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**82 of 82 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**85 of 85 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -165,6 +165,11 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C49 - One design language, still one** | integration | The setup surface reads as composed, and the three pages that were not reviewed are unchanged by a stylesheet that was. | 2026-09-19 |
 | [x] | **P82** Nothing a run cannot reach is called built | auto | A module whose only caller is its own test is reported, and P68 and P69 are among what it reports | 2026-09-20 |
 | [x] | **C50 - The check that can be believed** | integration | The reachability scan's verdict matches what actually happens: a module it calls reachable really is reached, and one it excuses is noticed the moment production touches it. | 2026-09-20 |
+| [x] | **P83** A context that says when it will not fit | auto | An oversized context is refused before the call, naming the largest section and its size | 2026-09-20 |
+| [x] | **P84** The stable prefix, cached | auto | The system prompt is sent as a cacheable block and the payload is not | 2026-09-20 |
+| [x] | **C51 - The door still opens the same way** | integration | A call that fits is sent exactly as it was, a call that does not is refused where a person can act on it, and the caching marker changes the bill without changing the question. | 2026-09-20 |
+| [x] | **P85** A comparative statement, read as two columns | auto | A comparative statement reaches a model, with each column under its own locator and period | 2026-09-20 |
+| [x] | **C52 - Two columns, and three guards that did not move** | integration | A comparative statement is read as columns, written under locators the guards already understand, and footed against its own column rather than a mixture of years. | 2026-09-20 |
 
 ## The interview
 

@@ -73,6 +73,20 @@ class DocLocator:
     table: int | None = None
     row: int | None = None
     text: bool = False
+    column: int | None = None
+    """Which column of figures, on a table that has more than one.
+
+    Every audited statement is comparative, and the column is what says which period a
+    figure belongs to. It lives in the locator rather than in the row because a row with
+    several values would have to be understood by all three guards that resolve here -
+    provenance, tie-out and the numeric lock - and each would have to be told which value
+    it meant. One column per block leaves them as they were, and makes footing *more*
+    exact: a stated total is re-added against its own column rather than a mixture of
+    years that happens to sum.
+
+    `None` is a table with a single column of figures, which is what every locator written
+    before this meant and still means.
+    """
 
     @property
     def block(self) -> str:
@@ -80,14 +94,17 @@ class DocLocator:
             return f"p{self.page}/text"
         if self.table is None:
             return f"p{self.page}"
-        return f"p{self.page}/t{self.table}"
+        if self.column is None:
+            return f"p{self.page}/t{self.table}"
+        return f"p{self.page}/t{self.table}/c{self.column}"
 
 
 _SHEET = re.compile(
     r"^(?:'(?P<quoted>[^']+)'|(?P<bare>[^!']+))!(?P<c1>[A-Z]{1,3})(?P<r1>\d+)(?::(?P<c2>[A-Z]{1,3})(?P<r2>\d+))?$"
 )
 _DOC = re.compile(
-    r"^p(?P<page>\d+)(?:/t(?P<table>\d+)(?:/r(?P<row>\d+))?|/text(?:/r(?P<line>\d+))?)?$"
+    r"^p(?P<page>\d+)"
+    r"(?:/t(?P<table>\d+)(?:/c(?P<column>\d+))?(?:/r(?P<row>\d+))?|/text(?:/r(?P<line>\d+))?)?$"
 )
 
 
@@ -110,6 +127,7 @@ def parse_locator(text: str) -> SheetRange | DocLocator:
             table=int(doc.group("table")) if doc.group("table") else None,
             row=int(doc.group("row") or line) if (doc.group("row") or line) else None,
             text=text.count("/text") == 1,
+            column=int(doc.group("column")) if doc.group("column") else None,
         )
     raise ValueError(f"{text!r} is not a sheet range or a page/table/row locator")
 

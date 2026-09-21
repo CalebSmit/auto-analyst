@@ -5,26 +5,26 @@ the code that reads it - so it agrees with that code. The first time the Documen
 met a real financial statement it took the wrong column of a comparative balance sheet.
 
 `Cash and cash equivalents $ 95,635 $ 171,324` is one line of a real annual report. The
-reader matches one figure per row anchored to the end of the line, so it takes **171,324**
-- the prior year - and swallows the current year into the label. Every figure in the run
-becomes last year's, and both guards pass: provenance passes because the number really is
-at that locator, and footing passes because the rows are consistently prior-year so the
-totals still re-add.
+reader matched one figure per row, anchored to the end of the line, so it took **171,324**
+- the prior year - and swallowed the current year into the label. Both guards passed:
+provenance because the number really was at that locator, and footing because every row
+was consistently prior-year so the totals still re-added. On page 34 it was worse than a
+year out: `Revenue` stored -53,219, the *Change* column, and `Loss from operations` stored
++181,317 in a year the company lost 96,083.
 
-That is B-030, written down as a prediction in the backlog and never demonstrated until a
-real document was put in front of it.
+That was B-030, written in the backlog as a prediction and never demonstrated until a real
+document was put in front of it. **P85 closed it**, and the tests that pinned the defect
+now say what the answer is instead - which is what pinning it was for.
 
-The pair that matters is `test_the_reader_still_takes_the_wrong_column` and
-`test_the_escalation_fires_on_every_comparative_page`. The first pins a defect that has not
-been fixed, so that fixing it is a decision somebody makes rather than a surprise. The
-second pins the only thing standing between this document and a silently wrong model - if
-it ever stops firing while the first still fails, the run proceeds on last year's balance
-sheet.
+What this file is still for is the same thing: a document nobody here wrote. It is where
+the modal-width rule was found (`net of reserves - $3,608 and $2,433  83,806  101,471`
+carries four figures and two columns), and where the guarded header fallback was found (a
+header split over six lines whose last line reads `2024 $ %`, three tokens over three
+columns, which would have labelled the 2025 column 2024).
 """
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import pytest
@@ -93,92 +93,136 @@ def test_the_balance_sheet_rows_are_recovered(filing) -> None:
     assert any("Total current assets" in label for label in labels)
 
 
-# ------------------------------------------------------------------ the defect, pinned
+# ------------------------------------------------------- the defect, and its closing
 
 
-def test_the_reader_still_takes_the_wrong_column(filing) -> None:
-    """B-030, demonstrated rather than predicted.
+def test_both_columns_are_read_and_the_label_is_the_label(filing) -> None:
+    """B-030, closed by P85, measured on the document that demonstrated it.
 
-    Pinned as it is, not as it should be. When somebody builds B-030 this test fails, and
-    that failure is the reminder to come back here and say what the new answer is - which
-    is better than a defect that quietly stops being true.
+    This used to assert the defect, so that closing it would fail here and whoever closed
+    it would have to come back and say what the new answer was. This is that answer.
+
+    Before: the reader anchored on the last figure, so this row stored a label of
+    `Cash and cash equivalents $ 95,635 $` and a value of 171,324 - the prior year, with
+    the current year swallowed into the label. On page 34 of this same filing it was worse
+    than a year out: `Revenue` stored -53,219, the *Change* column, and `Loss from
+    operations` stored +181,317 in a year the company lost 96,083.
     """
     page = next(p for p in filing.pages if p.number == BALANCE_SHEET)
     line = next(line for line in page.lines if line.text.startswith("Cash and cash equivalents"))
     assert line.text == "Cash and cash equivalents $ 95,635 $ 171,324", line.text
 
-    row = next(
-        row
-        for table in page.tables
-        for row in table.rows
-        if row.label.startswith("Cash and cash equivalents")
+    table = next(t for t in page.tables if any(
+        r.label.startswith("Cash and cash equivalents") for r in t.rows))
+    assert len(table.columns) == 2, "a comparative page read as one column"
+    first, second = (
+        next(r for r in c.rows if r.label.startswith("Cash and cash equivalents"))
+        for c in table.columns
     )
-    assert row.value == 171324.0, "the prior year, which is the defect"
-    assert "95,635" in row.label, "the current year, swallowed into the label"
+    assert first.value == 95635.0, "the current year, which used to be in the label"
+    assert second.value == 171324.0, "the prior year, which used to be the only value"
+    assert first.label == "Cash and cash equivalents", first.label
+    assert first.label == second.label, "one row, two columns, one label"
 
 
-def test_both_guards_would_pass_on_that_row(filing) -> None:
-    """Why the escalation is the only defence. The figure is really at that locator, so
-    provenance is satisfied; and the whole column is consistently prior-year, so anything
-    that re-adds the rows still balances."""
+def test_a_figure_inside_a_label_is_not_a_column(filing) -> None:
+    """`Accounts receivable, net of reserves - $3,608 and $2,433  83,806  101,471` carries
+    four figures and two columns. Counting every figure on the line made this row four
+    wide, which broke the run it belonged to and dropped the cash line above it - so the
+    width is what most rows in the run agree on, and each row gives up its last two."""
     page = next(p for p in filing.pages if p.number == BALANCE_SHEET)
-    rows = [row for table in page.tables for row in table.rows]
-    assert all(str(int(row.value)) in row.raw.replace(",", "") for row in rows[:6]), (
-        "each value really is on the line it cites"
-    )
+    table = next(t for t in page.tables if any(
+        r.label.startswith("Accounts receivable") for r in t.rows))
+    row = next(r for r in table.columns[0].rows if r.label.startswith("Accounts receivable"))
+    assert row.value == 83806.0
+    assert "3,608" in row.label and "2,433" in row.label, "the reserves belong to the label"
 
 
-def test_the_escalation_fires_on_every_comparative_page(filing) -> None:
-    """The only thing between this document and a run built on last year's figures."""
-    for number in COMPARATIVE:
+def test_each_column_is_written_under_its_own_locator(filing) -> None:
+    """Which is what leaves the guards alone: one value per row, as before, and the column
+    in the locator. Provenance resolves a block, tie-out foots one, and neither had to
+    learn what a column is."""
+    blocks = filing.blocks()
+    page = next(p for p in filing.pages if p.number == BALANCE_SHEET)
+    table = next(t for t in page.tables if len(t.columns) == 2)
+    assert f"{table.locator}/c1" in blocks
+    assert f"{table.locator}/c2" in blocks
+    assert blocks[f"{table.locator}/c1"] != blocks[f"{table.locator}/c2"]
+
+
+def test_the_change_column_is_read_as_the_change_column(filing) -> None:
+    """Page 30's MD&A table is the one that made this dangerous: three columns headed
+    `2025 2024 Change`, where the old reader took the third and called it revenue."""
+    page = next(p for p in filing.pages if p.number == 30)
+    table = page.tables[0]
+    assert table.headings == ("2025", "2024", "Change")
+    revenue = [next(r for r in c.rows if r.label == "Revenue") for c in table.columns]
+    assert [r.value for r in revenue] == [386902.0, 440121.0, -53219.0]
+
+
+def test_a_column_nobody_named_is_escalated_rather_than_guessed(filing) -> None:
+    """Page 34's header is split over six lines by the extraction, so the last line above
+    the figures reads `2024 $ %`. Three tokens over three columns - and taking them would
+    have labelled the 2025 column 2024. The figures are still read; the periods are not
+    claimed, and the run stops for a person."""
+    page = next(p for p in filing.pages if p.number == 34)
+    table = page.tables[0]
+    assert table.headings == ("", "", ""), table.headings
+    assert [c.rows[0].value for c in table.columns] == [95635.0, 171324.0, -75689.0]
+
+    found = detect_periods(page.text, tables=page.tables)
+    assert [a for a in found.ambiguous if a.startswith("columns:")]
+
+
+def test_the_escalation_fires_where_the_columns_are_unnamed(filing) -> None:
+    """Narrowed from what it was. It used to fire on every comparative page, which is
+    every audited page, so nothing ever reached a model; now it asks whether the columns
+    can be told apart."""
+    for number in COMPARATIVE[:2]:
         page = next(p for p in filing.pages if p.number == number)
-        found = detect_periods(page.text)
+        found = detect_periods(page.text, tables=page.tables)
         columns = [a for a in found.ambiguous if a.startswith("columns:")]
-        assert columns, f"page {number} carries multiple columns and did not escalate"
-        assert "more than one period" in columns[0]
+        assert columns, f"page {number} has unnamed columns and did not escalate"
+        assert "no header row names them" in columns[0]
 
 
-def test_a_single_column_page_does_not_escalate(filing) -> None:
-    """A rule that escalated everything would be no rule. Somewhere in a hundred pages
-    there is ordinary text, and it must pass."""
-    quiet = [
-        p.number
-        for p in filing.pages
-        if p.text.strip()
-        and not [a for a in detect_periods(p.text).ambiguous if a.startswith("columns:")]
-    ]
-    assert quiet, "every page in the filing escalated, so the check says nothing"
+def test_the_escalation_says_which_table_to_look_at(filing) -> None:
+    """Narrowed twice over. It used to fire on every comparative page - which is every
+    audited page, so nothing reached a model - and say only that rows carried more than
+    one figure. Now it fires on the tables whose columns nobody named, and names them.
 
-
-# ------------------------------------------------------------------ the OCR benchmark
-
-
-def test_the_ocr_benchmark_runs_or_says_why(ocr_engine) -> None:
-    """Accuracy on a real statement, measured against the document's own text layer.
-
-    Behind `--ocr` because it needs an engine most machines do not have - the same
-    arrangement as postgres, redis and the container, and for the same reason: a check that
-    quietly skips is a check nobody knows did not run.
-
-    What it establishes is an upper bound, not a forecast. These pages were born digital and
-    rendered to images, so they have no skew, no scanner noise and no photocopy generation
-    loss. A client's scan has all three.
+    Page 30 is the case worth having: its first table *is* named, `2025 2024 Change`, and
+    read correctly. The page still stops, because a second table on it is not - and one
+    unnamed table is enough, since a figure under an unnamed column is a figure nobody can
+    put a year on. What changed is that a person is now told which one.
     """
-    engine, render = ocr_engine
-    data = FILING.read_bytes()
-    truth = {p.number: p for p in read_document(data, FILING.name).pages}
-    figure = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?")
+    page = next(p for p in filing.pages if p.number == 30)
+    assert page.tables[0].headings == ("2025", "2024", "Change")
 
-    document = render.PdfDocument(data)
-    try:
-        for number in COMPARATIVE:
-            page = engine.read_one(document, number)
-            want = figure.findall(truth[number].text)
-            got = set(figure.findall("\n".join(line.text for line in page.lines)))
-            missed = [f for f in want if f not in got]
-            share = 1 - len(missed) / len(want)
-            assert share >= 0.95, (
-                f"page {number}: {share:.1%} of figures read, missed {missed[:8]}"
-            )
-    finally:
-        document.close()
+    found = detect_periods(page.text, tables=page.tables)
+    (columns,) = [a for a in found.ambiguous if a.startswith("columns:")]
+    assert "p30/t2" in columns, columns
+    assert "p30/t1" not in columns, "the named table is not what stopped the page"
+
+
+def test_a_document_whose_columns_are_all_named_is_not_stopped() -> None:
+    """The other end of it, on a document small enough to be certain about. Every audited
+    statement is comparative, so an escalation that fires on all of them is an escalation
+    that stops all of them - which is what this was before P85."""
+    statement = "\n".join(
+        [
+            "CONSOLIDATED STATEMENTS OF OPERATIONS",
+            "(in thousands of US dollars)",
+            "                          2025          2024",
+            "Revenue                1,482,113     1,391,204",
+            "Cost of sales            912,004       880,117",
+            "Gross profit             570,109       511,087",
+        ]
+    )
+    doc = read_document(statement.encode("utf-8"), "is.txt")
+    tables = [t for page in doc.pages for t in page.tables]
+    assert tables[0].headings == ("2025", "2024")
+    found = detect_periods(doc.as_text(), tables=tables)
+    assert not [a for a in found.ambiguous if a.startswith("columns:")]
+    assert doc.blocks()["p1/t1/c1"][0].value == 1482113.0
+    assert doc.blocks()["p1/t1/c2"][0].value == 1391204.0

@@ -156,6 +156,8 @@ ceilings:
     transport_retries_max: 2
   per_methodology_layer:
     bytes_max: 65536
+  per_context:
+    bytes_max: 400000
   note: >-
     transport_retries covers transport failures only. A guard failure is never a
     retry — it is a loop iteration, and it must change the input to count.
@@ -165,6 +167,15 @@ ceilings:
     every run there is. 64 KiB is roughly sixteen thousand tokens: room for a practice
     group to say how it works, and not room for a document nobody meant to send with
     every call. Raising it is a decision about what the firm pays per run.
+
+    per_context is the assembled whole for one step — skill body, methodology,
+    precedents, profile and the client's document together — measured before it is
+    sent. The methodology ceiling covers the standing cost; this covers the part that
+    arrives with the engagement, which is the part that varies and the part nobody
+    chose. 400 KB is roughly a hundred thousand tokens, comfortably inside every tier's
+    window, and about three hundred pages of statement text: a year of scans fits and a
+    filing cabinet does not. It is deliberately below the provider's own limit, because
+    a refusal from here can name the document and a refusal from there cannot.
 
 # ── Declared loops ────────────────────────────────────────────────────────────────
 #

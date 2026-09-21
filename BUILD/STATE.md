@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **82 of 82 phases closed**
-- Last green checkpoint: **C50**
+- **85 of 85 phases closed**
+- Last green checkpoint: **C52**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -101,4 +101,7 @@
 - **P80** Setup, in the analyst's words (2026-09-19)
 - **P81** The setup surface, composed rather than assembled (2026-09-19)
 - **P82** Nothing a run cannot reach is called built (2026-09-20)
+- **P83** A context that says when it will not fit (2026-09-20)
+- **P84** The stable prefix, cached (2026-09-20)
+- **P85** A comparative statement, read as two columns (2026-09-20)
 

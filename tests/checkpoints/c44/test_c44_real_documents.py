@@ -7,7 +7,11 @@ widened fixtures rule stayed a rule rather than becoming an exception.
 The reason the filing matters is worth restating. Every other fixture here is synthetic,
 and a synthetic document is written by whoever wrote the code that reads it - so it agrees
 with that code. The first real financial statement this reader met, it read the wrong
-column of. That is not a criticism of the reader; it is what a real document is for.
+column of. That is not a criticism of the reader; it is what a real document is for - and
+P85 read it again to close B-030, finding three more rules the synthetic fixtures had no
+way to teach: a label may contain figures of its own, a run's width is what most of its
+rows agree on, and a header split across lines can offer the right number of tokens and
+the wrong ones.
 """
 
 from __future__ import annotations
@@ -50,17 +54,35 @@ def test_the_engines_are_alternatives_rather_than_a_fallback_chain() -> None:
                 assert f"ports.ocr.{other}" not in source, f"{adapter} falls back to {other}"
 
 
-def test_the_real_filing_is_read_and_what_it_gets_wrong_is_pinned() -> None:
-    """P76's finding, asked here so that a change to the reader meets it too."""
+def test_the_real_filing_is_read_as_columns() -> None:
+    """P76's finding, asked here so that a change to the reader meets it too.
+
+    This pinned the defect until P85 closed it: the row used to store 171,324, the prior
+    year, with the current year swallowed into the label. Both columns are read now, and
+    the escalation has narrowed from every comparative page - which was every audited page
+    - to the tables whose columns nobody named.
+    """
     doc = read_document(FILING.read_bytes(), FILING.name)
     page = next(p for p in doc.pages if p.number == 56)
 
-    row = next(
-        r for t in page.tables for r in t.rows if r.label.startswith("Cash and cash equivalents")
+    table = next(
+        t for t in page.tables
+        if any(r.label.startswith("Cash and cash equivalents") for r in t.rows)
     )
-    assert row.value == 171324.0, "still the prior year - B-030 is not built"
-    escalated = [a for a in detect_periods(page.text).ambiguous if a.startswith("columns:")]
-    assert escalated, "and the escalation is the only thing that stops the run"
+    assert len(table.columns) == 2
+    values = [
+        next(r.value for r in c.rows if r.label.startswith("Cash and cash equivalents"))
+        for c in table.columns
+    ]
+    assert values == [95635.0, 171324.0], values
+
+    # This page's header is split over several lines, so its columns are unnamed and the
+    # run still stops - correctly, and now saying which tables it stopped on.
+    escalated = [
+        a for a in detect_periods(page.text, tables=page.tables).ambiguous
+        if a.startswith("columns:")
+    ]
+    assert escalated and "p56/t" in escalated[0]
 
 
 def test_the_widened_rule_still_forbids_what_it_always_forbade() -> None:

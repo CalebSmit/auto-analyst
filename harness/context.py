@@ -45,7 +45,9 @@ from graph.resolve import ResolvedScope, ResolvedSkill
 from ops.blobs import ContentRef, ContentStore
 from ops.events import EventBus
 from ops.run_store import RunStore
+from registries.constraints import ConstraintRegistry
 from registries.errors import (
+    CONTEXT_TOO_LARGE,
     METHODOLOGY_UNCLEARED,
     PRECEDENT_OUT_OF_SCOPE,
     RECIPE_INVALID,
@@ -209,6 +211,7 @@ class ContextBuilder:
         precedents: PrecedentSource | None = None,
         foundations_dir: Path = FOUNDATIONS_DIR,
         methodology: MethodologyRegister | None = None,
+        constraints: ConstraintRegistry | None = None,
     ) -> None:
         self.tree = tree
         self.blobs = blobs
@@ -217,6 +220,7 @@ class ContextBuilder:
         self.precedents: PrecedentSource = precedents or NoPrecedents()
         self.foundations_dir = foundations_dir
         self.methodology = methodology or MethodologyRegister(root=foundations_dir)
+        self.constraints = constraints or ConstraintRegistry.load()
 
     def build(self, request: ContextRequest) -> AssembledContext:
         step = request.step
@@ -313,6 +317,7 @@ class ContextBuilder:
             parts.append(("tool_result", result.content_hash, self.blobs.get(result)))
 
         assembled, sections = _assemble(parts)
+        self._refuse_if_it_will_not_fit(assembled, sections, step)
         ref = self.blobs.put(assembled, media_type="text/plain", name=f"context:{step.id}")
 
         manifest = {
@@ -348,6 +353,38 @@ class ContextBuilder:
             skill=resolved.skill.key,
             sections=sections,
             precedent_ids=tuple(p.precedent_id for p in precedents),
+        )
+
+    # -- what will not fit
+
+    def _refuse_if_it_will_not_fit(
+        self, assembled: bytes, sections: tuple[Section, ...], step: Step
+    ) -> None:
+        """Measure the whole before it is sent, and say which part is the problem.
+
+        Every document this firm receives is a multi-page scan, so the variable part of a
+        context is the large part. Over the provider's own limit the SDK answers with a
+        400 that says the request was too long and nothing about which of six sections
+        made it so - and this build used to read that 400 as a missing model, which sent
+        whoever hit it to the model registry to look for a model that was never absent.
+
+        Raised before the blob is stored, so an oversized context does not get a
+        `context_ref` and a manifest describing a call that was never made.
+        """
+        ceiling = self.constraints.context_ceiling()
+        if len(assembled) <= ceiling:
+            return
+        biggest = max(sections, key=lambda s: s.size_bytes)
+        raise RegistryError(
+            diagnose(
+                CONTEXT_TOO_LARGE,
+                f"{step.id}: the assembled context is {_kb(len(assembled))} against a "
+                f"ceiling of {_kb(ceiling)}. The largest section is "
+                f"{biggest.kind} {biggest.name!r} at {_kb(biggest.size_bytes)}",
+                locator=f"{step.id}/{biggest.kind}/{biggest.name}",
+                expected=f"at most {_kb(ceiling)}",
+                found=_kb(len(assembled)),
+            )
         )
 
     # -- the query
@@ -445,6 +482,12 @@ class ContextBuilder:
 
 def _canonical(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def _kb(n: int) -> str:
+    """Sizes a person can hold. A section reported as 412,318 bytes is a number nobody
+    compares to anything; 403 KB is one somebody can weigh against a ceiling."""
+    return f"{n / 1024:,.0f} KB" if n >= 1024 else f"{n} bytes"
 
 
 def _assemble(parts: list[tuple[str, str, bytes]]) -> tuple[bytes, tuple[Section, ...]]:

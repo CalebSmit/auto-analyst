@@ -28,9 +28,22 @@ from dataclasses import dataclass, field
 
 from ops.source_parse import Row
 
-__all__ = ["Line", "Page", "ParsedDocument", "Table", "read_document"]
+__all__ = ["Column", "Line", "Page", "ParsedDocument", "Table", "read_document"]
 
 HIDDEN_BELOW_PT = 4.0
+# A money-shaped figure, the same shape the period detector counts with: grouped with
+# commas or at least four digits, optionally parenthesised or carrying a currency mark.
+# Deliberately not "any number" - a page number, a note reference and a year are all
+# numbers and none of them is a column of figures.
+_FIGURES = re.compile(
+    # A figure, or the dash a statement writes where a figure would be. `Assets held for
+    # sale — 3,176` is one of each and two columns; counting only the figure made it a
+    # one-column row in a two-column table, so it was dropped and the line disappeared.
+    # A dash is a cell with nothing in it, which is not the same as a cell that is not
+    # there, and `Row.value` is `float | None` precisely so the difference survives.
+    r"(?<![\w.])\(?-?[$£€]?\s?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?(?![\w.])"
+    r"|(?<![\w.-])[$£€]?\s?[—–-](?![\w.-])"
+)
 _NUMBER_AT_END = re.compile(
     r"^(?P<label>.*?\S)\s{2,}(?P<num>\(?-?\$?\s?[\d,]+(?:\.\d+)?\)?)\s*$|"
     r"^(?P<label2>.*?[A-Za-z].*?)\s+(?P<num2>\(?-?\$?[\d,]{4,}(?:\.\d+)?\)?)\s*$"
@@ -56,14 +69,51 @@ class Line:
 
 
 @dataclass(frozen=True)
+class Column:
+    """One column of figures in a table, under whatever the document called it."""
+
+    index: int
+    """1-based, left to right as the document prints them."""
+    heading: str
+    """What the header row said above this column - `2025`, `December 31, 2024`, or empty
+    where no header could be found. The text as written, not a parsed date: a column
+    headed 2025 names a year and not a year end, and the fiscal calendar that would turn
+    one into the other is on the engagement profile, not in the document."""
+    rows: tuple[Row, ...]
+
+
+@dataclass(frozen=True)
 class Table:
     page: int
     index: int
-    rows: tuple[Row, ...]
+    columns: tuple[Column, ...]
+
+    @property
+    def rows(self) -> tuple[Row, ...]:
+        """The first column. What a table meant before one could have more than one, and
+        what a single-column table still means - so everything that read `table.rows`
+        before this goes on reading the same rows."""
+        return self.columns[0].rows if self.columns else ()
 
     @property
     def locator(self) -> str:
         return f"p{self.page}/t{self.index}"
+
+    def locator_for(self, column: Column) -> str:
+        """Where this column's rows are written.
+
+        A single-column table keeps the locator it always had. Only a table that really
+        has more than one column gains the `/c` segment, so no locator written before this
+        phase means anything different afterwards - which matters because a locator is
+        what a figure cites and citations outlive the code that made them.
+        """
+        if len(self.columns) == 1:
+            return self.locator
+        return f"{self.locator}/c{column.index}"
+
+    @property
+    def headings(self) -> tuple[str, ...]:
+        return tuple(c.heading for c in self.columns)
 
 
 @dataclass
@@ -102,7 +152,8 @@ class ParsedDocument:
                     for n, text in enumerate(visible, start=1)
                 )
             for table in page.tables:
-                out[table.locator] = table.rows
+                for column in table.columns:
+                    out[table.locator_for(column)] = column.rows
         return out
 
     def headers(self) -> list[str]:
@@ -203,29 +254,149 @@ def _ocr_the_scanned_pages(doc: ParsedDocument, data: bytes) -> None:
 
 
 def _tables_from_lines(page: int, lines: list[Line]) -> list[Table]:
-    """Consecutive lines that end in a figure form a table. One per run of them."""
+    """Consecutive lines carrying figures form a table, as many columns wide as most of
+    them agree on.
+
+    Every audited statement is comparative, and this used to anchor on the *last* figure
+    on a line. On the real filing in `fixtures/public`, `Revenue $ 386,902 $ 440,121 $
+    (53,219)` gave a label of `Revenue $ 386,902 $ 440,121 $` and a value of -53,219 - the
+    *Change* column, not a year at all - and `Loss from operations` came out as +181,317
+    in a year the company lost 96,083. Silently, and past every guard: provenance passed
+    because the number really was at that locator, and footing passed because every row
+    was consistently the same wrong column so the totals still re-added.
+
+    **The columns are the trailing figures, and a label may contain numbers of its own.**
+    `Accounts receivable, net of reserves - $3,608 and $2,433  83,806  101,471` carries
+    four figures and two columns. So the width is what most rows in the run agree on, and
+    each row gives up its last `width` figures; taking every figure on every line instead
+    made that row four columns wide, broke the run, and dropped the balance sheet's cash
+    line entirely.
+    """
     tables: list[Table] = []
-    current: list[Row] = []
+    run: list[tuple[Line, list[re.Match[str]]]] = []
+    heading_line = ""
+    last_plain = ""
 
     def flush() -> None:
-        if len(current) >= 2:
-            tables.append(Table(page=page, index=len(tables) + 1, rows=tuple(current)))
-        current.clear()
+        nonlocal heading_line
+        table = _table_from_run(page, len(tables) + 1, run, heading_line)
+        if table is not None:
+            tables.append(table)
+        run.clear()
+        heading_line = ""
 
     for line in lines:
-        match = _NUMBER_AT_END.match(line.text)
-        if match:
-            label = match.group("label") or match.group("label2") or ""
-            num = match.group("num") or match.group("num2") or ""
-            current.append(
-                Row(
-                    label=label.strip(), value=_number(num), raw=line.text, ordinal=len(current) + 1
-                )
-            )
+        found = list(_FIGURES.finditer(line.text))
+        if found and line.text[: found[0].start()].strip(" .…	"):
+            if not run:
+                # The line above the first figure row is where a statement writes its
+                # years. Captured when the run opens, because by the time it closes the
+                # last plain line is whatever came after the table.
+                heading_line = last_plain
+            run.append((line, found))
         else:
             flush()
+            if line.text.strip():
+                last_plain = line.text
     flush()
     return tables
+
+
+def _table_from_run(
+    page: int, index: int, run: list[tuple[Line, list[re.Match[str]]]], heading_line: str
+) -> Table | None:
+    """One table out of a run of figure-carrying lines, or nothing.
+
+    The width is the commonest figure count in the run rather than the largest or the
+    smallest: a statement's rows agree, and the ones that do not are carrying a number
+    inside their label. A row with fewer figures than the width cannot fill the columns
+    and is left out rather than guessed at.
+    """
+    if len(run) < 2:
+        return None
+    counts = [len(found) for _, found in run]
+    width = max(set(counts), key=counts.count)
+    body: list[tuple[str, list[float | None], str]] = []
+    for line, found in run:
+        if len(found) < width:
+            continue
+        columns = found[-width:]
+        label = line.text[: columns[0].start()].strip(" .…	")
+        if not label:
+            continue
+        body.append((label, [_number(m.group(0)) for m in columns], line.text))
+    if len(body) < 2:
+        return None
+    headings = _headings_for(heading_line, width)
+    return Table(
+        page=page,
+        index=index,
+        columns=tuple(
+            Column(
+                index=n + 1,
+                heading=headings[n],
+                rows=tuple(
+                    Row(label=label, value=values[n], raw=raw, ordinal=ordinal)
+                    for ordinal, (label, values, raw) in enumerate(body, start=1)
+                ),
+            )
+            for n in range(width)
+        ),
+    )
+
+
+def _split_figures(text: str) -> tuple[str, list[float | None]]:
+    """A line's label and every money-shaped figure on it, left to right.
+
+    The label is what comes before the first figure, which is the whole difference from
+    the version that took what came before the last one.
+    """
+    found = list(_FIGURES.finditer(text))
+    if not found:
+        return "", []
+    label = text[: found[0].start()].strip(" .…	")
+    if not label:
+        return "", []
+    return label, [_number(m.group(0)) for m in found]
+
+
+def _headings_for(line: str, width: int) -> tuple[str, ...]:
+    """The column headings, when the line above the figures names as many as there are.
+
+    A partial match is no match. A header row offering two years over three columns cannot
+    say which column is unlabelled, and labelling two of them and leaving one blank is a
+    worse answer than saying nothing - the run stops on unlabelled columns, and a column
+    wrongly labelled would not stop anything.
+    """
+    from intake.readers.periods import headings_in
+
+    found = headings_in(line)
+    if len(found) == width:
+        return found
+    # The commonest real header is not all dates: `2025 2024 Change` puts two periods and
+    # a derived column over three columns of figures, and reading only the dates finds two
+    # headings for three and gives up. So the line's own words are the fallback - but only
+    # where every one of them could be a heading and at least one names a period.
+    #
+    # Without that guard this produced the error it exists to prevent. On page 34 of the
+    # filing in fixtures/public the header is split over six lines by the extraction, and
+    # the last of them is `2024 $ %`: three tokens over three columns, so the column
+    # holding 2025 was labelled 2024 and the other two were labelled with punctuation. A
+    # wrong heading is worse than none, because none stops the run and a wrong one does not.
+    words = line.split()
+    if (
+        len(words) == width
+        and all(_could_be_a_heading(w) for w in words)
+        and any(headings_in(w) for w in words)
+    ):
+        return tuple(words)
+    return ("",) * width
+
+
+def _could_be_a_heading(word: str) -> bool:
+    """A currency mark and a percent sign are what a column is measured in, not what it is
+    called. A heading has a letter or a digit in it."""
+    return any(ch.isalnum() for ch in word)
 
 
 # -------------------------------------------------------------------- docx
@@ -247,15 +418,58 @@ def _read_docx(data: bytes, filename: str) -> ParsedDocument:
         )
         page.lines.append(Line(text, hidden=hidden))
     for index, table in enumerate(document.tables, start=1):
-        rows: list[Row] = []
-        for ordinal, row in enumerate(table.rows, start=1):
+        # A Word table already has its cells, so the columns are read rather than found.
+        # The first cell is the label and every numeric cell after it is a column, which
+        # is the same rule the PDF reader applies to a line - and the header row, if the
+        # document has one, names them.
+        body: list[tuple[str, list[float | None], str]] = []
+        heading_cells: list[str] = []
+        for row in table.rows:
             cells = [c.text.strip() for c in row.cells]
             if not any(cells):
                 continue
-            value = next((_number(c) for c in reversed(cells) if _number(c) is not None), None)
-            rows.append(Row(label=cells[0], value=value, raw=" | ".join(cells), ordinal=ordinal))
-        if rows:
-            page.tables.append(Table(page=1, index=index, rows=tuple(rows)))
+            values = [_number(c) for c in cells[1:]]
+            if not any(v is not None for v in values):
+                if not body:
+                    heading_cells = cells[1:]
+                continue
+            body.append((cells[0], values, " | ".join(cells)))
+        if not body:
+            continue
+        # Only the cell positions that actually hold figures. A response column beside an
+        # amount column is prose, and a column of nothing but None is not a column - it is
+        # a place where a figure would have gone if this had been a different table.
+        reach = max(len(v) for _, v, _ in body)
+        numeric = [n for n in range(reach) if any(
+            n < len(values) and values[n] is not None for _, values, _ in body
+        )]
+        if not numeric:
+            continue
+        headings = tuple(
+            heading_cells[n].strip() if n < len(heading_cells) else "" for n in numeric
+        )
+        page.tables.append(
+            Table(
+                page=1,
+                index=index,
+                columns=tuple(
+                    Column(
+                        index=place + 1,
+                        heading=headings[place],
+                        rows=tuple(
+                            Row(
+                                label=label,
+                                value=values[n] if n < len(values) else None,
+                                raw=raw,
+                                ordinal=ordinal,
+                            )
+                            for ordinal, (label, values, raw) in enumerate(body, start=1)
+                        ),
+                    )
+                    for place, n in enumerate(numeric)
+                ),
+            )
+        )
     return ParsedDocument(filename=filename, kind="docx", pages=[page])
 
 
@@ -272,6 +486,11 @@ def _read_text(data: bytes, filename: str) -> ParsedDocument:
 
 
 # ----------------------------------------------------------------- numbers
+
+
+def _is_nil(text: str) -> bool:
+    """A dash where a figure would be: nothing, as a statement writes it."""
+    return not any(ch.isdigit() for ch in text)
 
 
 def _number(text: str) -> float | None:

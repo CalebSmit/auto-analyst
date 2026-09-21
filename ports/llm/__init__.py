@@ -107,6 +107,20 @@ class LLMRequest:
     metadata: dict[str, str] = field(default_factory=dict)
     """Non-content labels - run_id, step_id, skill. Never client data: this crosses the
     same boundary the payload scan guards."""
+    cache_system: bool = True
+    """Whether the system prompt may be cached by the provider.
+
+    On the request rather than in the adapter, because which part of a call is stable is
+    something the caller knows and the transport does not. Here it is stable by
+    construction: the dispatcher's system prompt is a skill body plus the references that
+    skill declares plus a constant rule, so two calls of one skill in one scope share it
+    byte for byte, while everything that varies - the methodology, the precedents, the
+    profile, the client's document - is in the message.
+
+    It changes no content. The same bytes are sent either way; this only marks where the
+    provider may stop re-reading them. A caller with a system prompt it has assembled
+    per-call sets this False and pays full price, which is the right answer for one.
+    """
 
     def content_hash(self) -> str:
         """Content address of the call. The idempotency key folds this in, so an
