@@ -1,13 +1,32 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-20.*
+*Last written 2026-09-21.*
 
 ## Where the build is
 
-- **86 of 86 phases closed**
-- Last green checkpoint: **C53**
-- **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
+- **92 of 93 phases closed**
+- Last green checkpoint: **C54**
+- Current phase: **P93 - It really connected** (gate: human)
+
+## The next action
+
+Work P93. Its full definition is in [BUILD/phases/P93.md](phases/P93.md).
+
+> The one phase in this block a test cannot close. Everything before it is proved against a fake that replays documented behaviour; this is where somebody with the credentials presses each button on the machine that has them and says what happened. It stays open until then, and the build says so rather than reading as finished.
+
+Tasks:
+
+- [ ] Run the Box connection test at work and record which of the four steps answered
+- [ ] Sign in to ShareFile once, and run its test
+- [ ] Press Update, then press it again, and check the second press reports skipped
+- [ ] Set up one real report and update one appendix; open it in Word
+- [ ] Record what the real report's anchors actually are, and correct the registry if they differ
+
+Then:
+
+    python tools/gate.py check P93
+    python tools/gate.py close P93  --signoff "name: what you checked"
 
 ## Before you start
 
@@ -105,4 +124,10 @@
 - **P84** The stable prefix, cached (2026-09-20)
 - **P85** A comparative statement, read as two columns (2026-09-20)
 - **P86** Three kinds of wrong (2026-09-20)
+- **P87** Box, on the side documents are read from (2026-09-21)
+- **P88** A connection test that says which part failed (2026-09-21)
+- **P89** ShareFile, and the login a person does once (2026-09-21)
+- **P90** The relay, which may be pressed twice (2026-09-21)
+- **P91** A report is a document with named places in it (2026-09-21)
+- **P92** A button for each appendix that changes (2026-09-21)
 

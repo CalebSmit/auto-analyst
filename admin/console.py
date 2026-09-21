@@ -31,10 +31,28 @@ from graph.resolve import TemplateBinding
 from intake.config import CONTRACT, ConfigStore, Destination, Watch
 from intake.roster import ProjectRoster, RosterEntry, RosterState
 from registries.constraints import ConstraintRegistry
-from registries.errors import ADMIN_FORBIDDEN, RECIPE_INVALID, DiagnosticError, diagnose
+from registries.errors import (
+    ADMIN_FORBIDDEN,
+    RECIPE_INVALID,
+    UNKNOWN_ADAPTER,
+    DiagnosticError,
+    diagnose,
+)
 from registries.scopes import ScopePath
 
 __all__ = ["REVIEW_LEVELS", "AdminConsole", "AdminRefused", "AlreadyApproved"]
+
+# How long a started sign-in stays acceptable. Long enough for an MFA prompt on a phone
+# somebody has to go and find; short enough that a state left lying around is not a value
+# that would still be honoured tomorrow.
+LOGIN_WINDOW_SECONDS = 15 * 60
+
+
+def _now() -> float:
+    import time
+
+    return time.monotonic()
+
 
 # The per-engagement review level ladder, lowest first. Raising is an admin action;
 # lowering is not one at all.
@@ -76,6 +94,9 @@ class AdminConsole:
         self.roster = roster
         self.preflight = preflight
         self.constraints = constraints or ConstraintRegistry.load()
+        self._logins: dict[str, float] = {}
+        """Sign-ins started and not yet finished, state -> when. In memory, so a restart
+        invalidates them - see start_sharefile_login."""
 
     # -- reading
 
@@ -993,6 +1014,166 @@ class AdminConsole:
         """Presence, never the value."""
         present: bool = self.preflight.secrets.has(name)
         return present
+
+    # -- the ShareFile login, which is a person with a browser
+
+    def start_sharefile_login(self, redirect_uri: str) -> dict[str, Any]:
+        """Where the browser has to go, and the one-time value that ties it back here.
+
+        The state is kept in memory on purpose. A server restart between pressing Sign in
+        and finishing the login means starting again, which costs ten seconds; a state
+        persisted to disk would be a replayable value sitting in a file, which is the
+        thing it exists to prevent.
+        """
+        import ports
+
+        url, state = ports.build_port("storage", "sharefile").begin_login(redirect_uri)
+        self._forget_stale_logins()
+        self._logins[state] = _now()
+        return {"url": url, "state": state, "redirect_uri": redirect_uri}
+
+    def finish_sharefile_login(self, code: str, state: str, redirect_uri: str) -> dict[str, Any]:
+        """Turn the code into a stored refresh token, if this callback is ours.
+
+        **The state check is not a formality.** This server answers to anything that can
+        make a browser navigate to 127.0.0.1, and an OAuth callback is a plain GET with no
+        Origin header - so the request gate cannot tell this redirect from one another site
+        arranged. Without a state that was issued here and is accepted exactly once, a page
+        could hand the tool an authorization code for somebody else's ShareFile account,
+        and every later sweep would read that account's folders.
+        """
+        import ports
+
+        if not state or self._logins.pop(state, None) is None:
+            raise AdminRefused(
+                (
+                    diagnose(
+                        ADMIN_FORBIDDEN,
+                        "this ShareFile callback does not match a sign-in started here. "
+                        "It is either stale - the server restarted, or it took too long - "
+                        "or it came from somewhere else. Press Sign in again.",
+                        locator="sharefile:state",
+                        expected="a state issued by this server, used once",
+                        found="unknown state",
+                    ),
+                )
+            )
+        adapter = ports.build_port("storage", "sharefile")
+        stored = adapter.finish_login(code, redirect_uri)
+        return {
+            "service": stored.service,
+            "subdomain": stored.subdomain,
+            "obtained_at": stored.obtained_at,
+            # Never the token. This dict is rendered into a page.
+            "signed_in": True,
+        }
+
+    def sharefile_sign_in_state(self) -> str:
+        import ports
+
+        state: str = ports.build_port("storage", "sharefile").sign_in_state()
+        return state
+
+    def forget_sharefile_login(self) -> bool:
+        """Drop the stored token. For when it was revoked at the other end and a person
+        would rather say so than wait for a confusing refusal."""
+        import ports
+
+        adapter = ports.build_port("storage", "sharefile")
+        dropped: bool = adapter.store().forget("sharefile")
+        return dropped
+
+    def _forget_stale_logins(self) -> None:
+        """A state nobody came back with is dead weight and, kept forever, a growing list
+        of values that would still be accepted."""
+        cutoff = _now() - LOGIN_WINDOW_SECONDS
+        for state, started in list(self._logins.items()):
+            if started < cutoff:
+                del self._logins[state]
+
+    # -- setting up the report, one appendix at a time
+
+    def report_appendices(self, report: str) -> dict[str, Any]:
+        """Each appendix with a button, and whether its anchor is even in that report.
+
+        Asked on load rather than on press: an anchor that does not resolve is worth
+        knowing about while there is still time to bookmark it, not at the moment somebody
+        is trying to get a report out.
+        """
+        from report import what_would_change
+
+        return {"report": report, "appendices": what_would_change(report)}
+
+    def start_report(self, last_year: str, into: str) -> dict[str, Any]:
+        """This period's report begins as a copy of last year's.
+
+        Everything that carries forward does so by being copied - the boilerplate,
+        Appendix G, the certification, the qualifications. Nothing is regenerated that
+        nobody asked to change.
+        """
+        from report import set_up
+
+        return {"report": str(set_up(last_year, into))}
+
+    def update_appendix(
+        self, report: str, appendix_id: str, source: str, *, dry_run: bool = False
+    ) -> dict[str, Any]:
+        """Press one appendix's button, or ask what it would do.
+
+        `dry_run` takes the same path and stops before the write, so a preview and the
+        update it previews cannot disagree.
+        """
+        from report import preview, update
+
+        if dry_run:
+            return preview(report, appendix_id, source).as_dict()
+        return update(report, appendix_id, source).as_dict()
+
+    def relay_to_box(self, prefix: str = "") -> dict[str, Any]:
+        """Press Update: copy what is in ShareFile into Box.
+
+        Built fresh for the same reason the connection test is, and pointed at the two
+        adapters by name rather than at the configured storage port - the relay has a
+        direction, and "whichever adapter is selected" has none.
+        """
+        import ports
+        from intake.relay import relay
+
+        return relay(
+            ports.build_port("storage", "sharefile"),
+            ports.build_port("storage", "box"),
+            prefix,
+        ).as_dict()
+
+    def test_connection(self, service: str) -> dict[str, Any]:
+        """Press the button: does this actually connect, and if not, which part.
+
+        The adapter is built fresh rather than the configured storage port being used,
+        because the whole point is to test a connection *before* switching a sweep over to
+        it - and because this button gets pressed immediately after somebody edits `.env`.
+        The report carries `in_use` so a green result cannot be mistaken for "runs are now
+        reading Box" when `AA_STORAGE_ADAPTER` still says otherwise.
+        """
+        import ports
+        from admin.connection import probe_box, probe_sharefile
+
+        probes = {"box": probe_box, "sharefile": probe_sharefile}
+        if service not in probes:
+            raise AdminRefused(
+                (
+                    diagnose(
+                        UNKNOWN_ADAPTER,
+                        f"there is no connection test for {service!r}. The ones that "
+                        f"exist are {', '.join(sorted(probes))}.",
+                        locator="admin/connection.py",
+                    ),
+                )
+            )
+        return probes[service](
+            ports.build_port("storage", service),
+            self.preflight.secrets,
+            in_use=ports.selected("storage") == service,
+        ).as_dict()
 
     # -- plumbing
 

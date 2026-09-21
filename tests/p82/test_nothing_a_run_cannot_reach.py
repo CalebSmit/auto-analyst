@@ -36,32 +36,63 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 BACKLOG = ROOT / "knowledge" / "backlog.md"
 
-SHIPPED = (
-    "admin",
-    "deliver",
-    "evals",
-    "governance",
-    "graph",
-    "guards",
-    "harness",
-    "intake",
-    "ops",
-    "orchestrate",
-    "ports",
-    "precedent",
-    "privacy",
-    "registries",
-    "review",
-    "tools",
-    "ui",
-    "workers",
+SHIPPED = tuple(
+    sorted(
+        p.name
+        for p in ROOT.iterdir()
+        if p.is_dir() and (p / "__init__.py").is_file() and p.name != "tests"
+    )
 )
+"""Derived, not listed.
+
+A hand-written list is a list somebody has to remember to add to, and this one had already
+gone stale once - `report/`, a whole package, was invisible to both reachability scans the
+day it was written. That is precisely the defect these scans exist to catch, so the list
+that drives them cannot be the kind of thing that goes quietly out of date. `tests/` is
+the only exclusion: it is not shipped.
+"""
+
+# `tools` has no __init__.py but ships and is scanned: its modules are commands a person
+# runs, and one nothing invokes is the same defect under a different name.
+SHIPPED = (*SHIPPED, "tools")
 
 # A module nothing reaches, excused. Each entry is a decision, so each names the backlog
 # item carrying it and says what is actually missing. The test below refuses an entry whose
 # item does not exist or is already closed, which is what stops this list going stale
 # quietly - the failure mode of every allowlist.
 ALLOWED: dict[str, tuple[str, str]] = {
+    "orchestrate.orchestrator": (
+        "B-058",
+        "The whole package is reached by nothing - every import of it is its own "
+        "`__init__` or a test. Found the day the scan stopped letting a package vouch for "
+        "itself. Whether an orchestrating agent belongs on version 1's path is a design "
+        "decision, and version 1 is a person pressing buttons rather than an agent "
+        "deciding what to do, so it is recorded rather than wired while tidying a scan.",
+    ),
+    "orchestrate.plan": (
+        "B-058",
+        "The run planner, in the same unreached package. It turns a proposal into a "
+        "compiled plan, which is work a recipe already does for the runs that exist.",
+    ),
+    "orchestrate.triage": (
+        "B-058",
+        "Triage, in the same unreached package - and one of the six places B-043 claims "
+        "masking is wired, which makes that count four rather than six.",
+    ),
+    "deliver.workpaper": (
+        "B-059",
+        "The narrative that explains a deliverable. Production imports `deliver.registry` "
+        "directly and never the package, so this is reached by no run - and it could not "
+        "bite yet, because no run has reached release at all (B-004). Version 1 ends at a "
+        "workbook rather than a deliverable.",
+    ),
+    "governance.chain": (
+        "B-060",
+        "The walk from a proposed skill through sandbox to registration. Production "
+        "reaches `governance.board`, `governance.record` and `governance.conformance` "
+        "directly, so every step of the chain is invoked by hand and the chain itself by "
+        "nobody. Whether that matters is a question for the practice.",
+    ),
     "privacy.verify": (
         "B-043",
         "The unmask integrity check. Nothing in production imports it or `privacy.unmask`, "
@@ -187,6 +218,21 @@ def imports_in(root: Path) -> set[str]:
     that way before.
     """
     imported: set[str] = set()
+    for importer, names in imports_by_file(root).items():
+        del importer
+        imported.update(names)
+    return imported
+
+
+def imports_by_file(root: Path) -> dict[str, set[str]]:
+    """The same walk, but keeping *who* imported what.
+
+    Needed because a package's own `__init__.py` is not evidence that anything reaches its
+    submodules. `report/` arrived as a whole package importing its own three modules and
+    imported by nothing, and every one of them read as wired - which is the exact defect
+    this scan exists to catch, passing its own check.
+    """
+    by_file: dict[str, set[str]] = {}
     for path in root.rglob("*.py"):
         if ".venv" in path.parts or "__pycache__" in path.parts:
             continue
@@ -197,6 +243,8 @@ def imports_in(root: Path) -> set[str]:
         except SyntaxError:  # pragma: no cover - not our files to fix
             continue
         me = dotted(path, root)
+        mine = by_file.setdefault(str(path.relative_to(root).as_posix()), set())
+        imported = mine
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.module and node.module != me:
                 imported.add(node.module)
@@ -209,11 +257,47 @@ def imports_in(root: Path) -> set[str]:
                 imported.update(f"{node.module}.{alias.name}" for alias in node.names)
             elif isinstance(node, ast.Import):
                 imported.update(a.name for a in node.names)
-    return imported
+    return by_file
+
+
+def vouched_for(root: Path) -> set[str]:
+    """What production imports, **not counting a package vouching for itself**.
+
+    A package's `__init__.py` importing `report.anchors` says that `report.anchors` is
+    part of `report`. It says nothing at all about whether anything reaches `report` - and
+    treating it as evidence is how a whole package can be built, wired to nothing, and
+    pass the check written to catch exactly that.
+
+    So an `__init__.py`'s imports count only once the package itself is reached. Which
+    means this is a fixpoint rather than one pass: `a` reaching `b` makes `b`'s exports
+    reachable, which may reach `c`.
+    """
+    by_file = imports_by_file(root)
+    plain = {
+        name
+        for path, names in by_file.items()
+        if not path.endswith("__init__.py")
+        for name in names
+    }
+    inits = {
+        path[: -len("/__init__.py")].replace("/", "."): names
+        for path, names in by_file.items()
+        if path.endswith("__init__.py")
+    }
+
+    reached = plain | named_by_the_ports_registry() | invoked_as_a_command()
+    while True:
+        grew = set()
+        for package, names in inits.items():
+            if package in reached:
+                grew |= names - reached
+        if not grew:
+            return reached
+        reached |= grew
 
 
 def imported_by_production() -> set[str]:
-    return _remembered("imported", lambda: imports_in(ROOT))
+    return _remembered("imported", lambda: vouched_for(ROOT))
 
 
 def _named_by_the_ports_registry() -> set[str]:
@@ -257,7 +341,9 @@ def invoked_as_a_command() -> set[str]:
 
 def unreachable() -> list[str]:
     """Shipped modules nothing a person or a run reaches."""
-    reachable = imported_by_production() | named_by_the_ports_registry() | invoked_as_a_command()
+    # `imported_by_production` already folds in the ports registry and the command list,
+    # because a package reached only through one of those still vouches for its exports.
+    reachable = imported_by_production()
     return sorted(dotted(p) for p in shipped_modules() if dotted(p) not in reachable)
 
 

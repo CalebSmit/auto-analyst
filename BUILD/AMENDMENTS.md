@@ -1685,3 +1685,111 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** Two public surfaces added, both this phase's point: the fabricated_evidence and numeric_infidelity gates on ebitda-normalization. A gate is a public surface because it decides whether a skill may register, so adding one is a governance change and not a refactor - which is why the snapshot asks. Accepted deliberately. sent_to_a_person_rate is not among them on purpose: it is reported on the scorecard and gates nothing, because what it is allowed to be belongs to the pilot and is owed in OPEN.md.
 
 - task added: The two new gates are recorded in the surface snapshot as the governance change they are
+
+## 2026-09-21 - P87 Box, on the side documents are read from
+
+**Why:** The fifth interview session put Box on the read side: the client uploads to ShareFile, files are moved to Box, and Box is where the tool reads. The build assumed the reverse - storage/sharefile as the read side, delivery/box as the write side - so there is no Box storage adapter and nothing can sweep a Box folder. Reading his own box.sharefile.automation harness also shows the delivery adapter names the wrong credential.
+
+- phase added: P87 Box, on the side documents are read from (Version one: the buttons he presses, gate: auto)
+- exit criterion: AA_STORAGE_ADAPTER=box builds a real adapter and passes the port conformance suite
+- exit criterion: list returns files in path order and folders are not files
+- exit criterion: stat computes a sha256 rather than trusting a hash the service offers
+- exit criterion: The Box credentials named in the code are the ones that work: BOX_USER_ID with box_subject_type=user, not an enterprise id
+- exit criterion: A credential the service refuses diagnoses differently from one the environment never set
+- exit criterion: No test in this phase can be read as evidence that a real Box tenant answered
+
+## 2026-09-21 - P87 Box, on the side documents are read from
+
+**Why:** The surface snapshot caught two changes, both intended, and the reason belongs on the record rather than in a snapshot update nobody can read. CONFIG.CREDENTIAL_REFUSED is new because a credential the service rejected is a different repair from one the environment never set - one says the secret is wrong, revoked, or the app lacks a permission, the other says add it to .env, and a single code for both sends somebody to the wrong file. ports.storage gains box because Box is on the read side and is a real adapter rather than a port contract, so the conformance suite runs over it.
+
+- exit criterion added: The surface snapshot records exactly two changes - the CREDENTIAL_REFUSED diagnosis and box on the storage port - and no others
+
+## 2026-09-21 - P88 A connection test that says which part failed
+
+**Why:** A dashboard button he presses. The credentials, the app permission and the folder id are three different settings on two different screens, and 'connection failed' does not say which one to open. The adapter already tells them apart in its diagnoses; nothing yet asks it to, in order, on purpose.
+
+- phase added: P88 A connection test that says which part failed (Version one: the buttons he presses, gate: auto)
+- exit criterion: Each of the four steps reports its own result, and the ones after a failure say they were not reached
+- exit criterion: The credentials step never reads a credential's value
+- exit criterion: A wrong folder id and a refused token produce different reports
+- exit criterion: An empty Box folder reports as connected
+- exit criterion: Nothing the test read is written anywhere
+
+## 2026-09-21 - P89 ShareFile, and the login a person does once
+
+**Why:** ShareFile cannot be authenticated from cold. His own box.sharefile.automation harness records why: an account with MFA enabled cannot use a password grant, so three environment variables are not a credential set - a person signs in once and everything after lives on a refresh token that rotates. The adapter in the tree assumes otherwise and refuses, which is honest but is not the thing.
+
+- phase added: P89 ShareFile, and the login a person does once (Version one: the buttons he presses, gate: auto)
+- exit criterion: A refresh token never appears in the repo, in a log, or in a repr
+- exit criterion: A callback carrying a state nobody issued is refused, and a state is good once
+- exit criterion: A rotated refresh token replaces the stored one rather than being dropped
+- exit criterion: Never-signed-in and expired produce different reports, and neither reads as a fault a retry would fix
+- exit criterion: No test in this phase can be read as evidence that real ShareFile answered
+
+## 2026-09-21 - P89 ShareFile, and the login a person does once
+
+**Why:** ShareFile stops being a port contract because it now has an implementation. It was registered as a contract so that selecting it would be a readable refusal rather than a silent fallback, and that was right while nothing could authenticate; P89 wrote the authorization-code flow, so the refusal it existed to give is now a working adapter. The storage port therefore has no contracts left. Delivery's Box adapter stays a contract: nothing writes a deliverable to Box yet, and pretending otherwise would be the failure the arrangement exists to prevent.
+
+- exit criterion added: ports.contracts('storage') is empty, and delivery's box adapter is still a contract because nothing writes a deliverable there yet
+
+## 2026-09-21 - P90 The relay, which may be pressed twice
+
+**Why:** The Update button. Power Automate is the thing that moves files from ShareFile to Box automatically and it stays outside the boundary; this is the backup he presses when it has not run. Both copiers will sometimes act on the same files, so the failure worth designing against is not a copy that did not happen - he would see that - but two copiers fighting.
+
+- phase added: P90 The relay, which may be pressed twice (Version one: the buttons he presses, gate: auto)
+- exit criterion: Pressing it twice copies once, and the second press says so
+- exit criterion: Nothing is ever deleted from ShareFile
+- exit criterion: The same bytes already in Box are skipped; different bytes under the same name are reported as a re-send
+- exit criterion: A failure on one file does not stop the others, and every outcome is named
+- exit criterion: No path exists from a graph step or a run to the relay
+
+## 2026-09-21 - P91 A report is a document with named places in it
+
+**Why:** The report is set up by copying last year's and getting the right appendix information in. Nothing in the tree knows what a report is, and the binding rule that governs the model - bind by named range, never by cell address - has a Word equivalent nobody has written: bind by bookmark or heading, never by paragraph index. A report somebody added a sentence to would otherwise get Appendix F written into Appendix E.
+
+- phase added: P91 A report is a document with named places in it (Version one: the buttons he presses, gate: auto)
+- exit criterion: An appendix binds by bookmark or heading name, and a paragraph index cannot be used as an anchor
+- exit criterion: An anchor that is not in the document is a refusal naming it, never a best guess
+- exit criterion: Content that carries a style the destination does not define arrives with that style defined
+- exit criterion: A numbered list and an image survive the move
+- exit criterion: Anything that could not be carried is named in the result
+
+## 2026-09-21 - P91 A report is a document with named places in it
+
+**Why:** Building report/ exposed a hole in the two reachability scans, and closing it found four pre-existing defects. Both scans took a hand-written list of shipped packages, and neither listed report/ - so a whole new package was invisible to the checks that exist to catch exactly that. Worse, the P82 scan counted a package's own __init__.py as evidence that its submodules were reached, so a package imported by nobody vouched for itself. Both lists are now derived from the tree, and reachability is a fixpoint: an __init__'s imports count only once the package itself is reached. That immediately found orchestrate (the whole package, imported by no production module), deliver.workpaper and governance.chain - recorded as B-058, B-059 and B-060 rather than wired, because where each belongs is a decision and not one to take while tidying a scan.
+
+- exit criterion added: The two reachability scans derive their package list from the tree, and a package cannot vouch for its own submodules
+
+## 2026-09-21 - P92 A button for each appendix that changes
+
+**Why:** The buttons he presses when an appendix's data is ready. Three, not six: G, H and I stay the same as prior years and arrive in the copy of last year's report, so nothing here touches them - which is also why nothing in this system can write the certification. Each source arrives as a Word document he points the button at.
+
+- phase added: P92 A button for each appendix that changes (Version one: the buttons he presses, gate: auto)
+- exit criterion: Updating one appendix leaves the others byte-identical
+- exit criterion: The report it read is not modified; the result is a new file
+- exit criterion: A preview reports the same change the write makes, and writes nothing
+- exit criterion: There is no path from any button to appendix G, H or I
+- exit criterion: report/ is reached by something a person can press, and its allowlist entries are gone
+
+## 2026-09-21 - P93 It really connected
+
+**Why:** Nothing in P87 to P92 has reached a real Box tenant, a real ShareFile account or a real Chartwell report. Every test in those phases runs against a replayed transport or a generated document, which proves the code's use of an API and the shape of a document - and is not evidence that a credential, an app permission, a folder id or a heading is right at work. A phase that closed on that while implying otherwise would be this build's signature defect with a network adapter attached, so the evidence is owed, and it is owed from a person.
+
+- phase added: P93 It really connected (Version one: the buttons he presses, gate: human)
+- exit criterion: A person has confirmed, on the machine with the credentials, that each of the three connections really works
+- exit criterion: One real appendix has been updated in a real report and the result opened in Word without layout damage
+- exit criterion: The appendix registry matches the real report's headings, or has been corrected to
+
+## 2026-09-21 - C54 What a button is allowed to claim
+
+**Why:** The plumbing half of the block is finished and wants checking together: three network surfaces went onto the dashboard in four phases, and what they are allowed to claim is a property of all four rather than of any one. A checkpoint covers at most four phases, so the report half gets its own.
+
+- checkpoint added: C54 after P90, covering P87, P88, P89, P90
+- proves: Nothing in the block has reached a real service, the code says so where a person looks, the relay is not a run and cannot become one, delivery still has two inbound edges, and no credential reaches a repr, a report or a page.
+
+## 2026-09-21 - C55 What the report cannot be made to say
+
+**Why:** The report half of the block, plus the phase that proves any of it against the real thing. C54 covered the plumbing; this covers finding a named place in a report, moving Word content into it, the three buttons, and the signoff that is owed from a person.
+
+- checkpoint added: C55 after P93, covering P91, P92, P93
+- proves: Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification.

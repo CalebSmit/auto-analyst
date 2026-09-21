@@ -131,3 +131,30 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Closing a defect that something pins is not finished at gate close or at gate checkpoint. Run tools/verify.py before trusting it, and grep the tests for the backlog id first - a pinned defect usually names its B-number - so the tests that are about to fail are known rather than discovered. The same applies to any phase that adds a gate, empties an allowlist, or changes a diagnostic code.
 
+
+## 2026-09-21 - Both reachability scans (tests/p71, tests/p82) took a hand-written tuple of shipped packages, and tests/p82 treated a package's own __init__.py as evidence that its submodules were reached.
+
+**Phase:** not phase-specific
+
+**Why it failed:** A new package (report/) was on neither list, so nothing in it was scanned at all; and even once listed, its three modules read as wired because report/__init__.py imports them, while nothing anywhere imports report. A scan whose subject list is hand-maintained goes stale silently, and a package that vouches for itself defeats the check entirely.
+
+**Rule:** Derive the package list from the tree, as tests/p28 already did, and make reachability a fixpoint: an __init__'s imports count as evidence only once the package itself is reached by something outside it. Doing this found three pre-existing defects the old scan could not see - the whole orchestrate package, deliver.workpaper and governance.chain.
+
+
+## 2026-09-21 - A revert harness that restores a file by rewriting its original text, when the replacement is the same number of bytes.
+
+**Phase:** not phase-specific
+
+**Why it failed:** Python invalidates a cached .pyc on mtime plus size. A one-character-for-one-character revert restored within the same filesystem timestamp leaves both unchanged, so the interpreter keeps serving bytecode compiled from the MODIFIED source. Two P92 tests then failed against a file that was correct on disk, and the failure survived re-running the suite - which reads as a real defect and is not one.
+
+**Rule:** A revert harness must invalidate bytecode after restoring: bump the file's mtime (os.utime) or delete __pycache__ for the touched package. If a test fails against a file whose contents look right, clear __pycache__ before believing it.
+
+
+## 2026-09-21 - The report update removed the whole span an anchor owns, including the anchor's own block.
+
+**Phase:** not phase-specific
+
+**Why it failed:** The anchor block is the appendix's heading, and it carries the report's heading style and - when somebody has marked one - the bookmark. Removing it worked exactly once: the first press deleted the heading it had bound to, and every later press refused with BINDING_MISSING because the anchor was no longer in the document. A unit test on a single press could not see it. C55 found it, because pressing twice is the ordinary case - the data gets corrected, or the quarter turns.
+
+**Rule:** Keep the anchor's own block and replace only what is under it. Drop a leading heading from the source when it repeats the anchor name, so a source document that carries its own title does not produce two. And report the number of blocks actually removed rather than the size of the span, because a count one larger than the truth is worse than no count.
+

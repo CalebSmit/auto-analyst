@@ -82,11 +82,19 @@ def test_nothing_in_the_build_is_a_fact_about_one_machine() -> None:
     for vendor in MANAGED_SERVICE_IMPORTS:
         assert not [s for s in sources if f"import {vendor}" in s], vendor
 
-    # The firm's two connectors are declared and refuse. Selecting one before it is wired
-    # is a refusal somebody can read, never a silent fallback to the local folder.
+    # A connector that is declared and refuses: selecting one before it is wired is a
+    # refusal somebody can read, never a silent fallback to the local folder.
+    #
+    # There used to be two. ShareFile stopped being one in P89 and Box on the storage side
+    # in P87 - both are written now, though neither has reached a real service, which is
+    # what P93 is for. Delivery's Box adapter is still a contract because nothing writes a
+    # deliverable to Box yet, and the arrangement has to keep working for the one that is
+    # left or it proves nothing about the ones that were.
     from registries.errors import RegistryError
 
-    for port, adapter in (("storage", "sharefile"), ("delivery", "box")):
+    assert ports.contracts("delivery") == ("box",)
+    assert ports.contracts("storage") == (), "both storage adapters are implemented now"
+    for port, adapter in (("delivery", "box"),):
         assert adapter in ports.adapters(port) and adapter not in ports.ready(port)
         with pytest.raises(RegistryError) as refused:
             ports.get_port(port, adapter)

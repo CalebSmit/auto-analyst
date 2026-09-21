@@ -54,6 +54,27 @@ class Registration(Change):
     profile: dict[str, Any] | None = None
 
 
+class StartReport(BaseModel):
+    """Last year's report, and where this period's copy goes."""
+
+    last_year: str
+    into: str
+
+
+class UpdateAppendix(BaseModel):
+    """Which report, and the Word document this appendix's data arrived in."""
+
+    report: str
+    source: str
+    dry_run: bool = False
+
+
+class Relay(BaseModel):
+    """Which folder to copy. Empty means everything under the configured root."""
+
+    prefix: str = ""
+
+
 class Budget(Change):
     usd: float
 
@@ -143,6 +164,43 @@ class CredentialBody(Change):
     expires_on: str | None = None
 
 
+
+def _callback(request: Request) -> str:
+    """The redirect this server will actually receive on.
+
+    Built from the request so it matches whatever host and port uvicorn was started with.
+    A redirect_uri that disagrees with the one sent to /authorize is refused by ShareFile
+    with a message about the app registration, which is not where the problem is.
+    """
+    base = str(request.base_url).rstrip("/")
+    return f"{base}/api/admin/sharefile/callback"
+
+
+_SIGNED_IN = """<!doctype html><meta charset="utf-8"><title>ShareFile</title>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:12vh auto;max-width:34rem;padding:0 1.5rem}
+h1{font-size:1.4rem;margin:0 0 .5rem}p{color:#444}</style>
+<h1>%s</h1><p>%s</p>"""
+
+
+def _signed_in_page(refusal: str) -> str:
+    """A fixed page, either way.
+
+    Nothing from the callback is echoed into it. The values in a callback are chosen by
+    whoever sent the browser here, and a page that reflected them would be a way to put
+    somebody else's text on this machine's own origin.
+    """
+    if refusal:
+        return _SIGNED_IN % (
+            "That sign-in was not accepted",
+            "Close this tab, go back to Setup and press Sign in again. "
+            "The reason is on the Setup page.",
+        )
+    return _SIGNED_IN % (
+        "Signed in to ShareFile",
+        "You can close this tab. The Setup page will show the connection as ready.",
+    )
+
+
 def create_admin_app(console: AdminConsole, identity: Any | None = None) -> FastAPI:
     app = FastAPI(title="Chartwell Automated Analyst - admin", docs_url=None, redoc_url=None)
     install_identity(app, identity)
@@ -187,6 +245,65 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
     @app.get("/api/admin/model")
     def model(scope_path: str) -> dict[str, Any]:
         return _guard(lambda: console.resolve_model(scope_path))
+
+    @app.post("/api/admin/connection/{service}")
+    def connection(service: str) -> dict[str, Any]:
+        """Press the button. A POST because it reaches a third party and costs a round
+        trip - a GET invites a browser or a proxy to repeat it unasked."""
+        return _guard(lambda: console.test_connection(service))
+
+    @app.post("/api/admin/sharefile/sign-in")
+    def sharefile_sign_in(request: Request) -> dict[str, Any]:
+        """Start the login. Returns the URL for the page to open.
+
+        The redirect is derived from the request rather than configured, so it always
+        matches the address this server is actually answering on - a mismatch there is
+        rejected by ShareFile with a message about the app registration, which sends
+        somebody to the wrong place entirely.
+        """
+        return _guard(lambda: console.start_sharefile_login(_callback(request)))
+
+    @app.get("/api/admin/sharefile/callback")
+    def sharefile_callback(request: Request, code: str = "", state: str = "") -> HTMLResponse:
+        """Where ShareFile sends the browser back.
+
+        Returns a page rather than JSON because a person is looking at it: this is a
+        top-level navigation, not a fetch. Nothing on the page is clickable and nothing
+        is echoed back into it except a fixed message - a callback carries values chosen
+        by whoever sent the browser here.
+        """
+        try:
+            console.finish_sharefile_login(code, state, _callback(request))
+        except DiagnosticError as refused:
+            return HTMLResponse(_signed_in_page(refused.diagnostic.detail), status_code=403)
+        return HTMLResponse(_signed_in_page(""))
+
+    @app.get("/api/admin/report/appendices")
+    def report_appendices(report: str) -> dict[str, Any]:
+        return _guard(lambda: console.report_appendices(report))
+
+    @app.post("/api/admin/report/start")
+    def report_start(body: StartReport) -> dict[str, Any]:
+        return _guard(lambda: console.start_report(body.last_year, body.into))
+
+    @app.post("/api/admin/report/appendix/{appendix_id}")
+    def report_appendix(appendix_id: str, body: UpdateAppendix) -> dict[str, Any]:
+        """One appendix. A POST even for the preview, because it opens two documents and
+        does the whole transplant - it is only cheap compared to being wrong."""
+        return _guard(
+            lambda: console.update_appendix(
+                body.report, appendix_id, body.source, dry_run=body.dry_run
+            )
+        )
+
+    @app.post("/api/admin/sharefile/update")
+    def sharefile_update(body: Relay | None = None) -> dict[str, Any]:
+        """Copy ShareFile into Box. The backup for Power Automate, pressed by a person."""
+        return _guard(lambda: console.relay_to_box((body.prefix if body else "") or ""))
+
+    @app.post("/api/admin/sharefile/forget")
+    def sharefile_forget() -> dict[str, Any]:
+        return {"forgotten": _guard(console.forget_sharefile_login)}
 
     @app.get("/api/admin/credentials/{name}")
     def credential(name: str) -> dict[str, Any]:

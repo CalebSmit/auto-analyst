@@ -332,6 +332,11 @@ input::placeholder{color:var(--ink-4)}
 label{display:block;font-size:var(--t-label);color:var(--ink-3);margin:0 0 .3rem;
  letter-spacing:.12em;text-transform:uppercase;font-weight:600}
 select{width:auto;padding:.35rem .55rem;margin:0}
+/* A field holding a file path, sitting on a row beside its buttons. Sized in `ch`
+   because the thing being typed is text of a known-ish length, and because a width in
+   rem would shrink proportionally as the fluid root grows - the opposite of what it is
+   for. `flex` rather than a fixed width so the row still collapses on a narrow window. */
+input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 
 /* ---------------------------------------------------------------- states */
 .card .body:has(>.empty:only-child){display:flex;align-items:center;justify-content:center}

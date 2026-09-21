@@ -12,7 +12,7 @@ import os
 from datetime import UTC, datetime
 from pathlib import Path
 
-from ports.storage import FileRef, FileStat
+from ports.storage import COPIED, RESENT, SKIPPED, Deposit, FileRef, FileStat
 from registries.errors import UNREADABLE_FILE, RegistryError, diagnose
 
 ENV_ROOT = "AA_INBOX_ROOT"
@@ -68,6 +68,24 @@ class LocalFolderStorage:
             content_hash=f"sha256:{digest}",
         )
 
+    def deposit(self, path: str, data: bytes) -> Deposit:
+        """Receive a relayed copy. The folder adapter can, so the relay is testable
+        end to end with no network anywhere in it - which is the only way the
+        ShareFile-to-Box behaviour gets exercised on this machine at all."""
+        target = self._resolve(path)
+        digest = f"sha256:{hashlib.sha256(data).hexdigest()}"
+        if target.exists():
+            if f"sha256:{hashlib.sha256(target.read_bytes()).hexdigest()}" == digest:
+                return Deposit(path, digest, SKIPPED, len(data))
+            # Keep both. A client re-sending a statement is information, and the older
+            # copy is what somebody compares the new one against.
+            _keep_aside(target)
+            target.write_bytes(data)
+            return Deposit(path, digest, RESENT, len(data))
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        return Deposit(path, digest, COPIED, len(data))
+
     def _resolve(self, relative: str) -> Path:
         """Resolve inside the root, or refuse.
 
@@ -81,6 +99,21 @@ class LocalFolderStorage:
                 diagnose(UNREADABLE_FILE, "path escapes the storage root", locator=relative)
             )
         return path
+
+
+def _keep_aside(target: Path) -> None:
+    """Move what is there out of the way rather than over it.
+
+    The destination's own versioning is what the relay relies on to keep a re-send
+    without losing the first copy; a folder has none, so this stands in for it.
+    """
+    n = 1
+    while True:
+        beside = target.with_name(f"{target.stem}.v{n}{target.suffix}")
+        if not beside.exists():
+            target.replace(beside)
+            return
+        n += 1
 
 
 def build() -> LocalFolderStorage:

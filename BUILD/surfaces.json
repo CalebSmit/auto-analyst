@@ -268,6 +268,7 @@
    "CONFIG.BUDGET_ABOVE_CEILING": "config",
    "CONFIG.CELL_ADDRESS_BINDING": "config",
    "CONFIG.CREDENTIAL_EXPIRED": "config",
+   "CONFIG.CREDENTIAL_REFUSED": "config",
    "CONFIG.DESTINATION_UNWRITABLE": "config",
    "CONFIG.METHODOLOGY_TOO_LARGE": "config",
    "CONFIG.METHODOLOGY_UNCLEARED": "config",
@@ -820,12 +821,11 @@
   },
   "storage": {
    "adapters": [
+    "box",
     "local_folder",
     "sharefile"
    ],
-   "contracts": [
-    "sharefile"
-   ],
+   "contracts": [],
    "default": "local_folder",
    "env_var": "AA_STORAGE_ADAPTER"
   }

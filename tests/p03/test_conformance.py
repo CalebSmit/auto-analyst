@@ -149,12 +149,60 @@ def test_an_unknown_adapter_is_refused_not_defaulted(port: str) -> None:
 STORAGE = ports.ready("storage")
 
 
+@pytest.fixture
+def storage_of(inbox: Path) -> Any:
+    """Build any storage adapter over the fixture tree, by name.
+
+    Extracted so the receiving tests below drive the same adapters over the same folder
+    rather than growing a second, slightly different setup beside this one.
+    """
+
+    def make(name: str) -> Any:
+        return _storage_over(name, inbox)
+
+    return make
+
+
 @pytest.fixture(params=STORAGE)
 def storage(request: pytest.FixtureRequest, inbox: Path) -> Any:
+    """Every storage adapter, over the same three files.
+
+    Box is a network adapter and still belongs here. It is driven through a transport that
+    replays Box's shapes over this same folder, so the interface is proved for both rather
+    than for the one that happens to run offline - which is the whole argument for having a
+    conformance suite at all. What it does not prove is that a real tenant answers; that is
+    P93, and it is a person's signoff rather than a test.
+    """
     (inbox / "TB_FY23.xlsx").write_bytes(b"trial balance")
     (inbox / "sub").mkdir()
     (inbox / "sub" / "notes.txt").write_bytes(b"notes")
-    return ports.get_port("storage", request.param)
+    return _storage_over(request.param, inbox)
+
+
+def _storage_over(name: str, inbox: Path) -> Any:
+    if name == "box":
+        from ports.storage.box import BoxStorage
+        from tests.fake_box import ROOT_ID, Credentials, FakeBox
+
+        return BoxStorage(
+            ROOT_ID, secrets=Credentials(), transport=FakeBox(inbox).transport()
+        )
+    if name == "sharefile":
+        from ports.storage.sharefile import ShareFileStorage
+        from ports.storage.tokens import TokenStore
+        from tests.fake_sharefile import ROOT_ID as SF_ROOT
+        from tests.fake_sharefile import Credentials as SFCredentials
+        from tests.fake_sharefile import FakeShareFile, signed_in
+
+        held = SFCredentials()
+        fake = FakeShareFile(inbox)
+        fake.issued.append("rt-1")
+        store = TokenStore(held, inbox.parent / "tokens.enc")
+        signed_in(store)
+        return ShareFileStorage(
+            SF_ROOT, secrets=held, tokens=store, transport=fake.transport()
+        )
+    return ports.get_port("storage", name)
 
 
 def test_storage_lists_in_a_stable_order(storage: Any) -> None:
@@ -195,6 +243,53 @@ def test_a_file_ref_is_port_relative() -> None:
     for bad in ("/etc/passwd", "../up", ""):
         with pytest.raises(ValueError, match="port-relative"):
             FileRef(bad)
+
+
+# ------------------------------------------------------------ receiving, where offered
+
+
+RECEIVING = [name for name in STORAGE if name != "sharefile"]
+"""Which adapters accept a relayed copy. ShareFile is absent on purpose: it is the source,
+and a store the relay could write back into would make "nothing is deleted from ShareFile"
+a rule somebody has to keep rather than a method that does not exist."""
+
+
+@pytest.fixture(params=RECEIVING)
+def receiver(request: pytest.FixtureRequest, storage_of: Any) -> Any:
+    return storage_of(request.param)
+
+
+def test_a_receiving_adapter_says_it_can_receive(receiver: Any) -> None:
+    from ports.storage import ReceivingStorage
+
+    assert isinstance(receiver, ReceivingStorage)
+
+
+def test_receiving_the_same_bytes_twice_writes_once(receiver: Any) -> None:
+    """The relay's whole premise. Power Automate and the Update button will act on the
+    same files, and the second one to arrive must produce nothing."""
+    from ports.storage import COPIED, SKIPPED
+
+    first = receiver.deposit("relayed/new.xlsx", b"some bytes")
+    second = receiver.deposit("relayed/new.xlsx", b"some bytes")
+    assert first.outcome == COPIED
+    assert second.outcome == SKIPPED
+
+
+def test_different_bytes_under_the_same_name_are_a_resend(receiver: Any) -> None:
+    """A client sending a second version, which a person has to see."""
+    from ports.storage import RESENT
+
+    receiver.deposit("relayed/new.xlsx", b"first version")
+    again = receiver.deposit("relayed/new.xlsx", b"second version")
+    assert again.outcome == RESENT
+
+
+def test_a_received_file_can_then_be_read_back(receiver: Any) -> None:
+    """The join that makes the relay worth anything: what was deposited is what a sweep
+    of that store would later find."""
+    receiver.deposit("relayed/new.xlsx", b"some bytes")
+    assert receiver.read(FileRef("relayed/new.xlsx")) == b"some bytes"
 
 
 # ============================================================ delivery

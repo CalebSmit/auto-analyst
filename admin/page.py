@@ -40,7 +40,7 @@ PAGE = f"""<!doctype html>
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
  grid-template-rows:repeat(6,minmax(0,1fr));
  grid-template-areas:"steps pre scopes" "steps pre scopes" "steps pre recipes"
-  "eng meth recipes" "eng meth seams" "eng meth seams"}}
+  "eng meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
 
 /* And gives them back when it is finished. A checklist with every box ticked is the least
    useful thing on a screen and it was holding the best position on it permanently: on a
@@ -48,7 +48,7 @@ PAGE = f"""<!doctype html>
    steps stay one keystroke away rather than being removed, because "how did this get set
    up" is a real question and the answer should not require reading the code. */
 body.all-done .board{{grid-template-areas:"steps pre scopes" "eng pre scopes" "eng pre recipes"
-  "eng meth recipes" "eng meth seams" "eng meth seams"}}
+  "eng meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
 body.all-done #checklist .bar{{display:none}}
 #checklist .bar{{margin-bottom:var(--s4)}}
 #checklist details{{margin-top:var(--s2)}}
@@ -111,10 +111,38 @@ body.all-done #checklist .bar{{display:none}}
    <div class="body"><div id="recipes"><div class="skel"></div></div></div>
   </section>
 
+  <section class="card" style="grid-area:report">
+   <header><h2>Setting up the report</h2>
+    <p class="why">Start from last year's, then press an appendix when its data is
+     ready. G, H and I carry forward in the copy &mdash; nothing here writes them.</p></header>
+   <div class="body"><div id="report"><div class="skel"></div></div></div>
+  </section>
+
   <section class="card" style="grid-area:seams">
    <header><h2>What is wired</h2>
     <p class="why">Derived from the code, not from this sentence.</p></header>
-   <div class="body"><div id="seams"><div class="skel"></div></div></div>
+   <div class="body"><div id="seams"><div class="skel"></div></div>
+    <div class="r lede" style="margin-top:var(--s4)">
+     <span class="lbl">Box connection<span class="d">Four questions, asked in order:
+      the credentials, the token, the folder, a file. Nothing here has ever reached a
+      real Box - this is the first thing that would.</span></span>
+     <button data-act="testBox">Test it</button>
+    </div>
+    <div class="r lede">
+     <span class="lbl">ShareFile connection<span class="d">A ShareFile account with MFA
+      cannot be signed in by a program, so this part is a person with a browser, once.
+      After that it runs on a token that gets renewed.</span></span>
+     <span><button data-act="signInShareFile">Sign in</button>
+      <button data-act="testShareFile">Test it</button></span>
+    </div>
+    <div class="r lede">
+     <span class="lbl">Update from ShareFile<span class="d">Copies what is in ShareFile
+      into Box. Power Automate does this on its own; this is for when it has not. Nothing
+      is deleted, and anything already there is left alone.</span></span>
+     <button data-act="updateFromShareFile">Update</button>
+    </div>
+    <div id="connection"></div>
+   </div>
   </section>
  </div>
 </div>
@@ -300,6 +328,13 @@ ACTIONS.addEngagement = () => addEngagement();
    like everything else. `el` is the button; the modal is whatever contains it. */
 ACTIONS.closeModal = (d, el) => el.closest('.modal').remove();
 ACTIONS.initialise = () => initialise();
+ACTIONS.testBox = () => testConnection('box');
+ACTIONS.testShareFile = () => testConnection('sharefile');
+ACTIONS.signInShareFile = () => signInShareFile();
+ACTIONS.updateFromShareFile = () => updateFromShareFile();
+ACTIONS.pickReport = () => pickReport();
+ACTIONS.updateAppendix = d => updateAppendix(d.appendix, false);
+ACTIONS.previewAppendix = d => updateAppendix(d.appendix, true);
 ACTIONS.addWatch = () => addWatch();
 ACTIONS.addDestination = () => addDestination();
 ACTIONS.showAdd = () => showAdd();
@@ -343,6 +378,7 @@ async function refresh() {{
   methodology();
   workflows();
   seams();
+  reportPanel();
 }}
 
 function roster() {{
@@ -464,6 +500,190 @@ async function seams() {{
      <span class="pill ${{s.ready ? 'good' : (s.needs_installing ? 'warn' : 'bad')}}"><i class="dot"></i>${{
        s.ready ? 'wired' : (s.needs_installing ? 'not installed' : 'not wired')}}</span>
     </div>`).join('');
+}}
+
+/* The connection test. Four steps, each shown on its own, because "it failed" does not
+   say whether to open .env, the Box developer console, or the folder's URL. A step after
+   a failure reads "not reached" rather than red: the one thing this button is for is
+   pointing at the right screen, and colouring a step nobody asked about would undo it. */
+async function testConnection(service) {{
+  const box = $('connection');
+  box.innerHTML = '<div class="note tight">Asking Box&hellip;</div>';
+  let r;
+  try {{
+    r = await post('/api/admin/connection/' + service, {{}});
+  }} catch (e) {{
+    box.innerHTML = `<div class="note tight bad">${{esc((e && e.detail) || 'The test could not be run.')}}</div>`;
+    return;
+  }}
+  const pill = s => s === 'pass' ? 'good' : (s === 'fail' ? 'bad' : '');
+  box.innerHTML =
+    `<div class="r lede"><span class="lbl">${{r.connected ? 'Connected' : 'Not connected'}}
+      <span class="d">${{esc(r.proves)}}</span></span>
+     <span class="pill ${{r.connected ? 'good' : 'bad'}}"><i class="dot"></i>${{
+       r.connected ? 'reached ' + esc(r.service) : 'did not'}}</span></div>`
+    + r.steps.map(s => `<div class="r">
+       <span class="lbl">${{esc(s.label)}}<span class="d">${{esc(s.detail)}}</span></span>
+       <span class="pill ${{pill(s.status)}}"><i class="dot"></i>${{esc(s.status)}}</span>
+      </div>`).join('')
+    + (r.connected && !r.in_use
+        ? `<div class="note tight">The plumbing works, and runs are still reading
+           somewhere else. Set <code>AA_STORAGE_ADAPTER=box</code> to make this the
+           adapter a sweep uses.</div>`
+        : '');
+}}
+
+/* The sign-in is a person and a browser, and it has to be: an MFA challenge cannot be
+   answered by a program. The window is opened from the click rather than after the fetch
+   returns, because a popup opened later is a popup the browser blocks - and a blocked
+   popup here looks like a broken button. */
+async function signInShareFile() {{
+  const tab = window.open('', '_blank');
+  let r;
+  try {{
+    r = await post('/api/admin/sharefile/sign-in', {{}});
+  }} catch (e) {{
+    if (tab) tab.close();
+    $('connection').innerHTML =
+      `<div class="note tight bad">${{esc((e && e.detail) || 'Sign-in could not be started.')}}</div>`;
+    return;
+  }}
+  if (tab) tab.location = r.url; else window.location = r.url;
+  $('connection').innerHTML =
+    `<div class="note tight">Finish signing in on the ShareFile tab, then press
+     <b>Test it</b>. Nothing is stored here until that sign-in comes back.</div>`;
+}}
+
+/* Update. Safe to press twice, and the report says so rather than leaving somebody to
+   infer it from a screen full of "skipped". */
+async function updateFromShareFile() {{
+  const box = $('connection');
+  box.innerHTML = '<div class="note tight">Copying from ShareFile&hellip;</div>';
+  let r;
+  try {{
+    r = await post('/api/admin/sharefile/update', {{}});
+  }} catch (e) {{
+    box.innerHTML = `<div class="note tight bad">${{esc((e && e.detail) || 'The copy could not be run.')}}</div>`;
+    return;
+  }}
+  const c = r.counts;
+  const pill = o => o === 'failed' ? 'bad' : (o === 'skipped' ? '' : 'good');
+  box.innerHTML =
+    `<div class="r lede"><span class="lbl">${{c.copied}} copied, ${{c.skipped}} already there,
+      ${{c.resent}} re-sent${{c.failed ? ', ' + c.failed + ' failed' : ''}}
+      <span class="d">${{esc(r.means)}}</span></span>
+     <span class="pill ${{r.complete ? 'good' : 'bad'}}"><i class="dot"></i>${{
+       r.complete ? 'all of it' : 'partly'}}</span></div>`
+    + r.moves.filter(m => m.outcome !== 'skipped').map(m => `<div class="r">
+       <span class="lbl">${{esc(m.path)}}${{m.detail ? '<span class="d">' + esc(m.detail) + '</span>' : ''}}</span>
+       <span class="pill ${{pill(m.outcome)}}"><i class="dot"></i>${{esc(m.outcome)}}</span>
+      </div>`).join('')
+    + (c.skipped && !c.copied && !c.resent && !c.failed
+        ? `<div class="note tight">Everything was already in Box. Nothing needed doing,
+           which is what it looks like when Power Automate has already run.</div>`
+        : '');
+}}
+
+/* The report. Three buttons, not six: G, H and I stay the same as prior years and arrive
+   in the copy of last year's file, so there is nothing here that could write the
+   certification. Each button is pointed at the Word document its data arrived in. */
+let REPORT = '';
+let SOURCES = {{}};
+
+async function pickReport() {{
+  /* In the page, not a browser pop-up: a pop-up cannot explain itself and blocks
+     everything behind it, and this is the one question on the panel that needs a
+     sentence of context. */
+  const said = await ask({{
+    title: 'Which report is being set up',
+    why: "This period's report - the copy of last year's. It is read and never written "
+       + 'to; each appendix update leaves a new file beside it.',
+    fields: [{{
+      name: 'path', label: 'Path to the .docx', required: true, value: REPORT || '',
+      placeholder: 'C:\\... or a path on this machine',
+      hint: 'Press Set up from last year first if this period does not have one yet.',
+    }}],
+    ok: 'Use this report',
+  }});
+  if (!said) return;
+  REPORT = said.path.trim();
+  reportPanel();
+}}
+
+async function reportPanel() {{
+  const box = $('report');
+  if (!REPORT) {{
+    box.innerHTML = `<div class="r lede"><span class="lbl">No report chosen
+      <span class="d">Point at this period's report &mdash; the copy of last year's that
+      is being set up. Nothing is written to it; each update writes a new file.</span></span>
+      <button data-act="pickReport">Choose</button></div>`;
+    return;
+  }}
+  let r;
+  try {{
+    r = await get('/api/admin/report/appendices?report=' + encodeURIComponent(REPORT));
+  }} catch (e) {{
+    box.innerHTML = `<div class="note tight bad">${{esc((e && e.detail) || 'That report could not be read.')}}</div>`
+      + `<div class="r"><span class="lbl">${{esc(REPORT)}}</span><button data-act="pickReport">Choose another</button></div>`;
+    return;
+  }}
+  box.innerHTML =
+    `<div class="r lede"><span class="lbl">${{esc(r.report)}}
+      <span class="d">Each update writes a new file beside this one. This one is never
+      edited &mdash; it is usually the only copy of last year's work.</span></span>
+     <button data-act="pickReport">Change</button></div>`
+    + r.appendices.map(a => `<div class="r">
+       <span class="lbl">Appendix ${{esc(a.letter)}} &mdash; ${{esc(a.title)}}
+        <span class="d">${{a.found
+          ? 'bound to a ' + esc(a.kind) + ', ' + a.owns + ' block(s)'
+          : esc(a.detail)}}</span></span>
+       <span>${{a.found ? `<input class="path" id="src-${{esc(a.appendix)}}"
+           placeholder="the .docx its data arrived in"
+           value="${{esc(SOURCES[a.appendix] || '')}}">
+         <button data-act="previewAppendix" data-appendix="${{esc(a.appendix)}}">Preview</button>
+         <button data-act="updateAppendix" data-appendix="${{esc(a.appendix)}}">Update</button>`
+        : '<span class="pill bad"><i class="dot"></i>no anchor</span>'}}</span>
+      </div>`).join('')
+    + `<div class="note tight">Appendices G, H and I are not listed because nothing
+       updates them. They carry forward in the copy of last year's report, which is why
+       no part of this system writes the certification.</div>`
+    + '<div id="appendix-result"></div>';
+}}
+
+async function updateAppendix(id, dry) {{
+  const field = $('src-' + id);
+  const source = field ? field.value.trim() : '';
+  const out = $('appendix-result');
+  if (!source) {{
+    out.innerHTML = '<div class="note tight bad">Point it at the Word document first.</div>';
+    return;
+  }}
+  SOURCES[id] = source;
+  out.innerHTML = '<div class="note tight">Reading both documents&hellip;</div>';
+  let r;
+  try {{
+    r = await post('/api/admin/report/appendix/' + encodeURIComponent(id),
+                   {{report: REPORT, source: source, dry_run: !!dry}});
+  }} catch (e) {{
+    out.innerHTML = `<div class="note tight bad">${{esc((e && e.detail) || 'That did not work.')}}</div>`;
+    return;
+  }}
+  out.innerHTML =
+    `<div class="r lede"><span class="lbl">Appendix ${{esc(r.letter)}}:
+      ${{r.replaced_blocks}} block(s) out, ${{r.arriving_blocks}} in
+      <span class="d">${{r.dry_run ? 'Nothing was written.' : 'Written to ' + esc(r.written_to)}}</span></span>
+     <span class="pill ${{r.complete ? 'good' : 'bad'}}"><i class="dot"></i>${{
+       r.complete ? (r.dry_run ? 'would work' : 'done') : 'something was left behind'}}</span></div>`
+    + (r.left_behind.length
+        ? r.left_behind.map(w => `<div class="r"><span class="lbl">Not carried
+            <span class="d">${{esc(w)}}</span></span>
+            <span class="pill bad"><i class="dot"></i>by hand</span></div>`).join('')
+        : '')
+    + ((r.styles.length || r.numbering.length || r.images.length)
+        ? `<div class="note tight">Brought across with the text:
+           ${{r.styles.length}} style(s), ${{r.numbering.length}} list(s), ${{r.images.length}} image(s).
+           Without those it would open cleanly and be laid out wrong.</div>`
+        : '');
 }}
 
 /* ---------------------------------------------------------------- actions */

@@ -186,6 +186,7 @@ DESTINATION_UNWRITABLE = "CONFIG.DESTINATION_UNWRITABLE"
 BUDGET_ABOVE_CEILING = "CONFIG.BUDGET_ABOVE_CEILING"
 BINDING_MISSING = "CONFIG.BINDING_MISSING"
 ADMIN_FORBIDDEN = "CONFIG.ADMIN_FORBIDDEN"
+CREDENTIAL_REFUSED = "CONFIG.CREDENTIAL_REFUSED"
 
 WHAT_NOW: dict[str, tuple[Owner, str]] = {
     PATH_UNREADABLE: (
@@ -193,6 +194,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "A watch root cannot be listed through the Storage Port. Fix the path or the "
         "mount, or remove the watch. Nothing is swept from a place that cannot be read, "
         "and a run does not start to find that out.",
+    ),
+    CREDENTIAL_REFUSED: (
+        "config",
+        "A credential is set and the service rejected it. That is a different repair "
+        "from a missing one: the secret is wrong, revoked, or the app lacks the "
+        "permission this call needs - for Box, 'Generate User Access Tokens' has to be "
+        "enabled before a user can be impersonated. The value is never printed.",
     ),
     CREDENTIAL_EXPIRED: (
         "config",

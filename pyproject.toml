@@ -14,6 +14,10 @@ dependencies = [
     "python-docx>=1.1",
     "sqlalchemy>=2.0",
     "alembic>=1.13",
+    # Declared rather than inherited from anthropic: the Box and ShareFile adapters
+    # speak HTTP directly, and a transitive dependency is how an unrelated package
+    # bump breaks an adapter nobody touched.
+    "httpx2>=2.12",
     "fastapi>=0.115",
     "uvicorn>=0.32",
     "sse-starlette>=2.1",

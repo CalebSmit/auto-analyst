@@ -31,7 +31,9 @@ __all__ = [
     "PORTS",
     "PortSpec",
     "adapters",
+    "build_port",
     "contracts",
+    "credentials_for",
     "get_compute",
     "get_delivery",
     "get_identity",
@@ -72,9 +74,17 @@ PORTS: dict[str, PortSpec] = {
         default="local_folder",
         adapters={
             "local_folder": "ports.storage.local_folder",
+            # Box is on the read side because that is where the work is: the client
+            # uploads to ShareFile, the files move to Box, and this reads Box. It is a
+            # real adapter rather than a contract, so the conformance suite runs over it -
+            # against a replayed transport, which proves the interface and not the tenant.
+            "box": "ports.storage.box",
+            # No longer a contract. P89 wrote it - including the part that makes it
+            # awkward: an MFA account cannot be signed in by a program, so it runs on a
+            # refresh token a person's login produced.
             "sharefile": "ports.storage.sharefile",
         },
-        contracts=frozenset({"sharefile"}),
+        contracts=frozenset(),
     ),
     "delivery": PortSpec(
         name="delivery",
@@ -200,6 +210,43 @@ def get_port(port: str, adapter: str | None = None) -> Any:
         module = importlib.import_module(spec.adapters[name])
         _built[key] = module.build()
     return _built[key]
+
+
+def build_port(port: str, adapter: str) -> Any:
+    """A fresh adapter, not the cached one.
+
+    For the connection test. `get_port` caches because a client is not free to construct,
+    and that is right for a run - but wrong for a button somebody presses *after* editing
+    `.env`, where a cached instance would answer with the configuration they just changed
+    away from. The most frustrating possible result from a diagnostic tool.
+    """
+    return importlib.import_module(_module_of(port, adapter)).build()
+
+
+def credentials_for(port: str, adapter: str) -> tuple[str, ...]:
+    """Which credential names an adapter needs, asked of the adapter.
+
+    Here rather than in the caller because `tests/p03` forbids anything outside this
+    package from naming a concrete adapter module - and a connection test that hard-coded
+    the three Box credentials would be exactly that, quietly, in a place nobody would
+    think to look when the names changed. They already changed once.
+    """
+    module = importlib.import_module(_module_of(port, adapter))
+    return tuple(getattr(module, "CREDENTIALS", ()))
+
+
+def _module_of(port: str, adapter: str) -> str:
+    spec = _spec(port)
+    if adapter not in spec.adapters:
+        raise RegistryError(
+            diagnose(
+                UNKNOWN_ADAPTER,
+                f"{adapter!r} is not registered for the {port} port "
+                f"(have: {', '.join(sorted(spec.adapters))})",
+                locator=spec.env_var,
+            )
+        )
+    return spec.adapters[adapter]
 
 
 def reset() -> None:

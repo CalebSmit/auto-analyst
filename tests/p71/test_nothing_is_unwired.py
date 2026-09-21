@@ -31,24 +31,21 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-SHIPPED = (
-    "graph",
-    "ops",
-    "harness",
-    "intake",
-    "review",
-    "privacy",
-    "guards",
-    "precedent",
-    "registries",
-    "deliver",
-    "workers",
-    "evals",
-    "governance",
-    "ports",
-    "admin",
-    "ui",
+SHIPPED = tuple(
+    sorted(
+        p.name
+        for p in ROOT.iterdir()
+        if p.is_dir() and (p / "__init__.py").is_file() and p.name != "tests"
+    )
 )
+"""Derived, not listed.
+
+A hand-written list is a list somebody has to remember to add to, and this one had already
+gone stale once - `report/`, a whole package, was invisible to both reachability scans the
+day it was written. That is precisely the defect these scans exist to catch, so the list
+that drives them cannot be the kind of thing that goes quietly out of date. `tests/` is
+the only exclusion: it is not shipped.
+"""
 
 ALLOWED: dict[str, str] = {}
 

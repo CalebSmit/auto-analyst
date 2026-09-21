@@ -80,12 +80,27 @@ def test_every_excused_module_is_unreachable_by_a_second_route(module: str) -> N
     mention in a comment, so anything it fails to find is certainly not imported.
     """
     needle = module
+    own_package_init = ROOT / (module.rsplit(".", 1)[0].replace(".", "/")) / "__init__.py"
     for path in ROOT.rglob("*.py"):
         if ".venv" in path.parts or "__pycache__" in path.parts:
             continue
         if path.parts[len(ROOT.parts)] == "tests" or path.name == "conftest.py":
             continue
         if dotted(path) == module:
+            continue
+        if dotted(path) in ALLOWED:
+            # A module that is itself excused naming another one is not a second route.
+            # `orchestrate/orchestrator.py` mentions `orchestrate.plan.RunPlanner` in its
+            # docstring, and both are unreachable: one piece of dead code pointing at
+            # another is evidence about neither.
+            continue
+        if path == own_package_init:
+            # A package's own `__init__.py` naming its submodule is not a second route.
+            # It says the module is part of the package; it says nothing about whether
+            # anything reaches the package - and treating it as evidence is how a whole
+            # package can be built, wired to nothing, and pass the check written to catch
+            # that. P91 taught the main scan this; the cross-check has to agree or the two
+            # disagree about what reachable means, which is worse than either being wrong.
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         assert needle not in text, f"{module} is excused and {path.name} names it"
@@ -209,23 +224,42 @@ def test_the_two_checks_for_this_defect_ask_different_questions() -> None:
     Neither subsumes the other, and a tidy-up deleting one as redundant would reopen half
     the defect class.
 
-    The first version of this ended on `excused - {f.rsplit('.', 1)[0] for f in functions}
-    == excused`, which is true whatever either check reports: P71 yields bare function
-    names, so splitting one on a dot gives the name back and the subtraction removes
-    nothing. A test asserting nothing, in the checkpoint for the phase about things that
-    do nothing. What follows is the claim it was reaching for, stated so it can fail.
+    This has now been stated three ways, and the first two were wrong in instructive ways.
+    The original ended on `excused - {f.rsplit('.', 1)[0] for f in functions} == excused`,
+    which is true whatever either check reports - P71 yields bare function names, so
+    splitting one on a dot gives the name back and the subtraction removes nothing. A test
+    asserting nothing, in the checkpoint for the phase about things that do nothing.
+
+    The second used `tools` as the territory only P82 covered. That premise died in P91,
+    when both scans stopped taking a hand-written package list and started deriving one -
+    `tools` has an `__init__.py`, so P71 covers it now.
+
+    What is actually true, and does not depend on either scan's scope: **P82 reports whole
+    modules that P71 has nothing to say about, because the functions inside them are
+    called - by each other.** A package that is internally busy and externally unreached
+    is invisible to "is this function called" and obvious to "does a run get here".
     """
-    from tests.p71.test_nothing_is_unwired import SHIPPED as P71_PACKAGES
     from tests.p71.test_nothing_is_unwired import unwired as unwired_functions
 
-    assert "tools" not in P71_PACKAGES, "P71 covers tools now - this test's premise is gone"
-    in_tools = {m for m in unreachable() if m.startswith("tools.")}
-    assert in_tools, "nothing unreachable lives in tools, so the two checks may now overlap"
+    dead_modules = set(unreachable())
+    assert dead_modules, "nothing is unreachable, so the two checks cannot be compared"
 
-    # P71 cannot report any of those, whatever is inside them, because it never looks in
-    # `tools` at all - which is the half of the defect class only P82 reaches.
-    reported_by_p71 = {where for where, _, _ in unwired_functions()}
-    assert not any(w.startswith("tools") for w in reported_by_p71)
+    reported_by_p71 = {f"{where}.{name}" for where, _, name in unwired_functions()}
+    functions_in_dead_modules = set()
+    for module in dead_modules:
+        path = ROOT / (module.replace(".", "/") + ".py")
+        if not path.is_file():
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and not node.name.startswith("_"):
+                functions_in_dead_modules.add(f"{module}.{node.name}")
+
+    assert functions_in_dead_modules, "the dead modules hold no public functions to compare"
+    assert not (functions_in_dead_modules & reported_by_p71), (
+        "P71 now reports functions inside modules P82 already calls unreachable, so one "
+        "check is starting to subsume the other"
+    )
 
 
 def test_the_scan_reads_the_shipped_packages_and_not_a_subset() -> None:

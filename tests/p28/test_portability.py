@@ -102,19 +102,27 @@ def test_the_dependency_list_names_no_vendor_sdk() -> None:
 
 
 def test_every_deployment_choice_is_a_port() -> None:
-    """Eight ports, and the two that are contracts for the firm's connectors are declared
-    rather than absent - so choosing one is a refusal somebody can read.
+    """Eight ports, and an adapter that is still only a contract is declared rather than
+    absent - so choosing one is a refusal somebody can read.
 
     `ocr` joined at P74, for the same reason as the rest: which engine reads a scanned page
     is a machine's choice, and this firm's clients send nothing else. That it is a *local*
     engine is not a choice - masking needs text, text from a scan needs OCR, and OCR by a
     model would put the unmasked document in front of one before masking could happen.
+
+    **The storage side has no contracts left.** Until P87 it had one, ShareFile, on the
+    assumption that documents are read out of ShareFile and deliverables written into Box.
+    The fifth interview session settled that the client uploads to ShareFile, the files
+    move to Box, and the tool reads **Box** - so Box was written on this side (P87) and
+    ShareFile on it too (P89), because the relay has to read one to write the other.
+    Delivery's Box adapter is still a contract: nothing writes a deliverable to Box yet.
     """
     assert set(ports.PORTS) == {
         "storage", "delivery", "secrets", "queue", "llm", "compute", "identity", "ocr",
     }
-    assert ports.contracts("storage") == ("sharefile",)
-    assert ports.contracts("delivery") == ("box",)
+    assert ports.contracts("storage") == (), "both storage adapters are written now"
+    assert set(ports.ready("storage")) == {"local_folder", "box", "sharefile"}
+    assert ports.contracts("delivery") == ("box",), "nothing writes a deliverable to Box yet"
     assert "local_folder" in ports.ready("storage") and "local_folder" in ports.ready("delivery")
     for port in ports.PORTS:
         assert ports.ready(port), f"{port} has no adapter that can be built"

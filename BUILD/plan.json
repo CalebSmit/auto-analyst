@@ -2649,6 +2649,207 @@
       ],
       "notes": "",
       "closed": "2026-09-20"
+    },
+    {
+      "id": "P87",
+      "title": "Box, on the side documents are read from",
+      "block": "Version one: the buttons he presses",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A storage adapter that really reads a Box folder, over client credentials with user impersonation, because a service identity without impersonation authenticates as nobody who can see his folders. Registered so AA_STORAGE_ADAPTER=box is a choice the system understands. It cannot be proved against a real tenant here, so the tests prove the logic against a replayed transport and say so in those words rather than reading as evidence the connection works.",
+      "builds": [],
+      "tasks": [
+        "ports/storage/box.py: list, read, stat, over client credentials with user impersonation",
+        "Stable order by path, sha256 computed rather than trusted, no cache outliving a sweep",
+        "Correct BOX_ENTERPRISE_ID to BOX_USER_ID in the delivery adapter, and record it as a finding",
+        "Declare the HTTP client this adapter uses rather than inheriting it from anthropic",
+        "A refused credential is a different diagnosis from a missing one"
+      ],
+      "exit": [
+        "AA_STORAGE_ADAPTER=box builds a real adapter and passes the port conformance suite",
+        "list returns files in path order and folders are not files",
+        "stat computes a sha256 rather than trusting a hash the service offers",
+        "The Box credentials named in the code are the ones that work: BOX_USER_ID with box_subject_type=user, not an enterprise id",
+        "A credential the service refuses diagnoses differently from one the environment never set",
+        "No test in this phase can be read as evidence that a real Box tenant answered",
+        "The surface snapshot records exactly two changes - the CREDENTIAL_REFUSED diagnosis and box on the storage port - and no others"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p87 -q",
+        "python -m uv run pytest tests/p03 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P88",
+      "title": "A connection test that says which part failed",
+      "block": "Version one: the buttons he presses",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Four questions asked in order - are the credentials set, will Box issue a token for the impersonated user, can the folder be listed, can a file's bytes be read - each answered separately. The order is the design: a step after a failure is reported as not reached rather than as failed, because a folder marked failed when the token never issued sends somebody to the wrong setting. It proves the connection now and says nothing about later.",
+      "builds": [],
+      "tasks": [
+        "admin/connection.py: the four steps, in order, stopping at the first failure",
+        "Presence is asked of the Secrets Port so no value is read to test one",
+        "An empty folder is not a broken connection",
+        "A Test button on /admin, and the route behind it"
+      ],
+      "exit": [
+        "Each of the four steps reports its own result, and the ones after a failure say they were not reached",
+        "The credentials step never reads a credential's value",
+        "A wrong folder id and a refused token produce different reports",
+        "An empty Box folder reports as connected",
+        "Nothing the test read is written anywhere"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p88 -q",
+        "python -m uv run pytest tests/p24 tests/p36 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P89",
+      "title": "ShareFile, and the login a person does once",
+      "block": "Version one: the buttons he presses",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The authorization-code flow, finished on this machine. A refresh token is a secret at rest, so it is encrypted under a key derived from the one already in .env and written where the repo cannot commit it. Three states that are genuinely different and must read differently: nobody has ever signed in, somebody did and the token no longer works, and connected. The last of those is a thing a person fixes rather than a fault a run can retry, and the words have to say so.",
+      "builds": [],
+      "tasks": [
+        "An encrypted token store, in a place .gitignore already covers",
+        "authorize_url and the code exchange, with a state parameter that is checked and used once",
+        "ports/storage/sharefile.py reads and writes through the store, and rotates what ShareFile rotates",
+        "never authenticated, expired, and connected report as three different things",
+        "The sign-in button, its callback route, and the ShareFile half of the connection test"
+      ],
+      "exit": [
+        "A refresh token never appears in the repo, in a log, or in a repr",
+        "A callback carrying a state nobody issued is refused, and a state is good once",
+        "A rotated refresh token replaces the stored one rather than being dropped",
+        "Never-signed-in and expired produce different reports, and neither reads as a fault a retry would fix",
+        "No test in this phase can be read as evidence that real ShareFile answered",
+        "ports.contracts('storage') is empty, and delivery's box adapter is still a contract because nothing writes a deliverable there yet"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p89 -q",
+        "python -m uv run pytest tests/p03 tests/p88 tests/p36 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P90",
+      "title": "The relay, which may be pressed twice",
+      "block": "Version one: the buttons he presses",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Copy from ShareFile to Box and converge rather than compete. Copy and never move, so nothing is deleted from a source the relay might be wrong about. Skip on identical content hash, so pressing it after Power Automate already ran is a no-op that says so. Surface a re-send rather than overwriting it, because a client sending a second version of something is the one case a person has to see. And report per file, because nine of twelve copied is nine of twelve.",
+      "builds": [],
+      "tasks": [
+        "A relay that copies ShareFile to Box, keyed on content hash",
+        "A re-send is reported, not overwritten and not skipped",
+        "Partial failure is named per file rather than retried into silence",
+        "Nothing in a graph step can reach it, and it writes no run record",
+        "The Update button, and what it says it did"
+      ],
+      "exit": [
+        "Pressing it twice copies once, and the second press says so",
+        "Nothing is ever deleted from ShareFile",
+        "The same bytes already in Box are skipped; different bytes under the same name are reported as a re-send",
+        "A failure on one file does not stop the others, and every outcome is named",
+        "No path exists from a graph step or a run to the relay"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p90 -q",
+        "python -m uv run pytest tests/p89 tests/p88 tests/p03 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P91",
+      "title": "A report is a document with named places in it",
+      "block": "Version one: the buttons he presses",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Find the place an appendix belongs by name, and move a body of Word content into it with the things that make Word content render - styles, numbering, images - carried with it. Copying paragraphs alone produces a document that opens without complaint and is laid out wrong, which is the failure nobody notices until it has been sent. Whatever cannot be carried is named rather than dropped.",
+      "builds": [],
+      "tasks": [
+        "An appendix registry: id, title, the anchor it binds to, the source it takes. Data, not code",
+        "Find anchors in a .docx by bookmark and by heading, and refuse by name when one is missing",
+        "Move a body of content between documents with styles, numbering and images intact",
+        "Report what could not be carried instead of dropping it"
+      ],
+      "exit": [
+        "An appendix binds by bookmark or heading name, and a paragraph index cannot be used as an anchor",
+        "An anchor that is not in the document is a refusal naming it, never a best guess",
+        "Content that carries a style the destination does not define arrives with that style defined",
+        "A numbered list and an image survive the move",
+        "Anything that could not be carried is named in the result",
+        "The two reachability scans derive their package list from the tree, and a package cannot vouch for its own submodules"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p91 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P92",
+      "title": "A button for each appendix that changes",
+      "block": "Version one: the buttons he presses",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Point a button at a .docx once, press it when that data is ready, and have it replace one appendix and nothing else. It shows what it will change before it writes, and it writes a new copy rather than editing last year's report in place - because the thing being edited is the only copy of last year's work until somebody has checked this one.",
+      "builds": [],
+      "tasks": [
+        "Set up a report: last year's file, and a source document per appendix",
+        "An update that replaces one appendix's span and leaves every other alone",
+        "A dry run that says what would change, before anything is written",
+        "Write a new file rather than editing the one it read",
+        "Three buttons on /admin, and the routes behind them"
+      ],
+      "exit": [
+        "Updating one appendix leaves the others byte-identical",
+        "The report it read is not modified; the result is a new file",
+        "A preview reports the same change the write makes, and writes nothing",
+        "There is no path from any button to appendix G, H or I",
+        "report/ is reached by something a person can press, and its allowlist entries are gone"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p92 -q",
+        "python -m uv run pytest tests/p91 tests/p82 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P93",
+      "title": "It really connected",
+      "block": "Version one: the buttons he presses",
+      "gate": "human",
+      "status": "open",
+      "intent": "The one phase in this block a test cannot close. Everything before it is proved against a fake that replays documented behaviour; this is where somebody with the credentials presses each button on the machine that has them and says what happened. It stays open until then, and the build says so rather than reading as finished.",
+      "builds": [],
+      "tasks": [
+        "Run the Box connection test at work and record which of the four steps answered",
+        "Sign in to ShareFile once, and run its test",
+        "Press Update, then press it again, and check the second press reports skipped",
+        "Set up one real report and update one appendix; open it in Word",
+        "Record what the real report's anchors actually are, and correct the registry if they differ"
+      ],
+      "exit": [
+        "A person has confirmed, on the machine with the credentials, that each of the three connections really works",
+        "One real appendix has been updated in a real report and the result opened in Word without layout damage",
+        "The appendix registry matches the real report's headings, or has been corrected to"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p87 tests/p88 tests/p89 tests/p90 tests/p91 tests/p92 -q"
+      ],
+      "notes": "",
+      "human_check": "Caleb, on the work machine: the Box connection test green on all four steps; ShareFile signed in once in a browser and its test green on all five; the Update button having really copied at least one real file, with a second press reporting it as already there; and one appendix really updated in a real Chartwell report, opened in Word and checked for layout - the styles, any numbered list, and any image"
     }
   ],
   "checkpoints": [
@@ -3235,6 +3436,27 @@
         "python -m uv run pytest tests/checkpoints/c53 -q"
       ],
       "closed": "2026-09-20"
+    },
+    {
+      "id": "C54",
+      "title": "What a button is allowed to claim",
+      "after": "P90",
+      "status": "done",
+      "proves": "Nothing in the block has reached a real service, the code says so where a person looks, the relay is not a run and cannot become one, delivery still has two inbound edges, and no credential reaches a repr, a report or a page.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c54 -q"
+      ],
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "C55",
+      "title": "What the report cannot be made to say",
+      "after": "P93",
+      "status": "open",
+      "proves": "Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c55 -q"
+      ]
     }
   ]
 }

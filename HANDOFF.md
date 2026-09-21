@@ -129,7 +129,7 @@ Everything in this table is configuration. None of it is a code change.
 | **Model key** | a personal key, or none — the fake adapter replays fixtures | the firm's `ANTHROPIC_API_KEY` |
 | **Model access** | the Anthropic API directly | **the same.** Decided 2026-09-05: not Foundry. Hosting can move to Azure without model access moving with it — everything this build sends is GA on the first-party API, and the firm's account is already sanctioned for client data. Needs one thing from IT: egress from the container to `api.anthropic.com` |
 | **Vault key** | generated locally, never committed | generated there, never copied |
-| **Intake** | `AA_STORAGE_ADAPTER=local_folder`, a watched folder | `sharefile`, once the firm's connector is wired in |
+| **Intake** | `AA_STORAGE_ADAPTER=local_folder`, a watched folder | `box` - written and tested against a replayed transport, never against a real tenant. Needs `BOX_CLIENT_ID`, `BOX_CLIENT_SECRET`, `BOX_USER_ID` and `AA_BOX_INBOX_FOLDER_ID`, and the Box app needs **Generate User Access Tokens** enabled. This is the read side because that is where work arrives: the client uploads to ShareFile, the files move to Box, and this reads Box |
 | **Delivery** | `AA_DELIVERY_ADAPTER=local_folder`, `./outbox` | `box`, once the firm's connector is wired in |
 | **State store** | SQLite at `AA_DB_URL=sqlite:///./runs/run_store.db` | Postgres — one URL, no other change |
 | **Queue** | `in_process`, a bounded thread pool | `redis_rq` when runs outlive a process |
@@ -155,7 +155,7 @@ them, and the suite passes without them.
 
 | Repo | Where it plugs in | What it has to satisfy |
 |---|---|---|
-| ShareFile connector | `ports/storage/sharefile.py` | `list` in a stable order, `read` or `INTAKE.UNREADABLE_FILE`, `stat` with a sha256 hash |
+| ~~ShareFile connector~~ | `ports/storage/sharefile.py` | **Written in P89.** Not three env vars: an account with MFA cannot use a password grant, so a person presses Sign in once and everything after runs on a rotating refresh token. The app registration needs the local callback URL and offline access |
 | Box connector | `ports/delivery/box.py` | `ensure_folder` idempotent, `put` that never silently overwrites, `version` |
 | Model builder | `tools/write_template.py` | binding by **named range**, never by cell address |
 
@@ -164,6 +164,23 @@ Both adapter modules are registered and both refuse until wired, with
 exists must be a refusal somebody can read, not an unknown name and certainly not a
 silent fallback to the local folder. Each module's docstring is the contract — read it
 before writing the body, including the three things each connector must *not* do.
+
+**Neither `ports/storage/box.py` nor `ports/storage/sharefile.py` is one of them any
+more.** P87 wrote it, and it runs the same
+conformance suite as the local folder through a transport that replays Box's documented
+shapes. What that proves is the adapter's use of the API — pagination, ordering, the
+sha256 it computes because Box only offers sha1, and the difference between a credential
+nobody set and one the service refused. What it does not prove is that a real tenant
+answers. So it reports as **NOT INSTALLED** rather than NOT WIRED: what is missing is
+credentials on a machine, not a join this build left unmade. The first real evidence is
+the connection test, pressed at work, which is what P93 is for.
+
+Two things to expect the first time. Box refuses the token with `unauthorized_client`
+when the app has not been granted **Generate User Access Tokens**; the adapter names that
+setting in the refusal, because it is the most likely thing to be wrong. And ShareFile
+refuses the login if the app registration does not list the callback this server actually
+answers on - `http://127.0.0.1:8000/api/admin/sharefile/callback` - or does not ask for
+offline access, in which case the login works for an hour and then stops.
 
 ---
 

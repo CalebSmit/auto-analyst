@@ -43,8 +43,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # Every package mypy is run over. The same list the phase checks use, in one place.
 TYPED_PACKAGES = [
     "admin", "deliver", "evals", "governance", "graph", "guards", "harness", "intake",
-    "ops", "orchestrate", "ports", "precedent", "privacy", "registries", "review",
-    "tools", "ui", "workers",
+    "ops", "orchestrate", "ports", "precedent", "privacy", "registries", "report",
+    "review", "tools", "ui", "workers",
 ]
 
 # Which test suites cover which package, for --changed. A package with no entry runs the
@@ -67,6 +67,7 @@ COVERAGE: dict[str, tuple[str, ...]] = {
     "orchestrate": ("tests/p26",),
     "governance": ("tests/p27",),
     "precedent": ("tests/p19",),
+    "report": ("tests/p91", "tests/p92"),
     "tools": ("tests/p01", "tests/p22", "tests/regression"),
     # The three pages share one design language, and the tests that hold each page to
     # the data it renders live beside the front door.

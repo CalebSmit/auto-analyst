@@ -26,7 +26,18 @@ And what it must not do:
   path; an adapter that appends a date or a suffix breaks the idempotency ledger, which
   keys on exactly that path;
 * no credential reads of its own. The Secrets Port holds `BOX_CLIENT_ID`,
-  `BOX_CLIENT_SECRET` and `BOX_ENTERPRISE_ID`.
+  `BOX_CLIENT_SECRET` and `BOX_USER_ID`.
+
+**The third credential was wrong until P87, and the correction is a finding rather than a
+tidy-up.** This said `BOX_ENTERPRISE_ID`, which was a guess made before anyone had
+authenticated against this firm's Box. An enterprise id authenticates as the *service
+account*: a real Box user that is a member of almost nothing. Writes would have been
+accepted into a folder nobody reads, or refused for a reason that reads like a bad path.
+What actually works - proved by the analyst's own `box.sharefile.automation` harness - is
+client credentials with **user impersonation**: `box_subject_type=user`, `box_subject_id`,
+and "Generate User Access Tokens" enabled on the Box app. So the credential is the id of
+the person whose folders are being written to. `ports/storage/box.py` carries the same
+three and the working implementation of the token exchange.
 
 The blueprint lists two Box routes - a Box MCP server and client-credentials auth. This
 adapter is the second: one library, one credential set, no server to keep alive. If the
@@ -50,9 +61,9 @@ from registries.errors import (
 
 __all__ = ["CREDENTIALS", "ENV_ROOT", "BoxDelivery", "build"]
 
-CREDENTIALS = ("BOX_CLIENT_ID", "BOX_CLIENT_SECRET", "BOX_ENTERPRISE_ID")
+CREDENTIALS = ("BOX_CLIENT_ID", "BOX_CLIENT_SECRET", "BOX_USER_ID")
 ENV_ROOT = "AA_BOX_ROOT_FOLDER_ID"
-CONNECTOR = "the firm's Box connector (client-credentials auth)"
+CONNECTOR = "the firm's Box connector (client credentials with user impersonation)"
 
 
 class BoxDelivery:
