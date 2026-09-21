@@ -73,7 +73,28 @@ skills:
         op: ">="
         threshold: 1.0
         blueprint: a candidate recurring across all periods is escalated, not proposed
-
+      - metric: fabricated_evidence
+        op: "<="
+        threshold: 0
+        blueprint: every figure cites a source and a locator that resolve
+        note: >-
+          The Provenance Gate's own verdict, not a second opinion written beside it. Zero
+          is not a practice decision - a figure whose locator does not resolve is not a
+          worse figure, it is not a figure - so this is an invariant rather than a
+          threshold somebody should be asked to set. Until P86 it was measured on
+          line-item-tagging by a hand-rolled check and on this skill not at all.
+      - metric: numeric_infidelity
+        op: "<="
+        threshold: 0
+        blueprint: every total re-adds from the rows it cites, within the practice's tolerance
+        note: >-
+          The Tie-Out Gate's mismatch count rather than its pass flag, which said only
+          that something somewhere disagreed. Zero is an invariant for the same reason:
+          the tolerance is the practice's number and is already set, and a recompute
+          either falls inside it or does not. Separated from fabricated_evidence because
+          the two are repaired in different places - a locator that does not resolve is an
+          extraction problem and a total that does not re-add is an arithmetic one, and
+          one number cannot say which happened.
   model-load:
     status: shipped
     fixtures: fixtures/skills/ebitda-normalization

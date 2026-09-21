@@ -232,6 +232,9 @@ def ebitda_metrics(world: EvalWorld) -> dict[str, float]:
         if router.route(item, "material_addbacks_require_review").route is Route.AUTO_ACCEPT:
             auto_accepted += 1
     traps = [i for i in schedule if i["recurs_in_all_periods"] and i["category"] == "non_recurring"]
+    # Every figure this skill emits carries a locator, so provenance has something to say
+    # about all of them - and until P86 it was never asked. `sources` is the case's own
+    # intake manifest, which is what a run would give the gate.
     return {
         "tie_rate": tied / len(schedule) if schedule else 0.0,
         "recall": len(gold & proposed) / len(gold) if gold else 0.0,
@@ -240,6 +243,14 @@ def ebitda_metrics(world: EvalWorld) -> dict[str, float]:
             sum(1 for t in traps if t["review_required"]) / len(traps) if traps else 1.0
         ),
         "items": float(len(schedule)),
+        **kinds_of_wrong(
+            world,
+            out,
+            {f["source_id"]: f.get("source_version", 1) for f in case["case"]["files"]},
+            "eval_henderson",
+            sent_to_a_person=sum(1 for i in schedule if i["review_required"]),
+            items=len(schedule),
+        ),
     }
 
 
@@ -303,9 +314,67 @@ METRICS: dict[str, MetricFn] = {
 }
 
 
-def provenance_of(world: EvalWorld, output: dict[str, Any], versions: dict[str, int]) -> int:
-    """Figures in an output that the provenance gate faults. Exposed for the harness."""
+def provenance_of(
+    world: EvalWorld,
+    output: dict[str, Any],
+    versions: dict[str, int],
+    run_id: str | None = None,
+) -> int:
+    """Figures in an output the provenance gate faults.
+
+    The real gate, on the real parse store, rather than a second opinion written beside
+    it. Until P86 this was exposed and called by nothing - the one entry on P82's
+    allowlist that was a defect and not a decision - so a candidate skill could promote
+    while faulting provenance, which is the gate that decides whether a figure is really
+    in the document it cites.
+    """
     result = ProvenanceGate(world.contracts, world.parse_store).check(
-        output, world.run_id, versions
+        output, run_id or world.run_id, versions
     )
     return result.failed
+
+
+def kinds_of_wrong(
+    world: EvalWorld,
+    output: dict[str, Any],
+    versions: dict[str, int],
+    run_id: str,
+    *,
+    sent_to_a_person: int,
+    items: int,
+) -> dict[str, float]:
+    """The three ways an output can be wrong, told apart by the guards that decide them.
+
+    An agreement rate says how often a skill was right and nothing about how it was wrong,
+    and the two failures below are repaired in different places: a locator that does not
+    resolve is an extraction problem, and a total that does not re-add is an arithmetic
+    one. LAVA (arXiv 2608.16763) separates the same two on financial documents and reports
+    the second near zero by having the model produce a formula and a deterministic engine
+    execute it - which is what this build already does, and had never measured.
+
+    * `fabricated_evidence` - the Provenance Gate's verdict: a cited source or locator
+      that is not there, or a value that is not at it.
+    * `numeric_infidelity` - the Tie-Out Gate's: evidence that resolves and arithmetic
+      that does not re-add. Counted from the gate's mismatches rather than from its pass
+      flag, which said only that something somewhere disagreed.
+    * `sent_to_a_person` - what neither settled. Not a failure and not free: it is the
+      work the analyst still does, and a skill that routes everything is a skill that
+      agrees with the gold set by not answering.
+
+    The first two are gated at zero in `gates.yaml`, which is not a threshold somebody
+    should be asked to set: a figure whose locator does not resolve is not a worse figure,
+    it is not a figure, and a recompute either falls inside the practice's tolerance or
+    does not. The third is reported and deliberately not gated - on the Henderson fixture
+    it is 0.61, eleven of eighteen add-backs, and whether that is a good number is the
+    pilot's question. It is owed in BUILD/OPEN.md rather than defaulted here.
+    """
+    tieout = TieoutGate(world.parse_store, recompute, 0.0).check(output, run_id)
+    fabricated = provenance_of(world, output, versions, run_id=run_id)
+    return {
+        "fabricated_evidence": float(fabricated),
+        "numeric_infidelity": float(tieout.failed),
+        "sent_to_a_person": float(sent_to_a_person),
+        "fabricated_evidence_rate": fabricated / items if items else 0.0,
+        "numeric_infidelity_rate": tieout.failed / items if items else 0.0,
+        "sent_to_a_person_rate": sent_to_a_person / items if items else 0.0,
+    }

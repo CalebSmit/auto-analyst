@@ -52,13 +52,25 @@ def test_an_excused_seam_is_not_also_claimed_as_built() -> None:
 
 
 def test_the_two_shapes_this_phase_exists_for_are_both_resolved() -> None:
-    """One deleted because there was nothing to record; one kept because there was."""
+    """Three ways a seam ends, and P71 has now produced all three.
+
+    `read_draft` was deleted, because there was nothing to record: dead code with no
+    intent behind it. `provenance_of` was kept and excused, because there *was* - it ran
+    the real Provenance Gate and nothing called it, so deleting it would have removed the
+    only trace of the intent. P86 wired it, which is the third ending and the one the
+    excuse existed to make possible.
+
+    So the allowlist is empty, and that is what resolved looks like rather than a check
+    that stopped looking - `tests/checkpoints/c53` is where the emptiness is held to
+    meaning something.
+    """
     conformance = (ROOT / "governance" / "conformance.py").read_text(encoding="utf-8")
     assert "def read_draft" not in conformance
 
-    assert "evals.metrics.provenance_of" in ALLOWED
     metrics = (ROOT / "evals" / "metrics.py").read_text(encoding="utf-8")
-    assert "def provenance_of" in metrics, "allowlisted, so it should still be there to wire"
+    assert "def provenance_of" in metrics, "kept, so that it could be wired"
+    assert "provenance_of(world, output, versions, run_id=run_id)" in metrics, "and wired"
+    assert "evals.metrics.provenance_of" not in ALLOWED, "wired, so no longer excused"
 
 
 def test_the_earlier_findings_of_this_shape_stayed_fixed() -> None:

@@ -50,16 +50,7 @@ SHIPPED = (
     "ui",
 )
 
-ALLOWED: dict[str, str] = {
-    "evals.metrics.provenance_of": (
-        "Not wired, and the gap is the point. Its docstring says 'Exposed for the harness' "
-        "and it is the only mention of ProvenanceGate anywhere in evals/ - so the eval "
-        "harness has never measured a provenance failure, and a candidate skill could "
-        "promote while faulting one. Recorded as B-041 rather than deleted, because "
-        "deleting it would remove the only trace of the intent, and wiring it changes what "
-        "promotion measures, which is not a decision to take while tidying."
-    ),
-}
+ALLOWED: dict[str, str] = {}
 
 
 def public_functions() -> list[tuple[str, int, str, str]]:
@@ -173,14 +164,20 @@ def test_the_scan_sees_a_call_and_not_a_mention() -> None:
     # Called all over the build, so it must be seen.
     assert "compile_recipe" in referenced
 
-    # A name that appears in this repository only inside strings - the allowlist key and
-    # the backlog entry - and is never called. If mentions counted, this would be in.
-    assert "evals.metrics.provenance_of" not in referenced
+    # A name that appears in this repository only inside strings is never referenced.
+    # `evals.metrics.provenance_of` used to be the example and is not any more - P86 wired
+    # it - so this uses one that is still only ever written down.
+    assert "a_function_nobody_has_written" not in referenced
 
 
-def test_the_function_this_phase_excused_is_genuinely_unwired() -> None:
-    """Not taken on trust from the allowlist: the scan itself still reports it."""
-    assert "evals.metrics.provenance_of" in {key(w, n) for w, _, n in unwired()}
+def test_the_allowlist_is_empty_and_that_is_the_good_ending() -> None:
+    """It held one entry: `evals.metrics.provenance_of`, which ran the real Provenance
+    Gate and which nothing called, so a candidate skill could promote while faulting it.
+    P86 wired it and the decay test below refused the excuse the moment it did - which is
+    what an allowlist with a decay check is for. An empty list is not a weaker check; it
+    is the check having nothing left to excuse."""
+    assert ALLOWED == {}
+    assert "evals.metrics.provenance_of" not in {key(w, n) for w, _, n in unwired()}
 
 
 def test_a_helper_used_only_inside_its_own_module_is_not_reported() -> None:

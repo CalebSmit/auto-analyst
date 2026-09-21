@@ -399,6 +399,20 @@
     "op": ">=",
     "runs": 0,
     "threshold": 1.0
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "fabricated_evidence",
+    "op": "<=",
+    "runs": 0,
+    "threshold": 0.0
+   },
+   {
+    "measured_by": "eval_harness",
+    "metric": "numeric_infidelity",
+    "op": "<=",
+    "runs": 0,
+    "threshold": 0.0
    }
   ],
   "gpc-scrub": [],

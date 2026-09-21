@@ -1662,3 +1662,26 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C52 after P85, covering P85
 - proves: A comparative statement is read as columns, written under locators the guards already understand, and footed against its own column rather than a mixture of years.
+
+## 2026-09-20 - P86 Three kinds of wrong
+
+**Why:** The evals say how often a skill agrees with the gold set and never which kind of wrong it is when it disagrees. LAVA (arXiv 2608.16763) separates three that need different repairs: fabricated evidence, arithmetic error despite faithful extraction, and the edge cases nothing settles - and reports numerical infidelity near zero by having the model produce a formula and a deterministic engine execute it, which is what P67's acceptance rule already asks for here. The three map onto guards this build already has. Meanwhile provenance is measured on line-item-tagging by a hand-rolled check on whether a description changed, and on ebitda-normalization not at all: evals.metrics.provenance_of runs the real gate and nothing calls it, which is B-041 and the one entry on P82's allowlist that is a defect rather than a decision.
+
+- phase added: P86 Three kinds of wrong (The consoles, gate: auto)
+- exit criterion: provenance_of is called by the harness and B-041 is closed
+- exit criterion: A skill whose figures cite a locator that does not resolve is reported as fabricated evidence, not as a lower agreement rate
+- exit criterion: A skill whose arithmetic does not re-add is reported separately from one whose evidence is wrong
+- exit criterion: No gate threshold is invented: a number that belongs to the practice is reported and named as owed
+
+## 2026-09-20 - C53 What a scorecard is allowed to be silent about
+
+**Why:** P86 added two gates to a shipped skill and emptied P71's allowlist. Both are changes to what stops a skill registering: a gate that silently reports itself as owed passes a skill without checking anything, and an allowlist that has quietly refilled is a scan that excuses the thing it was built to find. Neither is visible from the phase's own tests.
+
+- checkpoint added: C53 after P86, covering P86
+- proves: A skill promotes only on gates that were really measured, the two new ones catch the faults they name, and nothing is excused from the unwired scan any more.
+
+## 2026-09-20 - P86 Three kinds of wrong
+
+**Why:** Two public surfaces added, both this phase's point: the fabricated_evidence and numeric_infidelity gates on ebitda-normalization. A gate is a public surface because it decides whether a skill may register, so adding one is a governance change and not a refactor - which is why the snapshot asks. Accepted deliberately. sent_to_a_person_rate is not among them on purpose: it is reported on the scorecard and gates nothing, because what it is allowed to be belongs to the pilot and is owed in OPEN.md.
+
+- task added: The two new gates are recorded in the surface snapshot as the governance change they are

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**85 of 85 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**86 of 86 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -170,6 +170,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C51 - The door still opens the same way** | integration | A call that fits is sent exactly as it was, a call that does not is refused where a person can act on it, and the caching marker changes the bill without changing the question. | 2026-09-20 |
 | [x] | **P85** A comparative statement, read as two columns | auto | A comparative statement reaches a model, with each column under its own locator and period | 2026-09-20 |
 | [x] | **C52 - Two columns, and three guards that did not move** | integration | A comparative statement is read as columns, written under locators the guards already understand, and footed against its own column rather than a mixture of years. | 2026-09-20 |
+| [x] | **P86** Three kinds of wrong | auto | provenance_of is called by the harness and B-041 is closed | 2026-09-20 |
+| [x] | **C53 - What a scorecard is allowed to be silent about** | integration | A skill promotes only on gates that were really measured, the two new ones catch the faults they name, and nothing is excused from the unwired scan any more. | 2026-09-20 |
 
 ## The interview
 

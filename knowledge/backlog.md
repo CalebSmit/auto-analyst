@@ -395,7 +395,12 @@ written. Until both exist the rule is correct and inert. Size: medium, and it is
 makes B-037 real.
 
 ## B-041 The eval harness has never measured a provenance failure
-status: proposed
+status: built (2026-09-20, P86) - `provenance_of` is called by `kinds_of_wrong`, which runs
+the real Provenance Gate over the real parse store on every figure `ebitda-normalization`
+emits, and `fabricated_evidence <= 0` is a gate. Provenance was measured on
+`line-item-tagging` by a hand-rolled check on whether a description had changed, and on the
+skill whose every figure carries a locator not at all. P71's allowlist is empty as a result,
+and its decay test is what refused the stale excuse.
 2026-09-18, found by P71's scan for public functions nothing references.
 `evals/metrics.py::provenance_of` says "Exposed for the harness" and is the only mention of
 `ProvenanceGate` anywhere in `evals/` - so nothing in the eval or promotion path counts the

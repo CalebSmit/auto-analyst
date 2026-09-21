@@ -2621,6 +2621,34 @@
       ],
       "notes": "",
       "closed": "2026-09-20"
+    },
+    {
+      "id": "P86",
+      "title": "Three kinds of wrong",
+      "block": "The consoles",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Measure the kind, not only the rate, and measure it with the guard that would really fail it at run time rather than with a second opinion written beside it. Fabricated evidence is the Provenance Gate's verdict, arithmetic error is the Tie-Out Gate's, and what is left over is what went to a person. Reported per skill so a falling number can be read: a locator that does not resolve and a total that does not re-add are repaired in different places, and one number cannot say which happened.",
+      "builds": [],
+      "tasks": [
+        "The real Provenance Gate decides what counts as fabricated evidence, on every skill that emits figures",
+        "The Tie-Out Gate's mismatch count is used rather than its pass flag",
+        "Each skill reports the three kinds beside its agreement rate",
+        "A threshold nobody has set is reported as owed rather than defaulted",
+        "The two new gates are recorded in the surface snapshot as the governance change they are"
+      ],
+      "exit": [
+        "provenance_of is called by the harness and B-041 is closed",
+        "A skill whose figures cite a locator that does not resolve is reported as fabricated evidence, not as a lower agreement rate",
+        "A skill whose arithmetic does not re-add is reported separately from one whose evidence is wrong",
+        "No gate threshold is invented: a number that belongs to the practice is reported and named as owed"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p86 -q",
+        "python -m uv run pytest tests/p22 tests/p13 tests/p82 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-20"
     }
   ],
   "checkpoints": [
@@ -3194,6 +3222,17 @@
       "proves": "A comparative statement is read as columns, written under locators the guards already understand, and footed against its own column rather than a mixture of years.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c52 -q"
+      ],
+      "closed": "2026-09-20"
+    },
+    {
+      "id": "C53",
+      "title": "What a scorecard is allowed to be silent about",
+      "after": "P86",
+      "status": "done",
+      "proves": "A skill promotes only on gates that were really measured, the two new ones catch the faults they name, and nothing is excused from the unwired scan any more.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c53 -q"
       ],
       "closed": "2026-09-20"
     }

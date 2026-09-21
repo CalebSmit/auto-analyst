@@ -122,3 +122,12 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** When checking a convention before adding to it, read something that existed before the edit: git show HEAD:<file>, or the blueprint, or a test that asserts the rule. A grep of the working tree after an edit proves the edit exists. Two tests catch this particular case - tests/p14::test_every_registry_code_is_in_the_blueprints_table and the diagnostics registry's own self_check - and both are reached only by a checkpoint, not by the phase that adds the code.
 
+
+## 2026-09-20 - Closed three pinned defects this session (B-030 in P85, B-041 in P86) and each time the phase's own checks and its own checkpoint were green while an earlier checkpoint's integration test was red - C44 for the first, C40 for the second - found only by tools/verify.py.
+
+**Phase:** not phase-specific
+
+**Why it failed:** gate checkpoint re-runs every prior phase and not the integration tests of earlier checkpoints. That is deliberate and right, because re-running every checkpoint from every checkpoint grows with the square of the build. But a test that pins a defect is usually written in a checkpoint rather than in the phase that found it, precisely so that a change to the code meets it - so the tests most likely to fail when a defect is closed are exactly the ones a later checkpoint does not run. mypy is in the same position: it runs in verify.py and in nothing a phase does, and P85 closed with an unannotated local.
+
+**Rule:** Closing a defect that something pins is not finished at gate close or at gate checkpoint. Run tools/verify.py before trusting it, and grep the tests for the backlog id first - a pinned defect usually names its B-number - so the tests that are about to fail are known rather than discovered. The same applies to any phase that adds a gate, empties an allowlist, or changes a diagnostic code.
+

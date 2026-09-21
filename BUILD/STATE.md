@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **85 of 85 phases closed**
-- Last green checkpoint: **C52**
+- **86 of 86 phases closed**
+- Last green checkpoint: **C53**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -104,4 +104,5 @@
 - **P83** A context that says when it will not fit (2026-09-20)
 - **P84** The stable prefix, cached (2026-09-20)
 - **P85** A comparative statement, read as two columns (2026-09-20)
+- **P86** Three kinds of wrong (2026-09-20)
 
