@@ -1,3 +1,17 @@
+# Next session
+
+- **P93 is open and belongs to Caleb.** The three connections and one real report, on the
+  work machine. `BUILD/OPEN.md` has the four steps and what each one needs set first.
+- **The real report's anchors.** Six strings in `report/appendices.py` are guesses from
+  what he named in the interview. The first real report settles them; record what they are.
+- **B-058, B-059, B-060** - three things a sharpened reachability scan found on 2026-09-21:
+  the whole `orchestrate` package, `deliver.workpaper` and `governance.chain` are reached
+  by no production module. Each is a decision rather than a wiring job.
+- **Items 1-6 of the session's build list** - the version-1 spine: a recipe that finishes,
+  the input-help workbook, structure read from last year's model, deterministic line
+  matching, the documents pointer, the subtotals that tie or explain themselves. Not
+  started. Nothing in P87-P93 depends on them and they depend on nothing in it.
+
 # Follow-ups
 
 Questions an earlier answer raised. `- [ ]` open, `- [x]` asked. Asked before
@@ -70,3 +84,5 @@ work computer. One per message.
 - [ ] OCR is now on the critical path and must be local to keep the masking order (image -> text -> mask -> model). Which engine, and is a new binary dependency acceptable? Decision for BUILD/OPEN.md. (2026-09-18-1)
 - [ ] Which documents arrive as scans - the audited financials specifically, or most of what the client sends? (2026-09-18-1)
 - [ ] Confirm on the work machine that a local OCR engine can be installed (Node.js and Python were fine). The whole PDF path depends on it. (2026-09-18-1)
+- [ ] How do you want the hardcodes and the subtotals told apart on the tool's output, so selecting just the hardcodes is one motion rather than picking ranges by eye? (2026-09-21-1)
+- [ ] Is the new-client default structure something you can give me as a list, or should I take it from the model template when you send it? (2026-09-21-1)

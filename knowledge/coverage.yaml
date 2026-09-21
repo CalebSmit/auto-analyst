@@ -45,10 +45,14 @@ topics:
     - audited beats internal on disagreement; forecast always internal (Q8, B-024)
     - For repeat clients line items rarely change; a mismatch is a review item, and
       the cause may be the firm's own prior grouping rather than a client change
+    - 'Repeat-client line matching is deterministic: wording carries it, last year''s
+      client docs confirm it, and the amount only vetoes the absurd - so it flags
+      rather than decides. No tolerance to set. (2026-09-21-1)'
     sessions:
     - 2026-09-16-1
     - 2026-09-17-2
     - 2026-09-18-1
+    - 2026-09-21-1
   repeat-clients:
     status: partial
     notes:
@@ -59,11 +63,15 @@ topics:
       (Q7, 2026-09-17-1 Q1)
     - 'The repeat path is the centre of version 1: copy last year''s model forward,
       shift the years, add the new year from client docs'
+    - The prior workbook supplies the STRUCTURE of WS/IS/BS in the deliverable, not
+      just the line-item names - the tab is rebuilt to match last year's. New clients
+      fall back to the template or a built-in default. (2026-09-21-1)
     sessions:
     - 2026-09-16-1
     - 2026-09-17-1
     - 2026-09-17-2
     - 2026-09-18-1
+    - 2026-09-21-1
   excel-models:
     status: partial
     notes:
@@ -76,10 +84,16 @@ topics:
       version 1 targets Input, WS, Sales Detail, IS, BS, D
     - Historical block is a fixed ten columns, rolling - oldest drops, no growth;
       usually only the last five years are filled
+    - The version-1 deliverable is a separate workbook mirroring the model's layout,
+      for copy-paste; not a bound template. Layout may be guessed and corrected. (2026-09-21-1)
+    - Sales Detail is the revenue breakout, from client docs, so it is in scope for
+      v1 extraction - but it sometimes lives in WS instead, per client. The prior
+      model decides which tab data belongs in. (2026-09-21-1)
     sessions:
     - 2026-09-16-1
     - 2026-09-17-1
     - 2026-09-18-1
+    - 2026-09-21-1
   engagement-types:
     status: partial
     notes:
@@ -246,12 +260,19 @@ topics:
     - 'A real DD request list photographed: seven sections A-G, doubles as the tracker
       (In Model?/notes/Provided/Not Applicable), supporting tabs named after item
       numbers, five fiscal years, tailored per engagement'
+    - 'The DD tracker becomes a v1 output: the tool reads asked-for vs received and
+      updates it. B-038 arrives from the other end. (2026-09-21-1)'
     sessions:
     - 2026-09-18-1
+    - 2026-09-21-1
   extraction-baseline:
     status: partial
     notes:
     - Keying historicals from scanned PDFs takes 1-3+ hours per engagement; that is
       the baseline to beat
+    - The computed subtotals on the deliverable are the analyst's confidence signal
+      - balance sheet balances, net income agrees with the client's stated figure.
+      This is B-040's missing producer and B-028's surface. (2026-09-21-1)
     sessions:
     - 2026-09-18-1
+    - 2026-09-21-1

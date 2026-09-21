@@ -481,3 +481,181 @@ a refusal - is formatted somewhere else, and this is a second renderer that has 
 Either the surfaces should use it or it should go; what is not defensible is two answers to
 "how is a diagnostic written for a person" with one of them untested against real use.
 Files: registries/diagnostics.py, ui/, admin/page.py. Size: small.
+
+## B-047 Version 1's own recipe, ending at a workbook
+status: proposed
+2026-09-21-1 Q1. Supersedes the open half of B-033. All three shipped recipes end at
+qc-tieout, which CLAUDE.md puts outside version 1, so no run can finish. Version 1's recipe
+stops at organised data and releases the input-help workbook. B-033 could not be built
+because nothing said what a run should produce; Q1 says: a separate workbook laid out like
+the model, which he copies and pastes from, never the model itself. Files: recipes/, and a
+person re-registers it at /admin because the plan hash moves. Size: medium.
+
+## B-048 The input-help workbook, structure derived per engagement
+status: proposed
+2026-09-21-1 Q2, Q6. Replaces B-034 as specified. B-034 proposed registering one template
+with an input schema; that is right for the Input tab and wrong for the rest. The workbook
+has two kinds of tab: **Input**, fixed and identical every time, and **WS / IS / BS / Sales
+Detail**, whose structure is read from last year's model for a repeat client and from a
+built-in default for a new one. Which tab a kind of data belongs in is also per client -
+the sales breakout is usually Sales Detail and is sometimes in WS. Layout may be a best
+guess now and corrected later (Q1), because it is our workbook and not the firm's model.
+Files: deliver/, templates/. Size: large.
+
+## B-049 Read the structure out of last year's model
+status: proposed
+2026-09-21-1 Q2, Q5, Q6. For a repeat client the prior workbook is the specification: tab
+names, row order, and which tab holds what. Tabs are *usually* named the same and the data
+*usually* starts in the same place - but people put material in Sales Detail and add tabs
+to support the income statement, so the tool looks in the expected place, verifies what it
+found, and **reports tabs it did not recognise** rather than skipping them. Consumes
+`prior_model` (P79), which was built for this and reaches nothing. Files:
+intake/readers/workbook.py or a new reader, tools/rollforward.py. Size: medium.
+
+## B-050 Line matching against last year, deterministic
+status: proposed
+2026-09-21-1 Q7, Q9. The test he actually applies, in three parts: wording close enough,
+the amount not absurd, and **the same numbers appearing in last year's client documents**
+to confirm the client categorised it the same. The third is evidence rather than
+similarity, which makes the whole test deterministic - no model call, no embedding, no
+confidence score, and no tolerance to set, because the amount **flags rather than vetoes**
+and so only decides what a person is shown. Distinct from line-item-tagging, which tags
+against the firm's chart of accounts; this asks whether a line is last year's line.
+Files: a new procedure + tests. Size: medium.
+
+## B-051 Where last year's documents are
+status: proposed
+2026-09-21-1 Q8. B-050's third check needs last year's source documents and nothing points
+at them. They sit in a Box folder that can be pointed at, the same way `prior_model` points
+at last year's workbook. A second pointer on the engagement, set at /admin, checked when it
+is set rather than when a run needs it. P79 built this machinery for the first pointer.
+Files: admin/console.py, admin/page.py, a config_document version. Size: small.
+
+## B-052 The subtotals, as evidence and as a diagnosis
+status: proposed
+2026-09-21-1 Q3, Q4. Closes B-040's producer and gives B-028 its surface. The tool computes
+the subtotals and shows them; he pastes only the hardcodes. Their purpose is to be looked
+at - the balance sheet balancing, net income agreeing with what the client stated - and
+that is what earns belief without going back to the PDF. When one does not match, the
+workbook is **still delivered** and the tool finds and flags **why**: which year breaks
+when the other ties, a difference equal to a row's value pointing at a row dropped or
+counted twice, a difference divisible by nine being the transposed digits OCR produces.
+Files: tools/statement_checks.py, deliver/, review/router.py. Size: medium.
+
+## B-053 The dashboard's buttons
+status: proposed
+2026-09-21-1 update. Version 1 is a thing he drives, not a thing that watches. The
+surfaces, revised after the second half of the session: **Set up model**, **Test the
+ShareFile/Box connection**, **Update** (pull ShareFile to Box), and **one button per
+appendix** rather than a single set-up-report button - C, E, F, G, H, I - because each
+appendix's source data becomes ready at its own moment. The automatic sweep already exists
+and stays; this is the surface that makes it his. Files: admin/page.py, ops/console/.
+Size: small per button, once the thing behind each exists.
+
+## B-054 Update the DD request list tracker
+status: proposed
+2026-09-21-1 update. New in version 1: "it just reads what we asked for and what we
+received, and updates it whenever we get info from the client", with the tracker pointed at
+from the dashboard. B-038 arriving from the other end - P68 built the sections, refs and
+coverage and reaches nothing, because the item lists are per engagement and the only one in
+hand belonged to a client. The tracker **is** the list: the request workbook is also the
+tracker, each item carrying In Model?, notes, Provided and Not Applicable (2026-09-18-1).
+Files: intake/request_list.py, a writer, admin/page.py. Size: medium.
+
+## B-055 A Box adapter, and a connection that can be tested
+status: proposed
+2026-09-21-1 update, from ClbSmt/box.sharefile.automation. Box authenticates with client
+credentials **plus user impersonation** - `box_subject_type=user`, `box_subject_id`, and
+the app needs "Generate User Access Tokens" enabled. The storage port exists and its Box
+adapter is a registered contract that refuses rather than a working client. The test button
+is the honest first build: it proves credentials and folder access without moving anything,
+and cannot be tested here - only on the work machine. Files: ports/storage/box.py,
+admin/page.py. Size: medium.
+
+## B-056 ShareFile, and the relay that backs up Power Automate
+status: proposed - answered 2026-09-21-1
+**Settled: both a test and a transfer.** "There should be a test button for sharefile/box.
+Then an update button, to pull things from sharefile to box... I'm going to keep working on
+the power automate tool that does that automatically... But want this as a backup if that
+doesn't work." This does not reverse the fourth session: Power Automate still does the
+transfer and still sits outside the boundary, and a button a person presses when it has not
+run is a different object from a pipeline stage.
+**The hazard is two copiers, not a failed copy.** So the relay converges rather than
+competing: copy and never move, skip on identical content hash, surface a re-send rather
+than overwriting it, name what it did per file, and report partial failure rather than
+retrying into silence. Pressing it after Power Automate already ran is a no-op that says so.
+**Auth.** An MFA account cannot use a password grant, so ShareFile needs an interactive
+authorization-code login once and a rotating refresh token after. The token is held through
+the Secrets Port, never in knowledge/ and never committed. "Never authenticated", "token
+expired" and "connected" are three different answers.
+**Not through the Delivery Port** - its contract is two inbound edges, released artifacts
+and the run manifest, and no reading of client folders. The relay gets its own surface.
+Files: ports/storage/sharefile.py, a new relay module, admin/page.py. Size: large.
+
+## B-057 Setting up the report, one appendix at a time
+status: proposed - shape settled 2026-09-21-1, sources still owed
+"Copying and pasting the report from last year, then only setting it up. Meaning getting
+the right appendix information in." Named: C economic conditions, E major market indices,
+F M&A markets, G assumptions & limiting conditions, H certification, I qualifications of
+Chartwell & Staff.
+**A button each, not one update-report button** - "when the industry data is ready, I will
+press the industry update button... and like when the economic appendix is done and ready,
+I will click that button" - because each appendix's data becomes ready at its own moment.
+**Three buttons, not six.** G, H and I "can stay the same as the prior years" and arrive in
+the copy of last year's report, so no code touches them - which is also why nothing in this
+system can write the certification. C, E and F are what change.
+**He points each one at a Word document**, so the source is a setting rather than something
+the tool discovers. An appendix is an id, a source .docx and an anchor: **data, not code**,
+because the real report has not been seen here and the first one will not match a guess.
+**The move is Word-to-Word, not text.** Styles, numbering definitions and embedded image and
+chart parts travel with the content, and whatever could not be carried is named rather than
+dropped - paragraphs alone give a document that opens cleanly and is laid out wrong.
+**Binding** follows the model's rule - a bookmark or heading name, never a paragraph index,
+so a report somebody added a sentence to cannot get F written into E. A missing anchor is a
+refusal naming it.
+**Boundary.** Appendix H is the certification. The system may place it and carry its text
+forward; it may never produce the conclusion it attests to, or sign it. The appraiser signs,
+outside this system.
+Still owed from the work machine: where each source document lives, the real report
+template, and whether a source .docx is the appendix whole or contains it as a region. Answers OPEN.md section 5 question 6 in part - report **setup** is
+in scope; drafting the valuation narrative is not what was asked for.
+Files: a report/ package, templates/, admin/page.py. Size: large.
+
+## B-058 The whole orchestrate package reaches nothing
+status: proposed
+2026-09-21, from P91 - found by sharpening the P82 scan, not by reading. `orchestrate/`
+is imported by no production module at all. Every import of it in the tree is either
+`orchestrate/__init__.py` importing its own submodules or a test under `tests/p26`.
+P26 built the Orchestrator agent, the run planner and triage; nothing a person or a run
+can do reaches any of it.
+**Why the scan did not say so before.** It counted a package's own `__init__.py` as
+evidence that its submodules were reached. `orchestrate/__init__.py` imports
+`orchestrator`, `plan` and `triage`, so all three read as wired while the package they are
+in was reached by nobody. P91 changed that to a fixpoint - an `__init__`'s imports count
+only once the package itself is reached - and this is one of four things it found
+immediately.
+**It also contradicts a claim in B-043**, which lists `orchestrate/orchestrator` and
+`orchestrate/triage` among the six places masking is wired. Two of those six are in code
+no run reaches, so masking is wired in four places rather than six.
+Not wired here: whether the orchestrator belongs on version 1's path is a design decision,
+and version 1 is a person pressing buttons rather than an agent deciding what to do.
+Size: unknown until that is decided.
+
+## B-059 The workpaper narrative reaches nothing
+status: proposed
+2026-09-21, from P91. `deliver/workpaper.py` is imported only by `deliver/__init__.py`.
+Production imports `deliver.registry` directly and never the package, so `WorkpaperNarrative`
+is reached by no run. It writes the narrative that explains a deliverable - which matters
+on the day a run reaches release, and no run has (B-004: both shipped recipes end at
+qc-tieout). Version 1 ends at a workbook rather than a deliverable, so this stays recorded
+rather than wired. Size: small once release is on a path.
+
+## B-060 The governance chain reaches nothing
+status: proposed
+2026-09-21, from P91. `governance/chain.py` is imported only by `governance/__init__.py`.
+Production reaches `governance.board`, `governance.record` and `governance.conformance`
+directly - `admin/console.py` and `registries/methodology.py` - and never `GovernanceChain`
+itself, which is the thing that walks a candidate skill from proposal through sandbox to
+registration. So the chain exists and every step of it is invoked by hand instead.
+Whether that matters depends on whether a skill is ever promoted without a person walking
+it, which is a question for the practice rather than for a scan. Size: medium.
