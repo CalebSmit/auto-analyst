@@ -102,13 +102,6 @@ ALLOWED: dict[str, tuple[str, str]] = {
         "a design decision and not one to take while tidying a scan, so it is recorded "
         "rather than wired - and it has not bitten because no run has reached release.",
     ),
-    "intake.request_list": (
-        "B-038",
-        "P68 built the seven sections, the item references and the coverage report. The "
-        "items inside a section are written per engagement and the only list in hand "
-        "belongs to a client, so there is nothing yet for a run to carry - the caller "
-        "arrives with the first real request list.",
-    ),
     "tools.rollforward": (
         "B-036",
         "P69 built the arithmetic half - the ten-year window, the date roll and the line "
@@ -373,13 +366,25 @@ def test_nothing_shipped_is_beyond_the_reach_of_a_run() -> None:
     )
 
 
-def test_the_check_would_have_caught_the_two_it_was_written_for() -> None:
-    """P68 and P69 were closed, checkpointed and committed in this state, and P71 - written
-    for this exact defect three phases earlier - reported nothing. If this test ever has to
-    be deleted because those two became reachable, that is the good ending."""
+def test_the_check_would_have_caught_the_one_still_unwired() -> None:
+    """P68 and P69 were closed, checkpointed and committed with both of their modules
+    unreachable, and P71 - written for this exact defect three phases earlier - reported
+    nothing.
+
+    **One of the two has since had the good ending.** P95 gave `intake.request_list` a
+    caller: a button that reads an engagement's folder and refreshes its tracker. The
+    reason P68 left it unreached was that the items in a request list belong to an
+    engagement and the only real list in hand belonged to a client - which was true, and
+    was solved by writing a starting list that owes nothing to anyone's (P94).
+
+    `tools.rollforward` is still waiting, and for a reason that has not changed: its Excel
+    half binds the firm's real model by named range, and nobody has supplied it.
+    """
     reported = set(unreachable())
-    assert "intake.request_list" in reported
     assert "tools.rollforward" in reported
+    assert "intake.request_list" not in reported, (
+        "this is the good ending, and the sentence above should now say so"
+    )
 
 
 def test_a_reference_from_a_test_does_not_count_as_wiring() -> None:

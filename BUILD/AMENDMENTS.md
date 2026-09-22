@@ -1793,3 +1793,46 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C55 after P93, covering P91, P92, P93
 - proves: Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification.
+
+## 2026-09-21 - P94 A request list when nobody wrote one
+
+**Why:** He will be testing with a pile of documents a client would send and no request list at all, which is also the state of every new engagement before somebody writes one. P68 built the sections, the references, the coverage and the three statuses, and deliberately left the items out - the reasoning was that the only real list in hand belongs to a client. That was right about that list and it left the machinery with no way to start: nothing in the tree can produce a request list, so nothing can track one.
+
+- phase added: P94 A request list when nobody wrote one (Version one: the data it gathers, gate: auto)
+- exit criterion: An engagement with no request list gets one, and the report says it is a starting point
+- exit criterion: The default list owes nothing to any client's: every item is generic to valuation work
+- exit criterion: Essential items are marked, and the historicals are among them
+- exit criterion: A registered real list takes precedence over the default, and nothing silently mixes the two
+
+## 2026-09-21 - P93 What is owed before any of this is believed
+
+**Why:** P93 was made a blocking human gate and that was wrong. Phases close in order, so a signoff that can only happen on another machine halts every unrelated phase behind it - P94 was finished, tested and unclosable. The repo already has the right instrument: CLAUDE.md says BUILD/OPEN.md is for 'evidence only the work machine can produce', and the four steps are written there. The other human gates in this plan (P18, P20, P26, P28) are sign-offs on work that had just been done and could be checked in the same sitting, which is a different thing. So this phase becomes what it can honestly be here: the one that makes sure the owed evidence is recorded and that nothing in the block claims to have connected. The connection itself stays owed, in the place the build already keeps what is owed, and a human-gated phase records it when he is at his desk with the credentials.
+
+- title: 'It really connected' -> 'What is owed before any of this is believed'
+- exit criterion added: BUILD/OPEN.md carries the four things a person has to do, and what each needs configured first
+- exit criterion added: Closing this phase does not read as the connection having been made
+- gate: human -> auto
+
+## 2026-09-21 - P95 The tracker reads the folder and updates itself
+
+**Why:** He will point this at a folder of documents a client sent and expect the tracker to be right. P94 gave a new engagement a list; nothing yet reads a folder against it, and nothing writes the result anywhere he could open. The 2026-09-18 session settled that the request workbook is also the tracker - each item carrying In Model?, notes, Provided and Not Applicable - so the thing to produce is that workbook, which doubles as the list itself for an engagement that has none.
+
+- phase added: P95 The tracker reads the folder and updates itself (Version one: the data it gathers, gate: auto)
+- exit criterion: A folder of ordinary filenames produces a tracker with the right items marked provided
+- exit criterion: A second run over the same folder changes nothing a person wrote
+- exit criterion: A file that matched no item is reported rather than dropped
+- exit criterion: An inferred match is visible in the workbook, not only in the code
+
+## 2026-09-21 - P95 The tracker reads the folder and updates itself
+
+**Why:** The dashboard button belongs in this phase rather than a later one. He described the whole thing as a button - 'I can point it to on the dashboard' - and without it the tracker is a module nothing reaches, which is this build's most repeated defect and is already flagged by the P82 scan. Splitting the button out would mean closing a phase that shipped a package nobody can run.
+
+- task added: A button on /admin: point it at a folder and a tracker, and press it
+- exit criterion added: The tracker is reached by something a person can press, and is not on the unreachable list
+
+## 2026-09-21 - C56 A list nobody wrote, tracked against a folder nobody labelled
+
+**Why:** The pair that makes a folder of client documents trackable: a list for an engagement that has none, and the tracker that reads the folder against it. They want checking as a sequence rather than separately - a client sending nothing, then some of it, then a corrected version, with a person writing in the workbook in between - because that is the order the two halves can disagree in.
+
+- checkpoint added: C56 after P95, covering P94, P95
+- proves: A new engagement gets a list and a tracker without anybody writing one, a guess stays labelled a guess from the file to the screen, a refresh never costs a person work, and neither half has become a run.

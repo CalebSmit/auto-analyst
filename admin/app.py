@@ -54,6 +54,13 @@ class Registration(Change):
     profile: dict[str, Any] | None = None
 
 
+class TrackerRun(BaseModel):
+    """Which tracker to update. Empty means the one beside the engagement's folder."""
+
+    tracker: str = ""
+    dry_run: bool = False
+
+
 class StartReport(BaseModel):
     """Last year's report, and where this period's copy goes."""
 
@@ -277,6 +284,17 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
         except DiagnosticError as refused:
             return HTMLResponse(_signed_in_page(refused.diagnostic.detail), status_code=403)
         return HTMLResponse(_signed_in_page(""))
+
+    @app.post("/api/admin/engagements/{engagement_id}/dd-tracker")
+    def dd_tracker(engagement_id: str, body: TrackerRun | None = None) -> dict[str, Any]:
+        """Read the engagement's folder and refresh its request-list tracker."""
+        return _guard(
+            lambda: console.dd_tracker(
+                engagement_id,
+                (body.tracker if body else "") or "",
+                dry_run=bool(body and body.dry_run),
+            )
+        )
 
     @app.get("/api/admin/report/appendices")
     def report_appendices(report: str) -> dict[str, Any]:

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**92 of 93 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**95 of 95 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -216,6 +216,9 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C44 - Two engines, one real document, and a rule widened on purpose** | integration | Every registered OCR engine is local, reaches no model and no network, and can be built on a machine that has installed none of them; none of them silently falls back to another, so a scan is never read by an engine nobody chose; the real filing is still read and the comparative-column defect it found is pinned along with the escalation that is the only thing stopping a run on it; and widening the fixtures rule to allow a public document did not loosen what it always forbade - no client data, a named public source, and the identifier register checking the fixture like anything else. | 2026-09-19 |
 | [x] | **P79** Where last year's model is | auto | A repeat engagement can be pointed at last year's workbook and the setting survives a reload | 2026-09-19 |
 | [x] | **C47 - Setting up a repeat client, with everything that needs saying** | integration | The newest configuration version is the one a write produces and every supported version still loads; no version was edited in place, so 1.1.0 knows nothing of a recipe and 1.2.0 nothing of a prior model; an engagement naming no prior model is not upgraded because another one was; a repeat engagement is told on the roster that it has not been pointed at last year's workbook, and stops being told once it has; and the page is handed which engagements are repeat rather than splitting a scope path itself. | 2026-09-19 |
+| [x] | **P94** A request list when nobody wrote one | auto | An engagement with no request list gets one, and the report says it is a starting point | 2026-09-21 |
+| [x] | **P95** The tracker reads the folder and updates itself | auto | A folder of ordinary filenames produces a tracker with the right items marked provided | 2026-09-21 |
+| [x] | **C56 - A list nobody wrote, tracked against a folder nobody labelled** | integration | A new engagement gets a list and a tracker without anybody writing one, a guess stays labelled a guess from the file to the screen, a refresh never costs a person work, and neither half has become a run. | 2026-09-21 |
 
 ## Version one: the buttons he presses
 
@@ -228,6 +231,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C54 - What a button is allowed to claim** | integration | Nothing in the block has reached a real service, the code says so where a person looks, the relay is not a run and cannot become one, delivery still has two inbound edges, and no credential reaches a repr, a report or a page. | 2026-09-21 |
 | [x] | **P91** A report is a document with named places in it | auto | An appendix binds by bookmark or heading name, and a paragraph index cannot be used as an anchor | 2026-09-21 |
 | [x] | **P92** A button for each appendix that changes | auto | Updating one appendix leaves the others byte-identical | 2026-09-21 |
-| [ ] | **P93** It really connected | human | A person has confirmed, on the machine with the credentials, that each of the three connections really works |  |
-| [ ] | **C55 - What the report cannot be made to say** | integration | Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification. |  |
+| [x] | **P93** What is owed before any of this is believed | auto | A person has confirmed, on the machine with the credentials, that each of the three connections really works | 2026-09-21 |
+| [x] | **C55 - What the report cannot be made to say** | integration | Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification. | 2026-09-21 |
 

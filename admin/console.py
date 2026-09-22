@@ -35,6 +35,7 @@ from registries.errors import (
     ADMIN_FORBIDDEN,
     RECIPE_INVALID,
     UNKNOWN_ADAPTER,
+    UNKNOWN_CRITERIA,
     DiagnosticError,
     diagnose,
 )
@@ -1090,6 +1091,56 @@ class AdminConsole:
         for state, started in list(self._logins.items()):
             if started < cutoff:
                 del self._logins[state]
+
+    # -- the due-diligence tracker
+
+    def dd_tracker(
+        self, engagement_id: str, tracker_path: str = "", *, dry_run: bool = False
+    ) -> dict[str, Any]:
+        """Read the engagement's folder and update its request-list tracker.
+
+        The list comes from the engagement's scope when there is no tracker yet, which is
+        the ordinary state of a new engagement and the one he will be testing in. What a
+        person has already written in an existing tracker is read back in first and
+        written out unchanged - see `intake/tracker.py` for why that matters more than the
+        matching does.
+        """
+        from intake.request_list import for_scope
+        from intake.tracker import Tracker, look_at, read_tracker, write_tracker
+
+        entry, relative = self._folder_of(engagement_id)
+        scope_path = getattr(entry, "scope_path", "") or self.config.document().get(
+            "default_scope", ""
+        )
+
+        target = Path(tracker_path) if tracker_path else self._tracker_beside(relative)
+        held = read_tracker(target)
+
+        listing = for_scope(str(scope_path))
+        if listing is None:
+            raise AdminRefused(
+                (
+                    diagnose(
+                        UNKNOWN_CRITERIA,
+                        f"there is no request list for {scope_path!r}, and none was "
+                        f"supplied. A list is what the client was asked for; the tool "
+                        f"does not borrow another division's.",
+                        locator=f"request-list/{scope_path}",
+                    ),
+                )
+            )
+
+        tracker = Tracker(listing, look_at(self.preflight.storage, relative), held)
+        report = tracker.report()
+        report["tracker"] = str(target)
+        report["dry_run"] = dry_run
+        if not dry_run:
+            write_tracker(tracker, target)
+        return report
+
+    @staticmethod
+    def _tracker_beside(relative: str) -> Path:
+        return Path(relative) / "DD request list.xlsx"
 
     # -- setting up the report, one appendix at a time
 

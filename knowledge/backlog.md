@@ -543,7 +543,7 @@ counted twice, a difference divisible by nine being the transposed digits OCR pr
 Files: tools/statement_checks.py, deliver/, review/router.py. Size: medium.
 
 ## B-053 The dashboard's buttons
-status: proposed
+status: partial - four of five built 2026-09-21 (P88, P90, P92)
 2026-09-21-1 update. Version 1 is a thing he drives, not a thing that watches. The
 surfaces, revised after the second half of the session: **Set up model**, **Test the
 ShareFile/Box connection**, **Update** (pull ShareFile to Box), and **one button per
@@ -553,17 +553,25 @@ and stays; this is the surface that makes it his. Files: admin/page.py, ops/cons
 Size: small per button, once the thing behind each exists.
 
 ## B-054 Update the DD request list tracker
-status: proposed
+status: built 2026-09-21 (P94, P95) - against a starting list, not the firm's own
 2026-09-21-1 update. New in version 1: "it just reads what we asked for and what we
 received, and updates it whenever we get info from the client", with the tracker pointed at
 from the dashboard. B-038 arriving from the other end - P68 built the sections, refs and
 coverage and reaches nothing, because the item lists are per engagement and the only one in
 hand belonged to a client. The tracker **is** the list: the request workbook is also the
 tracker, each item carrying In Model?, notes, Provided and Not Applicable (2026-09-18-1).
-Files: intake/request_list.py, a writer, admin/page.py. Size: medium.
+**A list has to be creatable, not only loadable.** P68 said the items "are loaded per
+engagement rather than invented here", on the reasoning that the only real list in hand
+belongs to a client. That is still true of *that* list - but it left the machinery with no
+way to start. He has since said he will be testing with documents and **no request list at
+all**, which is also the state of any new engagement before somebody writes one. So there
+has to be a default list for the focus division: generic enough to owe nothing to a
+client's, explicit that it is a starting point, and correctable.
+Files: intake/request_list.py, a default list as data, a writer, admin/page.py.
+Size: medium.
 
 ## B-055 A Box adapter, and a connection that can be tested
-status: proposed
+status: built 2026-09-21 (P87, P88) - not yet proved against a real tenant, which is P93
 2026-09-21-1 update, from ClbSmt/box.sharefile.automation. Box authenticates with client
 credentials **plus user impersonation** - `box_subject_type=user`, `box_subject_id`, and
 the app needs "Generate User Access Tokens" enabled. The storage port exists and its Box
@@ -573,7 +581,7 @@ and cannot be tested here - only on the work machine. Files: ports/storage/box.p
 admin/page.py. Size: medium.
 
 ## B-056 ShareFile, and the relay that backs up Power Automate
-status: proposed - answered 2026-09-21-1
+status: built 2026-09-21 (P89, P90) - not yet proved against a real account, which is P93
 **Settled: both a test and a transfer.** "There should be a test button for sharefile/box.
 Then an update button, to pull things from sharefile to box... I'm going to keep working on
 the power automate tool that does that automatically... But want this as a backup if that
@@ -593,7 +601,8 @@ and the run manifest, and no reading of client folders. The relay gets its own s
 Files: ports/storage/sharefile.py, a new relay module, admin/page.py. Size: large.
 
 ## B-057 Setting up the report, one appendix at a time
-status: proposed - shape settled 2026-09-21-1, sources still owed
+status: partial - the mechanism built 2026-09-21 (P91, P92); the real report's anchors and
+each appendix's source location are still owed from the work machine
 "Copying and pasting the report from last year, then only setting it up. Meaning getting
 the right appendix information in." Named: C economic conditions, E major market indices,
 F M&A markets, G assumptions & limiting conditions, H certification, I qualifications of

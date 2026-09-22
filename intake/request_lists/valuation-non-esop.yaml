@@ -1,0 +1,146 @@
+# The request list a valuation engagement starts from, when nobody has written one.
+#
+# **This is a starting point, not the firm's list.** It owes nothing to any client's
+# request list: every item here is something a valuation engagement asks for anywhere,
+# and the seven sections are the firm's own groupings, which do not change between
+# engagements (2026-09-18-1). The first real list to arrive replaces this one, and a
+# coverage report says which of the two it was made against - because "nine of twenty
+# provided" against a guess and against the firm's own list are different sentences.
+#
+# `answered_by` names the document classes from `intake/readers/classify.py` that satisfy
+# an item. It is how a pile of files with ordinary names gets matched to things that were
+# asked for, when none of them sit in a lettered folder. An item with no `answered_by` is
+# not a gap: most of a request list is prose and contracts that no classifier recognises,
+# and those are matched by reference or by a person.
+#
+# `essential` is the analyst's own distinction: the historical financials are the gate the
+# whole job waits on, and most of the list is not.
+
+name: valuation-non-esop
+version: 1
+scope: valuation/non-esop
+title: Valuation engagement - standard request list
+provenance: >-
+  A starting list, written from what a valuation engagement generally requires. Not the
+  firm's own list and not any client's. Replace it with the real one as soon as there is
+  one to register.
+
+items:
+  # ---------------------------------------------------------------- A. Financial Records
+  - ref: A.1
+    text: Financial statements for the last five fiscal years, with the accountant's report
+    answered_by: [financial_statements]
+    essential: true
+  - ref: A.2
+    text: Interim financial statements for the current year to date, and the same period last year
+    answered_by: [financial_statements]
+    essential: true
+  - ref: A.3
+    text: Trial balance for each period presented
+    answered_by: [trial_balance]
+    essential: true
+  - ref: A.4
+    text: General ledger detail for the most recent fiscal year
+    answered_by: [gl_detail]
+  - ref: A.5
+    text: Federal and state income tax returns for the last three years
+    answered_by: [tax_return]
+  - ref: A.6
+    text: Budgets, forecasts or projections prepared by management
+    answered_by: [forecast]
+  - ref: A.7
+    text: Accounts receivable ageing as of the valuation date
+  - ref: A.8
+    text: Accounts payable ageing as of the valuation date
+  - ref: A.9
+    text: Inventory listing and the method used to value it
+  - ref: A.10
+    text: Detail of owner compensation, perquisites and related-party transactions
+    essential: true
+  - ref: A.11
+    text: Detail of non-recurring or non-operating income and expense
+  - ref: A.12
+    text: Revenue by product, service or segment for the periods presented
+
+  # ------------------------------------------------------------- B. Corporate Documents
+  - ref: B.1
+    text: Articles of incorporation or organisation, and all amendments
+  - ref: B.2
+    text: Bylaws or operating agreement, and all amendments
+  - ref: B.3
+    text: Capitalisation table, including options, warrants and any other rights
+    answered_by: [cap_table]
+    essential: true
+  - ref: B.4
+    text: Shareholder, operating or buy-sell agreements
+  - ref: B.5
+    text: Minutes of board and shareholder meetings for the last three years
+  - ref: B.6
+    text: Prior valuations or appraisals of the company or its equity
+  - ref: B.7
+    text: Details of any transactions in the company's own shares in the last three years
+
+  # ------------------------------------------------------------- C. Operational Matters
+  - ref: C.1
+    text: Description of the business, its products and services
+  - ref: C.2
+    text: Organisation chart
+  - ref: C.3
+    text: Revenue by customer for the last three years, showing concentration
+  - ref: C.4
+    text: Purchases by supplier, showing concentration and any sole-source dependency
+  - ref: C.5
+    text: Backlog, pipeline or contracted future revenue
+  - ref: C.6
+    text: Principal competitors and the company's position among them
+  - ref: C.7
+    text: Management's view of the outlook, and of any transaction under discussion
+
+  # -------------------------------------------------------- D. Employment/Labor Matters
+  - ref: D.1
+    text: Census of employees by function, with tenure and compensation
+    answered_by: [participant_census]
+  - ref: D.2
+    text: Employment or consulting agreements for officers and key personnel
+  - ref: D.3
+    text: Benefit plans, and the most recent filing for each
+    answered_by: [plan_document]
+  - ref: D.4
+    text: Bonus, commission and incentive arrangements
+  - ref: D.5
+    text: Collective bargaining agreements, if any
+
+  # ------------------------------------------------------------ E. Properties & Equipment
+  - ref: E.1
+    text: Schedule of owned real property
+  - ref: E.2
+    text: Leases for real property, as lessee and as lessor
+  - ref: E.3
+    text: Fixed asset register with the depreciation schedule
+  - ref: E.4
+    text: Recent appraisals of real property or equipment
+
+  # ------------------------------------------------------------------------ F. Contracts
+  - ref: F.1
+    text: Material customer contracts
+  - ref: F.2
+    text: Material supplier contracts
+  - ref: F.3
+    text: Loan agreements, notes payable, lines of credit and any personal guarantees
+    essential: true
+  - ref: F.4
+    text: Leases other than real property
+  - ref: F.5
+    text: Licensing, franchise or royalty agreements
+  - ref: F.6
+    text: Non-compete and confidentiality agreements with employees or owners
+
+  # --------------------------------------------------------------------- G. Legal Matters
+  - ref: G.1
+    text: Pending or threatened litigation, with counsel's assessment
+  - ref: G.2
+    text: Regulatory or compliance matters, including any open examinations
+  - ref: G.3
+    text: Insurance policies in force, and claims history
+  - ref: G.4
+    text: Environmental matters affecting any property used by the business

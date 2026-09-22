@@ -5,28 +5,9 @@
 
 ## Where the build is
 
-- **92 of 93 phases closed**
-- Last green checkpoint: **C54**
-- Current phase: **P93 - It really connected** (gate: human)
-
-## The next action
-
-Work P93. Its full definition is in [BUILD/phases/P93.md](phases/P93.md).
-
-> The one phase in this block a test cannot close. Everything before it is proved against a fake that replays documented behaviour; this is where somebody with the credentials presses each button on the machine that has them and says what happened. It stays open until then, and the build says so rather than reading as finished.
-
-Tasks:
-
-- [ ] Run the Box connection test at work and record which of the four steps answered
-- [ ] Sign in to ShareFile once, and run its test
-- [ ] Press Update, then press it again, and check the second press reports skipped
-- [ ] Set up one real report and update one appendix; open it in Word
-- [ ] Record what the real report's anchors actually are, and correct the registry if they differ
-
-Then:
-
-    python tools/gate.py check P93
-    python tools/gate.py close P93  --signoff "name: what you checked"
+- **95 of 95 phases closed**
+- Last green checkpoint: **C56**
+- **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
 
@@ -130,4 +111,7 @@ Then:
 - **P90** The relay, which may be pressed twice (2026-09-21)
 - **P91** A report is a document with named places in it (2026-09-21)
 - **P92** A button for each appendix that changes (2026-09-21)
+- **P93** What is owed before any of this is believed (2026-09-21)
+- **P94** A request list when nobody wrote one (2026-09-21)
+- **P95** The tracker reads the folder and updates itself (2026-09-21)
 

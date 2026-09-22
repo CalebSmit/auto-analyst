@@ -343,6 +343,8 @@ ACTIONS.approveRecipe = d => approveRecipe(d.name, d.state);
 ACTIONS.move = d => move(d.id, d.to);
 ACTIONS.retire = d => retire(d.id);
 ACTIONS.showFiles = d => showFiles(d.id);
+ACTIONS.updateTracker = d => runTracker(d.id, false);
+ACTIONS.previewTracker = d => runTracker(d.id, true);
 ACTIONS.settings = d => settings(d.id);
 ACTIONS.setRecipe = d => setRecipe(d.id, d.recipe);
 ACTIONS.editProfile = d => editProfile(d.id);
@@ -686,6 +688,46 @@ async function updateAppendix(id, dry) {{
         : '');
 }}
 
+/* The DD tracker. His words: "it just reads what we asked for and what we received, and
+   updates it whenever we get info from the client." The preview exists because the first
+   thing anybody wants to know about a tool that writes into their workbook is what it is
+   about to do to it. */
+async function runTracker(id, dry) {{
+  const box = $('tracker-result');
+  if (!box) return;
+  box.innerHTML = '<div class="note tight">Reading the folder&hellip;</div>';
+  let r;
+  try {{
+    r = await post(`/api/admin/engagements/${{id}}/dd-tracker`, {{dry_run: !!dry}});
+  }} catch (e) {{
+    box.innerHTML = `<div class="note tight bad">${{esc((e && e.detail) || 'That did not work.')}}</div>`;
+    return;
+  }}
+  const c = r.counts;
+  box.innerHTML =
+    `<div class="r lede"><span class="lbl">${{c.provided}} of ${{r.items.length}} provided,
+      ${{c.outstanding}} still outstanding${{c.not_applicable ? ', ' + c.not_applicable + ' not applicable' : ''}}
+      <span class="d">${{r.files_seen}} file(s) read. ${{r.inferred}} matched by reading the
+       document rather than by its number &mdash; worth a glance.${{
+        r.dry_run ? ' Nothing was written.' : ' Written to ' + esc(r.tracker) + '.'}}</span></span>
+     <span class="pill ${{r.essential_outstanding.length ? 'warn' : 'good'}}"><i class="dot"></i>${{
+       r.essential_outstanding.length ? r.essential_outstanding.length + ' essential owed' : 'nothing essential owed'}}</span></div>`
+    + (r.is_a_starting_point
+        ? `<div class="note tight">This list is a starting point, not the firm's own.
+           Replace it with the real request list when there is one, and these numbers
+           become something to act on rather than something to check.</div>`
+        : '')
+    + (r.essential_outstanding.length
+        ? `<div class="r"><span class="lbl">Still needed before the model can start
+            <span class="d">${{r.essential_outstanding.map(esc).join(', ')}}</span></span></div>`
+        : '')
+    + (r.unmatched_files.length
+        ? `<div class="r"><span class="lbl">${{r.unmatched_files.length}} file(s) answered nothing
+            <span class="d">${{r.unmatched_files.map(esc).join('<br>')}}</span></span>
+           <span class="pill warn"><i class="dot"></i>look at these</span></div>`
+        : '');
+}}
+
 /* ---------------------------------------------------------------- actions */
 function initialise() {{
   act(() => post('/api/admin/initialise',
@@ -812,6 +854,17 @@ async function showFiles(id) {{
     <div id="file-list">${{f.files.length ? f.files.map(x => `<div class="r"><span class="lbl">${{esc(x.path)}}</span>
        <span class="sub">${{esc(size(x.bytes))}}</span><span class="sub">${{esc(ago(x.modified))}}</span></div>`).join('')
       : '<div class="empty"><b>Nothing yet</b>The client&rsquo;s files will be listed here once they are in the folder.</div>'}}</div>
+   </div>
+    <div class="section-label">Due diligence request list</div>
+    <div class="r lede">
+     <span class="lbl">What was asked for, and what has come back
+      <span class="d">Reads the folder above and refreshes the tracker beside it. Anything
+       you have typed in it &mdash; notes, In Model?, Not Applicable &mdash; is left exactly
+       where you put it.</span></span>
+     <span><button class="small" data-act="previewTracker" data-id="${{esc(id)}}">What would change</button>
+      <button data-act="updateTracker" data-id="${{esc(id)}}">Update</button></span>
+    </div>
+    <div id="tracker-result"></div>
    </div>
    <div class="foot"><span class="spacer">Every file added here is recorded against your name.</span>
     ${{f.state === 'paused' ? `<button data-act="activateFrom" data-id="${{esc(id)}}">Activate ${{esc(id)}}</button>` : ''}}

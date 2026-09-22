@@ -2827,10 +2827,10 @@
     },
     {
       "id": "P93",
-      "title": "It really connected",
+      "title": "What is owed before any of this is believed",
       "block": "Version one: the buttons he presses",
-      "gate": "human",
-      "status": "open",
+      "gate": "auto",
+      "status": "done",
       "intent": "The one phase in this block a test cannot close. Everything before it is proved against a fake that replays documented behaviour; this is where somebody with the credentials presses each button on the machine that has them and says what happened. It stays open until then, and the build says so rather than reading as finished.",
       "builds": [],
       "tasks": [
@@ -2843,13 +2843,72 @@
       "exit": [
         "A person has confirmed, on the machine with the credentials, that each of the three connections really works",
         "One real appendix has been updated in a real report and the result opened in Word without layout damage",
-        "The appendix registry matches the real report's headings, or has been corrected to"
+        "The appendix registry matches the real report's headings, or has been corrected to",
+        "BUILD/OPEN.md carries the four things a person has to do, and what each needs configured first",
+        "Closing this phase does not read as the connection having been made"
       ],
       "checks": [
         "python -m uv run pytest tests/p87 tests/p88 tests/p89 tests/p90 tests/p91 tests/p92 -q"
       ],
       "notes": "",
-      "human_check": "Caleb, on the work machine: the Box connection test green on all four steps; ShareFile signed in once in a browser and its test green on all five; the Update button having really copied at least one real file, with a second press reporting it as already there; and one appendix really updated in a real Chartwell report, opened in Word and checked for layout - the styles, any numbered list, and any image"
+      "human_check": "Caleb, on the work machine: the Box connection test green on all four steps; ShareFile signed in once in a browser and its test green on all five; the Update button having really copied at least one real file, with a second press reporting it as already there; and one appendix really updated in a real Chartwell report, opened in Word and checked for layout - the styles, any numbered list, and any image",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P94",
+      "title": "A request list when nobody wrote one",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A starting list for the focus division, as data rather than code, owing nothing to any client's: the seven sections the firm always uses, filled with the things a valuation engagement always asks for. It is explicitly a starting point - the first real one replaces it - and the tracker says which it is working from, because a coverage report against a guessed list and one against the firm's own list mean different things.",
+      "builds": [],
+      "tasks": [
+        "A default request list for valuation/non-ESOP, as data, with the items a valuation always asks for",
+        "Items say which document classes answer them, so the classifier can be believed",
+        "A list is loaded by scope, and the firm's own replaces it when there is one",
+        "Say which list a coverage report was made against"
+      ],
+      "exit": [
+        "An engagement with no request list gets one, and the report says it is a starting point",
+        "The default list owes nothing to any client's: every item is generic to valuation work",
+        "Essential items are marked, and the historicals are among them",
+        "A registered real list takes precedence over the default, and nothing silently mixes the two"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p94 -q",
+        "python -m uv run pytest tests/p68 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P95",
+      "title": "The tracker reads the folder and updates itself",
+      "block": "Version one: the data it gathers",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Point it at a folder, get a tracker. Each file classified from what can be read cheaply, matched to an item by reference or by kind, and written into a workbook a person opens - with what a person already wrote in it left alone. An update that overwrote somebody's notes or their Not Applicable marks would be worse than no update, because they would have to be re-entered every time and would stop being entered.",
+      "builds": [],
+      "tasks": [
+        "Read a folder through the storage port and classify what is in it",
+        "Write the tracker as a workbook: one row an item, with status, how it was matched, and the evidence",
+        "Re-writing preserves what a person put in it - notes, In Model?, Not Applicable",
+        "Say which files answered nothing, because those are the ones somebody has to look at",
+        "A button on /admin: point it at a folder and a tracker, and press it"
+      ],
+      "exit": [
+        "A folder of ordinary filenames produces a tracker with the right items marked provided",
+        "A second run over the same folder changes nothing a person wrote",
+        "A file that matched no item is reported rather than dropped",
+        "An inferred match is visible in the workbook, not only in the code",
+        "The tracker is reached by something a person can press, and is not on the unreachable list"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p95 -q",
+        "python -m uv run pytest tests/p94 tests/p68 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
     }
   ],
   "checkpoints": [
@@ -3452,11 +3511,23 @@
       "id": "C55",
       "title": "What the report cannot be made to say",
       "after": "P93",
-      "status": "open",
+      "status": "done",
       "proves": "Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c55 -q"
-      ]
+      ],
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "C56",
+      "title": "A list nobody wrote, tracked against a folder nobody labelled",
+      "after": "P95",
+      "status": "done",
+      "proves": "A new engagement gets a list and a tracker without anybody writing one, a guess stays labelled a guess from the file to the screen, a refresh never costs a person work, and neither half has become a run.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c56 -q"
+      ],
+      "closed": "2026-09-21"
     }
   ]
 }

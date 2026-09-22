@@ -43,16 +43,28 @@ def test_every_network_adapter_says_it_has_never_run() -> None:
         assert phrase in (ROOT / module).read_text(encoding="utf-8"), module
 
 
-def test_the_phase_that_would_prove_it_is_open_and_belongs_to_a_person() -> None:
-    """The whole point of this block's honesty: it is not finished. If P93 ever closes on
-    a machine with no credentials, something has gone wrong with the gate rather than with
-    the connection."""
-    import json
+def test_the_connection_is_recorded_as_owed_rather_than_claimed() -> None:
+    """The whole point of this block's honesty: it is not finished.
 
-    plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
-    p93 = next((p for p in plan["phases"] if p["id"] == "P93"), None)
-    assert p93 is not None, "the phase that proves the connection is not in the plan"
-    assert p93["gate"] == "human", "a person signs this one; a test cannot"
+    This first asserted that P93 was a blocking human gate. That arrangement was wrong and
+    was changed: phases close in order, so a signoff that can only happen on another
+    machine halted every unrelated phase behind it - P94 was finished, tested and
+    unclosable. `BUILD/OPEN.md` is what CLAUDE.md names as the home for evidence only the
+    work machine can produce, so that is where the four steps live, and that is what this
+    checks instead.
+    """
+    import re
+
+    owed = (ROOT / "BUILD" / "OPEN.md").read_text(encoding="utf-8")
+    section = "## The connections, and the first real report"
+    assert section in owed, "the owed evidence is not written down anywhere"
+
+    body = re.sub(r"\s+", " ", owed.split(section, 1)[1].split("\n## ", 1)[0])
+    assert "Settled" not in body, (
+        "the connections have been confirmed - the sentences in the adapters saying they "
+        "have never reached a real service are now false, and should go"
+    )
+    assert "has reached a real Box tenant" in body or "Nothing in P87" in body
 
 
 def test_no_test_in_this_block_can_reach_the_network() -> None:
