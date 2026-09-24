@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-23.*
+*Last written 2026-09-24.*
 
 ## Where the build is
 
-- **121 of 121 phases closed**
-- Last green checkpoint: **C68**
+- **123 of 123 phases closed**
+- Last green checkpoint: **C69**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -140,4 +140,6 @@
 - **P119** The period a figure carries and the period the cell asks for (2026-09-22)
 - **P120** Guards that were checked by looking for a word (2026-09-22)
 - **P121** Which year is FY1 (2026-09-23)
+- **P122** A call the plan can bound, and no loop the graph does not own (2026-09-24)
+- **P123** Watching a run happen (2026-09-24)
 

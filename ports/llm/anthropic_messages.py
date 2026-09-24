@@ -161,6 +161,10 @@ class AnthropicMessagesLLM:
                 output_config={"effort": request.pin.effort},
                 **({"stop_sequences": list(request.stop_sequences)}
                    if request.stop_sequences else {}),
+                # The step's own bound, not the SDK's guess from `max_tokens`. Without it
+                # a slow night could spend an hour inside one step that declared five
+                # minutes, with nothing in the event stream saying so.
+                **({"timeout": request.timeout_s} if request.timeout_s else {}),
             )
         except Exception as exc:  # noqa: BLE001 - re-raised as a diagnostic below
             if type(exc).__name__ in {"NotFoundError", "BadRequestError"}:
@@ -229,7 +233,14 @@ class AnthropicMessagesLLM:
             raise RegistryError(
                 diagnose(MISSING_CREDENTIAL, f"{API_KEY} is not set")
             )
-        self._client = anthropic.Anthropic(api_key=str(secrets.get(API_KEY)))
+        # `max_retries=0`: **the graph owns every loop.** The SDK's default is two, and
+        # those two sit inside a step the executor will itself retry - so one step could
+        # make six HTTP attempts while the run's own count said one, which is a loop
+        # nothing declared and nothing could count. The executor's `retries`, capped by
+        # `transport_retries_max`, is now the whole of the retry policy.
+        self._client = anthropic.Anthropic(
+            api_key=str(secrets.get(API_KEY)), max_retries=0
+        )
         return self._client
 
 

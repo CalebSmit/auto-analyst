@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**121 of 121 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**123 of 123 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -281,4 +281,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C67 - Guards that were not guarding** | integration | A figure has to come from the year its cell asks for; and the guards over the peer address, the configuration boundary, local OCR, the secrets port and the waiver gate are each checked by what they do rather than by a word near them. | 2026-09-23 |
 | [x] | **P121** Which year is FY1 | auto | A real run binds figures to cells instead of being refused by the period check | 2026-09-23 |
 | [x] | **C68 - Which year is FY1** | integration | Every run derives the client's years onto the template's slots by one stated rule, says in the payload which year each slot is, and binds figures to cells instead of being refused by the check that was added to protect them. | 2026-09-23 |
+| [x] | **P122** A call the plan can bound, and no loop the graph does not own | auto | A step that declares 300 seconds cannot spend longer than that in one call | 2026-09-24 |
+| [x] | **P123** Watching a run happen | auto | A run in progress can be watched from one command with no browser | 2026-09-24 |
+| [x] | **C69 - Bounding a real call, and being able to watch one** | integration | A slow provider produces a bounded, visible failure rather than an unbounded silence, and a run in progress can be watched from one command that changes nothing. | 2026-09-24 |
 

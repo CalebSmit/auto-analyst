@@ -390,6 +390,28 @@ engagement has spent across its runs. A run that would cross any of them halts a
 rather than continuing and billing, and says which ceiling. Cost per run and per engagement
 is on the Activity page.
 
+**Roughly, on a real folder.** Thirteen documents from an actual engagement produce a
+128 KB payload at timing, 102 KB at tagging and 305 KB at model-load. On the mid tier
+(`claude-sonnet-5`, $2 per million in and $10 out) that is on the order of **a dollar for
+one clean pass**, and a few dollars once the review loop has sent a step back once or
+twice. The firm ceiling of $40 a run is a backstop, not a budget; set the engagement's own
+to something you would not mind spending twice.
+
+### Watching a run while it happens
+
+```
+python -m uv run python tools/watch_run.py
+```
+
+Which step is going, how long it has been going against the bound its own step declared,
+what has been spent, what is waiting on a person, and anything the stall detector raised.
+`--once` prints a single look, which is the thing to paste when asking somebody what is
+wrong. It reads and writes nothing, so it is safe to leave running beside a real run.
+
+The first thing worth knowing: after the last file lands, nothing happens until the folder
+has been quiet for the engagement's quiet period — thirty minutes by default. Shorten it
+on the engagement's settings if you are testing and do not want to wait.
+
 ---
 
 ## The rules that are not configurable

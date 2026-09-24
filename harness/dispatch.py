@@ -222,6 +222,7 @@ class SkillDispatcher:
         procedure: Procedure,
         pin: ModelPin,
         repair_feedback: ContentRef | None = None,
+        timeout_s: float | None = None,
     ) -> Dispatched:
         if step.kind != "skill" or not step.skill:
             raise ValueError(f"{step.id} is not a skill step")
@@ -323,6 +324,7 @@ class SkillDispatcher:
             pin=pin,
             system=system,
             messages=(Message("user", wrapped.text),),
+            timeout_s=timeout_s,
             metadata={
                 "run_id": run_id,
                 "context_ref": built.context_ref,

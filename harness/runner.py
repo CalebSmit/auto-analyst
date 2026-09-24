@@ -134,6 +134,9 @@ class SkillStepRunner:
             procedure=procedure,
             pin=self.context.pin,
             repair_feedback=feedback,
+            # The bound the executor already computed for this attempt. It was on the
+            # Attempt and read by nothing.
+            timeout_s=float(attempt.timeout_s),
         )
 
         # Self-verification would go here, and does not yet. It is not a guard failure, so

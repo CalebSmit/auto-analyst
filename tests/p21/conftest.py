@@ -375,9 +375,16 @@ def world(
     vault.close()
 
 
-def dispatch(world: dict[str, Any], step: Step, scope: ResolvedScope, port: Any) -> Any:
+def dispatch(
+    world: dict[str, Any],
+    step: Step,
+    scope: ResolvedScope,
+    port: Any,
+    timeout_s: float | None = None,
+) -> Any:
     return world["dispatcher_for"](port).run(
         step=step,
+        timeout_s=timeout_s,
         run_id=world["run_id"],
         engagement_id=ENGAGEMENT,
         client_id=CLIENT,

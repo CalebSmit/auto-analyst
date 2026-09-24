@@ -2242,3 +2242,28 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C68 after P121, covering P121
 - proves: Every run derives the client's years onto the template's slots by one stated rule, says in the payload which year each slot is, and binds figures to cells instead of being refused by the check that was added to protect them.
+
+## 2026-09-24 - P122 A call the plan can bound, and no loop the graph does not own
+
+**Why:** Two things the plan declares and nothing enforces, both of which decide what happens when a call is slow. Every step carries timeout_s - graph/execute.py computes it as min(step's, the firm ceiling) and puts it on the Attempt - and nothing between there and the provider reads it: the adapter passes no timeout, so the SDK falls back to a bound it computes from max_tokens. And the SDK is constructed with its default max_retries of 2, which sits inside a step the executor will itself retry, so one step can make six HTTP attempts and the run's own retry count says one. Worst case on a slow night is an hour on a single step with nothing in the event stream to say so. The second half is a blueprint non-negotiable rather than a preference: the graph owns every loop, declared with an integer maximum the compiler checks, and a retry the transport performs is a loop nothing counts.
+
+- phase added: P122 A call the plan can bound, and no loop the graph does not own (A run that finishes, gate: auto)
+- exit criterion: A step that declares 300 seconds cannot spend longer than that in one call
+- exit criterion: One step makes at most as many provider calls as the plan says it may
+- exit criterion: A timeout is distinguishable from a refusal, in the event and in the code
+
+## 2026-09-24 - P123 Watching a run happen
+
+**Why:** Tonight is the first run with a real key, and there is no way to watch one happen. Everything the build records is there - step.started and step.completed, model.called and model.answered with a price on it, the stall detector's alerts, the review queue - and all of it is behind a browser page a person has to keep refreshing, or behind an API a person has to know the shape of. What somebody actually needs while a run is going is one command that says which step is running, how long it has been running, what has been spent, and whether anything has gone quiet. Without it the honest answer to 'is it working or is it stuck' is to open the console and squint at a trace.
+
+- phase added: P123 Watching a run happen (A run that finishes, gate: auto)
+- exit criterion: A run in progress can be watched from one command with no browser
+- exit criterion: A step running longer than its step declared is called out by name
+- exit criterion: Nothing it does writes to the store
+
+## 2026-09-24 - C69 Bounding a real call, and being able to watch one
+
+**Why:** Both phases are about the first run with a real key. P122 is the bound: every step declared a timeout, the executor computed it, and nothing between there and the provider read it - while the SDK retried twice inside a step the executor would retry again, which is a loop the graph does not own. P123 is the seeing: everything a person wants while a run is going was recorded and only reachable through a browser.
+
+- checkpoint added: C69 after P123, covering P122, P123
+- proves: A slow provider produces a bounded, visible failure rather than an unbounded silence, and a run in progress can be watched from one command that changes nothing.

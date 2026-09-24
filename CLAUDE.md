@@ -76,7 +76,14 @@ python -m uv run python tools/serve.py                      # admin at /admin, o
 python -m uv run python tools/simulate_firm.py              # a generated firm through the real server, no key
 python -m uv run python tools/simulate_firm.py --scripted   # the same, with the review loop walked end to end
 python -m uv run python tools/simulate_files.py             # every document case through the real server
+python -m uv run python tools/watch_run.py                  # what a run is doing, while it does it
+python -m uv run python tools/watch_run.py --once           # one look, to paste somewhere
 ```
+
+`watch_run.py` is the answer to "is it working or is it stuck" during a real run: the step
+that is going, how long it has been going against the bound its own step declared, what has
+been spent against the ceiling, what is waiting on a person, and anything the stall detector
+raised. It reads and writes nothing.
 
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not

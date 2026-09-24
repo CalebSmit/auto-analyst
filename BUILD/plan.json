@@ -3595,6 +3595,58 @@
       ],
       "notes": "",
       "closed": "2026-09-23"
+    },
+    {
+      "id": "P122",
+      "title": "A call the plan can bound, and no loop the graph does not own",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the timeout the plan already computes the one that bounds the call, and make the executor's declared retries the only retries - so a slow provider produces a bounded, visible failure instead of an unbounded silence.",
+      "builds": [],
+      "tasks": [
+        "The step's timeout reaches the provider and bounds the call",
+        "The transport retries nothing; the executor's declared count is the whole retry policy",
+        "A call that runs out of time is a transport failure, retried by the graph and recorded",
+        "The bound is on the record, so a slow step can be seen while it is happening"
+      ],
+      "exit": [
+        "A step that declares 300 seconds cannot spend longer than that in one call",
+        "One step makes at most as many provider calls as the plan says it may",
+        "A timeout is distinguishable from a refusal, in the event and in the code"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p122 -q",
+        "python -m uv run pytest tests/p116 tests/p08 tests/p26 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-24"
+    },
+    {
+      "id": "P123",
+      "title": "Watching a run happen",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "One command that reports a run as it goes - the step, the elapsed time against the bound the plan set, the spend against the ceiling, what is waiting on a person and what has gone quiet - so the first real run can be watched rather than guessed at.",
+      "builds": [],
+      "tasks": [
+        "It reports the current step and how long it has been running",
+        "It reports spend so far against whichever ceiling binds first",
+        "It says what is waiting on a person and what the stall detector has raised",
+        "It reads the record and changes nothing"
+      ],
+      "exit": [
+        "A run in progress can be watched from one command with no browser",
+        "A step running longer than its step declared is called out by name",
+        "Nothing it does writes to the store"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p123 -q",
+        "python -m uv run pytest tests/p71 tests/p73 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-24"
     }
   ],
   "checkpoints": [
@@ -4346,6 +4398,17 @@
         "python -m uv run pytest tests/checkpoints/c68 -q"
       ],
       "closed": "2026-09-23"
+    },
+    {
+      "id": "C69",
+      "title": "Bounding a real call, and being able to watch one",
+      "after": "P123",
+      "status": "done",
+      "proves": "A slow provider produces a bounded, visible failure rather than an unbounded silence, and a run in progress can be watched from one command that changes nothing.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c69 -q"
+      ],
+      "closed": "2026-09-24"
     }
   ]
 }

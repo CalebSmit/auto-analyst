@@ -103,6 +103,16 @@ class LLMRequest:
     system: str
     messages: tuple[Message, ...]
     max_tokens: int = 16000
+    timeout_s: float | None = None
+    """How long this call may take, from the step that asked for it.
+
+    The plan has always declared one - `graph/execute.py` computes
+    `min(step.timeout_s, the firm ceiling)` and puts it on the `Attempt` - and until P122
+    nothing between there and the provider read it, so the bound in force was one the SDK
+    computed from `max_tokens`. Deliberately not part of `content_hash`: how long a call
+    was allowed to take is not what was asked, and two calls that differ only in patience
+    are the same call for replay and for the ledger."""
+
     stop_sequences: tuple[str, ...] = ()
     metadata: dict[str, str] = field(default_factory=dict)
     """Non-content labels - run_id, step_id, skill. Never client data: this crosses the
