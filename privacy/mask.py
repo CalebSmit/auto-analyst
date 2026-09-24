@@ -22,7 +22,7 @@ import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from privacy.payload_scan import IdentifierList
+from privacy.payload_scan import IdentifierList, loosely
 from privacy.vault import TOKEN_KINDS, MaskVault
 
 __all__ = ["Identifier", "Masked", "Masker", "ACCOUNT_NUMBER"]
@@ -86,7 +86,12 @@ class Masker:
 
         # Longest first, so "Bob Henderson" is masked before "Bob" could split it.
         for ident in sorted(declared, key=lambda i: len(i.value), reverse=True):
-            pattern = re.compile(re.escape(ident.value), re.IGNORECASE)
+            # `loosely` rather than `re.escape`, and imported from the scan rather than
+            # written again here - see P97. The two nodes are deliberately separate so the
+            # check can be tested apart from the thing it checks, but they may not disagree
+            # about what finding a name means, and two functions that look alike is how
+            # they would come to.
+            pattern = loosely(ident.value)
             if not pattern.search(out):
                 continue
             token = self.vault.issue(engagement_id, ident.kind, ident.value, run_id)

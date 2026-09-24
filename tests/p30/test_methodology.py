@@ -34,6 +34,7 @@ from registries.methodology import (
     digest_of,
 )
 from tests.conftest import needs_a_checkout
+from tests.counting import in_words
 from tests.p30.conftest import WITH_AN_INSTRUCTION, WITH_CLIENT_DATA
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -288,11 +289,16 @@ def test_the_check_joins_the_table_and_the_blueprint_agrees(
     )
     assert [c.id for c in preflight.run().checks] == ids
 
-    written = {10: "Ten", 11: "Eleven", 12: "Twelve", 13: "Thirteen", 14: "Fourteen"}
+    # Derived, both of them. The table used to stop at fourteen and there was an
+    # `assert len(CHECKS) == 14` beside it, so P114 adding a check made the code, this
+    # test and the blueprint wrong in one move - and a second copy of the same number in
+    # tests/p31 as well. The number is written down once now, in tests/counting.py.
+    said = in_words(len(CHECKS))
     blueprint = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
-    assert len(CHECKS) == 14
-    assert f"{written[len(CHECKS)]} checks over a proposed or live configuration" in blueprint
-    assert f"{written[len(CHECKS)].lower()} checks, then what an admin may" in blueprint
+    assert f"{said} checks over a proposed or live configuration" in blueprint, (
+        f"preflight runs {len(CHECKS)} checks and the blueprint says otherwise"
+    )
+    assert f"{said.lower()} checks, then what an admin may" in blueprint
     assert "every methodology file cleared, and the version that was cleared" in blueprint
 
 

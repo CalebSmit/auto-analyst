@@ -20,9 +20,18 @@ from pathlib import Path
 
 import yaml
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:  # this is run as a script, from wherever somebody is standing
+    sys.path.insert(0, str(ROOT))
+
+# The word the writer puts in a waived input's cell. Imported rather than repeated: this
+# front page describes what the writer does, and two copies of one string drift apart.
+from deliver.builder import NOT_FOUND  # noqa: E402
+from deliver.registry import SOURCE_SUFFIX  # noqa: E402
+
 TEMPLATES = ROOT / "templates"
 INPUTS = TEMPLATES / "inputs"
 
@@ -42,6 +51,95 @@ LINES = [
     ("Office", "Office supplies"),
     ("Other_Opex", "Other operating expense"),
 ]
+
+
+NOT_THE_MODEL = "This workbook is not the Chartwell model."
+
+SHOWN_TO_THE_DOLLAR = "#,##0"
+"""Excel's display format for the value column: thousands separated, no decimals.
+
+A format and not a rounding. `#,##0` changes what is drawn and nothing about what
+is stored, which is the whole point - `=B7*2` still uses the cents."""
+
+WHAT_IT_IS = [
+    "It is a worksheet of inputs, laid out the way the model's Input tab expects them, for",
+    "you to copy from. Nothing here is a valuation and nothing here has been concluded.",
+    "",
+    "FIGURES ARE IN THOUSANDS, whatever the client's own statements were stated in. They are",
+    "shown to the nearest dollar and stored exactly as they were restated - not rounded to",
+    "the cent, not rounded at all. What you see is Excel rounding for the eye; the cell",
+    "underneath keeps every decimal, so a total you build on these adds up to what the",
+    "statements say rather than to the rounding.",
+    "",
+    "Every figure was read out of a document in the engagement's folder. The Source column",
+    "says which file and which row, so any one of them can be checked in a click rather than",
+    "taken on trust.",
+    "",
+    f"A Value reading {NOT_FOUND.upper()!r} is an input nothing in the folder answered. It says",
+    "so in words rather than being left blank, because a blank cell among filled ones reads",
+    "as a",
+    "zero, and a zero is a number. Nothing here is guessed: a wrong figure that looks like a",
+    "reading is the one failure this whole build exists to prevent. Every one of them is also",
+    "listed by name in the run's review queue, beside the person who said to write without it.",
+]
+
+
+def build_input_help(schema: dict) -> bytes:  # type: ignore[type-arg]
+    """The version 1 deliverable: an Input tab and a page saying what this is not.
+
+    Deliberately not the same shape as the model templates above. Those carry Historicals
+    and DCF sheets of formulas over their named ranges, which is what makes them models. A
+    workbook that computed anything would be the thing version 1 is defined against - the
+    analyst runs the model, and this fills in front of him.
+
+    The first sheet is the disclaimer rather than the data, because the first sheet is what
+    opens, and a file that looks like the firm's model until you read the second tab is one
+    filename away from being used as it.
+    """
+    wb = Workbook()
+    front = wb.active
+    front.title = "Not the model"
+    front["A1"] = NOT_THE_MODEL
+    front["A1"].font = Font(bold=True, size=14)
+    for n, line in enumerate(WHAT_IT_IS, start=3):
+        front.cell(row=n, column=1, value=line)
+    front.column_dimensions["A"].width = 96
+
+    sheet = wb.create_sheet("Input")
+    sheet["A1"] = "Input"
+    sheet["B1"] = "Value"
+    sheet["C1"] = "Source"
+    for cell in ("A1", "B1", "C1"):
+        sheet[cell].font = Font(bold=True)
+    sheet["A2"] = "Template version"
+    sheet["A3"] = "Run id"
+    wb.defined_names["Template_Version"] = DefinedName("Template_Version", attr_text="Input!$B$2")
+    wb.defined_names["Run_Id"] = DefinedName("Run_Id", attr_text="Input!$B$3")
+
+    row = 5
+    for entry in [*schema["required"], *schema.get("optional", [])]:
+        sheet.cell(row=row, column=1, value=f"{entry['line']} ({entry['period']})")
+        # Zero decimals on the *display* and every decimal in the cell. The analyst's rule,
+        # and it is the right way round: rounding before the write would bake a rounding
+        # error into the number a model is built on, and a schedule of forty rounded
+        # figures does not re-add to the total it came from. Excel rounds for the eye.
+        sheet.cell(row=row, column=2).number_format = SHOWN_TO_THE_DOLLAR
+        wb.defined_names[entry["name"]] = DefinedName(entry["name"], attr_text=f"Input!$B${row}")
+        # And the cell beside it, which says which document and which row the figure came
+        # from. A named range because everything written into this workbook is bound by
+        # name - `C7` is not a contract - and a stamp rather than an input because the
+        # writer owns it and the mapping may never name one.
+        if schema.get("sources_beside_values"):
+            source = f"{entry['name']}{SOURCE_SUFFIX}"
+            wb.defined_names[source] = DefinedName(source, attr_text=f"Input!$C${row}")
+        row += 1
+    sheet.column_dimensions["A"].width = 44
+    sheet.column_dimensions["B"].width = 18
+    sheet.column_dimensions["C"].width = 52
+
+    out = BytesIO()
+    wb.save(out)
+    return out.getvalue()
 
 
 def build(schema: dict) -> bytes:  # type: ignore[type-arg]
@@ -112,7 +210,12 @@ def main(argv: list[str]) -> int:
     for schema_path in sorted(INPUTS.glob("*.yaml")):
         schema = yaml.safe_load(schema_path.read_text(encoding="utf-8"))
         target = TEMPLATES / schema["template"]
-        data = build(schema)
+        # `kind` chooses the shape. A model template carries formulas; the input-help
+        # workbook carries none, which is the difference between the thing the analyst
+        # runs and the thing this build fills in front of him.
+        data = (
+            build_input_help(schema) if schema.get("kind") == "input_help" else build(schema)
+        )
         if check:
             if not target.is_file() or _cells(target.read_bytes()) != _cells(data):
                 print(f"differs: {target.name}")

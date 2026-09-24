@@ -23,6 +23,20 @@ bindings:
       The template most of the firm builds into. Everything inherits this unless it says
       otherwise.
 
+  - layer: valuation/non-esop/_segment
+    file: Chartwell_Input_Help_v1.xlsx
+    template_version: "1.0"
+    why: >-
+      The focus division, and version 1's deliverable there is not a model. It fills a
+      workbook laid out like the model's Input tab which a person copies from, so this
+      layer binds that workbook rather than the firm default.
+
+      Not the guessed-template case BUILD/OPEN.md warns about. That warning is against
+      inventing the shape of `Model Template - MASTER 2026` and binding it here, which
+      would change what every non-ESOP run writes on a guess. This binds a workbook that
+      is explicitly not the model and says so on its first sheet; when the real model
+      arrives it is registered beside this, not in place of it.
+
   - layer: valuation/esop/_segment
     file: Chartwell_ESOP_Model_v9.xlsx
     template_version: "9.4"

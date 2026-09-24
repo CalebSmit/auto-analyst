@@ -41,7 +41,7 @@ from deliver.registry import TemplateRegistry, version_key
 from graph.recipes import load_recipe
 from graph.resolve import ScopeResolver, TemplateBinding
 from intake.config import ConfigStore
-from intake.roster import ProjectRoster, RosterEntry
+from intake.roster import ProjectRoster, RosterEntry, RosterState
 from intake.store import IntakeStore
 from registries.constraints import ConstraintRegistry
 from registries.errors import (
@@ -67,6 +67,7 @@ from registries.errors import (
     diagnose,
 )
 from registries.methodology import MethodologyRegister
+from registries.recipes import RECIPES_DIR, unbuilt_skills
 from registries.scopes import ScopePath
 
 __all__ = ["CHECKS", "Check", "Failure", "Preflight", "PreflightReport", "resolve_model"]
@@ -79,6 +80,7 @@ CHECKS: tuple[tuple[str, str], ...] = (
     ("credentials", "Credentials present and unexpired"),
     ("watch_overlap", "No two watches claim the same path"),
     ("unclaimed_folders", "Every swept subfolder maps to an engagement"),
+    ("folder_depth", "Every engagement's folder is as deep as its watch looks"),
     ("held_files", "Every file seen under an engagement carries a document type"),
     ("scope_resolves", "Every active engagement resolves to at least one skill"),
     ("scope_defined", "Every active engagement's practice group and segment are defined"),
@@ -231,6 +233,7 @@ class Preflight:
             self._credentials(),
             self._watch_overlap(),
             self._unclaimed(),
+            self._folder_depth(entries),
             self._held(entries),
             self._scopes(entries),
             self._scope_defined(entries),
@@ -380,6 +383,81 @@ class Preflight:
             if rows
             else "every swept folder maps to an engagement",
         )
+
+    def _folder_depth(self, entries: tuple[RosterEntry, ...]) -> Check:
+        """A folder that can never be swept, and the files sitting above one that can.
+
+        Two halves of one mistake, and the first is provable before any file exists: an
+        engagement folder one level shallower than its watch's depth matches nothing that
+        will ever be listed. It blocks, because there is no state of the world in which
+        that engagement runs.
+
+        The second half is a warning: files *are* under the watch but above the depth it
+        looks at. That can be a filing mistake or it can be a folder of things that live
+        beside the client folders, and which one is a person's call - so it is said, with
+        the count and the place, and it stops nothing.
+
+        Found on the first real client folder, where a one-level folder produced no
+        targets, no arrivals and nothing unclaimed - so the check above this one reported
+        "every swept folder maps to an engagement", which was true because none were.
+        """
+        from intake.sweep import folder_too_shallow  # noqa: PLC0415
+
+        watches = {w.id: w for w in self.config.watches()}
+        failures: list[Failure] = []
+        for entry in entries:
+            watch = watches.get(entry.watch_id)
+            if watch is None or entry.state is RosterState.ARCHIVED:
+                continue
+            problem = folder_too_shallow(entry.folder or "", watch)
+            if problem is not None:
+                failures.append(
+                    Failure(
+                        "folder_depth",
+                        diagnose(
+                            NO_ENGAGEMENT,
+                            f"{entry.engagement_id}: {problem}",
+                            locator=f"roster/{entry.engagement_id}/folder",
+                            expected=f"{watch.depth} level(s) below {watch.root or 'the root'}",
+                            found=entry.folder or "(none)",
+                        ),
+                        engagement_ids=(entry.engagement_id,),
+                    )
+                )
+        for row in self._shallow_files():
+            failures.append(
+                Failure(
+                    "folder_depth",
+                    diagnose(
+                        NO_ENGAGEMENT,
+                        f"{row.files} file(s) in {row.location} sit above the "
+                        f"{row.depth} level(s) watch {row.watch_id} looks at; nothing "
+                        f"there is swept",
+                        locator=f"{row.watch_id}/{row.location}",
+                    ),
+                    severity="warn",
+                )
+            )
+        return _check(
+            "folder_depth",
+            failures,
+            "every folder is where its watch looks"
+            if not failures
+            else f"{len(failures)} folder(s) the sweep cannot reach",
+        )
+
+    def _shallow_files(self) -> tuple[Any, ...]:
+        """What the planner found above the depth. Empty when there is no storage port to
+        list with, which is the case in every test that does not care about files."""
+        if self.storage is None:
+            return ()
+        from intake.sweep import SweepPlanner  # noqa: PLC0415
+
+        try:
+            planner = SweepPlanner(self.roster, self.config, self.storage)
+            return tuple(planner.plan().shallow)
+        except Exception:  # noqa: BLE001 - an unreadable watch is check 1's finding
+            return ()
 
     def _held(self, entries: tuple[RosterEntry, ...]) -> Check:
         """Files seen under an engagement that no declared document type claims. Held is
@@ -675,6 +753,40 @@ class Preflight:
             name = entry.recipe or (on_watch.recipe if on_watch else "")
             if not name:
                 continue
+            # Compiling is not enough. A recipe compiles when its skills resolve for the
+            # group; it finishes when every one of them has a mechanical half. Three of
+            # the four on disk compile and stop partway, after paying for every step
+            # before the gap - which is a refusal that belongs here, before the money,
+            # rather than five steps into a run.
+            unbuilt = unbuilt_skills(RECIPES_DIR / f"{name}.yaml")
+            if unbuilt:
+                failures.append(
+                    Failure(
+                        "recipes_and_budgets",
+                        diagnose(
+                            RECIPE_INVALID,
+                            f"{entry.engagement_id} runs {name!r}, which names "
+                            f"{', '.join(unbuilt)} - no procedure exists for "
+                            f"{'them' if len(unbuilt) > 1 else 'it'}, so a run would pay "
+                            f"for every step before and stop there",
+                            locator=f"engagements/{entry.engagement_id}/recipe",
+                            expected="a workflow every step of which is built",
+                            found=name,
+                        ),
+                        engagement_ids=(entry.engagement_id,),
+                        # Said, loudly, and blocking nothing. Refusing here would refuse
+                        # three of the four workflows the firm has approved, which is the
+                        # firm's decision and not this build's to take on its behalf. The
+                        # protection that matters is at the other end: the form now offers
+                        # one that finishes and labels each of the others with the step it
+                        # will stop at, so nobody picks one of these without being told.
+                        severity="warn",
+                    )
+                )
+            # And still compile it. Saying a workflow is unbuilt does not answer whether
+            # this group could run it at all - a consulting engagement on a valuation
+            # workflow cannot compile, which blocks, and an early `continue` here turned
+            # that refusal into a warning and let it activate.
             try:
                 self._compile_for(entry, self._recipes(name))
             except Exception as failure:  # noqa: BLE001 - loads or compiles, either way

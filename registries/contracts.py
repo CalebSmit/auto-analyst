@@ -74,6 +74,45 @@ class IntakeDocumentType:
     supplied_by: str
     privacy_class: str
     required_by: tuple[str, ...]
+    carries_periods: bool
+    """Is a document of this kind a statement of figures over comparable periods.
+
+    Narrower than "has dates in it", and the distinction cost a wrong answer before it was
+    written down. A capital-expenditure schedule is a list of transactions by date and a
+    customer schedule is sales by year; both carry dates and neither is a statement the
+    timing skill can align, so both declare `false`. What declares `true` is what an
+    accountant would call a statement: the financials, the trial balance, the tax return
+    and the forecast that projects them.
+
+    Declared here, and required rather than defaulted, because it decides which documents
+    a skill is even asked about. `timing-normalization` reads periods and scale; handed a
+    set of board minutes it reported each one ambiguous, a person answered, the step re-ran
+    and reported them again - thirty passes and no progress, found on the first real client
+    folder the moment the binder stopped holding everything that was not a statement.
+
+    A default would have hidden it. Whoever adds a type has to answer, and "no" is the
+    commoner answer: an org chart, a competitor list and a stockholder list all matter to a
+    valuation and none of them has a fiscal year."""
+
+
+def _must_declare(row: dict[str, Any], field: str) -> bool:
+    """Read a required boolean, refusing an absence rather than defaulting it.
+
+    `row.get(field, False)` would let a type arrive without an answer and read as "no",
+    which is exactly the silence this field exists to prevent.
+    """
+    if field not in row:
+        raise RegistryError(
+            diagnose(
+                CONTRACT_INDEX_INVALID,
+                f"intake type {row.get('id')!r} does not declare {field}. It decides "
+                f"which skills are asked about a document of this kind, and there is no "
+                f"sensible default: a type that carries no periods and says nothing is "
+                f"handed to the timing skill, which then asks a person about a document "
+                f"that has no dates in it.",
+            )
+        )
+    return bool(row[field])
 
 
 class ContractRegistry:
@@ -166,6 +205,7 @@ class ContractRegistry:
                 supplied_by=row["supplied_by"],
                 privacy_class=row["privacy_class"],
                 required_by=tuple(row.get("required_by") or ()),
+                carries_periods=_must_declare(row, "carries_periods"),
             )
             for row in index.get("intake_document_types") or ()
         }

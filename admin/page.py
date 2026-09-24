@@ -66,8 +66,9 @@ body.all-done #checklist .bar{{display:none}}
  <div class="board">
   <section class="card" style="grid-area:steps">
    <header><h2>Getting set up</h2>
-    <p class="why">Seven steps, in order. Each is checked against the live configuration, so
-     this cannot tell you something is done when it is not.</p></header>
+    <p class="why">Eleven steps, in order. Each is checked against the live system &mdash; the
+     first two against this machine and the rest against the configuration &mdash; so this
+     cannot tell you something is done when it is not.</p></header>
    <div class="body"><div id="checklist"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 
@@ -195,6 +196,7 @@ body.all-done #checklist .bar{{display:none}}
     <div class="field wide">
      <label for="e_folder">Their folder, under the watch root</label>
      <input id="e_folder" placeholder="Henderson Manufacturing/2026 Valuation">
+     <p class="hint" id="e_folder_hint"></p>
     </div>
    </div>
 
@@ -240,8 +242,31 @@ function checklist() {{
   const files = METH.files || [];
   const cleared = files.length > 0 && files.every(f => f.state === 'cleared');
   const active = roster.filter(r => r.state === 'active').length;
+  /* The two that live in .env rather than in the configuration document. Without them the
+     seven steps below can all be done and a run still cannot mask anything or ask anything,
+     which is the state this screen used to call "Ready to run". */
+  const env = (SETUP && SETUP.environment_ready) || {{}};
+  const approved = (SETUP.recipes || []).filter(x => x.state === 'registered');
+  const runnable = approved.filter(x => x.can_finish !== false);
+  const vault = env.vault || {{ready: false, detail: 'unknown', name: 'AA_VAULT_KEY'}};
+  const model = env.model || {{ready: false, adapter: '?', detail: 'unknown'}};
 
   const steps = [
+    /* Before the configuration, because neither can be fixed from this page: both are
+       lines in a file on this machine, and a person who reaches step seven without them
+       has done six steps that cannot be used yet. */
+    {{done: vault.ready, t: 'Set the masking key',
+      d: vault.ready
+        ? vault.detail
+        : vault.detail || (vault.name + ' is not set. Nothing can be masked without it, and '
+            + 'the worker pool will not start.'),
+      go: vault.ready ? null : ['How to set it', 'explainVault']}},
+    {{done: model.ready, t: 'Connect the AI model',
+      d: model.ready
+        ? ('Answered by ' + model.adapter)
+        : ('Skills are answered by ' + model.adapter + ' \u2014 ' + model.detail
+           + '. Setup will finish and no work will be done.'),
+      go: ['Test the connection', 'testModel']}},
     {{done: configured, t: 'Set this environment up',
       d: 'Writes the first configuration. Nothing else can be saved until it exists.',
       go: configured ? null : ['Set it up', 'initialise']}},
@@ -259,6 +284,34 @@ function checklist() {{
       go: configured && !cleared && files.some(f => f.state !== 'cleared')
         ? ['Read the next one', 'clearFile',
            {{name: (files.find(f => f.state !== 'cleared') || {{}}).name || ''}}] : null}},
+    /* Approval is a board decision and the register is not committed, so a clone has
+       nothing approved and Activate refuses at the last step for the want of a step that
+       was never on the list. It sits before registering because that is where the watch
+       form asks which workflow to run. */
+    {{done: approved.length > 0, t: 'Approve a workflow',
+      d: approved.length
+        ? approved.length + ' approved' + (runnable.length ? '; ' + runnable[0].name + ' is the one a run finishes' : '')
+        : 'Nothing runs a workflow nobody approved. ' + ((SETUP.recipes || []).length
+            ? (SETUP.recipes || []).length + ' are on disk, waiting.' : ''),
+      go: (() => {{
+        const waiting = (SETUP.recipes || []).filter(x => x.state !== 'registered')
+          .sort((a, b) => (a.can_finish === false) - (b.can_finish === false))[0];
+        return approved.length || !waiting ? null
+          : ['Approve ' + waiting.name, 'approveRecipe', {{name: waiting.name, state: waiting.state}}];
+      }})()}},
+    {{done: roster.length > 0 && roster.every(r => Number(r.budget_usd) > 0), t: 'Set a spend limit',
+      d: (() => {{
+        if (!roster.length) return 'What each engagement may cost in model calls, in total. Without one the only cap is the firm ceiling of $' + SETUP.firm_ceiling_usd + ' a run, with no limit on the number of runs.';
+        const open = roster.filter(r => !(Number(r.budget_usd) > 0));
+        if (!open.length) return 'Set on ' + plural(roster.length, 'engagement', 'engagements');
+        return open[0].client + ' has none, so its runs are capped only by the firm ceiling of $'
+          + SETUP.firm_ceiling_usd + ' each, with no limit on the total'
+          + (open.length > 1 ? '; ' + (open.length - 1) + ' more like it' : '');
+      }})(),
+      go: (() => {{
+        const open = roster.find(r => !(Number(r.budget_usd) > 0));
+        return open ? ['Set one', 'settings', {{id: open.engagement_id}}] : null;
+      }})()}},
     {{done: roster.length > 0, t: 'Register an engagement',
       d: roster.length ? plural(roster.length, 'engagement', 'engagements') + ' on the roster'
                        : 'The client work itself, and the practice group it belongs to.',
@@ -301,7 +354,7 @@ function checklist() {{
       <span class="n">${{left || '&#10003;'}}</span>
       <span class="of">${{left
         ? `<b>${{left === 1 ? 'step left' : 'steps left'}}</b>Next: ${{esc(steps[next].t.toLowerCase())}}`
-        : '<b>Ready to run</b>Every step is done and checked against the live configuration.'}}</span>
+        : '<b>Ready to run</b>A run would mask, ask a model and write a workbook.'}}</span>
       <span class="of done">${{done}} of ${{steps.length}}<br>done</span>
      </div>
      <div class="bar ${{next === -1 ? 'good' : ''}}">
@@ -330,6 +383,46 @@ ACTIONS.closeModal = (d, el) => el.closest('.modal').remove();
 ACTIONS.initialise = () => initialise();
 ACTIONS.testBox = () => testConnection('box');
 ACTIONS.testShareFile = () => testConnection('sharefile');
+/* How deep the folder has to be, taken from the watch that is selected. A pattern watch
+   at depth 2 sweeps <root>/<a>/<b>, and a folder one level shallower matches nothing that
+   will ever be listed - which registering now refuses, and which used to be a green setup
+   page over a folder nobody was looking at. Saying it here means nobody has to be refused. */
+function folderHint() {{
+  const slot = $('e_folder_hint');
+  if (!slot) return;
+  const watch = (SETUP && SETUP.watches || []).find(w => w.id === $('e_watch').value);
+  if (!watch || watch.kind === 'bound') {{ slot.textContent = ''; return; }}
+  const depth = Number(watch.depth || 2);
+  const shape = Array.from({{length: depth}}, (_, i) => '<' + 'abcdefg'[i] + '>').join('/');
+  slot.textContent = 'Exactly ' + depth + ' level' + (depth === 1 ? '' : 's')
+    + ' below ' + (watch.root || 'the root') + ', because this watch sweeps '
+    + (watch.root || '') + '/' + shape + '. The client’s files go inside it.';
+}}
+
+ACTIONS.testModel = () => testConnection('model');
+
+/* The one step on this page a button cannot do. The key never leaves the machine and is
+   never typed into a browser, so what a person needs here is the command and the file -
+   and a line saying what losing it costs, because that is not recoverable. */
+ACTIONS.explainVault = () => ask({{
+  title: 'Set the masking key',
+  why: 'It is generated on this machine and lives in .env, which is never committed. '
+     + 'Nothing is masked without it and the worker pool will not start. If that file is '
+     + 'replaced, every token the vault already holds becomes unreadable.',
+  /* The command goes in `body`, which is monospace and keeps its line breaks. The
+     newlines are written doubled because this file is a format template: a single
+     escape is a real newline by the time the browser sees it, which is an
+     unterminated string. `node --check` in tests/p42 caught exactly that, twice. */
+  body: 'Run this in the project folder:\\n\\n'
+      + 'python -c "from cryptography.fernet import Fernet; '
+      + 'print(Fernet.generate_key().decode())"\\n\\n'
+      + 'Put the line it prints into .env as:\\n\\n'
+      + 'AA_VAULT_KEY=the-line-it-printed\\n\\n'
+      + 'Then restart the server.',
+  fields: [],
+  ok: 'Close',
+  note: '.env is never committed, so the key stays on this machine.'
+}});
 ACTIONS.signInShareFile = () => signInShareFile();
 ACTIONS.updateFromShareFile = () => updateFromShareFile();
 ACTIONS.pickReport = () => pickReport();
@@ -495,6 +588,7 @@ async function seams() {{
     (ai ? `<div class="r">
       <span class="lbl">AI model<span class="d">${{esc(ai.adapter)}} &mdash; ${{esc(ai.means)}}${{
         ai.reaches_a_model ? '. Skills ask for low, mid or high: ' + esc(Object.values(ai.tiers).join(', ')) : ''}}</span></span>
+      <button class="ghost" data-act="testModel">Test</button>
       <span class="pill ${{ai.reaches_a_model ? 'good' : ''}}"><i class="dot"></i>${{ai.reaches_a_model ? 'live' : 'no spend'}}</span>
      </div>` : '')
     + r.seams.map(s => `<div class="r">
@@ -510,7 +604,8 @@ async function seams() {{
    pointing at the right screen, and colouring a step nobody asked about would undo it. */
 async function testConnection(service) {{
   const box = $('connection');
-  box.innerHTML = '<div class="note tight">Asking Box&hellip;</div>';
+  const asking = {{box: 'Box', sharefile: 'ShareFile', model: 'the model'}}[service] || service;
+  box.innerHTML = `<div class="note tight">Asking ${{esc(asking)}}&hellip;</div>`;
   let r;
   try {{
     r = await post('/api/admin/connection/' + service, {{}});
@@ -529,9 +624,13 @@ async function testConnection(service) {{
        <span class="pill ${{pill(s.status)}}"><i class="dot"></i>${{esc(s.status)}}</span>
       </div>`).join('')
     + (r.connected && !r.in_use
-        ? `<div class="note tight">The plumbing works, and runs are still reading
-           somewhere else. Set <code>AA_STORAGE_ADAPTER=box</code> to make this the
-           adapter a sweep uses.</div>`
+        ? `<div class="note tight">${{service === 'model'
+            ? 'The door opens, and runs are still answering from a stand-in. Set ' +
+              '<code>AA_LLM_ADAPTER=anthropic_messages</code> in .env to make this the ' +
+              'adapter a run uses.'
+            : 'The plumbing works, and runs are still reading somewhere else. Set ' +
+              '<code>AA_STORAGE_ADAPTER=box</code> to make this the adapter a sweep uses.'
+          }}</div>`
         : '');
 }}
 
@@ -785,6 +884,8 @@ function showAdd() {{
   }}
   $('add-card').style.display = '';
   if ((SETUP.watches || []).length === 1) $('e_watch').value = SETUP.watches[0].id;
+  folderHint();
+  $('e_watch').addEventListener('change', folderHint);
   if ((SETUP.destinations || []).length === 1) $('e_dest').value = SETUP.destinations[0].id;
   /* Bound here rather than written on the elements: this page dispatches every control
      through ACTIONS, and a form that wired four of its own was two mechanisms for one job.
@@ -923,7 +1024,14 @@ async function settings(id) {{
     title: 'Settings for ' + (row.client || id),
     why: 'Each change is recorded with its reason. A budget cannot go above the firm ceiling, a review level can be raised but not lowered, and files can be held for less time than the environment allows, never more.',
     fields: [
-      {{name: 'budget', label: 'Spend limit per run (USD)', value: row.budget_usd ?? '', hint: 'What one run of this engagement may cost in model calls. Firm ceiling: $' + SETUP.firm_ceiling_usd + '. This is per run, not per month. Blank leaves it as it is.', required: false}},
+      /* Says what it caps. It read "Spend limit per run" with the hint "This is per run,
+         not per month", and harness/budget.py checks it against the engagement's spend
+         across every run it has ever had - so fifty dollars set as a generous per-run
+         allowance halts the third run at a ceiling nobody meant to set. */
+      {{name: 'budget', label: 'Spend limit for this engagement (USD, all runs)', value: row.budget_usd ?? '',
+        hint: 'What this engagement may cost in model calls in total, across every run it has - not per run. '
+            + 'Without one, each run may cost up to the firm ceiling of $' + SETUP.firm_ceiling_usd
+            + ' and nothing caps the total. Blank leaves it as it is.', required: false}},
       {{name: 'level', label: 'Review level', kind: 'select', value: row.review_level || 'standard',
         options: (SETUP.review_levels || ['standard', 'elevated']).map(v => ({{value: v, label: v}}))}},
       {{name: 'quiet', label: 'Quiet period - minutes files must stop changing before a run', value: '', placeholder: quiet ? 'environment default: ' + quiet : '', required: false}},
@@ -953,7 +1061,18 @@ const slug = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').repl
 
 async function addWatch() {{
   const r = await get('/api/admin/recipes').catch(() => ({{recipes: []}}));
-  const recipes = (r.recipes || []).map(x => ({{value: x.name, label: x.name + (x.state === 'registered' ? '' : '  (not approved)')}}));
+  /* Two things can be wrong with a workflow and the label used to say only one. Not
+     approved is a decision nobody has taken; not built is a skill nobody has written, and
+     a run that picks one pays for every step before the gap and then stops. */
+  const says = x => x.name
+    + (x.state === 'registered' ? '' : '  (not approved)')
+    + (x.can_finish === false ? '  — will stop at ' + (x.unbuilt || []).join(', ') : '');
+  const recipes = (r.recipes || []).map(x => ({{value: x.name, label: says(x)}}));
+  /* Default to one that can actually finish, rather than to a name written down here.
+     The form used to prefer 'mature-company-valuation' by name - a recipe whose own test
+     asserts it cannot finish - so the default path spent money and delivered nothing. */
+  const finishable = (r.recipes || []).filter(x => x.can_finish !== false && x.state === 'registered');
+  const preferred = (finishable[0] || (r.recipes || [])[0] || {{}}).name;
   const answer = await ask({{
     title: 'Which folder to watch',
     why: 'Where client files arrive. Most set-ups need one: a folder of client folders, one per engagement.'
@@ -965,7 +1084,7 @@ async function addWatch() {{
         {{value: 'pattern', label: 'A folder of client folders - one per engagement'}},
         {{value: 'bound', label: 'One engagement\u2019s files'}}]}},
       {{name: 'recipe', label: 'Workflow its engagements run unless they say otherwise', kind: 'select',
-        value: recipes.some(x => x.value === 'mature-company-valuation') ? 'mature-company-valuation' : (recipes[0] || {{}}).value, options: recipes}},
+        value: preferred, options: recipes}},
       {{name: 'reason', label: 'Why', kind: 'textarea', required: true, value: 'where client files arrive'}},
     ],
     ok: 'Watch this folder',
@@ -1057,7 +1176,9 @@ const PROFILE_FIXED = new Set(['schema_version', 'engagement_id', 'practice', 's
   'disposition', 'recorded_by', 'recorded_at']);
 const PROFILE_LABEL = {{
   industry_classification: 'Industry', size_band: 'Size band', fiscal_calendar: 'Fiscal calendar',
-  scale_convention: 'Figures are stated in units of', owner_compensation_baseline: 'Owner compensation benchmark',
+  scale_convention: 'Our working papers are kept in',
+  statements_arrive_in: "The client's statements arrive in",
+  owner_compensation_baseline: 'Owner compensation benchmark',
   materiality_threshold: 'Materiality threshold', checkpoint_policy: 'Review policy',
   auto_accept_confidence: 'Auto-accept at confidence', sla_hours: 'Answer within (hours)',
   always_review_categories: 'Always review these categories', year_end_month: 'Year-end month',
@@ -1067,13 +1188,27 @@ const labelFor = k => PROFILE_LABEL[k] || k.replace(/_/g, ' ');
 const kindOf = v => Array.isArray(v) ? 'list' : typeof v === 'number' ? 'number'
   : typeof v === 'boolean' ? 'boolean' : v === null ? 'text' : typeof v === 'object' ? 'object' : 'text';
 
+/* Two scale questions sit next to each other and they are not the same question, so
+   both are pick-lists rather than number boxes and both say which one they are. The
+   arrival scale has a blank option and the working-paper convention does not: the firm
+   always has a convention, and what the client sent is a fact that may not be known yet.
+   Blank is sent as null and the store drops it, so "not stated" survives a save. */
+const SCALES = [[1, 'units (as stated)'], [1000, 'thousands'], [1000000, 'millions']];
+const SCALE_FIELDS = {{
+  scale_convention: {{blank: null, note: 'How this firm presents its own work.'}},
+  statements_arrive_in: {{blank: 'not stated — read it off the page',
+    note: 'What the client sent. Leave it blank unless you know; a cue on the page always wins.'}},
+}};
+
 function profileField(path, key, value) {{
   const kind = kindOf(value);
-  if (key === 'scale_convention') {{
-    const choices = [[1, 'units (as stated)'], [1000, 'thousands'], [1000000, 'millions']];
+  const scale = SCALE_FIELDS[key];
+  if (scale) {{
+    const options = (scale.blank ? [['', scale.blank]] : []).concat(SCALES);
     return `<div class="field"><label>${{esc(labelFor(key))}}</label>
-      <select class="pf" data-path="${{esc(path)}}" data-kind="number">${{choices.map(([v, l]) =>
-        `<option value="${{v}}"${{Number(value) === v ? ' selected' : ''}}>${{l}}</option>`).join('')}}</select></div>`;
+      <select class="pf" data-path="${{esc(path)}}" data-kind="number">${{options.map(([v, l]) =>
+        `<option value="${{v}}"${{String(value == null ? '' : value) === String(v) ? ' selected' : ''}}>${{esc(l)}}</option>`).join('')}}</select>
+      <p class="hint">${{esc(scale.note)}}</p></div>`;
   }}
   const shown = kind === 'list' ? value.join(', ') : value === null || value === undefined ? '' : value;
   return `<div class="field"><label>${{esc(labelFor(key))}}</label>

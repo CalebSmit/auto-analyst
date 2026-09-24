@@ -68,7 +68,16 @@ def test_a_machine_nobody_has_configured_says_so_rather_than_failing(served: Any
     # and is the firm's own record of which model each layer builds into. Without them the
     # first engagement anybody registers resolves to no template and cannot be activated,
     # which reads like a broken system rather than an unconfigured one.
-    assert made.json() == {"environment": "local", "version": 2, "model_bindings": 4}
+    # Counted from the file it is seeded from rather than written out. A literal here says
+    # "four bindings today" and fails the day a fifth is added, which is a fact about the
+    # firm's configuration rather than about whether seeding works.
+    from graph.resolve import ScopeResolver
+
+    seeded = len(ScopeResolver().bindings)
+    assert made.json() == {
+        "environment": "local", "version": 2, "model_bindings": seeded
+    }
+    assert seeded, "nothing was seeded, which is the failure this line is really about"
 
     setup = client.get("/api/admin/setup")
     assert setup.status_code == 200

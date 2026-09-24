@@ -11,6 +11,7 @@ account is a .env change and nothing else.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from ports.llm import LLMRequest, LLMResponse, TransportFailure, Usage
@@ -19,11 +20,20 @@ from registries.errors import (
     CONTEXT_TOO_LARGE,
     MISSING_CREDENTIAL,
     MODEL_PIN_UNAVAILABLE,
+    PROVIDER_REFUSED_A_FIELD,
     RegistryError,
     diagnose,
 )
 
 API_KEY = "ANTHROPIC_API_KEY"
+
+CREDENTIALS = (API_KEY,)
+"""What this adapter needs from the Secrets Port, declared for `ports.credentials_for`.
+
+One name, and it is still declared here rather than known by the caller: nothing outside
+`ports/` may name a concrete adapter module, so a connection test that hard-coded
+`ANTHROPIC_API_KEY` would be importing this file by another route. The Box three already
+went stale once that way."""
 
 # What a second attempt might fix. Named rather than imported, so that listing adapters
 # still does not need the SDK - the same reason `_connect` defers its import.
@@ -51,6 +61,43 @@ _TRANSIENT = frozenset(
 # answer, so the test below holds the real message shapes.
 _TOO_LONG = ("prompt is too long", "context length", "context_length", "too many tokens",
              "maximum context", "exceeds the maximum", "input is too long")
+
+
+# What the provider says when the request's *shape* is wrong rather than its model or its
+# length. Pydantic phrasings first, because that is what the API answers with, then the
+# plainer ones. Every entry is a phrase about a field, never about a model.
+_REFUSED_A_FIELD = (
+    "extra inputs are not permitted",
+    "unexpected keyword",
+    "unrecognized request argument",
+    "field required",
+    "input should be",
+    "is not supported by",
+    "unsupported parameter",
+    "invalid request argument",
+)
+
+# Where in the message the field's own name tends to sit: `metadata.run_id: Extra inputs`.
+_FIELD_NAME = re.compile(
+    r"['\"]?([a-z_][a-z0-9_]*(?:\.[a-z_][a-z0-9_]*)*)['\"]?"
+    r"\s*:\s*(?:Extra|Field|Input|Unsupported)"
+)
+
+
+def _refused_a_field(exc: BaseException) -> str:
+    """The field the provider rejected, or an empty string if this is not that.
+
+    The name is dug out of the message rather than guessed, because "the provider
+    rejected a field" without saying which one is the same unhelpful answer as blaming
+    the model - just differently unhelpful. When the phrasing changes and the name
+    cannot be found, "a field in the request" is still a truer sentence than "the model
+    is unavailable".
+    """
+    said = str(exc)
+    if not any(phrase in said.lower() for phrase in _REFUSED_A_FIELD):
+        return ""
+    found = _FIELD_NAME.search(said)
+    return found.group(1) if found else "a field in the request"
 
 
 def _is_too_long(exc: BaseException) -> bool:
@@ -114,7 +161,6 @@ class AnthropicMessagesLLM:
                 output_config={"effort": request.pin.effort},
                 **({"stop_sequences": list(request.stop_sequences)}
                    if request.stop_sequences else {}),
-                **({"metadata": request.metadata} if request.metadata else {}),
             )
         except Exception as exc:  # noqa: BLE001 - re-raised as a diagnostic below
             if type(exc).__name__ in {"NotFoundError", "BadRequestError"}:
@@ -127,6 +173,22 @@ class AnthropicMessagesLLM:
                             CONTEXT_TOO_LARGE,
                             f"{request.pin.model} refused the request as too long: {exc}",
                             locator=request.pin.model,
+                        )
+                    ) from exc
+                # Then a field: a 400 about the shape of the request is this build's
+                # mistake and says nothing about the model. Reporting it as a missing pin
+                # sends whoever reads it to the model registry to debug a model that was
+                # never missing - which is the same wrong turn the length case above was
+                # written to stop, and it happened again. Every call this build would have
+                # made carried four keys in `metadata`, where the API takes only `user_id`.
+                refused = _refused_a_field(exc)
+                if refused:
+                    raise RegistryError(
+                        diagnose(
+                            PROVIDER_REFUSED_A_FIELD,
+                            f"the provider rejected {refused} in the request - the model "
+                            f"pin {request.pin.model} is fine and is not the problem: {exc}",
+                            locator=refused,
                         )
                     ) from exc
                 raise RegistryError(

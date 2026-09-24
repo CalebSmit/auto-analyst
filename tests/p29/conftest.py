@@ -197,12 +197,13 @@ def roster(store: SqlRunStore, config: ConfigStore) -> ProjectRoster:
 
 @pytest.fixture
 def templates() -> TemplateRegistry:
-    """The two synthetic masters. The checked-in bindings also name a Corporate
-    Finance model that has no input schema yet - that is P24's own finding, and
-    preflight reports it rather than this fixture hiding it."""
+    """The two synthetic masters and version 1's deliverable. The checked-in bindings also
+    name a Corporate Finance model that has no input schema yet - that is P24's own
+    finding, and preflight reports it rather than this fixture hiding it."""
     registry = TemplateRegistry()
     registry.register("Chartwell_ESOP_Model_v9.xlsx", "9.4")
     registry.register("Chartwell_Master_Model_v14.xlsx", "14.2")
+    registry.register("Chartwell_Input_Help_v1.xlsx", "1.0")
     return registry
 
 

@@ -158,3 +158,48 @@ averaging it away destroys the most useful signal the system produces.
 
 **Rule:** Keep the anchor's own block and replace only what is under it. Drop a leading heading from the source when it repeats the anchor name, so a source document that carries its own title does not produce two. And report the number of blocks actually removed rather than the size of the span, because a count one larger than the truth is worse than no count.
 
+
+## 2026-09-22 - P98's bare-year column detection was written and tested against a hand-made single-line header - '2021  2022  2023' - and shipped green. Run against the real client projections tab it found nothing at all.
+
+**Phase:** not phase-specific
+
+**Why it failed:** Two readers produce the text this module parses and they disagree about what a line is. A document reader puts a header row on one line; survey_workbook collects header cells into a flat list, so the same row arrives as six lines of one heading each. The fix looked only at the line with the most headings, which is the document shape, and no line in the workbook shape had more than one.
+
+**Rule:** When a fix is for a file that is in the folder, drive the test from what the real reader emits for that file, not from a string written by hand to look like it. Here that meant calling survey_workbook on the actual workbook and reading its headers, which takes a minute and would have failed immediately.
+
+
+## 2026-09-22 - engagement_profile@1.1.0 was created in P106 with its $id bumped and its schema_version const left at engagement_profile@1.0.0, so a profile declaring the new version failed the new version's own check. Fixed in place rather than by cutting a @1.2.0.
+
+**Phase:** not phase-specific
+
+**Why it failed:** The $id was the thing I checked, because the registry checks the $id. The const says the same fact a second time and nothing compared them, so half a version bump passed every test in the build.
+
+**Rule:** When a contract version is cut, every place inside the schema that names its own version moves together - $id and any const or enum on schema_version. A test asserts they agree, because two statements of one fact drift. Fixing @1.1.0 in place is allowed only because it had never been committed and had never validated a document; a version anything cites is fixed by cutting the next one.
+
+
+## 2026-09-22 - The Input Help template's front page was edited in place rather than cut as @1.1 - the page's text is part of the workbook's bytes, so the pinned template's content hash changed under the same version.
+
+**Phase:** not phase-specific
+
+**Why it failed:** The page described a workbook that stopped existing two phases ago: P108 made every figure carry its full precision and P112 made a missing one say 'not found' in its own cell, and the page still promised two decimals and a blank.
+
+**Rule:** Allowed here only because this template was created in P101, has never been committed, and has never produced a deliverable for a real engagement - the same test the engagement_profile const passed. The moment a real workbook cites a template version, a change to its face is a new version. The real Model Template - MASTER 2026 is still owed and will replace this outright.
+
+
+## 2026-09-22 - C63 found tests/p80 and tests/p107 contradicting each other: p80 asserted the literal words 'Seven steps, in order.' and P107 added two steps and wrote 'Nine'. Both were green alone. This is the seventh roll-call test (B-066) and the first one a checkpoint caught rather than a person.
+
+**Phase:** not phase-specific
+
+**Why it failed:** The count in the prose is a fact about the checklist on the day it was written, asserted as though it were a rule. Every earlier instance was found by a phase failing to close; this one survived because p80 is not in any later phase's check list, so only a checkpoint that re-runs everything could see it.
+
+**Rule:** A count beside a list is derived from the list, never typed twice. tests/p80 now counts the checklist's entries and looks up the word. B-066 asked for a convention rather than a scan; this is the shape it should take - assert the relationship, not the value.
+
+
+## 2026-09-22 - C65 found tests/p31 asserting len(CHECKS) == 14 and the blueprint saying 'Fourteen checks' - two copies of one number, and P114's new preflight check made both wrong at once. The ninth roll-call test, and the second one a checkpoint caught rather than a person.
+
+**Phase:** not phase-specific
+
+**Why it failed:** The count was written down twice, in the code's test and in the design of record, and neither derived from the list. CLAUDE.md says code and blueprint disagreeing is a finding; this is the shape that finding takes when the disagreement is a number.
+
+**Rule:** When a test ties prose to code, assert that they agree and derive one from the other - never assert each separately. tests/p31 now reads len(CHECKS) and looks up the word the blueprint should be using.
+

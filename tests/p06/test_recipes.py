@@ -19,8 +19,16 @@ from registries.errors import RegistryError
 from tests.p06.conftest import skill_step, two_step_recipe
 
 
-def test_both_recipes_load(monthly: Recipe, ddr: Recipe) -> None:
-    assert recipe_names() == ("full-ddr-intake", "mature-company-valuation", "monthly-refresh")
+def test_every_recipe_on_disk_loads(monthly: Recipe, ddr: Recipe) -> None:
+    """Named for what it checks rather than for how many there were. It was
+    `test_both_recipes_load` through the arrival of a third recipe and the arrival of a
+    fourth, which is how a name stops describing its test."""
+    assert recipe_names() == (
+        "full-ddr-intake",
+        "mature-company-valuation",
+        "monthly-refresh",
+        "valuation-input-prep",
+    )
     assert monthly.key == "monthly-refresh@v3"
     assert ddr.key == "full-ddr-intake@v1"
 

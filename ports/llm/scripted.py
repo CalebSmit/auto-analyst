@@ -108,12 +108,31 @@ class ScriptedAnalyst:
     # -- timing: one period per block from its header, line items grouped by label
 
     def timing(self, body: dict[str, Any]) -> dict[str, Any]:
+        """One period per block, and one end per period label.
+
+        The second half of that sentence is the whole fix. This used to date each block on
+        its own: a header reading `2023` became 31 December and a header reading
+        `2023-06-30` became 30 June, so twelve real client documents produced two ends for
+        FY2023 and the guard quarantined the run - correctly, because a fiscal year has one
+        end. The stand-in was contradicting itself, and a stand-in that contradicts itself
+        can never reach the deliverable, so nothing downstream of timing could be rehearsed
+        at all without a key.
+
+        The end comes from the engagement's fiscal calendar, which P110 put in the payload,
+        and falls back to 31 December only when no profile recorded one - the same silence
+        a real model is told about in words."""
+        month_day = self.year_end(body)
         periods: list[dict[str, Any]] = []
         groups: dict[str, dict[str, Any]] = {}
         for f in body["files"]:
             ends = [str(e) for e in (f.get("period_ends") or [])]
             for idx, (block, b) in enumerate(f["blocks"].items()):
-                label, end = self.period(b.get("period_hint"), ends, idx)
+                label, read = self.period(b.get("period_hint"), ends, idx)
+                # The label decides the end, not the page it was read from - for a label
+                # that names a fiscal year. A block with no year in it at all falls back to
+                # `P1`, `P2`, and there is nothing to derive; those keep what was read, and
+                # two blocks that both land on `P1` land on the same date as each other.
+                end = f"{label[2:]}-{month_day}" if label.startswith("FY") else read
                 periods.append(
                     {
                         "label": label,
@@ -133,6 +152,17 @@ class ScriptedAnalyst:
                         {"source_id": f["source_id"], "locator": locator, "label": text.strip()}
                     )
         return {"periods": periods, "line_items": list(groups.values()), "unmatched": []}
+
+    @staticmethod
+    def year_end(body: dict[str, Any]) -> str:
+        """`MM-DD` for this engagement, from the calendar the payload states.
+
+        December is the fallback and only the fallback: a profile that recorded no
+        calendar is a silence, and this is a rehearsal stand-in rather than the place to
+        settle one."""
+        calendar = body.get("fiscal_calendar") or {}
+        stated = str(calendar.get("fiscal_year_ends") or "")
+        return stated if re.fullmatch(r"\d{2}-\d{2}", stated) else "12-31"
 
     @staticmethod
     def period(hint: Any, ends: list[str], idx: int) -> tuple[str, str]:
@@ -244,8 +274,13 @@ class ScriptedAnalyst:
     def model_load(self, body: dict[str, Any]) -> dict[str, Any]:
         catalogue = body["catalogue"]
         by_ref = {c["figure_ref"]: c for c in catalogue}
-        labels = sorted({str(c.get("period")) for c in catalogue if c.get("period")})
-        order = {f"FY{i + 1}": lab for i, lab in enumerate(labels)}
+        # No year-guessing any more. This used to sort the catalogue's distinct periods
+        # and zip them onto FY1, FY2, FY3 - because the catalogue was keyed on the
+        # client's own labels and nothing said which year was which. P121 made the
+        # catalogue speak the template's slots and put the mapping in the payload, so the
+        # guess is not only unnecessary, it is wrong: with a benchmark row in the
+        # catalogue the sort puts `as_of` among the years and shifts every slot by one.
+        order: dict[str, str] = {}
         bindings, unmapped = [], []
         for inp in body["template"]["inputs"]:
             line, period = str(inp["line"]), str(inp["period"])

@@ -1836,3 +1836,409 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C56 after P95, covering P94, P95
 - proves: A new engagement gets a list and a tracker without anybody writing one, a guess stays labelled a guess from the file to the screen, a refresh never costs a person work, and neither half has become a run.
+
+## 2026-09-21 - P96 The documents a valuation engagement really receives
+
+**Why:** The first real client folder arrived on 2026-09-21 and the tracker matched 3 of its 13 files. Three causes, all in the reading rather than the tracking: the classifier's document classes are the ESOP set and this is a non-ESOP valuation engagement; the client's own folder names are discarded before anything looks at them; and a confidence is read off an attribute that does not exist, so every confidence ever reported has been 0.0.
+
+- phase added: P96 The documents a valuation engagement really receives (Reading what a client actually sends, gate: auto)
+- exit criterion: Every confidence the tracker reports is the classifier's own, and a test fails if it is read off a missing attribute again
+- exit criterion: A file's folder is evidence, and a folder name alone can classify
+- exit criterion: The thirteen files of the real client folder classify as recorded in tests, with no invented match
+- exit criterion: No file classifies as something it is not: the false-positive cases are named and held
+
+## 2026-09-21 - P96 The documents a valuation engagement really receives
+
+**Why:** The two checks were written with a bare 'python -m pytest', which runs the system interpreter rather than the project venv and dies on a missing sqlalchemy. Every other phase in the plan uses 'python -m uv run pytest'. The second check also now names p17 and p38, because the classifier's closed set and the forecast rule are the two things P96 was most able to break.
+
+- check dropped: python -m pytest tests/p96 -q
+- check dropped: python -m pytest tests/p95 tests/checkpoints/c56 -q
+- check added: python -m uv run pytest tests/p96 -q
+- check added: python -m uv run pytest tests/p17 tests/p38 tests/p94 tests/p95 tests/checkpoints/c56 -q
+
+## 2026-09-21 - C57 What a folder of real documents is allowed to be read as
+
+**Why:** P96 stands alone in its block: it is the first phase driven by a real client folder rather than by files this build generated for itself, and what it changed - the classifier's vocabulary, its matching, and both places that build an Evidence - is reached by the tracker and by every run. A checkpoint is owed because those two paths were changed separately and have been wrong separately before.
+
+- checkpoint added: C57 after P96, covering P96
+- proves: That the reading a button does and the reading a run does agree about the same folder, that the vocabulary the classifier produces is the one the registry declares and the request list asks for, and that widening what can be recognised did not widen what can be recognised wrongly.
+
+## 2026-09-22 - P97 A name a scanner ran into the next word
+
+**Why:** B-061. The first real client folder's scanned PDFs read at 0.97 confidence and came back with words run together - BOARDMEETINGMINUTES. privacy/mask.py locates a declared identifier with re.escape and the payload scan with a lowercased 'in', so a name OCR has joined to its neighbour is masked by neither. The two agree by construction, which is the design, and what they currently agree on is the blind spot.
+
+- phase added: P97 A name a scanner ran into the next word (Reading what a client actually sends, gate: auto)
+- exit criterion: A declared identifier is masked whether or not the page kept the spaces inside it
+- exit criterion: The scan catches the same identifier the masker would have missed, and a test proves it against a stubbed masker that does nothing
+- exit criterion: Masking still never touches a figure, a period label or an account number it should leave alone
+- exit criterion: The masker and the scan derive their matching from one function, and a test fails if either grows its own
+
+## 2026-09-22 - P98 A fiscal year the file states seven times
+
+**Why:** B-062. Two gaps found on the first real client folder's workbooks, both on version 1's own path. The balance sheet's seven sheets are named 2019-12-31 through 2023-12-31 plus two February interims; the detector read all seven period ends and then reported the fiscal year end as 'not stated', because its derivation requires every end to fall in one month and two of these do not. And the projections tab's periods are bare year columns - 2021, 2022, 2023, 2024 Feb YTD, 2024 (P) - where it reported no period cue at all, which understates what the page plainly says.
+
+- phase added: P98 A fiscal year the file states seven times (Reading what a client actually sends, gate: auto)
+- exit criterion: A workbook whose sheets are five December year ends and two February interims reports a December fiscal year end, with its evidence
+- exit criterion: A two-year file, or one with no dominant month end, still reports the fiscal year end as not stated
+- exit criterion: A forecast tab headed with bare years reports the years it covers and says plainly that dating them needs the engagement's year end
+- exit criterion: Two columns headed with the same year are reported as needing to be told apart, not silently merged
+
+## 2026-09-22 - P98 A fiscal year the file states seven times
+
+**Why:** The second exit criterion as written contradicted behaviour that predates the phase and is defensible: two annual period ends a year apart in the same month already derive a fiscal year end, and a 52/53-week calendar ends near a month end rather than on one, so requiring a month end everywhere would refuse a real calendar. The new derivation is the stricter one because it runs on the harder case - year ends mixed with interim stubs - and that is what the criterion should have said.
+
+- exit criterion added: A mixed set of year ends and interim stubs still reports the fiscal year end as not stated when too few years recur, when two months are equally dominant, or when the candidate ends are not month ends
+- exit criterion dropped: A two-year file, or one with no dominant month end, still reports the fiscal year end as not stated
+
+## 2026-09-22 - C58 What is read loosely, and what is still refused
+
+**Why:** P97 and P98 both act on what a real client folder turned out to contain, and both changed a rule about reading rather than a piece of wiring. They also both loosened something: P97 widened what counts as finding a name, P98 widened what counts as knowing a period. A checkpoint is owed because loosening two readers in one block is exactly the shape that lets a wrong answer through while every phase test passes.
+
+- checkpoint added: C58 after P98, covering P97, P98
+- proves: That widening the match on a name and the derivation of a period did not widen what either will assert without evidence: a masked payload still carries its figures and period labels intact, a fiscal year end still arrives with the dates it was read off, and a projected column is still not a historical one.
+
+## 2026-09-22 - P99 The totals that re-add, and the rows they cover
+
+**Why:** The real client's financial statements turned out to prove the thing B-040 has been waiting for. Every one of the 280 subtotals across their fourteen sheets re-adds exactly from the rows above it, and 1,910 of the 2,198 parsed rows sit under one. review/router.py already routes an extracted figure to a person unless something re-added a total it feeds - the rule is built, tested and correct, and nothing has ever produced its evidence. The statements in the folder show the producer is a deterministic walk over rows this build already parses.
+
+- phase added: P99 The totals that re-add, and the rows they cover (Reading what a client actually sends, gate: auto)
+- exit criterion: Every subtotal in the real client's statements is found with the rows it re-adds from, and the count of covered rows is asserted
+- exit criterion: A statement with a total that does not re-add reports that total as uncovered and says by how much
+- exit criterion: Nothing here reaches a model, an OCR engine or the network
+- exit criterion: The result reaches a person through the read record rather than sitting on a dataclass nobody looks at
+
+## 2026-09-22 - C59 What arithmetic is allowed to stand in for
+
+**Why:** P99 stands alone in its block. It produces evidence that an existing, tested acceptance rule reads and that nothing has ever set, and it does so on the path every run takes - so the ways it can be wrong are not about footing arithmetic but about what else moved when the read report grew a new field and the intake event grew a new sentence.
+
+- checkpoint added: C59 after P99, covering P99
+- proves: That a total re-adding is recorded as evidence about the rows under it and nothing else: the acceptance rule still refuses an extracted figure that no arithmetic covers, a statement that does not foot still says so by name and amount, and reading a folder still costs no model, no engine and no network.
+
+## 2026-09-22 - P100 The hundredth phase, and the comparison that broke on it
+
+**Why:** C59 went red on tests/p01 the moment the plan reached a hundred phases. Three places in tools/gate.py compare phase ids as strings, and 'P100' < 'P99'. The plan crossed that boundary this session, so the gate's own safety nets - which phases a checkpoint covers, whether phases are closing in order, and which phases sit past the last checkpoint - started giving wrong answers silently.
+
+- phase added: P100 The hundredth phase, and the comparison that broke on it (Reading what a client actually sends, gate: auto)
+- exit criterion: Every comparison of two phase or checkpoint ids in the gate orders them by number
+- exit criterion: A plan of a hundred and more phases reports coverage, ordering and what is owed correctly
+- exit criterion: tests/p01 passes at three digits, and a test fails if a string comparison comes back
+
+## 2026-09-22 - C60 The gate's own arithmetic
+
+**Why:** P100 stands alone because it is a change to the gate itself rather than to anything the gate builds. The gate is the only thing permitted to mark a phase done, so its own ordering is the one place a defect can let every other defect through - and this one had already let one through, opening P100 over a red C59 without a word.
+
+- checkpoint added: C60 after P100, covering P100
+- proves: That the gate orders phases and checkpoints by number wherever it compares two, that its four safety nets - coverage, closing in order, what is owed, and a red checkpoint blocking the next phase - all still fire at three digits, and that the tests which check the gate do not carry the same assumption.
+
+## 2026-09-22 - P101 Version 1's own recipe, ending at a workbook nobody has to trust
+
+**Why:** B-047 and B-048. The analyst wants to set an engagement up at the dashboard, point it at a client folder and a request list, and get a workbook out. Auditing that against the build found no path: all three shipped recipes end at qc-tieout, which CLAUDE.md puts outside version 1, and qc-tieout is a skeleton with no procedure - as is ddr-tagging, which full-ddr-intake also needs. Only four skills are live. And the two recipes that reach release write into the firm's real model template, which version 1 must never touch.
+
+- phase added: P101 Version 1's own recipe, ending at a workbook nobody has to trust (A run that finishes, gate: auto)
+- exit criterion: A released run on the focus scope reaches its release step and writes a workbook
+- exit criterion: Every skill the recipe names has a procedure, and a test fails if a skeleton is added to it
+- exit criterion: The workbook it writes is not the firm's model template, and says so on its face
+- exit criterion: An input nothing in version 1 can produce is reported unmapped with its name, not silently skipped
+
+## 2026-09-22 - P101 Version 1's own recipe, ending at a workbook nobody has to trust
+
+**Why:** The first exit criterion said a run reaches its release step and writes a workbook. Driving one showed that is the wrong ending to ask for: model-load declares unmapped_inputs_require_review, so a run that cannot place every input stops on a person by the skill's own declaration - which is the designed behaviour and not a shortfall. The run reaches an ending on its own, which no run in this build had done before; release comes after somebody answers the queue, and this phase does not verify that half.
+
+- exit criterion added: A released run on the focus scope gets through every step that has a procedure and ends on its own - waiting on a person for the inputs it could not place, rather than stopping at a step nobody built
+- exit criterion dropped: A released run on the focus scope reaches its release step and writes a workbook
+
+## 2026-09-22 - P102 Asking the model whether it is there
+
+**Why:** The analyst wants to enter a key, choose a model and a spend limit, and press go from the dashboard. The spend limit and the folder and destination are already there. What is not is any way to find out whether the key works: the page says 'live' or 'no spend' from the adapter name alone, so the first evidence that a key is wrong is a run that quarantines after paying for the steps before it. P88 built exactly this for Box and ShareFile - four questions asked in order, each answered separately - and the model door has never had one.
+
+- phase added: P102 Asking the model whether it is there (A run that finishes, gate: auto)
+- exit criterion: Pressing the button on a machine with no key says the key is missing, and names it, without making a call
+- exit criterion: Pressing it with a working key reports the model that answered and what the test cost
+- exit criterion: A refusal from the API is reported as the step that failed, with the provider's own reason, and the steps after it as not reached
+- exit criterion: The probe cannot be reached by a run, and spends nothing unless a person pressed it
+
+## 2026-09-22 - C61 What a person can set up without being told how
+
+**Why:** P101 and P102 are the two halves of one question: can a person set this up and press go. P101 gave version 1 a path a run can finish; P102 gave the model door the same test button Box and ShareFile have had since P88. They meet at the dashboard, which is the only place either is reached from, and at the spend: the one adds the step that costs money and the other is the only test that spends it.
+
+- checkpoint added: C61 after P102, covering P101, P102
+- proves: That the setup a person does at /admin produces a run that ends somewhere, that the ending names what it could not fill rather than leaving blanks, and that nothing on the path spends money unless a person pressed something - including the connection test that does.
+
+## 2026-09-22 - P103 The files a run never sees
+
+**Why:** Running the real client folder end to end showed ten of its thirteen files never enter a run. The binder decides a document type from filename tokens in document_type_conventions - a hand-maintained list carrying three types - and holds anything no token claims. P96 taught the classifier to recognise all thirteen, and the binder has never asked it: the classifier serves the DD tracker and the in-run read, both of which happen after a file is already in. So the analyst's stated goal - put all the data into a structured output - fails at the first step, with ten documents held and nothing wrong with any of them.
+
+- phase added: P103 The files a run never sees (A run that finishes, gate: auto)
+- exit criterion: The thirteen files of the real client folder all enter a run, and the record says which were inferred
+- exit criterion: A file neither the conventions nor a confident classification claims is still held
+- exit criterion: A filename a convention claims keeps that type even when the classifier would say otherwise
+- exit criterion: Nothing binds a document type the registry has not declared
+
+## 2026-09-22 - P104 Which documents a skill is even asked about
+
+**Why:** P103 let twelve of the real client's thirteen files into a run, and the run then stalled: timing-normalization is handed every source, so it was asked to find periods in board minutes, an org chart and a competitor list. It escalated each as ambiguous, a person answered, the step re-ran and escalated again - thirty passes, thirty review items, no progress. Before P103 only three files entered and all three were financial, so nothing found it. A board minute having no periods is not an ambiguity for somebody to resolve; it is a document of a kind that carries none.
+
+- phase added: P104 Which documents a skill is even asked about (A run that finishes, gate: auto)
+- exit criterion: The real client folder's twelve bound files reach a run and only the financial ones reach timing
+- exit criterion: A document type added without declaring whether it carries periods is refused by the registry
+- exit criterion: A board minute in the folder no longer produces a review item nobody can answer
+
+## 2026-09-22 - P105 Thousands on the page, cents in the cell
+
+**Why:** The analyst gave the firm's own convention on 2026-09-22: the statements always go into the model in thousands, and they almost never arrive that way - a client sends units. And the rounding rule that goes with it: do not round before writing, keep every decimal in the cell and let Excel round to whole dollars for the eye. The input-help workbook declared scale 1 and no number format, so it would have been written in units and displayed to the cent.
+
+- phase added: P105 Thousands on the page, cents in the cell (A run that finishes, gate: auto)
+- exit criterion: The workbook declares scale 1000 and its value cells display no decimals
+- exit criterion: A value written with decimals is stored with them, and a test fails if rounding creeps in before the cell
+- exit criterion: The writer still refuses a figure whose scale does not match the template's, naming both
+
+## 2026-09-22 - P106 The scale a person states
+
+**Why:** The analyst's rule, given on 2026-09-22: the client may send financials in any form and the firm always puts them into thousands. P105 made the deliverable declare thousands; what it could not do is settle what arrived. A source whose scale is unstated stops timing-normalization, a person answers the review item, the step re-runs and asks again - because escalate() reads the source's own scale, which no decision changes. Thirty passes, thirty items, no progress. The same file already solves this for currency: the readers leave it unsettled rather than guess, the engagement profile is where a person declared it, and a source with no cue takes the profile's on the record.
+
+- phase added: P106 The scale a person states (A run that finishes, gate: auto)
+- exit criterion: A run whose statements state no scale proceeds once the profile declares one, and the record says where it came from
+- exit criterion: A source carrying its own scale cue is untouched by the declaration
+- exit criterion: No declaration means the run still stops, and the reason still names the file
+
+## 2026-09-22 - C62 A document from the folder to the cell
+
+**Why:** Four phases from one question - can the analyst point this at a folder and get a structured output - and each was found by the one before it failing on the real thing. P103 let the files in and made P104's livelock reachable; P105 fixed the deliverable's scale and left P106's question unanswerable until the profile could answer it. That chain is exactly what a checkpoint is for: each phase is green alone and the thing worth asking is whether the four agree about a document's journey from a folder to a cell.
+
+- checkpoint added: C62 after P106, covering P103, P104, P105, P106
+- proves: That a file the firm did not name a token for still enters a run and is recorded as inferred, that a skill is only asked about documents of a kind it can read, that what arrives at whatever scale is settled by a person and never defaulted, and that the deliverable is in thousands with its decimals intact.
+
+## 2026-09-22 - P106 The scale a person states
+
+**Why:** The profile field was added to engagement_profile.schema.json in place, at version 1.0.0. tools/surfaces.py caught it by the schema's hash - 'a contract edited in place' is the first of the accidents that snapshot exists to find, and the registry's own header says adding or changing a contract bumps the version and leaves the old one listed. 1.0.0 is restored untouched and the field lives at engagement_profile@1.1.0.
+
+- task added: The new profile field lives at a new contract version, and 1.0.0 stays exactly as it was
+
+## 2026-09-22 - P107 Ready to run has to mean it
+
+**Why:** The Setup page's checklist promises that each step is checked against the live configuration, so it 'cannot tell you something is done when it is not'. It keeps that promise for the seven things that live in the configuration document and has no idea about the two that do not: the mask vault's key and the model adapter both come from .env. So the page says 'Ready to run - every step is done' on a machine where the worker pool will not start because nothing can be masked, and on one where every skill is answered by a fixture and no work is done at all. Both states were reached today while setting a real engagement up.
+
+- phase added: P107 Ready to run has to mean it (A run that finishes, gate: auto)
+- exit criterion: A machine with no vault key is told so by the checklist, before it activates an engagement
+- exit criterion: A machine answering from fixtures is told that no work will be done, and how to change it
+- exit criterion: A key that is present and malformed reads as missing rather than as done
+- exit criterion: With both satisfied and every other step done, the page says ready and means it
+
+## 2026-09-22 - P108 The one multiplication, and where it is allowed to happen
+
+**Why:** P105 made the deliverable declare thousands and P106 made what arrived settleable, and between them sits the arithmetic nobody does: a figure read at the scale the client sent cannot be written into a template that declares another, because deliver/builder.py refuses a mismatch. That refusal is right and the reason is stronger than it looks - the Numeric Integrity Lock brackets the write and is only meaningful because the builder is arithmetic-free. So the restatement cannot go there, and until it goes somewhere the analyst's own rule - always thousands, whatever the client sends - has nowhere to happen.
+
+- phase added: P108 The one multiplication, and where it is allowed to happen (A run that finishes, gate: auto)
+- exit criterion: A figure at the scale the client sent reaches a thousands template with its value restated and the restatement on the record
+- exit criterion: A figure already at the template's scale is untouched and nothing is recorded about it
+- exit criterion: The writer still refuses a mismatch, because nothing downstream may rely on it restating
+- exit criterion: The Numeric Integrity Lock still brackets a write it can prove faithful
+
+## 2026-09-22 - P108 The one multiplication, and where it is allowed to happen
+
+**Why:** A real folder carries roughly thirty lines over three years, so one event per restatement is ninety events in a run that did one thing. That buries the log it is meant to make readable, and the question a person actually asks is 'were they all moved by the same factor, and which ones were not' - which one event answers and ninety do not. So: one event, and its payload names every figure with both scales and its value before and after.
+
+- task added: One event carries every restatement, naming each figure, both scales and the value before and after
+
+## 2026-09-22 - P108 The one multiplication, and where it is allowed to happen
+
+**Why:** The per-figure task is replaced by the one-event task added above; leaving both would read as a requirement for ninety events and one.
+
+- task dropped: Each restatement is an event naming the figure, both scales and the factor
+
+## 2026-09-22 - P109 The version nothing pointed at
+
+**Why:** P106 built the scale settlement on a profile field, created engagement_profile@1.1.0 to declare it, registered it, and pointed nothing at it. intake/config.py still validates every profile against @1.0.0, whose additionalProperties is false, so the one field the settlement reads is the one field a person is refused for sending. The first real-folder run found it in four seconds: the profile POST came back 422 SKILL.SCHEMA_INVALID and the engagement would not activate. This is the build's most repeated defect - something built and wired to nothing - and it got past two reachability scans because it is a version string in YAML rather than a function nobody calls.
+
+- phase added: P109 The version nothing pointed at (A run that finishes, gate: auto)
+- exit criterion: The real client folder gets past the profile and activates
+- exit criterion: A profile written before this phase still validates and still runs
+- exit criterion: The scan is red if PROFILE_CONTRACT is put back to 1.0.0
+
+## 2026-09-22 - P109 The version nothing pointed at
+
+**Why:** engagement_profile@1.1.0's schema_version const still said @1.0.0 - the version bump was half done, so declaring the new version failed the new version's own check. Fixed in place rather than by cutting a @1.2.0, and that is allowed here only because @1.1.0 had never been committed and had never validated a single document. A version anything cites is fixed by cutting the next one. The surface snapshot caught the edit, which is what it is for; this is the decision it was asking for.
+
+- exit criterion added: A schema's $id and its schema_version const name the same version, in every contract, checked
+
+## 2026-09-22 - P110 Asking a question the profile already answers
+
+**Why:** The timing payload is {files: [...]} and nothing else. The model is handed twelve documents, asked to type and date every period it finds, and never told when this company's fiscal year ends - although the engagement profile records exactly that, in fiscal_calendar.year_end_month and year_end_day, and a person filled it in at setup. Then a guard refuses the answer for saying FY2023 two ways. The guard is right; the question was unanswerable. The first real client folder quarantines there, and so would a real model, because a June year end and a bare 2023 on another page cannot be reconciled by anybody who has not been told which one this company uses.
+
+- phase added: P110 Asking a question the profile already answers (A run that finishes, gate: auto)
+- exit criterion: A run over the real client folder gets past timing
+- exit criterion: The payload names the year end, and a test fails if the profile stops reaching it
+- exit criterion: Two genuinely different ends for one label are still refused
+
+## 2026-09-22 - P111 What a step declares, and what its handler asks for
+
+**Why:** The release step declares needs: [model] and its handler asks for the output of timing as well - the writer resolves every figure_ref in the mapping against a catalogue built from timing's output, so a release handed a mapping alone has nothing to look the figures up in. It failed five steps into the first real client folder with 'release needs the output of timing, which this run does not have'. Nothing had caught it because needs is a recipe's declaration and the ask is a handler's code, and no test compares the two - and because the three older recipes all end at qc-tieout, which has no procedure, so no run in this build's history had ever reached a release step.
+
+- phase added: P111 What a step declares, and what its handler asks for (A run that finishes, gate: auto)
+- exit criterion: A run over the real client folder reaches the writer
+- exit criterion: Dropping timing from the release step's needs fails a test rather than a run
+- exit criterion: The scan reads the code rather than a table somebody has to remember to update
+
+## 2026-09-22 - P112 The waiver the message promised
+
+**Why:** The writer refuses to write anything while any required input has no source, and raises a review item saying 'nothing is written until a person supplies or waives them'. There is no way to waive. A person accepts the item, the step re-runs, recomputes the same list and asks again - the same livelock P104 fixed for timing, in the one step that produces the deliverable. On the first real client folder it blocked on eighteen inputs and blocked again on the identical eighteen after the item was answered. Every run where the mapping is not total ends with no workbook at all, and a mapping over a real client's folder is rarely total.
+
+- phase added: P112 The waiver the message promised (A run that finishes, gate: auto)
+- exit criterion: A run whose mapping is partial reaches a workbook instead of asking the same question twice
+- exit criterion: An unanswered list still blocks, and an answered one does not silently cover a list that changed
+- exit criterion: The Numeric Integrity Lock still brackets the write, marker cells included
+
+## 2026-09-22 - P113 The front page, and what it now has to say
+
+**Why:** The workbook's front page tells the analyst two things that stopped being true. It says a figure version 1 could not find is left blank - P112 now writes 'not found' into its own cell, and blank versus text is exactly the distinction that page exists to draw. And it says figures are 'stored to the cent', when P108 stores every decimal the restatement produced: the real folder's first workbook has 37.83500041 in a cell the page claims holds two decimals. The front page is the first thing anybody reads and the only thing standing between this file and being treated as the model. A page that describes a workbook that no longer exists is worse than no page.
+
+- phase added: P113 The front page, and what it now has to say (A run that finishes, gate: auto)
+- exit criterion: The delivered workbook's front page matches what the writer does
+- exit criterion: Changing the marker or the format without changing the page fails a test
+
+## 2026-09-22 - P113 The front page, and what it now has to say
+
+**Why:** tests/p105 asserted the literal words 'stored to the cent' on the front page. That was P105's own sentence and P108 made it false three phases later - the cell holds every decimal the restatement produced, not two. The test was holding a wrong claim in place, which is the failure mode this build calls a test that checks nothing in reverse: an assertion precise about the wording and wrong about the fact. Rewritten to assert what P105 was actually for - that the scale is stated where somebody reads it - plus the precision promise in whatever words the page uses.
+
+- exit criterion added: The P105 assertion holds the claim rather than the sentence, and still fails if the page stops naming the scale
+
+## 2026-09-22 - C63 The first real folder, part one: setup, scale and the questions
+
+**Why:** P107 to P110 are the four things that stood between a real client folder and a run that got anywhere: a checklist that called a machine ready when it could not mask or ask, the multiplication nobody did, a contract version nothing pointed at, and a question the profile already answered. Each was found by pointing the system at thirteen real files and reading what came back.
+
+- checkpoint added: C63 after P110, covering P107, P108, P109, P110
+- proves: A machine says honestly whether it could do any work; a figure read at the client's scale is restated to the template's, once, recorded, outside the writer; the field that declares the arrival scale can actually be set; and the skill that dates periods is told when the year ends.
+
+## 2026-09-22 - C64 The first real folder, part two: the deliverable
+
+**Why:** P111 to P113 are what was left once a run could reach the writer: a step that asked for something nobody handed it, a refusal that promised a waiver nothing could give, and a front page describing a workbook that had stopped existing. The last of the three was found by opening the file the first real folder produced and reading it.
+
+- checkpoint added: C64 after P113, covering P111, P112, P113
+- proves: A run over thirteen real client documents reaches a written workbook: every step is handed what its handler asks for, a person can say write it without these and be answered, and the page they read first says what is actually in the file.
+
+## 2026-09-22 - P111 What a step declares, and what its handler asks for
+
+**Why:** Three recipe plan hashes moved, because three release steps are now handed the figures as well as the mapping. The plan hash is what a run records itself under, so this is a real surface change and the snapshot is right to ask: valuation-input-prep because its release step failed on the first real client folder, monthly-refresh and mature-company-valuation because the same scan found them broken the same way. full-ddr-intake is unchanged and still cannot release, which is B-067.
+
+- exit criterion added: The three changed plan hashes are recorded rather than accepted silently
+
+## 2026-09-22 - P114 Files one level above where anybody is looking
+
+**Why:** Setting the first real folder up, I registered the engagement's folder as 'Test Client' under a pattern watch at depth 2. The sweep looks at <root>/<a>/<b>, so every file sat one level above where it looks: the planner skipped them, no target was produced, no arrival was recorded, nothing was reported unclaimed - and preflight said 'every swept folder maps to an engagement', which is true and useless when nothing is swept. A green Setup page, thirteen client files on disk, and silence, for as long as anyone cares to wait. It took reading the planner's source to find. This is the step the analyst's own test begins with - point it at the folder where the docs live - and it is the one place the system watches somebody make a mistake and says nothing.
+
+- phase added: P114 Files one level above where anybody is looking (A run that finishes, gate: auto)
+- exit criterion: Registering a one-level folder under a depth-two watch fails, naming the shape expected
+- exit criterion: Files dropped a level too high are reported by preflight with their count and location
+- exit criterion: A correctly filed folder is unaffected and produces no warning
+
+## 2026-09-22 - P114 Files one level above where anybody is looking
+
+**Why:** The second check should run tests/p16 (the planner) and tests/p24 (preflight), which are the two places this changes. tests/p15 is the review queue and has nothing to do with it - it was named from a guess at the numbering.
+
+- check dropped: python -m uv run pytest tests/p15 tests/p16 -q
+- check added: python -m uv run pytest tests/p16 tests/p24 -q
+
+## 2026-09-22 - P115 The column that was promised and never written
+
+**Why:** The delivered workbook has a Source column with a header and forty-four empty cells, and the page in front of it says 'The Source column says which file and which row, so any one of them can be checked in a click rather than taken on trust.' Nothing has ever written it. I found it by opening the file the first real client folder produced. Every figure envelope already carries its source_id and its locator - the whole provenance chain exists and stops one cell short of the person who needs it. The blueprint's rule is that a figure is proved by arithmetic or it is seen, and this column is the seeing.
+
+- phase added: P115 The column that was promised and never written (A run that finishes, gate: auto)
+- exit criterion: A run over the real client folder produces a workbook whose Source column is filled
+- exit criterion: The mapping cannot write a source cell, and a test proves the refusal
+- exit criterion: A source cell that does not read back as written stops the release
+
+## 2026-09-22 - C65 What the first real folder taught about setting it up and reading the output
+
+**Why:** Both of these came from doing the analyst's own test rather than from reading the code. P114 is the folder I filed one level too shallow, which produced a green Setup page and silence. P115 is the column I found by opening the workbook the run produced - promised on its front page, never written, and the one thing that turns a figure from something to re-check into something to click through to.
+
+- checkpoint added: C65 after P115, covering P114, P115
+- proves: A folder the sweep can never reach is refused where it is typed and reported where the files are; and every figure in the delivered workbook says which document and which row it came from, read back after the write.
+
+## 2026-09-22 - P116 The four keys the API does not take
+
+**Why:** Every live model call this build would make carries metadata={run_id, context_ref, step_id, skill}. The Messages API's metadata object accepts one key, user_id, and rejects anything else with a 400 - confirmed against the installed SDK's own MetadataParam, which declares user_id and nothing else. So on a machine with a real key, the first call fails, and it fails as MODEL_PIN_UNAVAILABLE reading 'claude-sonnet-5: ...', which sends whoever reads it to the model registry to debug a model that was never missing. This module already learned that exact lesson once - the comment above _TOO_LONG says a scan nobody could shrink reported itself as 'claude-opus-5 is unavailable' - and the lesson was applied to one phrase rather than to the shape of the problem. Nothing caught it because every test answers from a fixture or a stand-in, and no request this build sends has ever reached the API.
+
+- phase added: P116 The four keys the API does not take (A run that finishes, gate: auto)
+- exit criterion: The request built for a real call carries only fields the installed SDK declares
+- exit criterion: A refusal about an unknown parameter names the parameter and does not say the model is unavailable
+- exit criterion: The fake and scripted adapters still route by skill
+
+## 2026-09-22 - P117 A workflow a run can finish, and a machine that has one
+
+**Why:** The watch form pre-selects mature-company-valuation whenever it is in the list, and every engagement under that watch inherits it. That recipe names gpc-scrub, cost-of-capital, dcf-build and qc-tieout; four procedures exist, none of them those, and tests/p101 asserts the recipe still cannot finish. So the default path is: setup goes green, files land, the run pays a real API for timing, tagging and EBITDA, and then quarantines at a skill nobody wrote. Money spent, no workbook, and the dropdown said nothing - its labels only distinguish approved from not approved, never built from not built. Two smaller ones sit beside it: approving a workflow is required before an engagement can activate and is on no checklist, so the refusal arrives at the last step; and templates/*.xlsx is gitignored while nothing on the start path builds them, so a clean machine has no workbook to deliver into and the remedy text tells a non-developer to bind a fallthrough at a higher layer.
+
+- phase added: P117 A workflow a run can finish, and a machine that has one (A run that finishes, gate: auto)
+- exit criterion: A first-time user cannot select a workflow that will stop, without being told it will
+- exit criterion: A clean machine reaches an activatable engagement without anybody running a build script by hand
+- exit criterion: The checklist's steps are the steps, and the count still follows the list
+
+## 2026-09-22 - P118 The key it never checked and the limit it mislabelled
+
+**Why:** Two claims the Setup page makes about the two things that cost money. First: the AI-model step reads done from the adapter's name alone - reaches_a_model is 'adapter not in (fake, scripted)' - so a machine with AA_LLM_ADAPTER=anthropic_messages and a missing, revoked or wrong-account key shows 'Ready to run: a run would mask, ask a model and write a workbook'. P107 was written precisely to stop that sentence being said on a machine that could not, and it checked the vault by opening it and the model by reading a string. Second: the spend limit is labelled 'Spend limit per run (USD)' with the hint 'This is per run, not per month', and harness/budget.py compares it against the engagement's cumulative spend across every run it has ever had. Set fifty dollars as a generous per-run allowance and the third run halts at a ceiling nobody set. It fails in the safe direction for money and it is a control whose label lies about what it does, which by this repo's own rule is a finding rather than a preference.
+
+- phase added: P118 The key it never checked and the limit it mislabelled (A run that finishes, gate: auto)
+- exit criterion: A machine with the adapter set and no key does not read Ready to run
+- exit criterion: The label and the code agree about what the number caps
+- exit criterion: A person is told what a run may cost when they have set no limit at all
+
+## 2026-09-22 - P119 The period a figure carries and the period the cell asks for
+
+**Why:** ModelLoad.apply refuses a named range the template does not declare, a figure_ref not in the catalogue, and a double binding. It never compares the period the template input asks for with the period the figure carries - and both are sitting in the payload it was handed. The only guard downstream is the Numeric Integrity Lock, which is a multiset: bind FY3's revenue to Revenue_FY1 and transpose two years and the lock's difference is empty, every total re-adds, provenance passes, and the workbook is wrong in a way nothing in this build can see. Every other invariant here is a guard a model cannot relax; the one cross-check that is free was left to the model's judgement. The line cannot be checked the same way - the template says 'Cost of sales' and the client's own label is 'Costs of Goods Sold', and matching those is the work the skill exists to do - so this phase does the half that is provable and records the half that is not.
+
+- phase added: P119 The period a figure carries and the period the cell asks for (A run that finishes, gate: auto)
+- exit criterion: Transposing two fiscal years in a proposal is refused rather than written
+- exit criterion: The refusal names the input, the period it wanted and the period it was offered
+- exit criterion: Nothing about the line is silently asserted
+
+## 2026-09-22 - P120 Guards that were checked by looking for a word
+
+**Why:** An audit of this suite found seven tests standing a substring in for a property, four of them the only enforcement of a named non-negotiable. The worst is tests/p45: it asserts 'proxy_headers=False' appears in tools/serve.py, and the phrase occurs twice - once as the keyword argument and once in the comment explaining it - so deleting the argument leaves the test green and uvicorn goes back to trusting X-Forwarded-For, which on a loopback bind is every peer, which makes the one input the identity check has rewritable by the request itself. It was defeated by a good comment, and 'keep the substring unique' is not a rule anybody can follow. The same shape guards OCR-is-local ('urllib.request' not in source, defeated by 'from urllib import request'), guards-are-not-configurable ('intake.config' not in source, defeated by 'from intake import config'), and the secrets port. Beside them sits a one-line hole the substring tests had nothing to do with: ui/who.py explicitly allows Origin: null, which a sandboxed iframe on any website sends, and several write routes take no body at all, so a page the analyst has open can pause every engagement.
+
+- phase added: P120 Guards that were checked by looking for a word (A run that finishes, gate: auto)
+- exit criterion: Deleting proxy_headers=False fails a test even with the comment left in place
+- exit criterion: from intake import config and from urllib import request are both caught
+- exit criterion: A rejected review item does not waive an unmapped input, asserted by calling it
+- exit criterion: A cross-origin request with Origin: null cannot reach a write route
+
+## 2026-09-22 - C66 What five reviewers found: the first run, and what it costs
+
+**Why:** Three phases from pointing five reviewers at the build. Two of them would have stopped the analyst's own test tomorrow before it produced anything: every live model call carried four keys the Messages API rejects, so the first call 400s and reports itself as a missing model; and the dashboard pre-selected a workflow whose own test asserts it cannot finish, so the default path pays for three steps and quarantines at a skill nobody wrote. The third is what the screen claims about the two things that cost money - a key it never checked and a spend limit whose label contradicted the code enforcing it.
+
+- checkpoint added: C66 after P118, covering P116, P117, P118
+- proves: A request the provider accepts and a refusal that names the field rather than the model; a workflow a run can finish, offered by a form that says which ones cannot; and a Ready-to-run that means a key is present and a spend limit that says what it limits.
+
+## 2026-09-22 - C67 Guards that were not guarding
+
+**Why:** Two phases about guards that were not guarding. P119: a figure could be bound to the cell of another year and every check after it passed, because the Numeric Integrity Lock is a multiset - two transposed years leave its difference empty and every total still re-adds. P120: seven tests stood a substring in for the property they guarded, four of them the only enforcement of a named non-negotiable, and the worst was defeated by the comment explaining the line it was checking.
+
+- checkpoint added: C67 after P120, covering P119, P120
+- proves: A figure has to come from the year its cell asks for; and the guards over the peer address, the configuration boundary, local OCR, the secrets port and the waiver gate are each checked by what they do rather than by a word near them.
+
+## 2026-09-22 - P116 The four keys the API does not take
+
+**Why:** A new diagnostic code, SCOPE.PROVIDER_REFUSED_A_FIELD, owned by system. It is the point of the phase rather than a side effect: a 400 about the shape of the request is this build's mistake and says nothing about the model, and reporting it as MODEL_PIN_UNAVAILABLE sent whoever read it to the model registry to debug a model that was never missing. The remedy tells them not to change the pin.
+
+- exit criterion added: The new code is on the diagnostics surface, deliberately
+
+## 2026-09-23 - P121 Which year is FY1
+
+**Why:** P119 refused a binding whose figure is not from the period its cell asks for, and immediately exposed why nothing had been able to check it: RunFacts.period_slots is declared, read by build_inputs, and populated by nothing. Only evals sets it. So on a real run the catalogue's periods are the client's own labels - FY2023, FY2024 - and the template asks for FY1, FY2, FY3, with no statement anywhere of which year is which. The model was left to guess, the scripted stand-in guessed by sorting, and the two guesses agreeing was the only thing holding it together. With P119 in place and the slots unpopulated, every binding on a real run is refused, so this is not an improvement on the situation - it is the other half of the same phase. Which years fill the slots is also a judgement (B-073 - three slots against five years of client data) and the rule has to be stated rather than inferred: the convention is already written down twice, in evals SLOTS and in the stand-in's sort, and it is that FY1 is the earliest of the slots and the newest year takes the last.
+
+- phase added: P121 Which year is FY1 (A run that finishes, gate: auto)
+- exit criterion: A real run binds figures to cells instead of being refused by the period check
+- exit criterion: The mapping from the client's years to FY1..FYn is on the record by name
+- exit criterion: The rule is written once and the two places that already assumed it agree with it
+
+## 2026-09-23 - P121 Which year is FY1
+
+**Why:** The mapping is stated in the model-load payload rather than emitted as an event. There is no bus at the layer that builds a skill's inputs - the runner has none and the dispatcher's is one level further in - and putting it in the payload is better than working around that: the payload is stored in the context store, so it is on the record either way, and it is in front of the model, which is the party that was being asked to guess. It is the same move P110 made with the fiscal calendar, for the same reason.
+
+- task added: Which year became which slot is stated in the payload the model is given, and recorded with it
+- task dropped: Which year became which slot is an event on the run
+
+## 2026-09-23 - C68 Which year is FY1
+
+**Why:** P119's period check had no way to pass until this, because the slot mapping the whole catalogue is keyed on was declared, read, and set by nothing. The two halves are one change: refusing a figure from the wrong year is only possible once something says which year each cell is.
+
+- checkpoint added: C68 after P121, covering P121
+- proves: Every run derives the client's years onto the template's slots by one stated rule, says in the payload which year each slot is, and binds figures to cells instead of being refused by the check that was added to protect them.

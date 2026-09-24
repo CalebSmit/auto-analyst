@@ -1,0 +1,102 @@
+# The declared inputs of Chartwell_Input_Help_v1.xlsx - version 1's deliverable.
+#
+# **This is not a model.** It is a workbook laid out like the model's Input tab, which a
+# person copies from into the real model. The analyst set version 1's scope that way in the
+# fourth interview: *"gathering data and putting it into the same format every time so it is
+# really easy for me to do the work in the model. Version 1 of this is not for you to run
+# the actual model."*
+#
+# Why it exists as its own template rather than as the master one. The two recipes that
+# reach a release step write through `Chartwell_Master_Model_v14`, and a run writing into
+# something shaped like the firm's model is one filename away from being mistaken for it.
+# A separate workbook cannot be: it opens on a sheet that says what it is not.
+#
+# The fourteen income-statement lines over three fiscal years are the master template's own
+# declared inputs, because "matching the model's input format" is the whole point. What is
+# dropped are the three the model computes for itself - terminal WACC, target net working
+# capital and the selected multiple - which belong to `cost-of-capital`, `dcf-build` and
+# `gpc-scrub`. All three are outside version 1 and all three are skeletons.
+#
+# Synthetic, like the templates beside it. Chartwell's own `Model Template - MASTER 2026`
+# is owed on BUILD/OPEN.md; when it arrives this schema is re-derived from its Input tab
+# and registered at a new version, and the recipe does not change.
+
+template: Chartwell_Input_Help_v1.xlsx
+template_version: "1.0"
+kind: input_help
+
+# The firm's own convention, given by the analyst on 2026-09-22: **the statements always go
+# into the model in thousands**, and they almost never arrive that way - a client sends
+# units. So the workbook declares thousands, and a figure read in units has to be restated
+# before it can be written here.
+#
+# That restatement is arithmetic, and `deliver/builder.py` refuses to do it: *"restating is
+# arithmetic and does not happen in the writer"*. Dividing by a thousand in the last step
+# before a cell would put the one operation nobody can see underneath the one number
+# everybody reads. It happens upstream, on the record, or it does not happen.
+scale: 1000
+currency: USD
+
+# A cell beside every value saying which document and which row the figure came from.
+# Declared here and nowhere else, because it is not ours to add to the firm's own model:
+# this workbook exists to be copied from and therefore to be checked, and the master
+# template is a stand-in for one Chartwell maintains.
+#
+# The names are derived - <input>__Source - rather than listed, so they cannot fall out of
+# step with the inputs they mirror. They are stamps: the writer owns them and a mapping
+# may never name one, which is what stops a model writing its own provenance.
+sources_beside_values: true
+
+stamps:
+  - Template_Version
+  - Run_Id
+
+required:
+  - { name: Revenue_FY1, line: Revenue, period: FY1 }
+  - { name: Revenue_FY2, line: Revenue, period: FY2 }
+  - { name: Revenue_FY3, line: Revenue, period: FY3 }
+  - { name: COGS_FY1, line: Cost of sales, period: FY1 }
+  - { name: COGS_FY2, line: Cost of sales, period: FY2 }
+  - { name: COGS_FY3, line: Cost of sales, period: FY3 }
+  - { name: Officer_Comp_FY1, line: Officer compensation, period: FY1 }
+  - { name: Officer_Comp_FY2, line: Officer compensation, period: FY2 }
+  - { name: Officer_Comp_FY3, line: Officer compensation, period: FY3 }
+  - { name: Wages_FY1, line: Wages, period: FY1 }
+  - { name: Wages_FY2, line: Wages, period: FY2 }
+  - { name: Wages_FY3, line: Wages, period: FY3 }
+  - { name: Payroll_Taxes_FY1, line: Payroll taxes, period: FY1 }
+  - { name: Payroll_Taxes_FY2, line: Payroll taxes, period: FY2 }
+  - { name: Payroll_Taxes_FY3, line: Payroll taxes, period: FY3 }
+  - { name: Rent_FY1, line: Rent, period: FY1 }
+  - { name: Rent_FY2, line: Rent, period: FY2 }
+  - { name: Rent_FY3, line: Rent, period: FY3 }
+  - { name: Repairs_FY1, line: Repairs and maintenance, period: FY1 }
+  - { name: Repairs_FY2, line: Repairs and maintenance, period: FY2 }
+  - { name: Repairs_FY3, line: Repairs and maintenance, period: FY3 }
+  - { name: Utilities_FY1, line: Utilities, period: FY1 }
+  - { name: Utilities_FY2, line: Utilities, period: FY2 }
+  - { name: Utilities_FY3, line: Utilities, period: FY3 }
+  - { name: Insurance_FY1, line: Insurance, period: FY1 }
+  - { name: Insurance_FY2, line: Insurance, period: FY2 }
+  - { name: Insurance_FY3, line: Insurance, period: FY3 }
+  - { name: Professional_Fees_FY1, line: Professional fees, period: FY1 }
+  - { name: Professional_Fees_FY2, line: Professional fees, period: FY2 }
+  - { name: Professional_Fees_FY3, line: Professional fees, period: FY3 }
+  - { name: Depreciation_FY1, line: Depreciation, period: FY1 }
+  - { name: Depreciation_FY2, line: Depreciation, period: FY2 }
+  - { name: Depreciation_FY3, line: Depreciation, period: FY3 }
+  - { name: Travel_FY1, line: Travel, period: FY1 }
+  - { name: Travel_FY2, line: Travel, period: FY2 }
+  - { name: Travel_FY3, line: Travel, period: FY3 }
+  - { name: Office_FY1, line: Office supplies, period: FY1 }
+  - { name: Office_FY2, line: Office supplies, period: FY2 }
+  - { name: Office_FY3, line: Office supplies, period: FY3 }
+  - { name: Other_Opex_FY1, line: Other operating expense, period: FY1 }
+  - { name: Other_Opex_FY2, line: Other operating expense, period: FY2 }
+  - { name: Other_Opex_FY3, line: Other operating expense, period: FY3 }
+
+# Read from the client's own file when it is there, and left blank when it is not. An
+# owner-compensation benchmark is a judgement rather than a reading, so version 1 does not
+# originate one - it carries what a person put in the engagement profile, or nothing.
+optional:
+  - { name: Owner_Comp_Benchmark, line: Owner-compensation benchmark, period: as_of }

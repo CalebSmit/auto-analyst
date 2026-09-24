@@ -116,13 +116,35 @@ def test_the_ops_routes_carry_the_check_themselves(client: TestClient) -> None:
 def test_the_peer_address_is_not_taken_from_a_header() -> None:
     """uvicorn trusts `X-Forwarded-For` from a trusted peer by default, and on a loopback
     bind every peer is trusted - so the one input the identity check has could be rewritten
-    by the request itself."""
+    by the request itself.
+
+    Read from the call's own arguments. This asserted `"proxy_headers=False" in source`,
+    and the phrase occurs twice in `serve.py`: once as the keyword argument and once in
+    the comment explaining why it is there. Deleting the argument left the test green -
+    defeated by a good comment, which is not something anybody can be told to stop
+    writing. tests/reading.py has the rule."""
+    import ast
     from pathlib import Path
 
     source = (Path(__file__).resolve().parents[2] / "tools" / "serve.py").read_text(
         encoding="utf-8"
     )
-    assert "proxy_headers=False" in source
+    calls = [
+        node
+        for node in ast.walk(ast.parse(source))
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "run"
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "uvicorn"
+    ]
+    assert calls, "tools/serve.py no longer starts uvicorn"
+    for call in calls:
+        given = {kw.arg: kw.value for kw in call.keywords}
+        said = given.get("proxy_headers")
+        assert isinstance(said, ast.Constant) and said.value is False, (
+            "uvicorn is not told to distrust X-Forwarded-For"
+        )
 
 
 # --------------------------------------------- when something breaks

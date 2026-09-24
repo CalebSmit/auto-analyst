@@ -584,6 +584,12 @@ class RunDriver:
             template,
             run_id=context.run_id,
             engagement_id=context.engagement_id,
+            step_id=attempt.step.id,
+            waived=self._waivers(context.run_id),
+            # source_id -> the filename a person would recognise. The envelope carries the
+            # hash, which is provenance a machine can check; this is what makes the Source
+            # column a thing anybody can act on.
+            documents={f.source_id: f.filename for f in context.facts.sources},
         )
         # Built here from the wiring rather than carried on it. This line used to read a
         # gate off the wiring, and the wiring has never had one: `w.delivery` is truthy, so
@@ -607,6 +613,7 @@ class RunDriver:
             {
                 "delivered": built.name,
                 "writes": len(built.writes),
+                "waived": list(built.waived),
                 "already_released": bool(getattr(released, "already_released", False)),
             },
             name="release",
@@ -617,8 +624,16 @@ class RunDriver:
     def _facts(
         self, run_id: str, engagement_id: str, scope: Any, profile: dict[str, Any]
     ) -> RunFacts:
-        sources = self._settle_currency(
-            run_id, engagement_id, self._read_sources(run_id, engagement_id), profile
+        # Both settlements, in one place, before anything reads a source. Scale after
+        # currency only because that is the order they were written; neither depends on
+        # the other and both leave a stated cue alone.
+        sources = self._settle_scale(
+            run_id,
+            engagement_id,
+            self._settle_currency(
+                run_id, engagement_id, self._read_sources(run_id, engagement_id), profile
+            ),
+            profile,
         )
         template = None
         if scope.template is not None:
@@ -671,6 +686,57 @@ class RunDriver:
                     source,
                     currency=str(declared),
                     ambiguous=tuple(a for a in source.ambiguous if not a.startswith("currency")),
+                )
+            )
+        return tuple(settled)
+
+    def _settle_scale(
+        self,
+        run_id: str,
+        engagement_id: str,
+        sources: tuple[SourceFile, ...],
+        profile: dict[str, Any],
+    ) -> tuple[SourceFile, ...]:
+        """A statement rarely says "in thousands" anywhere a reader can find it.
+
+        The same shape as `_settle_currency` above, for the same reason and with the same
+        rules: a cue on the page always wins, a declaration only fills a silence, and the
+        substitution is an event rather than a quiet edit.
+
+        Why it is needed at all. `escalate()` in the timing procedure refuses a source
+        whose scale is unsettled - correctly, because thousands read as units is a figure
+        out by a factor of a thousand that passes every other check. But it reads the
+        *source's* scale, which no review decision changes, so a person answering the item
+        watched the step re-run and ask again. Thirty passes on the first real client
+        folder. A question answering cannot resolve is worse than no question.
+
+        The analyst's rule, 2026-09-22: *"the client could give us their financials in any
+        form, we always put it in thousands no matter what they give us."* So the arrival
+        scale is a fact about a delivery, which is why it is declared per engagement and
+        not guessed per file.
+        """
+        declared = profile.get("statements_arrive_in")
+        if not declared:
+            return sources
+        settled: list[SourceFile] = []
+        for source in sources:
+            if source.scale is not None:
+                settled.append(source)
+                continue
+            self.wiring.bus.emit(
+                run_id=run_id,
+                engagement_id=engagement_id,
+                node_id="run_driver",
+                type="intake.scale.assumed",
+                message=f"{source.filename}: no scale cue; the engagement profile "
+                f"declares {declared}",
+                payload={"source_id": source.source_id, "scale": int(declared)},
+            )
+            settled.append(
+                dataclasses.replace(
+                    source,
+                    scale=int(declared),
+                    ambiguous=tuple(a for a in source.ambiguous if not a.startswith("scale")),
                 )
             )
         return tuple(settled)
@@ -851,10 +917,65 @@ class RunDriver:
             raise InputsUnavailable(f"{name} is not a step output")
         return loaded
 
+    def _waivers(self, run_id: str) -> frozenset[str]:
+        """The review items a person accepted, by id.
+
+        The builder refuses to write while a required input has no source, and its own
+        message promises that a person can waive. Nothing could: accepting the item
+        changed nothing, the step re-ran, recomputed the same list and asked again. The
+        first real client folder blocked on eighteen inputs and blocked again on the
+        identical eighteen - the same livelock P104 fixed for timing, in the one step that
+        produces the deliverable.
+
+        Ids rather than names, because the id carries a digest of the exact list that was
+        shown; see `waiver_for`. A person waives the question they were asked.
+        """
+        from ops.models import DecisionKind  # noqa: PLC0415
+
+        return frozenset(
+            d.item_id
+            for d in self.wiring.store.decisions(run_id)
+            if d.decision == DecisionKind.ACCEPTED
+        )
+
     def _figures(self, attempt: Attempt, context: RunContext) -> Any:
+        """The catalogue's figures, at the scale the template declares.
+
+        Restating here rather than in `deliver/builder.py` is deliberate and the reason is
+        in `harness/restate.py`: the writer is arithmetic-free on purpose, because the
+        Numeric Integrity Lock brackets it and would otherwise be bracketing arithmetic it
+        cannot see. Before the mapping resolves, the lock still locks what was written.
+        """
         from harness.inputs import build_inputs
+        from harness.restate import restated
 
         loaded = build_inputs(
             "model-load", attempt.step.id, dict(attempt.inputs), context.facts, self.wiring.blobs
         )
-        return loaded.figures()
+        figures = loaded.figures()
+        template = context.facts.template
+        if template is None:  # build_inputs refuses first; this is for the type checker
+            return figures
+        figures, moves = restated(figures, template.inputs.scale)
+        if moves:
+            # One event, not one per figure. Thirty lines over three years is ninety
+            # restatements, and the question a person asks is "were they all moved by the
+            # same factor, and which ones were not" - which a list answers and a flood
+            # does not.
+            factors = sorted({m.from_scale for m in moves})
+            self.wiring.bus.emit(
+                run_id=context.run_id,
+                engagement_id=context.engagement_id,
+                node_id="run_driver",
+                type="model.figures.restated",
+                message=f"{len(moves)} figure(s) restated to scale "
+                f"{template.inputs.scale} for {template.key}, from "
+                f"{', '.join(str(f) for f in factors)}",
+                step_id=attempt.step.id,
+                payload={
+                    "template": template.key,
+                    "to_scale": template.inputs.scale,
+                    "restated": [m.as_row() for m in moves],
+                },
+            )
+        return figures

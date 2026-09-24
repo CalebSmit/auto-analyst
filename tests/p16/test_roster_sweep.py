@@ -17,6 +17,7 @@ from intake.sweep import SweepPlanner
 from ops.models import AppendOnlyViolation
 from ops.run_store import SqlRunStore
 from registries.errors import RegistryError
+from tests.importing import imported_modules
 from tests.p16.conftest import (
     BRDG,
     BRDG_FOLDER,
@@ -265,6 +266,11 @@ def test_the_change_log_is_append_only(config: ConfigStore, store: SqlRunStore) 
 def test_configuration_reaches_no_guard() -> None:
     """Configuration writes the engagement record; guards read the run. No module under
     guards/ or harness/ imports the config store."""
+    # By import tree. This asserted `"intake.config" not in source`, which
+    # `from intake import config` defeats entirely - and that spelling is the natural one
+    # to reach for. tests/importing.py has the rule and the reason.
     for folder in ("guards", "harness", "graph", "privacy"):
         for path in (ROOT / folder).rglob("*.py"):
-            assert "intake.config" not in path.read_text(encoding="utf-8"), path
+            names = imported_modules(path.read_text(encoding="utf-8"))
+            assert "intake.config" not in names, path
+            assert not any(n == "intake" for n in names), (path, "imports the package")

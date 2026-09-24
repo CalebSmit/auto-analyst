@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**95 of 95 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**121 of 121 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -233,4 +233,52 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P92** A button for each appendix that changes | auto | Updating one appendix leaves the others byte-identical | 2026-09-21 |
 | [x] | **P93** What is owed before any of this is believed | auto | A person has confirmed, on the machine with the credentials, that each of the three connections really works | 2026-09-21 |
 | [x] | **C55 - What the report cannot be made to say** | integration | Binding is by name in every module, an update is one appendix and leaves the rest byte-identical, a document that has been through the whole flow still opens, and no path exists from any button to the certification. | 2026-09-21 |
+
+## Reading what a client actually sends
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P96** The documents a valuation engagement really receives | auto | Every confidence the tracker reports is the classifier's own, and a test fails if it is read off a missing attribute again | 2026-09-21 |
+| [x] | **C57 - What a folder of real documents is allowed to be read as** | integration | That the reading a button does and the reading a run does agree about the same folder, that the vocabulary the classifier produces is the one the registry declares and the request list asks for, and that widening what can be recognised did not widen what can be recognised wrongly. | 2026-09-21 |
+| [x] | **P97** A name a scanner ran into the next word | auto | A declared identifier is masked whether or not the page kept the spaces inside it | 2026-09-22 |
+| [x] | **P98** A fiscal year the file states seven times | auto | A workbook whose sheets are five December year ends and two February interims reports a December fiscal year end, with its evidence | 2026-09-22 |
+| [x] | **C58 - What is read loosely, and what is still refused** | integration | That widening the match on a name and the derivation of a period did not widen what either will assert without evidence: a masked payload still carries its figures and period labels intact, a fiscal year end still arrives with the dates it was read off, and a projected column is still not a historical one. | 2026-09-22 |
+| [x] | **P99** The totals that re-add, and the rows they cover | auto | Every subtotal in the real client's statements is found with the rows it re-adds from, and the count of covered rows is asserted | 2026-09-22 |
+| [x] | **C59 - What arithmetic is allowed to stand in for** | integration | That a total re-adding is recorded as evidence about the rows under it and nothing else: the acceptance rule still refuses an extracted figure that no arithmetic covers, a statement that does not foot still says so by name and amount, and reading a folder still costs no model, no engine and no network. | 2026-09-22 |
+| [x] | **P100** The hundredth phase, and the comparison that broke on it | auto | Every comparison of two phase or checkpoint ids in the gate orders them by number | 2026-09-22 |
+| [x] | **C60 - The gate's own arithmetic** | integration | That the gate orders phases and checkpoints by number wherever it compares two, that its four safety nets - coverage, closing in order, what is owed, and a red checkpoint blocking the next phase - all still fire at three digits, and that the tests which check the gate do not carry the same assumption. | 2026-09-22 |
+
+## A run that finishes
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P101** Version 1's own recipe, ending at a workbook nobody has to trust | auto | Every skill the recipe names has a procedure, and a test fails if a skeleton is added to it | 2026-09-22 |
+| [x] | **P102** Asking the model whether it is there | auto | Pressing the button on a machine with no key says the key is missing, and names it, without making a call | 2026-09-22 |
+| [x] | **C61 - What a person can set up without being told how** | integration | That the setup a person does at /admin produces a run that ends somewhere, that the ending names what it could not fill rather than leaving blanks, and that nothing on the path spends money unless a person pressed something - including the connection test that does. | 2026-09-22 |
+| [x] | **P103** The files a run never sees | auto | The thirteen files of the real client folder all enter a run, and the record says which were inferred | 2026-09-22 |
+| [x] | **P104** Which documents a skill is even asked about | auto | The real client folder's twelve bound files reach a run and only the financial ones reach timing | 2026-09-22 |
+| [x] | **P105** Thousands on the page, cents in the cell | auto | The workbook declares scale 1000 and its value cells display no decimals | 2026-09-22 |
+| [x] | **P106** The scale a person states | auto | A run whose statements state no scale proceeds once the profile declares one, and the record says where it came from | 2026-09-22 |
+| [x] | **C62 - A document from the folder to the cell** | integration | That a file the firm did not name a token for still enters a run and is recorded as inferred, that a skill is only asked about documents of a kind it can read, that what arrives at whatever scale is settled by a person and never defaulted, and that the deliverable is in thousands with its decimals intact. | 2026-09-22 |
+| [x] | **P107** Ready to run has to mean it | auto | A machine with no vault key is told so by the checklist, before it activates an engagement | 2026-09-22 |
+| [x] | **P108** The one multiplication, and where it is allowed to happen | auto | A figure at the scale the client sent reaches a thousands template with its value restated and the restatement on the record | 2026-09-22 |
+| [x] | **P109** The version nothing pointed at | auto | The real client folder gets past the profile and activates | 2026-09-22 |
+| [x] | **P110** Asking a question the profile already answers | auto | A run over the real client folder gets past timing | 2026-09-22 |
+| [x] | **C63 - The first real folder, part one: setup, scale and the questions** | integration | A machine says honestly whether it could do any work; a figure read at the client's scale is restated to the template's, once, recorded, outside the writer; the field that declares the arrival scale can actually be set; and the skill that dates periods is told when the year ends. | 2026-09-22 |
+| [x] | **P111** What a step declares, and what its handler asks for | auto | A run over the real client folder reaches the writer | 2026-09-22 |
+| [x] | **P112** The waiver the message promised | auto | A run whose mapping is partial reaches a workbook instead of asking the same question twice | 2026-09-22 |
+| [x] | **P113** The front page, and what it now has to say | auto | The delivered workbook's front page matches what the writer does | 2026-09-22 |
+| [x] | **C64 - The first real folder, part two: the deliverable** | integration | A run over thirteen real client documents reaches a written workbook: every step is handed what its handler asks for, a person can say write it without these and be answered, and the page they read first says what is actually in the file. | 2026-09-22 |
+| [x] | **P114** Files one level above where anybody is looking | auto | Registering a one-level folder under a depth-two watch fails, naming the shape expected | 2026-09-22 |
+| [x] | **P115** The column that was promised and never written | auto | A run over the real client folder produces a workbook whose Source column is filled | 2026-09-22 |
+| [x] | **C65 - What the first real folder taught about setting it up and reading the output** | integration | A folder the sweep can never reach is refused where it is typed and reported where the files are; and every figure in the delivered workbook says which document and which row it came from, read back after the write. | 2026-09-22 |
+| [x] | **P116** The four keys the API does not take | auto | The request built for a real call carries only fields the installed SDK declares | 2026-09-22 |
+| [x] | **P117** A workflow a run can finish, and a machine that has one | auto | A first-time user cannot select a workflow that will stop, without being told it will | 2026-09-22 |
+| [x] | **P118** The key it never checked and the limit it mislabelled | auto | A machine with the adapter set and no key does not read Ready to run | 2026-09-22 |
+| [x] | **C66 - What five reviewers found: the first run, and what it costs** | integration | A request the provider accepts and a refusal that names the field rather than the model; a workflow a run can finish, offered by a form that says which ones cannot; and a Ready-to-run that means a key is present and a spend limit that says what it limits. | 2026-09-23 |
+| [x] | **P119** The period a figure carries and the period the cell asks for | auto | Transposing two fiscal years in a proposal is refused rather than written | 2026-09-22 |
+| [x] | **P120** Guards that were checked by looking for a word | auto | Deleting proxy_headers=False fails a test even with the comment left in place | 2026-09-22 |
+| [x] | **C67 - Guards that were not guarding** | integration | A figure has to come from the year its cell asks for; and the guards over the peer address, the configuration boundary, local OCR, the secrets port and the waiver gate are each checked by what they do rather than by a word near them. | 2026-09-23 |
+| [x] | **P121** Which year is FY1 | auto | A real run binds figures to cells instead of being refused by the period check | 2026-09-23 |
+| [x] | **C68 - Which year is FY1** | integration | Every run derives the client's years onto the template's slots by one stated rule, says in the payload which year each slot is, and binds figures to cells instead of being refused by the check that was added to protect them. | 2026-09-23 |
 

@@ -173,13 +173,33 @@ def test_the_deepest_bound_template_wins(resolver: ScopeResolver) -> None:
     assert esop.template.layer == "valuation/esop/_segment"
 
 
-def test_a_scope_with_no_binding_of_its_own_falls_back_to_the_firm(
-    resolver: ScopeResolver,
-) -> None:
-    non_esop = resolver.resolve("valuation/non-esop/repeat")
-    assert non_esop.template is not None
-    assert non_esop.template.file == "Chartwell_Master_Model_v14.xlsx"
-    assert non_esop.template.layer == "_firm"
+def test_a_scope_with_no_binding_of_its_own_falls_back_to_the_firm() -> None:
+    """The fall-through, asserted on a binding set this test owns.
+
+    It used to name `valuation/non-esop/repeat` as the scope with nothing of its own, and
+    P101 bound that segment to the input-help workbook - so a test of the *mechanism*
+    started failing because the *configuration* changed under it. Which scopes happen to be
+    unbound today is not a property worth pinning, and the firm's bindings will keep
+    moving; that a layer with no row of its own inherits the one above it will not.
+    """
+    from graph.resolve import ScopeResolver as Resolver
+    from graph.resolve import TemplateBinding
+
+    bound = Resolver(
+        bindings={
+            "_firm": TemplateBinding(
+                layer="_firm",
+                file="Firm_Model.xlsx",
+                template_version="1.0",
+                why="the default",
+            )
+        }
+    )
+    for path in ("valuation/non-esop/repeat", "valuation/esop/repeat", "consulting/tbd/repeat"):
+        resolved = bound.resolve(path)
+        assert resolved.template is not None, path
+        assert resolved.template.file == "Firm_Model.xlsx", path
+        assert resolved.template.layer == "_firm", path
 
 
 def test_a_layer_bound_to_nothing_falls_through_rather_than_binding_nothing(

@@ -2909,6 +2909,692 @@
       ],
       "notes": "",
       "closed": "2026-09-21"
+    },
+    {
+      "id": "P96",
+      "title": "The documents a valuation engagement really receives",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Raise the match rate on a real folder by reading what is there - the folder a file sits in, the words in its name, and the document types a non-ESOP valuation is actually sent - without inventing a match where there is none. A wrong match is worse than an unmatched file, because an unmatched file is on a list somebody reads.",
+      "builds": [],
+      "tasks": [
+        "Fix the confidence bug: Classification exposes 'confidence', not 'score', and a getattr default hid it",
+        "Carry the folder path into Evidence, and give it its own weight - a client who filed a document under 'Board Minutes' has told us what it is",
+        "Add the document classes a non-ESOP valuation engagement receives, drawn from the real folder rather than from imagination",
+        "Hold the line on false positives: a name cue alone stays tentative, and a tie is still 'other'"
+      ],
+      "exit": [
+        "Every confidence the tracker reports is the classifier's own, and a test fails if it is read off a missing attribute again",
+        "A file's folder is evidence, and a folder name alone can classify",
+        "The thirteen files of the real client folder classify as recorded in tests, with no invented match",
+        "No file classifies as something it is not: the false-positive cases are named and held"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p96 -q",
+        "python -m uv run pytest tests/p17 tests/p38 tests/p94 tests/p95 tests/checkpoints/c56 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "P97",
+      "title": "A name a scanner ran into the next word",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the masker and the Outbound Payload Scan find a declared identifier whose internal spacing the page did not preserve, and keep the two matching by one shared rule rather than two that look alike. The fix belongs above the OCR adapter because it must hold for whichever engine is installed - fixing rapidocr would leave tesseract and the next one to be found separately.",
+      "builds": [],
+      "tasks": [
+        "One matching rule, shared: whitespace inside a declared identifier matches whatever the page put there, including nothing",
+        "The scan uses that same rule, so a masker that misses and a scan that passes cannot come apart",
+        "Hold the direction of the error: looser matching may mask more than needed and may never mask less",
+        "Say what is not covered - a scanner that drops a letter rather than a space is a different problem and this does not solve it"
+      ],
+      "exit": [
+        "A declared identifier is masked whether or not the page kept the spaces inside it",
+        "The scan catches the same identifier the masker would have missed, and a test proves it against a stubbed masker that does nothing",
+        "Masking still never touches a figure, a period label or an account number it should leave alone",
+        "The masker and the scan derive their matching from one function, and a test fails if either grows its own"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p97 -q",
+        "python -m uv run pytest tests/p12 tests/p13 tests/p74 tests/p75 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P98",
+      "title": "A fiscal year the file states seven times",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Read the periods a real workbook states in the forms it states them, without inventing a fiscal calendar the document does not carry. A derivation from evidence in hand is not an assumption; a bare year turned into a year end is. The two must stay on opposite sides of that line, and P38's rule - a projected year must never enter the historical table - governs both.",
+      "builds": [],
+      "tasks": [
+        "Derive the fiscal year end from period ends that recur on a month end across years, even when interim stubs sit beside them, and record what it was derived from",
+        "Refuse the derivation when it would be a guess rather than a reading - too few years, or no month clearly dominant",
+        "Report yearly columns the document names but does not date, instead of reporting no period cue",
+        "Keep a projected column distinguishable from the historical year of the same name, which is the whole of P38"
+      ],
+      "exit": [
+        "A workbook whose sheets are five December year ends and two February interims reports a December fiscal year end, with its evidence",
+        "A forecast tab headed with bare years reports the years it covers and says plainly that dating them needs the engagement's year end",
+        "Two columns headed with the same year are reported as needing to be told apart, not silently merged",
+        "A mixed set of year ends and interim stubs still reports the fiscal year end as not stated when too few years recur, when two months are equally dominant, or when the candidate ends are not month ends"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p98 -q",
+        "python -m uv run pytest tests/p17 tests/p38 tests/p96 tests/p97 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P99",
+      "title": "The totals that re-add, and the rows they cover",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Find, deterministically and with no model, which totals in a parsed statement re-add from which rows - and report what does not, rather than guessing at it. A total that foots is arithmetic evidence about every row under it, which is the difference between an analyst reading 2,198 figures and reading the 288 nothing covers.",
+      "builds": [],
+      "tasks": [
+        "A reader that finds, for each total, the contiguous run of rows above it that sums to it - the lines, or the subtotals",
+        "Report a total that re-adds from nothing as uncovered, never as covered by the nearest thing that nearly fits",
+        "Carry the result on the read report and into the record a person sees, so a statement that does not foot is visible the day it arrives",
+        "Say plainly what this is not: arithmetic proves addition and not selection, and a wrong row added correctly still foots"
+      ],
+      "exit": [
+        "Every subtotal in the real client's statements is found with the rows it re-adds from, and the count of covered rows is asserted",
+        "A statement with a total that does not re-add reports that total as uncovered and says by how much",
+        "Nothing here reaches a model, an OCR engine or the network",
+        "The result reaches a person through the read record rather than sitting on a dataclass nobody looks at"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p99 -q",
+        "python -m uv run pytest tests/p17 tests/p38 tests/p96 tests/p98 tests/checkpoints/c38 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P100",
+      "title": "The hundredth phase, and the comparison that broke on it",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Order phases and checkpoints by their number rather than by their spelling, everywhere the gate compares them. The gate is the only thing permitted to mark a phase done, so a gate that mis-orders phases is the one defect that can let every other defect through.",
+      "builds": [],
+      "tasks": [
+        "One ordering rule for a phase or checkpoint id, used everywhere the gate compares two",
+        "A checkpoint covers the phases up to its own, and never a phase added after it",
+        "Phases still close in order at three digits, so P100 cannot close while P99 is open",
+        "The phases past the last checkpoint are still reported, which is the check that caught this"
+      ],
+      "exit": [
+        "Every comparison of two phase or checkpoint ids in the gate orders them by number",
+        "A plan of a hundred and more phases reports coverage, ordering and what is owed correctly",
+        "tests/p01 passes at three digits, and a test fails if a string comparison comes back"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p100 -q",
+        "python -m uv run pytest tests/p01 tests/regression -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P101",
+      "title": "Version 1's own recipe, ending at a workbook nobody has to trust",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Give version 1 a path a run can actually complete: intake, masking, timing, tagging and a mapping onto an input-help workbook, built only from skills that have a procedure. The workbook is laid out like the model's inputs and is not the model - he copies from it, so nothing this build writes can be mistaken for the firm's own file.",
+      "builds": [],
+      "tasks": [
+        "A recipe whose every skill step names a skill with a procedure, so no step can quarantine for being a skeleton",
+        "An input-help workbook and its declared inputs, separate from the model template and labelled as not being one",
+        "Bind it at the focus scope so a non-ESOP valuation resolves to it, leaving every other scope as it is",
+        "What the recipe cannot fill is listed as unmapped and shown to a person, rather than left blank or guessed"
+      ],
+      "exit": [
+        "Every skill the recipe names has a procedure, and a test fails if a skeleton is added to it",
+        "The workbook it writes is not the firm's model template, and says so on its face",
+        "An input nothing in version 1 can produce is reported unmapped with its name, not silently skipped",
+        "A released run on the focus scope gets through every step that has a procedure and ends on its own - waiting on a person for the inputs it could not place, rather than stopping at a step nobody built"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p101 -q",
+        "python -m uv run pytest tests/p06 tests/p07 tests/p20 tests/p21 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P102",
+      "title": "Asking the model whether it is there",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Let a person find out from the dashboard whether the model door opens, what it costs and which model answers, before any client work depends on it. The same shape as the Box and ShareFile tests, because 'connection failed' is not an answer and the value of the button is knowing which of three screens to open.",
+      "builds": [],
+      "tasks": [
+        "A probe that walks the model door in order - adapter, key, a real call, and what it was charged - reporting each step on its own",
+        "The smallest possible real call, with the cost of the test itself reported, since this is the one connection test that spends money",
+        "A step after a failure reads 'not reached', never 'fail', so nobody is sent to the wrong screen",
+        "Say which concrete model answered, because the tier is a per-skill decision and 'mid' is not an answer to 'which AI is this using'"
+      ],
+      "exit": [
+        "Pressing the button on a machine with no key says the key is missing, and names it, without making a call",
+        "Pressing it with a working key reports the model that answered and what the test cost",
+        "A refusal from the API is reported as the step that failed, with the provider's own reason, and the steps after it as not reached",
+        "The probe cannot be reached by a run, and spends nothing unless a person pressed it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p102 -q",
+        "python -m uv run pytest tests/p88 tests/p24 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P103",
+      "title": "The files a run never sees",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Let the classifier bind a file the conventions do not claim, so that what P96 can recognise is what a run can read. The firm's own declarations still win, an inference has to be confident to count, and anything neither claims is still held for a person - held is a real state and the point is not to empty it.",
+      "builds": [],
+      "tasks": [
+        "The binder asks the classifier when no convention claims a filename, and binds only on a confident answer",
+        "A convention always wins over an inference, because the firm declaring a token is a decision and a classifier is a guess with evidence",
+        "The record says which of the two bound each file, so an inferred type is visible as one",
+        "A type the Contract Registry does not declare is never bound, whatever the classifier says"
+      ],
+      "exit": [
+        "The thirteen files of the real client folder all enter a run, and the record says which were inferred",
+        "A file neither the conventions nor a confident classification claims is still held",
+        "A filename a convention claims keeps that type even when the classifier would say otherwise",
+        "Nothing binds a document type the registry has not declared"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p103 -q",
+        "python -m uv run pytest tests/p16 tests/p96 tests/p101 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P104",
+      "title": "Which documents a skill is even asked about",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Stop sending a skill documents of a kind it cannot read. Which types carry a period and a scale is a fact about the vocabulary, so the Contract Registry declares it and the input builder asks - rather than a list in the harness that goes stale the first time a type is added and nobody remembers.",
+      "builds": [],
+      "tasks": [
+        "The registry declares, per intake document type, whether it carries figures over periods",
+        "The input builder gives the timing and tagging skills only the sources of a type that does",
+        "A run whose every source is of a kind that carries nothing says so, rather than handing a skill an empty list",
+        "A new document type has to declare this, so the answer cannot be forgotten into a default"
+      ],
+      "exit": [
+        "The real client folder's twelve bound files reach a run and only the financial ones reach timing",
+        "A document type added without declaring whether it carries periods is refused by the registry",
+        "A board minute in the folder no longer produces a review item nobody can answer"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p104 -q",
+        "python -m uv run pytest tests/p17 tests/p20 tests/p96 tests/p101 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P105",
+      "title": "Thousands on the page, cents in the cell",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the deliverable say what the firm actually wants: figures in thousands, shown to the dollar and stored to the cent. Rounding before the write would bake a rounding error into the number a model is built on, and forty rounded figures do not re-add to the total they came from.",
+      "builds": [],
+      "tasks": [
+        "The input-help workbook declares thousands, and says so on its face",
+        "The value column carries an Excel display format of whole dollars, and the stored value keeps its decimals",
+        "A figure at the wrong scale is still refused by the writer rather than quietly divided"
+      ],
+      "exit": [
+        "The workbook declares scale 1000 and its value cells display no decimals",
+        "A value written with decimals is stored with them, and a test fails if rounding creeps in before the cell",
+        "The writer still refuses a figure whose scale does not match the template's, naming both"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p105 -q",
+        "python -m uv run pytest tests/p21 tests/p101 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P106",
+      "title": "The scale a person states",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Let a person settle, once per engagement, the scale the client's statements arrived in - so a run stops asking a question answering cannot resolve. The same shape as the currency settlement beside it: a stated cue always wins, a declaration fills a silence, nothing is defaulted, and the substitution is an event rather than a quiet edit.",
+      "builds": [],
+      "tasks": [
+        "The engagement profile may declare the scale the client's statements arrive in",
+        "A source with no scale cue takes it, emitting the same kind of record the currency settlement does",
+        "A source that stated its own scale keeps it, and a profile never overrides a cue",
+        "With nothing declared, the escalation stands - a scale is settled by a person or not at all",
+        "The new profile field lives at a new contract version, and 1.0.0 stays exactly as it was"
+      ],
+      "exit": [
+        "A run whose statements state no scale proceeds once the profile declares one, and the record says where it came from",
+        "A source carrying its own scale cue is untouched by the declaration",
+        "No declaration means the run still stops, and the reason still names the file"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p106 -q",
+        "python -m uv run pytest tests/p20 tests/p35 tests/p101 tests/p104 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P107",
+      "title": "Ready to run has to mean it",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the setup checklist cover the two prerequisites that live outside the configuration, so that finishing it means a run would actually do something. A checklist that reports done on a machine that cannot mask is worse than no checklist: it is the one screen a first-time reader trusts.",
+      "builds": [],
+      "tasks": [
+        "The setup payload says whether the vault opens and whether the model door reaches a provider",
+        "Both appear as steps in the checklist, each with the one thing to do about it",
+        "The vault key is validated rather than merely counted - a malformed key is not a key",
+        "Ready to run appears only when a run would mask, call a model and write something"
+      ],
+      "exit": [
+        "A machine with no vault key is told so by the checklist, before it activates an engagement",
+        "A machine answering from fixtures is told that no work will be done, and how to change it",
+        "A key that is present and malformed reads as missing rather than as done",
+        "With both satisfied and every other step done, the page says ready and means it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p107 -q",
+        "python -m uv run pytest tests/p42 tests/p24 tests/p102 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P108",
+      "title": "The one multiplication, and where it is allowed to happen",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Restate figures to the scale the template declares, once, in the one place that already knows both numbers and can record what it did - leaving the writer arithmetic-free so the lock around it still means what it says.",
+      "builds": [],
+      "tasks": [
+        "Figures are restated to the template's declared scale before the mapping resolves them",
+        "A ratio that is not an exact power of ten is refused rather than approximated",
+        "The builder stays arithmetic-free, and a test fails if a multiplication appears in it",
+        "One event carries every restatement, naming each figure, both scales and the value before and after"
+      ],
+      "exit": [
+        "A figure at the scale the client sent reaches a thousands template with its value restated and the restatement on the record",
+        "A figure already at the template's scale is untouched and nothing is recorded about it",
+        "The writer still refuses a mismatch, because nothing downstream may rely on it restating",
+        "The Numeric Integrity Lock still brackets a write it can prove faithful"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p108 -q",
+        "python -m uv run pytest tests/p21 tests/p105 tests/p106 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P109",
+      "title": "The version nothing pointed at",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the profile version that carries the arrival scale the one the system actually validates and offers, on the pattern config_document already uses - and leave behind a scan that fails the next time a newest version is registered and orphaned.",
+      "builds": [],
+      "tasks": [
+        "The profile is validated against the newest registered version, and a profile recorded at an older one is still read rather than migrated",
+        "statements_arrive_in reaches the profile through the admin API and is there when the driver settles scale",
+        "The Setup page offers it in words that distinguish it from scale_convention",
+        "A scan fails when the newest registered version of any contract is named nowhere but the registry"
+      ],
+      "exit": [
+        "The real client folder gets past the profile and activates",
+        "A profile written before this phase still validates and still runs",
+        "The scan is red if PROFILE_CONTRACT is put back to 1.0.0",
+        "A schema's $id and its schema_version const name the same version, in every contract, checked"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p109 -q",
+        "python -m uv run pytest tests/p02 tests/p106 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P110",
+      "title": "Asking a question the profile already answers",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Put the engagement's fiscal calendar in front of the one skill whose whole job is fiscal calendars, so a period end is derived from a declared fact instead of guessed per page - and leave the guard exactly as strict as it is.",
+      "builds": [],
+      "tasks": [
+        "The timing payload states the engagement's fiscal year end and the basis it is kept on",
+        "The stand-in gives one end per period label, derived from that year end and the ends the readers actually found",
+        "The guard that refuses two ends for one label is untouched and still provable"
+      ],
+      "exit": [
+        "A run over the real client folder gets past timing",
+        "The payload names the year end, and a test fails if the profile stops reaching it",
+        "Two genuinely different ends for one label are still refused"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p110 -q",
+        "python -m uv run pytest tests/p104 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P111",
+      "title": "What a step declares, and what its handler asks for",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Fix the recipe, and then make the class of defect impossible to reintroduce: derive from the code which upstream outputs each step will ask for, and fail when a recipe does not hand them over.",
+      "builds": [],
+      "tasks": [
+        "The release step is handed the figures as well as the mapping",
+        "A scan derives, from the handlers and from build_inputs, which upstream outputs each kind of step reads",
+        "Every registered recipe is checked against it, and the scan is red when a needs entry is removed"
+      ],
+      "exit": [
+        "A run over the real client folder reaches the writer",
+        "Dropping timing from the release step's needs fails a test rather than a run",
+        "The scan reads the code rather than a table somebody has to remember to update",
+        "The three changed plan hashes are recorded rather than accepted silently"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p111 -q",
+        "python -m uv run pytest tests/p06 tests/p33 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P112",
+      "title": "The waiver the message promised",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Let a person say 'write it without these', once, against exactly the list they were shown - and make the absence unmissable in the workbook, because a blank cell an analyst copies into a valuation model reads as zero.",
+      "builds": [],
+      "tasks": [
+        "A required input with no source can be waived by a decision, and the run then writes",
+        "The waiver covers exactly the list the person was shown; a different list is a different question",
+        "A waived input says so in its own cell rather than being left blank",
+        "What was waived is on the record - the event, the built result and the delivery"
+      ],
+      "exit": [
+        "A run whose mapping is partial reaches a workbook instead of asking the same question twice",
+        "An unanswered list still blocks, and an answered one does not silently cover a list that changed",
+        "The Numeric Integrity Lock still brackets the write, marker cells included"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p112 -q",
+        "python -m uv run pytest tests/p21 tests/p108 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P113",
+      "title": "The front page, and what it now has to say",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the one page an analyst reads before copying anything describe the workbook they are actually holding - what a missing figure looks like, and how much precision is really under the rounding.",
+      "builds": [],
+      "tasks": [
+        "The page says what a waived input looks like, in the words the cell uses",
+        "The page says every decimal is kept rather than two",
+        "A test ties the page's claims to the code that makes them true, so the next change to either is caught"
+      ],
+      "exit": [
+        "The delivered workbook's front page matches what the writer does",
+        "Changing the marker or the format without changing the page fails a test",
+        "The P105 assertion holds the claim rather than the sentence, and still fails if the page stops naming the scale"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p113 -q",
+        "python -m uv run pytest tests/p105 tests/p112 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P114",
+      "title": "Files one level above where anybody is looking",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make a folder that can never be swept a thing the system says out loud - at registration, where it is provable before a file exists, and at preflight, where the files are already sitting in the wrong place.",
+      "builds": [],
+      "tasks": [
+        "An engagement folder that cannot match its watch's depth is refused with the shape it should have",
+        "Files that sit above a watch's depth are counted and reported rather than skipped in silence",
+        "The registration form says how deep the folder has to be, from the watch that was chosen"
+      ],
+      "exit": [
+        "Registering a one-level folder under a depth-two watch fails, naming the shape expected",
+        "Files dropped a level too high are reported by preflight with their count and location",
+        "A correctly filed folder is unaffected and produces no warning"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p114 -q",
+        "python -m uv run pytest tests/p16 tests/p24 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P115",
+      "title": "The column that was promised and never written",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Write each figure's document and row beside it, from the provenance the envelope already carries, so the claim the front page makes is true - and verify the cells read back as written, because a source cell pointing at the wrong row is worse than an empty one.",
+      "builds": [],
+      "tasks": [
+        "Every written figure's cell has its document and locator beside it",
+        "A source cell is the writer's, never a destination the mapping can name",
+        "A figure that came from the profile rather than a document says so",
+        "The source cells are read back and a mismatch refuses the delivery"
+      ],
+      "exit": [
+        "A run over the real client folder produces a workbook whose Source column is filled",
+        "The mapping cannot write a source cell, and a test proves the refusal",
+        "A source cell that does not read back as written stops the release"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p115 -q",
+        "python -m uv run pytest tests/p21 tests/p112 tests/p113 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P116",
+      "title": "The four keys the API does not take",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Send a request the provider accepts, and make a refusal about a parameter say so instead of blaming the model - the general form of the fix this module already made for one phrase.",
+      "builds": [],
+      "tasks": [
+        "Nothing this build invents is sent in the provider's metadata",
+        "The internal metadata still reaches the stand-ins, which key fixtures on it",
+        "A 400 naming a parameter is reported as a parameter, not as a missing model",
+        "A test would fail if a request grew a field the SDK does not declare"
+      ],
+      "exit": [
+        "The request built for a real call carries only fields the installed SDK declares",
+        "A refusal about an unknown parameter names the parameter and does not say the model is unavailable",
+        "The fake and scripted adapters still route by skill",
+        "The new code is on the diagnostics surface, deliberately"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p116 -q",
+        "python -m uv run pytest tests/p11 tests/p102 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P117",
+      "title": "A workflow a run can finish, and a machine that has one",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Stop the dashboard steering a first-time user into a workflow that cannot finish, say which ones can, and make a clean machine able to build its own deliverable - so the money a first run costs buys a workbook.",
+      "builds": [],
+      "tasks": [
+        "Whether a recipe can finish is derived from the procedures that exist, not from a list",
+        "The form offers one that can and says of each one that cannot that it will stop",
+        "Preflight refuses an engagement whose recipe names a skill with no procedure",
+        "A missing template workbook is built by the start path rather than reported to a person who cannot act on it",
+        "Approving a workflow is a step on the checklist, before activation refuses for the want of it"
+      ],
+      "exit": [
+        "A first-time user cannot select a workflow that will stop, without being told it will",
+        "A clean machine reaches an activatable engagement without anybody running a build script by hand",
+        "The checklist's steps are the steps, and the count still follows the list"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p117 -q",
+        "python -m uv run pytest tests/p101 tests/p24 tests/p80 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P118",
+      "title": "The key it never checked and the limit it mislabelled",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the one screen a person trusts before spending money tell the truth about both: that a key is present as well as an adapter, and what the spend limit actually limits.",
+      "builds": [],
+      "tasks": [
+        "The model step is done only when the selected adapter's own credential is present",
+        "The credential checked is the one the adapter declares, not a name typed twice",
+        "The spend limit says what it limits, and the standing ceiling is said out loud",
+        "Setting a spend limit is a step on the checklist rather than a button on a row"
+      ],
+      "exit": [
+        "A machine with the adapter set and no key does not read Ready to run",
+        "The label and the code agree about what the number caps",
+        "A person is told what a run may cost when they have set no limit at all"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p118 -q",
+        "python -m uv run pytest tests/p107 tests/p102 tests/p117 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P119",
+      "title": "The period a figure carries and the period the cell asks for",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Refuse a binding whose figure is not from the period the input names, using two fields already in front of the step - and say plainly, where somebody will read it, that the line is the model's judgement and is not checked.",
+      "builds": [],
+      "tasks": [
+        "A binding whose figure's period is not the input's period is refused, naming both",
+        "The refusal is a guard rather than a review item: it is arithmetic, not a judgement",
+        "A correct mapping over the real template is untouched",
+        "That the line is unchecked is stated where a reader of the skill will find it"
+      ],
+      "exit": [
+        "Transposing two fiscal years in a proposal is refused rather than written",
+        "The refusal names the input, the period it wanted and the period it was offered",
+        "Nothing about the line is silently asserted"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p119 -q",
+        "python -m uv run pytest tests/p21 tests/p115 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P120",
+      "title": "Guards that were checked by looking for a word",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make each of these guards checked by what it does rather than by a phrase near it, using the import walk this repo already had in one place - and close the Origin carve-out while the consoles are in hand.",
+      "builds": [],
+      "tasks": [
+        "The peer-address guard is asserted from the configuration uvicorn is given",
+        "Every import-boundary guard walks the tree, and one shared helper does it",
+        "The waiver gate is asserted by what it accepts rather than by the words in it",
+        "A null Origin is refused, and a test sends one"
+      ],
+      "exit": [
+        "Deleting proxy_headers=False fails a test even with the comment left in place",
+        "from intake import config and from urllib import request are both caught",
+        "A rejected review item does not waive an unmapped input, asserted by calling it",
+        "A cross-origin request with Origin: null cannot reach a write route"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p120 -q",
+        "python -m uv run pytest tests/p45 tests/p75 tests/p16 tests/p12 tests/p112 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "P121",
+      "title": "Which year is FY1",
+      "block": "A run that finishes",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Fill the slot mapping the whole catalogue is keyed on, by a rule stated in one place, and put on the record which of the client's years became which cell - so the answer is visible and correctable rather than inferred by whoever is reading.",
+      "builds": [],
+      "tasks": [
+        "The slots are derived from the periods timing settled, by one named rule",
+        "A folder with more years than the template has slots takes the most recent, and says so",
+        "A folder with fewer leaves the surplus slots unfilled rather than stretching",
+        "Which year became which slot is stated in the payload the model is given, and recorded with it"
+      ],
+      "exit": [
+        "A real run binds figures to cells instead of being refused by the period check",
+        "The mapping from the client's years to FY1..FYn is on the record by name",
+        "The rule is written once and the two places that already assumed it agree with it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p121 -q",
+        "python -m uv run pytest tests/p101 tests/p119 tests/p104 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-23"
     }
   ],
   "checkpoints": [
@@ -3528,6 +4214,138 @@
         "python -m uv run pytest tests/checkpoints/c56 -q"
       ],
       "closed": "2026-09-21"
+    },
+    {
+      "id": "C57",
+      "title": "What a folder of real documents is allowed to be read as",
+      "after": "P96",
+      "status": "done",
+      "proves": "That the reading a button does and the reading a run does agree about the same folder, that the vocabulary the classifier produces is the one the registry declares and the request list asks for, and that widening what can be recognised did not widen what can be recognised wrongly.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c57 -q"
+      ],
+      "closed": "2026-09-21"
+    },
+    {
+      "id": "C58",
+      "title": "What is read loosely, and what is still refused",
+      "after": "P98",
+      "status": "done",
+      "proves": "That widening the match on a name and the derivation of a period did not widen what either will assert without evidence: a masked payload still carries its figures and period labels intact, a fiscal year end still arrives with the dates it was read off, and a projected column is still not a historical one.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c58 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C59",
+      "title": "What arithmetic is allowed to stand in for",
+      "after": "P99",
+      "status": "done",
+      "proves": "That a total re-adding is recorded as evidence about the rows under it and nothing else: the acceptance rule still refuses an extracted figure that no arithmetic covers, a statement that does not foot still says so by name and amount, and reading a folder still costs no model, no engine and no network.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c59 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C60",
+      "title": "The gate's own arithmetic",
+      "after": "P100",
+      "status": "done",
+      "proves": "That the gate orders phases and checkpoints by number wherever it compares two, that its four safety nets - coverage, closing in order, what is owed, and a red checkpoint blocking the next phase - all still fire at three digits, and that the tests which check the gate do not carry the same assumption.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c60 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C61",
+      "title": "What a person can set up without being told how",
+      "after": "P102",
+      "status": "done",
+      "proves": "That the setup a person does at /admin produces a run that ends somewhere, that the ending names what it could not fill rather than leaving blanks, and that nothing on the path spends money unless a person pressed something - including the connection test that does.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c61 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C62",
+      "title": "A document from the folder to the cell",
+      "after": "P106",
+      "status": "done",
+      "proves": "That a file the firm did not name a token for still enters a run and is recorded as inferred, that a skill is only asked about documents of a kind it can read, that what arrives at whatever scale is settled by a person and never defaulted, and that the deliverable is in thousands with its decimals intact.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c62 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C63",
+      "title": "The first real folder, part one: setup, scale and the questions",
+      "after": "P110",
+      "status": "done",
+      "proves": "A machine says honestly whether it could do any work; a figure read at the client's scale is restated to the template's, once, recorded, outside the writer; the field that declares the arrival scale can actually be set; and the skill that dates periods is told when the year ends.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c63 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C64",
+      "title": "The first real folder, part two: the deliverable",
+      "after": "P113",
+      "status": "done",
+      "proves": "A run over thirteen real client documents reaches a written workbook: every step is handed what its handler asks for, a person can say write it without these and be answered, and the page they read first says what is actually in the file.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c64 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C65",
+      "title": "What the first real folder taught about setting it up and reading the output",
+      "after": "P115",
+      "status": "done",
+      "proves": "A folder the sweep can never reach is refused where it is typed and reported where the files are; and every figure in the delivered workbook says which document and which row it came from, read back after the write.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c65 -q"
+      ],
+      "closed": "2026-09-22"
+    },
+    {
+      "id": "C66",
+      "title": "What five reviewers found: the first run, and what it costs",
+      "after": "P118",
+      "status": "done",
+      "proves": "A request the provider accepts and a refusal that names the field rather than the model; a workflow a run can finish, offered by a form that says which ones cannot; and a Ready-to-run that means a key is present and a spend limit that says what it limits.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c66 -q"
+      ],
+      "closed": "2026-09-23"
+    },
+    {
+      "id": "C67",
+      "title": "Guards that were not guarding",
+      "after": "P120",
+      "status": "done",
+      "proves": "A figure has to come from the year its cell asks for; and the guards over the peer address, the configuration boundary, local OCR, the secrets port and the waiver gate are each checked by what they do rather than by a word near them.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c67 -q"
+      ],
+      "closed": "2026-09-23"
+    },
+    {
+      "id": "C68",
+      "title": "Which year is FY1",
+      "after": "P121",
+      "status": "done",
+      "proves": "Every run derives the client's years onto the template's slots by one stated rule, says in the payload which year each slot is, and binds figures to cells instead of being refused by the check that was added to protect them.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c68 -q"
+      ],
+      "closed": "2026-09-23"
     }
   ]
 }

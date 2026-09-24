@@ -65,6 +65,21 @@ contracts:
       it. Configuration writes the engagement record (invariant 23), so the gap was a
       missing contract rather than a missing design. P24 checks it at activation.
 
+  - id: engagement_profile
+    version: 1.1.0
+    file: engagement_profile@1.1.0.schema.json
+    kind: configuration
+    note: >-
+      Adds `statements_arrive_in` (P106): the scale the client's own statements are
+      stated in. Optional and undefaulted - a client may send financials in any form and
+      the firm always restates them to thousands, so what arrived is a fact somebody
+      establishes rather than a default anybody sets.
+
+      A new version rather than an edit to 1.0.0. The field was added in place first and
+      `tools/surfaces.py` caught it by its hash: "a contract edited in place" is the first
+      of the accidents that snapshot exists to find, and 1.0.0 stays listed because a
+      recorded run may cite it.
+
   - id: run_plan_proposal
     version: 1.0.0
     file: run_plan_proposal@1.0.0.schema.json
@@ -255,31 +270,37 @@ intake_document_types:
     supplied_by: plan administrator
     privacy_class: masked_only
     required_by: [repurchase-obligation]
+    carries_periods: false
   - id: ddr_response
     contract: null
     supplied_by: client
     privacy_class: masked_only
     required_by: [ddr-tagging]
+    carries_periods: false
   - id: request_schedule
     contract: null
     supplied_by: firm
     privacy_class: masked_only
     required_by: [ddr-tagging]
+    carries_periods: false
   - id: financial_statements
     contract: null
     supplied_by: client
     privacy_class: masked_only
     required_by: [timing-normalization]
+    carries_periods: true
   - id: trial_balance
     contract: null
     supplied_by: client
     privacy_class: masked_only
     required_by: [timing-normalization]
+    carries_periods: true
   - id: tax_return
     contract: null
     supplied_by: client
     privacy_class: masked_only
     required_by: []
+    carries_periods: true
   # Added 2026-09-16 (P38). A client's forecast is shaped exactly like the statements it
   # projects, and was being bound as financial_statements - so a forecast arriving first
   # could satisfy a recipe waiting for historicals. Its own type keeps projected years out
@@ -289,8 +310,84 @@ intake_document_types:
     supplied_by: client
     privacy_class: masked_only
     required_by: []
+    carries_periods: true
   - id: plan_document
     contract: null
     supplied_by: client
     privacy_class: masked_only
     required_by: []
+    carries_periods: false
+  # Added 2026-09-21 (P96), from the first real client folder this build was shown. Each
+  # one arrived in it and each answers a numbered item on the valuation request list that
+  # nothing could previously satisfy - so a document that had been sent was reported as one
+  # nobody asked for. No skill takes any of them yet: they are classified, tracked and shown
+  # to a person, which is what version 1 is for.
+  #
+  # Every one is `masked_only`. That is not a default - board minutes name directors and
+  # discuss matters under negotiation, a stockholder list is nothing but names against
+  # holdings, a customer schedule names customers, and an employee roster names employees.
+  # These are the document types in this registry with the highest concentration of
+  # identifiers per page, and they arrived together.
+  - id: board_minutes
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  - id: org_chart
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  # Distinct from participant_census, which is a plan filing's census and carries dates of
+  # birth and hours. This is the headcount a valuation asks for. One type for both would let
+  # a plan filing satisfy an operational request.
+  - id: employee_roster
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  - id: customer_detail
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  - id: competitor_list
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  - id: capex_schedule
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  - id: nonrecurring_items
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  # Kept apart from cap_table: a stockholder list names holders and their shares, a cap
+  # table also carries options, warrants and every other right. Reading one as the other
+  # would mark the fully-diluted request satisfied by a document that does not answer it.
+  - id: stockholder_list
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false
+  # The narrative rather than the numbers, and the only one of these the firm may have
+  # written itself - a prior year's sources-of-information and company-overview section
+  # comes back in the folder as often as a client's own write-up does.
+  - id: business_overview
+    contract: null
+    supplied_by: client
+    privacy_class: masked_only
+    required_by: []
+    carries_periods: false

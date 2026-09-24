@@ -28,7 +28,7 @@ from typing import Any
 from admin.preflight import Preflight, PreflightReport, resolve_model
 from graph.recipes import load_recipe
 from graph.resolve import TemplateBinding
-from intake.config import CONTRACT, ConfigStore, Destination, Watch
+from intake.config import CONTRACT, PROFILE_CONTRACT, ConfigStore, Destination, Watch
 from intake.roster import ProjectRoster, RosterEntry, RosterState
 from registries.constraints import ConstraintRegistry
 from registries.errors import (
@@ -125,6 +125,10 @@ class AdminConsole:
             # looking for this found three controls named model and none of them was it.
             # Read from the ports rather than declared, so it cannot drift from the run.
             "ai_model": self._ai_model(),
+            # The two things a run needs that are not in this document. Both live in
+            # `.env`, both are invisible to a checklist reading the configuration, and a
+            # machine missing either finishes the seven steps and still cannot do any work.
+            "environment_ready": self._environment(),
             "can": CAN,
             "cannot": CANNOT,
         }
@@ -475,6 +479,12 @@ class AdminConsole:
                     "approved_by": found.approved_by,
                     "registered_at": found.registered_at,
                     "digest": found.digest,
+                    # Approval and buildability are different questions, and the surface
+                    # asked only the first. A recipe naming a skill nobody wrote still
+                    # reads "approved", and a run picks it, pays for every step before the
+                    # gap and stops.
+                    "can_finish": found.can_finish,
+                    "unbuilt": list(found.unbuilt),
                 }
                 for found in register.review()
             ]
@@ -509,7 +519,29 @@ class AdminConsole:
         reason: str,
     ) -> RosterEntry:
         """Put an engagement on the roster with its profile. Registered paused unless
-        asked for active - and active only past preflight."""
+        asked for active - and active only past preflight.
+
+        The folder is checked against its watch's depth here rather than only at
+        preflight, because it is provable from two numbers on this form and the person who
+        typed one of them is still looking at the screen. Preflight says the same thing and
+        keeps saying it; this is the sentence that arrives in time to be useful.
+        """
+        from intake.sweep import folder_too_shallow  # noqa: PLC0415
+
+        watch = next((w for w in self.config.watches() if w.id == entry.watch_id), None)
+        problem = folder_too_shallow(entry.folder or "", watch) if watch is not None else None
+        if watch is not None and problem is not None:
+            raise AdminRefused(
+                (
+                    diagnose(
+                        ADMIN_FORBIDDEN,
+                        f"{entry.engagement_id}: {problem}",
+                        locator=f"roster/{entry.engagement_id}/folder",
+                        expected=f"{watch.depth} level(s) below {watch.root or 'the root'}",
+                        found=entry.folder or "(none)",
+                    ),
+                )
+            )
         wanted = entry.state
         recorded = self.roster.register(
             replace(entry, state=RosterState.PAUSED), who=who, reason=reason
@@ -746,8 +778,20 @@ class AdminConsole:
         self, engagement_id: str, profile: dict[str, Any], *, who: str, reason: str
     ) -> int:
         """The engagement record configuration writes. Validated against its contract
-        on the way in; the store refuses an invalid one before anything is written."""
-        return self._edit_engagement(engagement_id, {"profile": dict(profile)}, who, reason)
+        on the way in; the store refuses an invalid one before anything is written.
+
+        A blank optional field is dropped rather than sent as null. The form turns an
+        empty number box into `null`, and a contract that declares an optional integer
+        has no way to read that as "not stated" - so a person who left the arrival scale
+        alone was refused for a field they had not filled in. Only optional keys are
+        dropped: a required one blanked still has to be refused, and "missing" is a
+        better refusal than "null is not an integer"."""
+        return self._edit_engagement(
+            engagement_id,
+            {"profile": self.config.without_blank_profile_options(profile)},
+            who,
+            reason,
+        )
 
     def set_intake_override(
         self,
@@ -791,7 +835,9 @@ class AdminConsole:
         existing = current.get("profile") or {}
 
         skeleton: dict[str, Any] = {
-            "schema_version": "engagement_profile@1.0.0",
+            # Named from the store rather than spelled here, because a skeleton offering
+            # a version the store will not validate is exactly the seam P109 found.
+            "schema_version": PROFILE_CONTRACT,
             "engagement_id": engagement_id,
             "practice": practice,
             "segment": segment,
@@ -800,6 +846,12 @@ class AdminConsole:
             "size_band": {"metric": "revenue", "band": "", "as_of": ""},
             "fiscal_calendar": {"basis": "calendar", "year_end_month": 12, "year_end_day": 31},
             "scale_convention": 1,
+            # Different question from the line above, and the difference is the whole
+            # point: scale_convention is how the firm keeps its working papers,
+            # statements_arrive_in is how the client's own statements are stated. Offered
+            # blank because there is no default - a silence here is settled by a cue on
+            # the page, and guessing is the thousand-fold error this field exists to stop.
+            "statements_arrive_in": None,
             "owner_compensation_baseline": {
                 "amount": 0,
                 "currency": "USD",
@@ -1206,25 +1258,40 @@ class AdminConsole:
         reading Box" when `AA_STORAGE_ADAPTER` still says otherwise.
         """
         import ports
-        from admin.connection import probe_box, probe_sharefile
+        from admin.connection import probe_box, probe_model, probe_sharefile
 
-        probes = {"box": probe_box, "sharefile": probe_sharefile}
-        if service not in probes:
+        known = ("box", "model", "sharefile")
+        if service not in known:
             raise AdminRefused(
                 (
                     diagnose(
                         UNKNOWN_ADAPTER,
                         f"there is no connection test for {service!r}. The ones that "
-                        f"exist are {', '.join(sorted(probes))}.",
+                        f"exist are {', '.join(known)}.",
                         locator="admin/connection.py",
                     ),
                 )
             )
-        return probes[service](
-            ports.build_port("storage", service),
-            self.preflight.secrets,
-            in_use=ports.selected("storage") == service,
-        ).as_dict()
+        # Dispatched by name rather than out of a dict of the three. They take different
+        # ports - two storage adapters and a model - so a dict holding all three is a dict
+        # of unlike callables, and mypy is right that nothing can say what calling one
+        # returns.
+        #
+        # The model door is also the only test that spends money, so it asks the *selected*
+        # adapter rather than one built from the service name. Building an
+        # `anthropic_messages` adapter here regardless would report on a door no run uses,
+        # and would charge for the privilege.
+        if service == "model":
+            return probe_model(
+                ports.get_llm(),
+                self.preflight.secrets,
+                in_use=ports.selected("llm") not in ("fake", "scripted"),
+            ).as_dict()
+        storage = ports.build_port("storage", service)
+        in_use = ports.selected("storage") == service
+        if service == "box":
+            return probe_box(storage, self.preflight.secrets, in_use=in_use).as_dict()
+        return probe_sharefile(storage, self.preflight.secrets, in_use=in_use).as_dict()
 
     # -- plumbing
 
@@ -1240,6 +1307,47 @@ class AdminConsole:
     def _write(self, doc: dict[str, Any], who: str, reason: str) -> int:
         """Every write is validated by the store and logged field by field there."""
         return self.config.write(doc, who=who, reason=reason)
+
+    def _environment(self) -> dict[str, Any]:
+        """Whether a run could actually mask and actually ask a model.
+
+        The checklist's promise is that a step cannot read done when it is not, and it kept
+        that promise only for the configuration document. These two come from `.env`, so
+        the page had no way to know - and said "Ready to run" on a machine whose worker
+        pool would refuse to start.
+
+        The vault is **opened**, not counted. `secrets.has()` would report a malformed key
+        as present, and a key that is present and malformed is exactly the state this
+        screen must not call done: it survives setup and fails at the first run, which is
+        the worst place to find out.
+        """
+        from privacy.vault import KEY_NAME, open_vault  # noqa: PLC0415
+
+        vault: dict[str, Any] = {"ready": False, "detail": "", "name": KEY_NAME}
+        try:
+            open_vault(self.preflight.secrets, "sqlite:///:memory:").close()
+        except DiagnosticError as refused:
+            vault["detail"] = refused.diagnostic.detail
+        except Exception as broken:  # noqa: BLE001 - a vault that will not open is a state
+            vault["detail"] = f"{broken.__class__.__name__}: {broken}"[:200]
+        else:
+            vault["ready"] = True
+            vault["detail"] = f"{KEY_NAME} is set and opens the vault"
+
+        model = self._ai_model()
+        missing = model.get("missing_credentials") or []
+        return {
+            "vault": vault,
+            "model": {
+                "ready": bool(model["reaches_a_model"]),
+                "adapter": model["adapter"],
+                "detail": (
+                    f"{model['adapter']} is selected and {', '.join(missing)} is not set"
+                    if missing
+                    else model["means"]
+                ),
+            },
+        }
 
     def _ai_model(self) -> dict[str, Any]:
         """Which adapter answers a skill, and what it costs to ask.
@@ -1258,10 +1366,33 @@ class AdminConsole:
             "scripted": "a stand-in answering for the model, for a rehearsal",
             "anthropic_messages": "the Anthropic API, with the firm's key",
         }
+        # A key as well as an adapter. `reaches_a_model` used to be the adapter's name
+        # alone, so a machine pointed at the API with a missing, revoked or wrong-account
+        # key read "Ready to run - a run would mask, ask a model and write a workbook".
+        # P107 exists to stop that sentence being said on a machine that cannot: it opened
+        # the vault rather than counting the key, and then took the model on trust.
+        #
+        # Which credential is the adapter's to declare (`ports.credentials_for`), not this
+        # page's to know - a console that hard-coded ANTHROPIC_API_KEY would be naming a
+        # concrete adapter from outside `ports/`, which is the boundary P102 already had
+        # to unpick once.
+        answers = adapter not in ("fake", "scripted")
+        try:
+            wants = ports.credentials_for("llm", adapter) if answers else ()
+        except Exception:  # noqa: BLE001 - an adapter nobody registered declares nothing
+            # An unrecognised name is far likelier to be a real adapter somebody added
+            # than a stand-in, so it still counts as reaching a model and still costs
+            # money. What it needs is simply unknown, and a credential this page invented
+            # for it would be a check on a name nobody uses.
+            wants = ()
+        secrets = getattr(getattr(self, "preflight", None), "secrets", None)
+        missing = tuple(n for n in wants if secrets is not None and not secrets.has(n))
         return {
             "adapter": adapter,
             "means": says.get(adapter, "an adapter this page does not recognise"),
-            "reaches_a_model": adapter not in ("fake", "scripted"),
+            "reaches_a_model": answers and not missing,
+            "answers_from_a_model": answers,
+            "missing_credentials": list(missing),
             "tiers": dict(TIER_MODELS),
         }
 

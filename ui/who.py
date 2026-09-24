@@ -98,9 +98,16 @@ def _foreign(request: Request) -> dict[str, Any] | None:
             found=host,
         ).as_dict()
     origin = (request.headers.get("origin") or "").strip()
-    if origin and origin != "null":
+    if origin:
         from urllib.parse import urlsplit  # noqa: PLC0415
 
+        # `null` used to be excused, and it is the one value that should not be. A page in
+        # a sandboxed iframe sends it, so does a `file://` page, and either of those is on
+        # somebody else's website. Several write routes take no body at all, which makes a
+        # cross-origin POST a *simple* request - no preflight, so the absent CORS headers
+        # do not stop it - and a page the analyst happens to have open could pause every
+        # engagement or clear a methodology file. A null origin has no hostname, so it
+        # fails the check below rather than being routed around it.
         where = urlsplit(origin).hostname or ""
         if where.lower() not in ALLOWED_HOSTS:
             return diagnose(

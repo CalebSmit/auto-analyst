@@ -668,3 +668,465 @@ itself, which is the thing that walks a candidate skill from proposal through sa
 registration. So the chain exists and every step of it is invoked by hand instead.
 Whether that matters depends on whether a skill is ever promoted without a person walking
 it, which is a question for the practice rather than for a scan. Size: medium.
+
+## B-061 OCR drops spaces, and the masker matches on substrings
+status: proposed
+2026-09-21, from the first real client folder. The two scanned PDFs in it read at about
+0.97 mean confidence and every figure was legible - and the words ran together:
+`BOARDMEETINGMINUTES`, `ThefollowingcontainstheBoardmcetingminutes`. Not every space, which
+is worse than all of them: the loss is unpredictable, so nothing downstream can assume
+either spacing.
+**Why it matters beyond looking untidy.** `privacy/mask.py` locates a declared identifier
+with `re.compile(re.escape(ident.value), re.IGNORECASE)` - a plain substring. A declared
+name `John Smith` matches `Present: John Smith (President).` and does not match
+`Present:JohnSmith(President).` Shown, not assumed:
+
+    re.compile(re.escape('John Smith'), re.I).search('Present:JohnSmith(President).')  -> None
+
+So a name OCR has run into its neighbour is not masked. The Outbound Payload Scan does not
+catch it either: the module docstring says the masker and the scan agree "by construction",
+and what they agree on here is the blind spot.
+**What it is not.** Not a breach. CLAUDE.md records that masking is not a security boundary
+- the firm's Claude account is sanctioned for client data - so the cost is cross-client
+isolation and precedent portability: a precedent carrying an unmasked name cannot be reused
+on another engagement. That is the whole reason masking exists, so the cost is the point of
+the feature rather than a side effect of it.
+**Two candidate fixes, and they are not alternatives.** Whitespace-insensitive matching in
+the masker and the scan is the one that holds whatever the engine does, and it is the one to
+build. Getting spaces out of the engine is worth trying too (rapidocr exposes a
+`use_space_char`-style option in some builds) but it fixes one adapter and leaves Tesseract
+and the next engine to be checked separately.
+Files: privacy/mask.py, privacy/payload_scan.py, ports/ocr/rapidocr.py. Size: medium.
+
+## B-062 A fiscal year end nobody stated, and periods that are bare years
+status: proposed
+2026-09-21, from the first real client folder. Two gaps in `intake/readers/periods.py`,
+both found on real workbooks and both on version 1's own path.
+**The fiscal year end.** The balance-sheet workbook's sheets are named `2019-12-31`
+through `2023-12-31` plus two February interims. The detector found all seven period ends
+correctly and then reported `fiscal_year_end: not stated`. Five period ends on 31 December
+is not an assumption about the fiscal year end, it is a derivation from evidence already
+in hand - the same standard as "a figure is proved by arithmetic, or it is seen". Reporting
+it as unknown when the file says it seven times sends a person to type in what is already
+on the screen.
+**Bare year columns.** The projections tab's periods are `2021 | 2022 | 2023 | 2024 Feb YTD
+| 2024 (P)` as header cells, and the detector found no periods at all. That is how most
+forecast tabs are laid out, and a forecast with no periods cannot be placed in a model.
+Care is owed on both: the point of this module is an explicit `ambiguous` flag rather than
+an assumption, so a derived fiscal year end must carry what it was derived from, and
+`2024 (P)` must stay distinguishable from `2024` - reading a projected year as a historical
+one is exactly what P38 exists to prevent.
+Files: intake/readers/periods.py. Size: medium.
+
+## B-063 One document can satisfy two request items and only one is true
+status: proposed
+2026-09-21, from the first real client folder, and downgraded on inspection - which is why
+it is recorded rather than fixed.
+The tracker matches by kind, so a `financial_statements` file marks every item whose
+`answered_by` names that class. On the real folder the same two workbooks marked both A.1
+(five fiscal years) and A.2 (interim, current year to date and the same period last year).
+That looked wrong. It is not: the workbooks' sheets are `2023-02-28`, `2024-02-29` and five
+December year ends, so they genuinely answer both.
+**What remains.** The tool could not have known that, and marked both by the kind alone. A
+folder where the interims had not been sent would have read identically. The fix is not
+better matching but a reason: an item satisfied by kind alone, where the same file also
+satisfies a sibling item, is worth showing a person. The Evidence column already names the
+file, so what is missing is the prompt to look rather than the information.
+Size: small.
+
+## B-064 The footing reader exists; nothing extracts a figure for it to cover
+status: proposed
+2026-09-22, from P99. `intake/readers/footing.py` now finds, for every total in a parsed
+block, the contiguous run of rows that re-adds to it - on the first real client's
+statements, 280 of 280 totals re-add and four fifths of the 2,383 parsed rows sit under
+one. It reaches `ReadReport.footing`, the `intake.read` event and the run record, so a
+statement that does not add up is visible the day it arrives, which is useful on its own.
+**What it does not yet do is close B-040.** That backlog item is about
+`review/router.py`'s acceptance rule, which reads `extracted` and `arithmetic_cover` on a
+*review item* - and a review item is made from an extracted figure. Nothing extracts
+figures yet; that is the version-1 spine (B-047 through B-052). So the producer's evidence
+now exists and has nowhere to be carried to, which is the honest state and is why B-040
+stays open rather than being ticked off here.
+What is left is a mapping: when a figure is extracted from row *n* of block *b*, its
+`arithmetic_cover` is every footing in `b` whose ordinals include *n*. That is a few lines
+once figures exist, and writing it before they do would be a join to nothing.
+Files: the figure extractor, when there is one. Size: small, and blocked.
+
+## B-065 Two rehearsals cannot run at once
+status: proposed
+2026-09-22, found by running them in parallel by mistake. `tools/simulate_firm.py` uses a
+fixed home at `runs/_rehearsal`, so a second copy dies on the first one's SQLite file with
+`PermissionError: [WinError 32]` and its teardown leaves the directory behind. The findings
+it prints in that state are artifacts - a run that never started reads as a seam that
+failed - which cost a diagnosis before the cause was obvious.
+Not urgent: nobody runs two deliberately. Worth a line because the failure *looks* like a
+build defect, and the next person to trip it should find this instead of investigating one.
+The fix is a home per process (a pid or a mkdtemp suffix), or a lock that refuses the
+second run with a sentence saying why. Files: tools/simulate_firm.py. Size: small.
+
+## B-066 Roll-call tests: six that report an addition as a defect
+status: proposed
+2026-09-22, from P101. Adding one recipe turned six green tests red, in six files, none of
+which was about recipes:
+
+* `tests/p06/test_recipes.py` - the exact tuple of recipe names, in a test still called
+  `test_both_recipes_load` after the third arrived;
+* `tests/p33/test_registered_recipes.py` - the same tuple, sorted;
+* `tests/p01/test_structure.py` - `sorted(ids)` over phase ids, and `phase <= still_open[0]`
+  (that pair is P100's string-ordering defect rather than this one, and it is the same
+  shape: a fact about today asserted as a rule);
+* `tests/regression/test_surfaces.py` - `set(recorded["recipes"]) == {...}`, in a test whose
+  own docstring says its purpose is a **floor** and whose every other line is `>=`;
+* `tests/regression/test_serve.py` - `model_bindings: 4`, which never checked the thing it
+  cared about (that anything was seeded at all);
+* `tests/checkpoints/c12` - the exact set of registered workflow names, in a test about the
+  *shape* of each row.
+
+**Why it is worth a backlog entry rather than six fixes.** Each one is a fact about the
+configuration on the day it was written, asserted as though it were a rule. The failure is
+not that they broke - it is what breaking teaches: every one of them trains whoever hits it
+to update a number without reading why, and the sixth time that happens nobody looks. A
+test that fails on growth is a test people learn to silence.
+
+All six are now floors or properties: the things that shipped first must still be there,
+the shape of each row is asserted over whatever is there, and counts are derived from the
+file they are counted from. Nothing was deleted.
+
+**Two more, found by C63 rather than by a person.** `tests/p80` asserted the literal words
+*"Seven steps, in order."* and P107 added two steps and wrote *"Nine"*. `tests/p101` asserted
+that the release step's `needs` was exactly `["model"]`, and P111 found the handler also asks
+for `timing`. Both were green alone; neither is named in any later phase's check list, so
+only a checkpoint that re-runs everything could see them disagree. That is worth knowing on
+its own: **the checkpoint is the instrument for this defect class**, because a roll-call test
+by definition does not fail until something else changes, and nothing else re-runs it.
+
+Both are now relationships rather than values. `p80` counts the checklist's entries and looks
+the word up; `p101` asserts that release depends on a mapping, which is the thing P101 cared
+about, rather than the list that happened to express it that day.
+
+**What is left.** No check stops a ninth being written. A lint for `== {` against a registry
+listing would be noisy and would miss `sorted(...) ==`; what would actually work is a
+convention - **assert the relationship, never the inventory; if a number appears in a test,
+derive it from the thing it counts** - written where somebody adding a test would read it.
+That belongs in the testing notes rather than in a scan, which is why this is recorded rather
+than built.
+Files: the six above are done. Size: small, and it is a documentation change.
+
+## B-067 `full-ddr-intake` has a release step it can never run
+
+Found by the P111 scan, which compares what each step is handed against what its handler
+asks for. The release handler asks for the output of `model` - the mapping the writer
+resolves every `figure_ref` against - and `full-ddr-intake` has no `model` step. Its graph
+is intake, mask, ddr, timing, tagging, qc, release. There is no `needs` list that fixes
+this, because there is nothing to name.
+
+The other two older recipes had the same defect and could be fixed by editing a line; both
+were, in P111. This one cannot be, and the reason is worth keeping: the question is not
+which step to add but what this recipe's ending is supposed to be. It tags a DDR response
+against a request schedule. Whether that should end by writing a workbook at all, or by
+producing a tagged schedule and stopping, is a decision about what the recipe is for.
+
+It has never bitten anyone, because the recipe ends at a `qc-tieout` that has no procedure,
+so a run quarantines one step earlier. That is also why nothing found it for ninety phases.
+
+The scan carries it as a named exception with this id attached, so it stays visible rather
+than being silently tolerated.
+
+Files: `recipes/full-ddr-intake.yaml`, and the `KNOWN` set in
+`tests/p111/test_what_a_step_asks_for.py`. Size: small to edit, and the decision is the
+whole of it - it is Caleb's, not the code's.
+
+## B-069 The deliverable dates nothing
+
+Found by a valuation review of the delivered workbook. The Input sheet carries two stamps -
+`Template version` and `Run id` - and then forty-three rows labelled `Revenue (FY1)` through
+`Other operating expense (FY3)`. There is no valuation date, no fiscal year end, and no
+period end dates anywhere on the file.
+
+CLAUDE.md records the analyst saying that the two Input fields which change year to year are
+the **valuation date** and the **latest fiscal year end**. Neither exists on the deliverable.
+Forty-three figures labelled FY1/FY2/FY3 with no years is not a working paper: a reviewer
+cannot tell whether FY1 is 2019 or 2023, and neither can the analyst six months later.
+
+Half of this is cheap and half is not. The **period ends** are known - timing normalization
+settles them and P110 put the fiscal calendar in front of it - so they can be written as
+stamps beside the values, the way P115 wrote the Source column. The **valuation date** is not
+known: nothing asks for it (B-071), and it is the field everything else hangs off.
+
+Files: `tools/synthesize_templates.py`, `templates/inputs/Chartwell_Input_Help_v1@1.0.yaml`,
+`deliver/builder.py`. Size: small for the period ends once B-071 lands; the valuation date is
+a schema change and a conversation.
+
+## B-070 The input tab cannot be tied back to the client's own statements
+
+Fourteen income-statement lines over three years, stopping at operating expenses. The real
+client's income statement also has Interest Expense, Interest Income, Other Income, Property
+Taxes, Loss on Obsolete Inventory, State Income Tax - Current, and a line called
+**"Depreciation & Amortization"** where the template offers only "Depreciation".
+
+Three consequences, in order of severity:
+
+1. **Nothing foots.** The workbook cannot be reconciled to the client's stated net income, so
+   nothing proves the read was right - which is the premise the whole build rests on ("a
+   figure is proved by arithmetic, or it is seen").
+2. **No EBITDA can be built from it**, because interest, taxes and amortization are absent.
+3. **No entity tax status is visible**, and S-corp versus C-corp is the first thing an IRS
+   reviewer asks about a private-company valuation. (This client looks like an S corp: state
+   tax only, $1,000 common stock, $148K APIC.)
+
+Separately, **no balance-sheet inputs at all**. Seven balance sheets arrived; the taxonomy
+carries 21 balance-sheet categories with `excluded_from_al` and `include_in_nwc` flags and
+written rules for both; the workbook has none of them. Without cash, interest-bearing debt,
+AR, inventory and AP there is no net working capital and no equity bridge, and the flags an
+analyst reviews are decoration.
+
+The taxonomy already defines every missing income-statement category - `interest_expense`,
+`interest_income`, `income_tax`, `amortization`, `gain_loss_on_disposal`,
+`other_income_expense`, plus `contra_revenue`, `employee_benefits`, `advertising_marketing`,
+`vehicle_expense`, `bad_debt`. Eleven categories with no destination in the deliverable. The
+problem is the template, not the chart of accounts.
+
+Also worth knowing: the client's largest unnamed operating line is Freight, ~4.5% of revenue,
+which falls into the "Other operating expense" plug along with credit-card fees, health
+insurance and the 401(k) match. On one interim stub roughly 69% of administrative expense
+lands in that plug. That is not a normalized spread.
+
+**Waits on the real `Model Template - MASTER 2026`**, whose Input tab is what this workbook is
+supposed to mirror. Guessing at the shape now would be building the wrong thing carefully.
+Files: `templates/inputs/`, `tools/synthesize_templates.py`. Size: medium, and it is the
+decision about scope rather than the edit that is large.
+
+## B-071 The engagement profile asks none of the questions that make a valuation defensible
+
+`engagement_profile@1.1.0` requires practice, segment, disposition, NAICS, size band, fiscal
+calendar, scale convention, arrival scale and an owner-compensation benchmark. It does not
+ask for:
+
+* **valuation date** - already held as OPEN.md section 5 Q7, and the real client folder
+  answers it ("as of the Valuation Date in March 2024"), a date that is neither a fiscal year
+  end nor an interim end. Everything depends on it: which periods are relevant, what LTM
+  means, what the workbook is *as of*.
+* **standard of value** (fair market value / fair value / investment value) and **premise**
+  (going concern / liquidation)
+* **purpose** (gift, estate, buy-sell, 409A, litigation), which is what drives the standard
+* **level of value** (control / marketable minority / non-marketable minority)
+* **subject interest and share count** - the client's stockholder list shows 400 + 100 + 500
+  = 1,000 shares, tying to Common Stock $1,000
+* **entity tax status** (S / C / LLC)
+
+`interview/topics.yaml` shows the project knows all of these exist; none reached a schema.
+These are the fields a repeat-client roll-forward would carry forward, and the first six
+questions on any reviewer's checklist.
+
+**This is Caleb's, not the code's.** The schema change is an hour; deciding which of these
+version 1 asks for is the conversation. Files: `contracts/engagement_profile@1.2.0.schema.json`
+(a new version), `admin/console.py` skeleton, `admin/page.py` labels.
+
+## B-072 The tagging step's output reaches nothing
+
+`recipes/valuation-input-prep.yaml` declares the `model` step `needs: [timing, tagging]`, and
+`harness/inputs.py` builds model-load's inputs from `timing` and the profile only.
+`catalogue_from` never takes the tagging output and `workers/driver.py` references `tagging`
+nowhere.
+
+So the taxonomy category the analyst has just reviewed and approved does not decide which
+template line a figure lands on. Model-load re-decides from the raw label and is free to
+disagree with the person who just answered the question.
+
+This is rule 7 ("built and wired to nothing") in domain terms, sitting in version 1's only
+runnable recipe - and it is the thing that would make P119's unchecked half checkable: if a
+template input declared a taxonomy category, the tagged category of a bound figure could be
+compared with it, and a figure in the wrong *line* would be refused the way a figure from the
+wrong *year* now is.
+
+Files: `harness/inputs.py`, `harness/procedures/model_load.py`,
+`templates/inputs/Chartwell_Input_Help_v1@1.0.yaml`. Size: medium. Highest-value item on this
+list once the real template arrives.
+
+## B-073 Three fiscal-year slots against five years of data, and nobody chose which three
+
+The request list asks for five fiscal years. Both client workbooks carry five December year
+ends. The overview lists FY2019-FY2023. The template offers FY1/FY2/FY3 and
+`workers/driver.py` hard-codes `periods=("FY1", "FY2", "FY3")`.
+
+*Which* three of five is a judgement - and in a window containing the 2020 and 2021 PPP and
+ERC years it is the judgement of the engagement. It is currently made by the shape of a
+template, with no review item attached and nothing recording what was chosen or why.
+
+Files: `workers/driver.py`, `harness/procedures/model_load.py` (`period_slots`). Size: small
+to surface as a review item, and the answer belongs to a person.
+
+## B-074 One officer-comp benchmark, two officers, three years
+
+`owner_compensation_baseline` is a single amount with a single `as_of`.
+`ebitda_normalization` sums *all* officer lines for a period and compares the total to that
+one number. The client's `Employee Count` workbook says **"Officers | 2"**. A benchmark set
+for one role, tested against two officers' combined pay, reads "above" every period - and the
+same 2024-dated survey figure is tested against FY2021 and FY2022 compensation.
+
+It produces a note rather than an adjustment, which saves it. It is a note that will be wrong
+every time.
+
+Related: the add-back schedule's `amount` for an officer-comp candidate is the **full**
+officer compensation, not the excess over the benchmark. Nothing sums it today, and that is
+exactly how a schedule gets double-counted by whoever reads it next.
+
+Files: `contracts/engagement_profile`, `harness/procedures/ebitda_normalization.py`. Outside
+version 1's recipe, so not urgent. Size: small.
+
+## B-075 The statement hint reads sheet names, and this client names sheets by date
+
+`line_item_tagging` derives income-statement-versus-balance-sheet from the sheet name inside
+the locator. This client's workbooks name their sheets by date - `'2023-02-28'`,
+`'2019-12-31'` - and the statement is in the *filename*, which the function never looks at.
+So the hint that drives `excluded_from_al` and `include_in_nwc` returns `None` for every line
+of the real folder.
+
+Files: `harness/procedures/line_item_tagging.py`. Size: small - the filename is already on
+`SourceFile` and already reaches the payload.
+
+## B-076 A figure read and not placed is named, and shown to nobody
+
+`model_load.apply` builds `unrouted_upstream_figures` - the model's own named misses plus
+every catalogue ref it silently omitted - and writes it into the step output. The contract
+requires it and the skill is instructed to fill it. Nothing reads it: `review_items()` raises
+items for `unmapped_template_inputs` only, the builder reads `unmapped_template_inputs` only,
+and no console panel, workbook cell, event payload or manifest field mentions it.
+
+It is the exact mirror of a seam that *was* joined. An input with no figure gets a review item
+and a `not found` cell (P112, P115). A figure with no input gets nothing - and version 1's
+whole stated purpose is gathering data and putting it in one format, so the list of data that
+was gathered and then dropped is close to the most load-bearing output of the run.
+
+Files: `harness/procedures/model_load.py`, `ops/console/`. Size: small.
+
+## B-077 Two stale excuses: the unmask step, and what B-043 is waiting on
+
+`recipes/valuation-input-prep.yaml` labels the release step `Unmask, verify, write the
+workbook`. `guards/__init__.py` calls the unmask integrity check "the sixth guard".
+`deliver/builder.py` opens "Inputs are unmasked, tied-out, locked figures only". The driver's
+`_release` does neither: it imports `deliver.builder` and `deliver.release` and never
+`privacy.unmask` or `privacy.verify`, and no production module imports either.
+
+That is parked as B-043 - but **on a premise that is now false.** B-043 and the allowlist
+entry in `tests/p82` both say it has not bitten because no run has reached release. P101
+shipped `valuation-input-prep`, which ends at `release`, and P111-P115 made runs reach it.
+`deliver.workpaper`'s allowlist entry carries the identical stale sentence.
+
+The allowlist's own decay test checks that the module is still unreachable and the backlog
+item still open. It does not check whether the *reason* is still true, which is the thing that
+went stale.
+
+Files: `knowledge/backlog.md` (B-043, B-059), `tests/p82`, `BUILD/OPEN.md`. Size: the decision
+is Caleb's (OPEN.md, "Where the unmask belongs"); recording that the premise changed is five
+minutes and should happen first.
+
+## B-078 Five configuration fields that nothing reads
+
+Each is settable, persisted, and consumed by no production code:
+
+* **`scale_convention`** - *required* in the profile, on the admin form with its own
+  pick-list, labelled "Our working papers are kept in". Four hits in the tree, all writes.
+  It sits next to `statements_arrive_in`, which does work, and P109 went to some trouble to
+  explain that they are different questions. One of them does something.
+* **`review_level`** (standard / elevated) - settable, monotone-enforced with an explicit
+  refusal to lower it, persisted on the roster and in every config document version. What
+  actually governs review is `CheckpointPolicy`, built from the profile's `checkpoint_policy`,
+  which never looks at the roster. CLAUDE.md's non-negotiable is "an admin may raise a review
+  requirement, never lower one" - the refusal-to-lower is implemented and the raise does
+  nothing.
+* **`lock_timeout_hours`** - required in all four config document versions, parsed into
+  `IntakeTiming`, never passed: both `EngagementLock` construction sites take the default.
+* **`versions.prompt_version`** on the run manifest - never written and never read, on the
+  artefact whose whole job is reproducibility.
+* **`industry_classification`** and **`size_band`** - required profile fields read only by
+  `gpc-scrub` and `cost-of-capital`, both skeletons outside version 1. The reason is
+  defensible; what is missing is anything *saying* so, while an analyst is made to fill both
+  in before a run he can finish.
+
+Size: each is small on its own. The value is in deciding, per field, whether to join it or to
+say out loud that it is parked - an unread required field is a question asked for nothing.
+
+## B-079 No aggregate spend ceiling, and runs launch themselves
+
+`constraints.yaml`'s `per_run.usd_max` ($40) is the only hard money ceiling, and
+`sweep_forever` polls the watched folders on a timer and submits whatever the sweep released -
+no human presses a button per run. Total exposure is therefore $40 x (number of engagement
+folders that receive files), with nothing that stops at a total.
+
+The scenario is not exotic: a year of archived client folders syncs down overnight from
+OneDrive or ShareFile, the sweep releases a run per engagement, each is individually within
+its ceiling, and by morning there is a four-figure invoice with no ceiling crossed and no
+review item opened.
+
+P118 made the per-engagement budget honest and put it on the checklist, which is the mitigation
+a person can apply today. What does not exist is a firm-wide or daily cap.
+
+Related and smaller: `per_step.usd_max` ($6.00) is declared in `constraints.yaml` and read by
+nothing - `harness/budget.py`'s `CEILINGS` covers `per_run` alone. And `harness/dispatch.py`
+passes a literal `estimated_cost_usd=0.05` to the door regardless of context size, so the
+pre-call check is decorative and the ceiling is enforced after the call that crossed it. The
+overshoot is one call, so `$40` means "$40 plus one call".
+
+Files: `constraints/constraints.yaml`, `harness/budget.py`, `tools/serve.py`. Size: medium,
+and the number is a firm decision.
+
+## B-080 The cross-client precedent check misses a bare two-word name
+
+`precedent/writeback.py` masks, re-scans, and then runs `looks_like_a_person` as a second
+check because the store is read across clients. `privacy/people.py` fires on an initial plus
+surname, an honorific, or a role word adjacent to a name.
+
+A rationale reading *"Legal settlement - Sarah Weller"* or *"Rent paid to Kline Holdings LLC"*
+has no role word, is not the client's own name, masks to itself, clears the scan, clears the
+person check, and is written into a store that filters by practice and skill but **not by
+client**. The next engagement in valuation/non-ESOP gets that name in its model context.
+
+The module documents itself as deliberately conservative and the cost of a miss is one carried
+name rather than a batch. With real client folders arriving it becomes live for the first
+time, and `precedent.writeback.refused` is the event to watch.
+
+Files: `privacy/people.py`, `precedent/writeback.py`. Size: small to widen; the judgement is
+where to stop, since every widening costs a real precedent that should have been kept.
+
+## B-081 The DD tracker writes into the repo and silently loses the analyst's notes
+
+`admin/console.py`'s `_tracker_beside(relative)` returns `Path(relative) / "DD request
+list.xlsx"` where `relative` is inbox-relative, and it is never joined to the storage root.
+`write_tracker` then creates the parent, so pressing **Update** silently writes
+`<repo>/Clients/<client name>/<folder>/DD request list.xlsx` - a client-named directory tree
+inside the git working copy - while the files themselves are under `inbox/Clients/...`.
+
+Two consequences: the analyst never finds the file, and `read_tracker` reads the same wrong
+path, so the module's stated rule - *"a re-run preserves everything a person wrote"* - fails
+silently. `In Model?`, `Notes` and `Not Applicable` are never carried across.
+
+No test covers it: every test passes an explicit path, and the default-path shape - the only
+shape the UI uses - is untested.
+
+Files: `admin/console.py` (join to `_local_root` as `engagement_files` already does),
+`intake/tracker.py`. Size: small, and it is a real data-loss bug on a button a person will
+press.
+
+## B-082 Seven tests that check a word, and the shared helpers that replace them
+
+P120 rewrote five of them and added `tests/importing.py` (walk the tree, never the text),
+`tests/reading.py` (ask the code, not the comments) and `tests/counting.py` (derive a number
+from the thing it counts). What is left from the audit:
+
+* `tests/p105` asserts `"round(" not in source` for a whole-module claim; partly covered by
+  the behavioural round-trip beside it, so it is a redundant grep rather than a hole.
+* `tests/p19` asserts a regex against `precedent/store.py` that `if row.practice not in
+  (practice,)` evades. Worth knowing about the shape it guards: `stmt = stmt.where(...)`
+  returns a *new* statement, so dropping the `stmt = ` prefix on one line silently removes the
+  **skill** filter while leaving every string the test looks for intact.
+* `tests/p106` asserts both settlement calls appear in `_facts`, which has no behavioural test
+  at all. Both return new tuples, so a refactor that discards one return value keeps both
+  substrings and loses the settlement.
+* `tests/p11` and `tests/p05` each assert `len(...) == 13` over the skills - the B-066 shape,
+  aimed at the one thing `/improve-agent` exists to grow.
+* Three exact port inventories in `tests/checkpoints/c43` and `c54`, which is the worst place
+  for a roll-call: it only fails when something else changes, and the checkpoint is the one
+  thing that re-runs everything.
+
+Size: small each. The helpers exist now, so these are mechanical.

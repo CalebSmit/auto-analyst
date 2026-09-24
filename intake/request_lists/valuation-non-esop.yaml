@@ -59,8 +59,17 @@ items:
     essential: true
   - ref: A.11
     text: Detail of non-recurring or non-operating income and expense
+    answered_by: [nonrecurring_items]
   - ref: A.12
     text: Revenue by product, service or segment for the periods presented
+  # Added at P96. The first real client folder contained a capital expenditure schedule and
+  # this list had nowhere to put it, so a document that had been sent read as one nobody
+  # asked for. Kept separate from E.3's fixed asset register: that is a balance at a date,
+  # this is what was spent over a period, and a person chasing one would not accept the
+  # other.
+  - ref: A.13
+    text: Capital expenditures for the periods presented, and any planned
+    answered_by: [capex_schedule]
 
   # ------------------------------------------------------------- B. Corporate Documents
   - ref: B.1
@@ -69,12 +78,16 @@ items:
     text: Bylaws or operating agreement, and all amendments
   - ref: B.3
     text: Capitalisation table, including options, warrants and any other rights
-    answered_by: [cap_table]
+    # A stockholder list answers the holders and their shares but not the options and
+    # warrants. It satisfies this item as far as it goes; what it leaves out is a question
+    # for the person reading the tracker, which is why it is a class of its own.
+    answered_by: [cap_table, stockholder_list]
     essential: true
   - ref: B.4
     text: Shareholder, operating or buy-sell agreements
   - ref: B.5
     text: Minutes of board and shareholder meetings for the last three years
+    answered_by: [board_minutes]
   - ref: B.6
     text: Prior valuations or appraisals of the company or its equity
   - ref: B.7
@@ -83,23 +96,27 @@ items:
   # ------------------------------------------------------------- C. Operational Matters
   - ref: C.1
     text: Description of the business, its products and services
+    answered_by: [business_overview]
   - ref: C.2
     text: Organisation chart
+    answered_by: [org_chart]
   - ref: C.3
     text: Revenue by customer for the last three years, showing concentration
+    answered_by: [customer_detail]
   - ref: C.4
     text: Purchases by supplier, showing concentration and any sole-source dependency
   - ref: C.5
     text: Backlog, pipeline or contracted future revenue
   - ref: C.6
     text: Principal competitors and the company's position among them
+    answered_by: [competitor_list]
   - ref: C.7
     text: Management's view of the outlook, and of any transaction under discussion
 
   # -------------------------------------------------------- D. Employment/Labor Matters
   - ref: D.1
     text: Census of employees by function, with tenure and compensation
-    answered_by: [participant_census]
+    answered_by: [participant_census, employee_roster]
   - ref: D.2
     text: Employment or consulting agreements for officers and key personnel
   - ref: D.3

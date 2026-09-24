@@ -87,11 +87,49 @@ class RecipeState:
     digest: str
     state: str
     approved_by: str = ""
+    unbuilt: tuple[str, ...] = ()
+    """Skills this recipe names that have no mechanical half yet.
+
+    Approval and buildability are different questions and this build kept only the first.
+    Three of the four recipes on disk end at `qc-tieout`, which is frontmatter and no
+    procedure, so a run reaches it, raises "the skill has no mechanical half yet" and
+    stops - after paying a real provider for every step before it. The admin surface
+    offered them beside the one that works, labelled identically, and pre-selected one of
+    them.
+
+    Derived from `PROCEDURES` rather than listed, because a list of what is not built yet
+    is a list that is wrong the day somebody builds one."""
+
+    @property
+    def can_finish(self) -> bool:
+        return not self.unbuilt
     registered_at: str = ""
 
     @property
     def runnable(self) -> bool:
         return self.state == "registered"
+
+
+def unbuilt_skills(path: Path) -> tuple[str, ...]:
+    """The skills a recipe names that nothing can dispatch.
+
+    Read from the file rather than from a compiled plan: this answers a question the admin
+    surface asks about every recipe on disk, including ones no engagement has resolved and
+    ones that would not compile for any scope. A recipe that cannot even be parsed has no
+    skills to check and is somebody else's refusal.
+    """
+    from harness.procedures import PROCEDURES  # noqa: PLC0415
+
+    try:
+        doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except Exception:  # noqa: BLE001 - an unreadable recipe is `load_recipe`'s refusal
+        return ()
+    named = [
+        str(step["skill"])
+        for step in (doc.get("steps") or [])
+        if step.get("kind") == "skill" and step.get("skill")
+    ]
+    return tuple(dict.fromkeys(s for s in named if s.split("@", 1)[0] not in PROCEDURES))
 
 
 class RecipeRegister:
@@ -152,6 +190,7 @@ class RecipeRegister:
                         state="registered",
                         approved_by=found.approved_by,
                         registered_at=found.registered_at,
+                        unbuilt=unbuilt_skills(path),
                     )
                 )
             else:
@@ -160,6 +199,7 @@ class RecipeRegister:
                         name=path.stem,
                         digest=digest,
                         state="edited" if path.stem in approved else "unregistered",
+                        unbuilt=unbuilt_skills(path),
                     )
                 )
         return tuple(out)

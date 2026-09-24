@@ -45,6 +45,14 @@ VERSIONS = {
     "contracts": "1.0.0",
     "constraints": "1.0.0",
     "taxonomy": "coa-taxonomy@1.0.0",
+    # The template this world's runs deliver into - the one the roster pins, which for
+    # these ESOP engagements is the ESOP master. It was absent, so `_run_scope` pinned
+    # no version for `template_schema_lookup` and the Policy Gate refused the lookup - a
+    # run on this fixture could never have reached model-load's first tool call. Nothing
+    # noticed because the recipe it ran paused for review at an earlier step; P117 pointed
+    # the fixture at the workflow that can actually finish and the run got far enough to
+    # find out.
+    "template_version": "Chartwell_ESOP_Model_v9@9.4",
 }
 
 

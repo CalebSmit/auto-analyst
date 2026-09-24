@@ -87,6 +87,17 @@ class PeriodDetection:
     currency: str | None = None
     scale: int | None = None
     """1, 1000 or 1000000 - or None. Never a default."""
+    period_labels: tuple[str, ...] = ()
+    """Periods the document names but does not date, left to right, as written.
+
+    A forecast tab headed `2021 | 2022 | 2023 | 2024 Feb YTD | 2024 (P)` covers four years
+    and states no year end for any of them. Before P98 that came back as "no period cue",
+    which is not what the page says: it says which years, and leaves only the calendar
+    open. `period_ends` stays empty for these on purpose - `headings_in` explains why, and
+    the short version is that turning `2024` into `2024-12-31` here would invent a fiscal
+    calendar this module cannot see. The engagement profile knows it; this knows what the
+    document said."""
+
     ambiguous: tuple[str, ...] = ()
     cues: dict[str, list[str]] = field(default_factory=dict)
 
@@ -147,8 +158,104 @@ def headings_in(line: str) -> tuple[str, ...]:
     return tuple(ordered)
 
 
+YEARS_BEFORE_IT_IS_A_PATTERN = 3
+"""How many years one month end has to recur in before it is read as the fiscal year end.
+
+Two is a coincidence a valuation engagement produces all the time - a comparative statement
+carries this year and last - and calling two a pattern would set a fiscal calendar from the
+commonest document in the folder. Three is a client that has been closing on the same date
+for three years, which is what a fiscal year end is.
+"""
+
+
+def _recurring_year_end(ends: set[date] | Sequence[date]) -> tuple[int, str] | None:
+    """The fiscal year end month, read off period ends that recur - or None.
+
+    The existing derivation above wants every end in one month, and the first real client
+    workbook has five December year ends *and two February interims*, so it declined and
+    reported "not stated" on a file that says December seven times. Interim stubs beside
+    the year ends are the ordinary shape of a valuation's financial statements, not an
+    exception.
+
+    This is a derivation from evidence in hand rather than an assumption, and the blueprint
+    draws that line hard, so three things are required rather than one:
+
+    * the candidate ends fall on the **last day of their month** - a fiscal year ends at a
+      month end, and a run of dates mid-month is something else;
+    * the month recurs across at least `YEARS_BEFORE_IT_IS_A_PATTERN` distinct years;
+    * **no other month comes close** - a tie is refused rather than broken, because the
+      cost of a wrong fiscal year end is every period in the engagement being mislabelled.
+
+    Returns the month and what it was read from, because a derived value that cannot say
+    where it came from is indistinguishable from a default.
+    """
+    by_month: dict[int, set[int]] = {}
+    for when in ends:
+        if when.day != calendar.monthrange(when.year, when.month)[1]:
+            continue
+        by_month.setdefault(when.month, set()).add(when.year)
+    if not by_month:
+        return None
+    ranked = sorted(by_month.items(), key=lambda kv: -len(kv[1]))
+    month, years = ranked[0]
+    if len(years) < YEARS_BEFORE_IT_IS_A_PATTERN:
+        return None
+    if len(ranked) > 1 and len(ranked[1][1]) >= len(years):
+        return None
+    return month, (
+        f"{len(years)} period ends fall on the last day of month {month} "
+        f"({', '.join(str(y) for y in sorted(years))}), and no other month end recurs as often"
+    )
+
+
+CELLS_ARE_SHORT = 3
+"""Words in a line, at most, for it to be read as a cell rather than a sentence.
+
+`2024 Feb YTD` is three. `Net Sales Revenue` is three and carries no year, so it is
+excluded by the year rather than by the length."""
+
+
+def _named_periods(text: str) -> tuple[str, ...]:
+    """The period headings of a comparative statement, whichever shape they arrive in.
+
+    Two shapes, because two readers produce this text and they disagree about what a line
+    is. A document reader puts a header **row** on one line - `2021  2022  2023` - so the
+    headings are found by reading that line. A workbook reader puts each **cell** on its own
+    line, because `survey_workbook` collects header cells into a flat list, so the same
+    header row arrives as six lines of one heading each.
+
+    The first version of this looked only at the line with the most headings, which is the
+    document shape. It was written against a hand-made single-line header and passed, and
+    then found nothing at all in the real projections tab - the client file the whole phase
+    was for. Testing a fix against the shape you imagined rather than the one you have is
+    how that happens.
+
+    The run has to be **consecutive short lines**, not just any lines carrying a year.
+    Prose mentioning 2023 in one paragraph and 2024 in another is not a set of columns, and
+    a rule that could not tell the difference would report periods for every annual report
+    that discusses its own history.
+    """
+    on_one_line = max((headings_in(line) for line in text.splitlines()), key=len, default=())
+    if len(on_one_line) > 1:
+        return on_one_line
+
+    best: list[str] = []
+    run: list[str] = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        found = headings_in(stripped) if stripped else ()
+        if found and len(stripped.split()) <= CELLS_ARE_SHORT:
+            run.extend(found)
+        else:
+            if len(run) > len(best):
+                best = run
+            run = []
+    return tuple(run if len(run) > len(best) else best)
+
+
 def detect_periods(text: str, tables: Sequence[Any] = ()) -> PeriodDetection:
     ambiguous: list[str] = []
+    period_labels: tuple[str, ...] = ()
     cues: dict[str, list[str]] = {}
 
     # -- scale
@@ -236,6 +343,46 @@ def detect_periods(text: str, tables: Sequence[Any] = ()) -> PeriodDetection:
         if not ends:
             ambiguous.append("period_type: no period cue")
 
+    # -- periods the page names without dating them
+    #
+    # The commonest forecast tab in this firm's folders is headed with bare years:
+    # `2021 | 2022 | 2023 | 2024 Feb YTD | 2024 (P)`. No date appears anywhere on it, so
+    # `ends` is empty and everything above said "no period cue" - which is not what the
+    # page says. It says which years; it leaves only the calendar open. A forecast whose
+    # periods are unknown cannot be placed in a model at all, and that was the whole of the
+    # gap.
+    #
+    # They stay out of `period_ends` deliberately. `headings_in` gives the reason and it
+    # holds here: `2024` is a year, `2024-12-31` is a year end, and turning one into the
+    # other is inventing a fiscal calendar this module cannot see.
+    if not ends:
+        labelled = _named_periods(text)
+        years = [label for label in labelled if _BARE_YEAR.fullmatch(label)]
+        if len(years) > 1:
+            period_labels = tuple(labelled)
+            cues.setdefault("period", []).append(
+                f"{len(years)} columns headed with a bare year, none of them dated"
+            )
+            ambiguous.append(
+                f"period_ends: {len(years)} periods are named ("
+                + ", ".join(years)
+                + ") and none is dated - resolving them needs the engagement's fiscal "
+                "year end"
+            )
+            # Two columns headed the same year is the P38 hazard wearing a header: on the
+            # real tab, `2024 Feb YTD` and `2024 (P)` are an interim actual and a
+            # projection, and merging them would put projected figures in a historical
+            # column. Reported rather than resolved - which of two columns called 2024 is
+            # the forecast is a question for the person who can see the page.
+            repeated = sorted({y for y in years if years.count(y) > 1})
+            if repeated:
+                ambiguous.append(
+                    "columns: more than one column is headed "
+                    + ", ".join(repeated)
+                    + " - an interim and a projection of the same year read alike, and "
+                    "which is which is not stated"
+                )
+
     # -- fiscal year end
     fye = _YEAR_END.search(text)
     fiscal_year_end = _MONTH_INDEX[fye.group("m")[:3].lower()] if fye else None
@@ -244,6 +391,11 @@ def detect_periods(text: str, tables: Sequence[Any] = ()) -> PeriodDetection:
         if len(months) == 1:
             fiscal_year_end = next(iter(months))
             cues.setdefault("fiscal_year_end", []).append("from the annual period end dates")
+    if fiscal_year_end is None and ends:
+        recurring = _recurring_year_end(ends)
+        if recurring is not None:
+            fiscal_year_end, why = recurring
+            cues.setdefault("fiscal_year_end", []).append(why)
     if fiscal_year_end is None:
         ambiguous.append("fiscal_year_end: not stated")
 
@@ -292,6 +444,7 @@ def detect_periods(text: str, tables: Sequence[Any] = ()) -> PeriodDetection:
     return PeriodDetection(
         period_type=period_type,
         period_ends=tuple(d.isoformat() for d in sorted(ends)),
+        period_labels=period_labels,
         fiscal_year_end_month=fiscal_year_end,
         currency=currency,
         scale=scale,

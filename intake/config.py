@@ -36,7 +36,19 @@ SUPPORTED = ("config_document@1.3.0", "config_document@1.2.0", "config_document@
 added the per-engagement recipe and 1.3.0 where last year's model is, and absent means
 inherit and not-yet-pointed respectively - so an older document is read rather than
 migrated. It is written back at the current version, which is the only moment it changes."""
-PROFILE_CONTRACT = "engagement_profile@1.0.0"
+PROFILE_CONTRACT = "engagement_profile@1.1.0"
+PROFILES_SUPPORTED = ("engagement_profile@1.1.0", "engagement_profile@1.0.0")
+"""Every profile version this store will validate, newest first.
+
+A profile is validated against the version it declares, not against the current one. The
+same reasoning as `SUPPORTED` above: a profile recorded last year says what it always
+said, and rewriting it on read would be a migration nobody asked for and nobody could
+see. `PROFILE_CONTRACT` is what a new profile is offered at.
+
+P106 added `statements_arrive_in` and cut @1.1.0 for it, and this line went on naming
+@1.0.0 - whose `additionalProperties` is false, so the one field the scale settlement
+reads was the one field a person was refused for sending. The first real client folder
+hit it at the profile POST and never activated."""
 
 
 @dataclass(frozen=True)
@@ -270,6 +282,25 @@ class ConfigStore:
 
     # -- plumbing
 
+    def without_blank_profile_options(self, profile: dict[str, Any]) -> dict[str, Any]:
+        """A profile with its blank optional fields removed rather than sent as null.
+
+        The Setup form turns an empty number box into `null`, and a contract declaring an
+        optional integer has no reading of null that means "not stated" - so a person who
+        simply did not know what scale the client's statements arrived in was refused for
+        a field they had left alone. Which keys are optional is the contract's business
+        and it is asked, not assumed.
+
+        A required key blanked is left as it is. "statements_arrive_in is missing" is a
+        better refusal than "null is not one of 1, 1000, 1000000", and dropping a required
+        key would turn a question a person can answer into one they cannot see.
+        """
+        declared = str(profile.get("schema_version") or PROFILE_CONTRACT)
+        if declared not in PROFILES_SUPPORTED:
+            return dict(profile)
+        required = set(self._contracts.get(declared).get("required") or ())
+        return {k: v for k, v in profile.items() if v is not None or k in required}
+
     def _check_profiles(self, body: dict[str, Any]) -> None:
         """Every engagement profile in the document satisfies its own contract, and
         names the engagement it sits under. A profile that does not validate is refused
@@ -278,7 +309,14 @@ class ConfigStore:
             profile = (over or {}).get("profile")
             if profile is None:
                 continue
-            self._contracts.validate(PROFILE_CONTRACT, profile)
+            declared = str(profile.get("schema_version") or PROFILE_CONTRACT)
+            if declared not in PROFILES_SUPPORTED:
+                raise ValueError(
+                    f"the profile under engagements/{engagement_id} declares {declared!r}, "
+                    f"which this store does not validate (have: "
+                    f"{', '.join(PROFILES_SUPPORTED)})"
+                )
+            self._contracts.validate(declared, profile)
             if profile.get("engagement_id") != engagement_id:
                 raise ValueError(
                     f"the profile under engagements/{engagement_id} names "

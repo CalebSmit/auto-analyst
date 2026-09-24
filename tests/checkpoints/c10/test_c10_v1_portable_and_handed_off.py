@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -38,6 +39,9 @@ from tests.p28.test_portability import (
 )
 
 ROOT = Path(__file__).resolve().parents[3]
+
+sys.path.insert(0, str(ROOT))
+from tools.gate import number_of  # noqa: E402
 
 
 def test_a_clean_clone_plus_env_is_the_whole_setup() -> None:
@@ -111,19 +115,22 @@ def test_the_build_state_says_this_is_v1() -> None:
     the firm asked for something, which is not a thing going wrong.
     """
     plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
-    covered = [p for p in plan["phases"] if p["id"] <= "P28"]
+    # By number. `"P100" <= "P28"` is True, so from the hundredth phase on every
+    # three-digit phase up to P299 silently counted as part of v1 - found by `verify.py`
+    # the day P100 landed, and the seventh instance of the same comparison in this repo.
+    covered = [p for p in plan["phases"] if number_of(p["id"]) <= 28]
     assert len(covered) == 28, "v1 is the first 28 phases"
 
     open_phases = [p["id"] for p in covered if p["status"] != "done"]
     assert open_phases in ([], ["P28"]), open_phases
 
-    up_to_here = [c for c in plan["checkpoints"] if c["after"] <= "P28"]
+    up_to_here = [c for c in plan["checkpoints"] if number_of(c["after"]) <= 28]
     assert len(up_to_here) == 10
     red = [c["id"] for c in up_to_here if c["status"] != "done" and c["id"] != "C10"]
     assert red == [], red
 
     # Anything past v1 is a later block, and does not make v1 unfinished.
-    later = [p for p in plan["phases"] if p["id"] > "P28"]
+    later = [p for p in plan["phases"] if number_of(p["id"]) > 28]
     assert all(p["block"] != covered[-1]["block"] for p in later), (
         "work added after v1 belongs to a block of its own"
     )

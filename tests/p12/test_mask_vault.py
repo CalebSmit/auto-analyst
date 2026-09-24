@@ -8,6 +8,7 @@ and opening the same database again as a different process would.
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, text
@@ -187,30 +188,76 @@ def test_a_changed_key_cannot_read_the_vault(
     assert raised.value.diagnostic.code == "PRIVACY.VAULT_UNAVAILABLE"
 
 
-def test_no_key_no_vault(vault_url: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    """A run does not proceed on unmasked payloads because the vault was down."""
+def test_no_key_no_vault(
+    vault_url: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A run does not proceed on unmasked payloads because the vault was down.
+
+    The secrets adapter reads **`.env` as well as the environment**, so deleting the
+    variable is not enough to describe a machine with no key - the file still supplies one.
+    This passed for the whole build's life only because no machine had ever put
+    `AA_VAULT_KEY` in `.env`; the first one that did, on 2026-09-22, turned it red. The
+    environment was deciding the result, which is the same defect `tests/p75` carried and
+    the third place it has been found.
+
+    So the adapter is pointed at an empty file *and* the variable is unset, which is the
+    only way to say "there is no key here" to something that reads two places.
+    """
+    from ports.secrets.dotenv import DotenvSecrets
+
     monkeypatch.delenv(KEY_NAME, raising=False)
     ports.reset()
+    nothing = DotenvSecrets(env_file=tmp_path / "absent.env")
     with pytest.raises(RegistryError) as raised:
-        open_vault(ports.get_secrets(), vault_url)
+        open_vault(nothing, vault_url)
     assert raised.value.diagnostic.code == "PRIVACY.VAULT_UNAVAILABLE"
     assert "generate_key" in str(raised.value)
 
 
 def test_the_key_comes_through_the_secrets_port(vault: MaskVault) -> None:
     """Not from os.environ directly, and not as a parameter. The port is the one door
-    for credentials, the way the model door is for models."""
+    for credentials, the way the model door is for models.
+
+    Walked rather than grepped. This asserted `"os.environ.get(KEY_NAME" not in source`,
+    which blocks exactly one spelling: `os.getenv(KEY_NAME)` and `os.environ[KEY_NAME]`
+    both sail through, and the string it requires survives in a docstring."""
+    import ast
     import inspect
 
     from privacy import vault as module
 
     source = inspect.getsource(module)
-    assert "os.environ.get(KEY_NAME" not in source
-    assert "secrets.get(KEY_NAME)" in source
 
+    def reads_the_environment(node: ast.AST) -> bool:
+        """`os.environ.get(x)`, `os.environ[x]` or `os.getenv(x)`, however spelled."""
+        if isinstance(node, ast.Subscript):
+            target = node.value
+            return isinstance(target, ast.Attribute) and target.attr == "environ"
+        if isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Attribute) and func.attr == "getenv":
+                return True
+            return (
+                isinstance(func, ast.Attribute)
+                and func.attr == "get"
+                and isinstance(func.value, ast.Attribute)
+                and func.value.attr == "environ"
+            )
+        return False
 
-# -------------------------------------------------------------- retention
+    def names_the_key(node: ast.AST) -> bool:
+        """Whether `KEY_NAME` is what is being looked up. The module may read a *setting*
+        from the environment - the retention window is one - and that is not what this
+        invariant is about: the credential is the port's, and nothing else is."""
+        return any(
+            isinstance(inner, ast.Name) and inner.id == "KEY_NAME" for inner in ast.walk(node)
+        )
 
+    for node in ast.walk(ast.parse(source)):
+        if reads_the_environment(node) and names_the_key(node):
+            raise AssertionError(f"privacy/vault.py reads the key from os: {ast.dump(node)}")
+    assert "secrets.get(KEY_NAME)" in source, "and it does go through the port"
+    del vault
 
 def test_retention_is_a_field_on_every_entry(vault: MaskVault, vault_url: str) -> None:
     vault.issue(ENGAGEMENT, "PERSON", "Bob Henderson")

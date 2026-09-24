@@ -273,12 +273,16 @@ def test_the_register_is_not_a_recipe() -> None:
     """It lives beside the recipes it is about; offering it as one would offer somebody a
     workflow that does not exist."""
     assert "registered" not in recipe_names()
-    assert sorted(recipe_names()) == [
-        "full-ddr-intake",
-        "mature-company-valuation",
-        "monthly-refresh",
-    ]
     assert (RECIPES_DIR / "registered.yaml").parent == RECIPES_DIR
+
+    # The property rather than the roll-call. This listed the three recipes by name and
+    # went stale twice in one afternoon - once here and once in tests/p06 - each time
+    # reporting a new recipe as a failure. What matters is that every name offered is a
+    # recipe file and that the register is not among them, which stays true however many
+    # arrive.
+    offered = set(recipe_names())
+    on_disk = {p.stem for p in RECIPES_DIR.glob("*.yaml")} - {"registered"}
+    assert offered == on_disk, offered ^ on_disk
 
 
 def test_a_clone_has_nothing_registered() -> None:

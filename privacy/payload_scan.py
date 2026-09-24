@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from ops.events import EventBus
 from registries.errors import UNMASKED_IDENTIFIER, DiagnosticError, diagnose
 
-__all__ = ["IdentifierList", "PayloadScan", "ScanFailed", "ScanResult"]
+__all__ = ["IdentifierList", "PayloadScan", "ScanFailed", "ScanResult", "loosely"]
 
 # What a mask token looks like. The masker (P12) produces these; the scan only needs to
 # recognise them, and the shape is fixed here so the two cannot disagree about it.
@@ -40,6 +40,37 @@ SHAPED_LIKE_PII: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("social security number", re.compile(r"\b\d{3}-\d{2}-\d{4}\b")),
     ("employer identification number", re.compile(r"\b\d{2}-\d{7}\b")),
 )
+
+
+def loosely(value: str) -> re.Pattern[str]:
+    """A declared identifier, matched however the page spaced it.
+
+    `John Smith` matches `John Smith`, `John  Smith`, `John\nSmith` and `JohnSmith`.
+
+    The last one is why this exists. OCR reads a scanned page at high confidence and
+    still runs words together - the first real client folder came back with
+    `BOARDMEETINGMINUTES` at 0.97 - and it does so unpredictably, so nothing downstream
+    can assume either spacing. Until P97 both the masker and the scan matched on a plain
+    substring, so a name a scanner had joined to its neighbour was masked by neither, and
+    the scan could not catch the masker's miss because it shared the miss.
+
+    **The error has a direction.** `\\s*` can match more than was meant - a two-letter
+    identifier `A B` will now also match `AB` wherever it appears - and that masks text
+    nobody needed masked. That is the survivable failure. The other direction, a name
+    leaving unmasked, is the one this module exists to prevent, and a control that fails
+    towards doing its job too often is the right way round.
+
+    **What it does not cover.** A scanner that drops or mistakes a *letter* rather than a
+    space - `Smlth` for `Smith` - defeats this as completely as it defeated the substring.
+    Fuzzy matching on characters is a different instrument with a different error
+    direction, and guessing that two names are the same name is not something this module
+    is allowed to do. That case is a person's, and `interview.py register` is where they
+    record it.
+    """
+    pieces = [re.escape(piece) for piece in value.split() if piece]
+    if not pieces:  # `Identifier` forbids this; `IdentifierList` takes raw strings.
+        return re.compile(re.escape(value), re.IGNORECASE)
+    return re.compile(r"\s*".join(pieces), re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -125,8 +156,11 @@ class PayloadScan:
 
     def check(self, text: str, identifiers: IdentifierList) -> ScanResult:
         """The pure half. No bus, no raise - what a test of the matching wants."""
-        lowered = text.lower()
-        hits = tuple(ident for ident in identifiers.identifiers if ident.lower() in lowered)
+        # `loosely`, not `ident.lower() in text.lower()`. The scan is the check on the
+        # masker and the two must not differ about what counts as finding a name: a scan
+        # that matched more loosely would fail runs the masker had handled correctly, and
+        # one that matched more strictly would pass the leak it exists to catch.
+        hits = tuple(ident for ident in identifiers.identifiers if loosely(ident).search(text))
         missing = tuple(t for t in identifiers.expected_tokens if t not in text)
         seen = len(TOKEN_PATTERN.findall(text))
         shaped = tuple(

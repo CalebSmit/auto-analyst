@@ -10,9 +10,29 @@ Two bindings, both by convention and both closed:
 * **Engagement**, from the folder the sweep found the file under. The file's path must
   sit under the target's location, and the engagement must be active on the roster at
   the moment of binding - the planner's answer is not trusted twice.
-* **Document type**, from the filename against the configuration's convention table.
-  A filename matching no declared type is *held*: recorded, reported, never processed,
-  and never guessed.
+* **Document type**, from the filename against the configuration's convention table -
+  and, when no token claims it, from the Document Classifier reading the name and the
+  folder it sits in. A file neither claims is *held*: recorded, reported, never processed.
+
+**"Never guessed" used to mean "conventions or nothing", and P103 narrowed it.** The rule
+was right and the reading of it was too strict: ten of the first real client folder's
+thirteen files were held, and nothing was wrong with any of them - the convention table
+carries three types and a valuation receives a dozen. Holding a board minute because
+nobody had written the token `minutes` into a config file is not caution, it is a list
+somebody has to work through by hand every Monday.
+
+What replaces it is narrower than "guess":
+
+* a **convention always wins**. The firm declaring a token is a decision; a classification
+  is evidence. Evidence does not overrule a decision.
+* an inference must be **confident** - the classifier's own bar, the same one that decides
+  whether a read goes to a person - and must name a type the **Contract Registry declares**.
+  `gl_detail` and `cap_table` are classes the classifier can produce and the registry does
+  not declare, and neither may bind.
+* the binding **says which** did it, so an inferred type is visible as one everywhere it
+  travels rather than looking like something the firm declared.
+* everything else is still **held**. Emptying the held list was never the goal; a file
+  nothing recognises is a question for a person, and that is a real answer.
 """
 
 from __future__ import annotations
@@ -26,7 +46,7 @@ from intake.sweep import SweepTarget
 from ports.storage import FileRef
 from registries.errors import NO_ENGAGEMENT, RegistryError, diagnose
 
-__all__ = ["Bound", "EngagementBinder", "bind_document_type"]
+__all__ = ["Bound", "EngagementBinder", "bind_document_type", "document_type_for"]
 
 
 @dataclass(frozen=True)
@@ -35,7 +55,15 @@ class Bound:
     engagement_id: str
     watch_id: str
     document_type: str | None
-    """None means held: no declared type claims this filename."""
+    """None means held: neither a convention nor a confident classification claims it."""
+
+    bound_by: str = ""
+    """`convention`, `classification`, or empty when held.
+
+    On the binding rather than derivable from it, because "the firm declared this token"
+    and "a classifier was confident" are different kinds of fact about the same field, and
+    a person reading the intake record should not have to re-run the classifier to tell
+    which they are looking at."""
 
     @property
     def filename(self) -> str:
@@ -70,12 +98,69 @@ class EngagementBinder:
                 )
             )
         filename = ref.path.rsplit("/", 1)[-1]
+        found, how = document_type_for(
+            filename, self.config.conventions(), folders=_folders_under(ref.path, target)
+        )
         return Bound(
             ref=ref,
             engagement_id=entry.engagement_id,
             watch_id=target.watch_id,
-            document_type=bind_document_type(filename, self.config.conventions()),
+            document_type=found,
+            bound_by=how,
         )
+
+
+CONVENTION = "convention"
+CLASSIFICATION = "classification"
+
+
+def _folders_under(path: str, target: SweepTarget) -> tuple[str, ...]:
+    """The folders between the engagement's own folder and the file.
+
+    The engagement's location is stripped first: every file under it shares those
+    segments, so they say nothing about any one document - and one of them is the client's
+    name, which has no business reaching a classifier's cue table.
+    """
+    inside = path[len(target.location) + 1 :] if target.location else path
+    return tuple(part for part in inside.split("/")[:-1] if part)
+
+
+def _declared_types() -> frozenset[str]:
+    """The intake document types the Contract Registry declares.
+
+    Asked of the registry rather than of `CLASSES`, because the classifier can produce
+    types the registry does not declare - `gl_detail` and `cap_table` at the time of
+    writing - and a binding is a claim about a document's *type*, which is the registry's
+    vocabulary and not the classifier's.
+    """
+    from registries.contracts import ContractRegistry  # noqa: PLC0415
+
+    return frozenset(t.id for t in ContractRegistry.load().intake_document_types())
+
+
+def document_type_for(
+    filename: str,
+    conventions: dict[str, tuple[str, ...]],
+    *,
+    folders: tuple[str, ...] = (),
+) -> tuple[str | None, str]:
+    """The document type, and which of the two ways found it.
+
+    Conventions first and always. A classification is only asked for when no token claims
+    the name, and only accepted when the classifier would not have sent the read to a
+    person anyway - `review_required` is the same bar, so a binding is never more confident
+    than the read that follows it.
+    """
+    declared = bind_document_type(filename, conventions)
+    if declared is not None:
+        return declared, CONVENTION
+
+    from intake.readers.classify import Evidence, classify  # noqa: PLC0415
+
+    found = classify(Evidence(filename=filename, folders=list(folders)))
+    if found.review_required or found.document_type not in _declared_types():
+        return None, ""
+    return found.document_type, CLASSIFICATION
 
 
 def bind_document_type(filename: str, conventions: dict[str, tuple[str, ...]]) -> str | None:

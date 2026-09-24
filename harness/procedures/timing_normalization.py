@@ -14,7 +14,15 @@ from typing import Any
 from harness.runtime import BoundTools
 from review.router import Item
 
-__all__ = ["NOT_HISTORICAL", "SourceFile", "TimingInputs", "TimingNormalization", "historical"]
+__all__ = [
+    "NO_CALENDAR",
+    "NOT_HISTORICAL",
+    "FiscalCalendar",
+    "SourceFile",
+    "TimingInputs",
+    "TimingNormalization",
+    "historical",
+]
 
 PROPOSAL_CONTRACT = "skills/timing-normalization-proposal@1.0.0"
 
@@ -28,6 +36,11 @@ SETTLED_BY_RULE = " - taken by rule: "
 # projected years would sit beside the real ones as if they had happened (P38). Held out
 # here, in code, rather than left to the model to notice from a document_type field.
 NOT_HISTORICAL = frozenset({"forecast"})
+
+NO_CALENDAR = (
+    "this engagement's profile records no fiscal calendar; take the year end from the "
+    "statements themselves and say which one you took"
+)
 
 
 @dataclass(frozen=True)
@@ -55,8 +68,47 @@ class SourceFile:
 
 
 @dataclass(frozen=True)
+class FiscalCalendar:
+    """When this engagement's year ends, as a person recorded it at setup."""
+
+    basis: str
+    year_end_month: int
+    year_end_day: int
+
+    @property
+    def month_day(self) -> str:
+        return f"{self.year_end_month:02d}-{self.year_end_day:02d}"
+
+    def end_of(self, year: int) -> str:
+        """The date the fiscal year labelled `year` ends on."""
+        return f"{year:04d}-{self.month_day}"
+
+    def as_row(self) -> dict[str, Any]:
+        return {
+            "basis": self.basis,
+            "year_end_month": self.year_end_month,
+            "year_end_day": self.year_end_day,
+            "fiscal_year_ends": self.month_day,
+        }
+
+
+@dataclass(frozen=True)
 class TimingInputs:
     files: tuple[SourceFile, ...]
+    calendar: FiscalCalendar | None = None
+    """The engagement's fiscal calendar, or None where no profile recorded one.
+
+    It is here because the payload was `{"files": [...]}` and nothing else: the model was
+    handed twelve documents, asked to type and date every period in them, and never told
+    when this company's year ends - though a person had filled that in at setup. Then the
+    guard refused the answer for saying FY2023 two ways. The guard was right and the
+    question was unanswerable: a June year end on one statement and a bare "2023" on
+    another page cannot be reconciled by anybody who has not been told which the company
+    uses.
+
+    Optional because the profile is a person's and may be silent. A silence is said out
+    loud in the payload rather than filled in with December, which would be the same
+    guess wearing a system's confidence."""
 
 
 def historical(inputs: TimingInputs) -> tuple[SourceFile, ...]:
@@ -138,7 +190,13 @@ class TimingNormalization:
         return items
 
     def payload(self, inputs: TimingInputs) -> str:
-        """Labels and locators. No values: the model matches, it does not read figures."""
+        """Labels, locators and the fiscal calendar. No values: the model matches, it does
+        not read figures.
+
+        The calendar is the only fact here that is not read off a page, and it is the one
+        that makes the question answerable: every period label in the answer has to end on
+        a date, and which date a fiscal year ends on is a property of the company rather
+        than of the page it was printed on."""
         entries = []
         for f in historical(inputs):
             entries.append(
@@ -163,7 +221,14 @@ class TimingNormalization:
                     },
                 }
             )
-        return json.dumps({"files": entries}, indent=1)
+        body: dict[str, Any] = {"files": entries}
+        # Stated once, at the top, rather than left to be inferred twelve times.
+        body["fiscal_calendar"] = (
+            inputs.calendar.as_row()
+            if inputs.calendar is not None
+            else {"recorded": False, "note": NO_CALENDAR}
+        )
+        return json.dumps(body, indent=1)
 
     def parse(self, text: str) -> dict[str, Any]:
         start, end = text.find("{"), text.rfind("}")

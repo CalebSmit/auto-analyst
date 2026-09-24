@@ -125,6 +125,17 @@ foreach ($name in @('AA_INBOX_ROOT', 'AA_OUTBOX_ROOT')) {
     }
 }
 
+# The template workbooks are generated, and templates/*.xlsx is gitignored - so a clone
+# has the schemas and none of the files. Without them every engagement resolves to an
+# unregistered template, preflight refuses to activate anything, and the message tells a
+# non-developer to "bind a fallthrough at a higher layer". Build what is missing.
+$anyTemplate = Join-Path $root 'templates\Chartwell_Input_Help_v1.xlsx'
+if (-not (Test-Path $anyTemplate)) {
+    Say "Building the template workbooks (they are generated, not committed)."
+    & $venvPython (Join-Path $root 'tools\synthesize_templates.py')
+    if ($LASTEXITCODE -ne 0) { Say "Could not build the templates - see the error above." }
+}
+
 if ($SetupOnly) {
     Write-Host ""
     Say "Ready. Start it with start.cmd."

@@ -22,11 +22,13 @@ wrapped as data.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import PurePosixPath
 from typing import Any
 
 from guards.untrusted import UntrustedBoundary, Wrapped
 from intake.readers.classify import Classification, Evidence, audited_evidence, classify
 from intake.readers.documents import ParsedDocument, read_document
+from intake.readers.footing import FootingReport, footings_in
 from intake.readers.periods import PeriodDetection, detect_periods
 from intake.readers.workbook import (
     Selection,
@@ -63,10 +65,49 @@ class ReadReport:
     """locator -> the header above the block's column, for the timing skill's period hint."""
     audited: str | None = None
     """The audit-opinion phrase found in a financial statements file, or None."""
+    footing: dict[str, FootingReport] = field(default_factory=dict)
+    """locator -> which of that block's totals re-added, and the rows they cover.
+
+    The producer `review/router.py` has been waiting for since P37: an extracted figure is
+    shown to a person unless a total it feeds was re-added from its rows, and until P99
+    nothing set that. Kept per block because a block is a column of one statement, and a
+    statement footing in 2023 says nothing about the same statement in 2022."""
+
+    @property
+    def covered_rows(self) -> int:
+        return sum(len(f.covered_ordinals) for f in self.footing.values())
+
+    @property
+    def totals_that_did_not_foot(self) -> tuple[str, ...]:
+        """Every total that re-added from nothing, named, worst first.
+
+        What an analyst wants the moment a client's statement arrives, and what this build
+        could not answer before: does it add up."""
+        out = [
+            (abs(f.delta or 0.0), f"{locator}: {f.label} is out by {f.delta:,.2f}")
+            for locator, report in self.footing.items()
+            for f in report.uncovered
+            if f.delta is not None
+        ]
+        return tuple(line for _, line in sorted(out, reverse=True))
 
     @property
     def locators(self) -> tuple[str, ...]:
         return tuple(sorted(self.blocks))
+
+
+def _folders_of(path: str, filename: str) -> list[str]:
+    """The folders between the watched root and the file, outermost first.
+
+    Takes the filename too because a watch's `path` is only sometimes a path: some ports
+    hand back the bare name, and `PurePosixPath("x.pdf").parts[:-1]` is empty either way,
+    but a port that returns a Windows-shaped path would otherwise be read as one folder
+    called the whole path.
+    """
+    parts = PurePosixPath(path.replace("\\", "/")).parts
+    if parts and parts[-1] == PurePosixPath(filename.replace("\\", "/")).name:
+        parts = parts[:-1]
+    return [part for part in parts if part not in ("", ".", "/")]
 
 
 def read_source(
@@ -119,6 +160,7 @@ def read_source(
         for table in normalize_workbook(data, [s.sheet for s in selection.selected]):
             for locator, rows in table.blocks.items():
                 report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
+                report.footing[locator] = footings_in(rows)
             report.block_headers.update(table.block_headers)
             first_rows.extend(table.first_rows)
             text_for_model.append(table.as_text())
@@ -127,13 +169,22 @@ def read_source(
         read_tables = [t for page in parsed.pages for t in page.tables]
         for locator, rows in parsed.blocks().items():
             report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
+            report.footing[locator] = footings_in(rows)
         headers = parsed.headers()
         first_rows = parsed.first_rows()
         report.hidden_text = parsed.hidden_text()
         text_for_model.append(parsed.as_text())
 
     evidence = Evidence(
-        filename=row.filename, headers=headers, first_rows=first_rows, sheet_names=sheet_names
+        filename=row.filename,
+        headers=headers,
+        first_rows=first_rows,
+        sheet_names=sheet_names,
+        # The folders the client filed it under. `IntakeRow` has carried the full path since
+        # P12 and this call used only the last part of it, so the plainest thing a client
+        # says about a document - `Board Minutes/2023.pdf` - reached the classifier nowhere.
+        # P96 fixed that in the tracker; this is the same seam on the path a run takes.
+        folders=_folders_of(row.path, row.filename),
     )
     report.classification = classify(evidence)
     # The tables, not only a sample of the text. The columns check asks whether every
@@ -187,6 +238,14 @@ def read_source(
                     if report.periods.ambiguous
                     else ""
                 )
+                # Named, not counted. "3 totals did not re-add" sends somebody looking
+                # through a hundred rows; naming them and the amount they are out by is the
+                # difference between a warning and a finding.
+                + (
+                    "; did not re-add: " + "; ".join(report.totals_that_did_not_foot[:3])
+                    if report.totals_that_did_not_foot
+                    else ""
+                )
             ),
             step_id=step_id,
             payload={
@@ -206,6 +265,15 @@ def read_source(
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
                 "audited": report.audited,
+                # The evidence `review/router.py` routes on. Counts and names rather than
+                # the runs themselves: the ordinals live in the parse store, and an event
+                # payload holding two thousand of them is a record nobody can read.
+                "totals": sum(f.totals for f in report.footing.values()),
+                "totals_that_re_added": sum(
+                    f.totals - len(f.uncovered) for f in report.footing.values()
+                ),
+                "rows_covered_by_a_total": report.covered_rows,
+                "did_not_re_add": list(report.totals_that_did_not_foot[:10]),
             },
         )
 

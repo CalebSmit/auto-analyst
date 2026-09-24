@@ -18,7 +18,7 @@ from __future__ import annotations
 import hashlib
 import re
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -41,6 +41,7 @@ __all__ = [
     "NAMED_RANGE",
     "RegisteredTemplate",
     "TemplateInput",
+    "SOURCE_SUFFIX",
     "TemplateInputs",
     "TemplateRegistry",
     "TEMPLATES_DIR",
@@ -78,6 +79,13 @@ class TemplateInput:
         }
 
 
+SOURCE_SUFFIX = "__Source"
+"""What a source cell's named range is called: the input's name plus this.
+
+A suffix rather than a parallel list, so the relationship between a figure and its
+provenance is in the name and cannot be got wrong by filing them in a different order."""
+
+
 @dataclass(frozen=True)
 class TemplateInputs:
     """The mapping schema for one template version: what may be written, and what must."""
@@ -88,6 +96,14 @@ class TemplateInputs:
     currency: str
     stamps: tuple[str, ...]
     inputs: tuple[TemplateInput, ...]
+    sources_beside_values: bool = False
+    """Whether this template has a provenance cell beside each input.
+
+    Declared per template and off by default, because it is not ours to add to the firm's
+    own model. The Input Help workbook exists to be copied from and therefore to be
+    checked, so it says where every figure came from; `Chartwell_Master_Model_v14` is a
+    stand-in for a workbook Chartwell maintains, and putting a column in it that this
+    build invented would be this build editing somebody else's model."""
 
     @property
     def key(self) -> str:
@@ -105,6 +121,24 @@ class TemplateInputs:
     def declared(self) -> frozenset[str]:
         """Every destination the writer may write: the inputs. Stamps are the writer's."""
         return frozenset(i.name for i in self.inputs)
+
+    @property
+    def sources(self) -> tuple[str, ...]:
+        """The cell beside each input that says where its figure came from.
+
+        Derived rather than listed, because a schema that had to name forty-four of these
+        by hand is a schema where one gets forgotten - and the one that gets forgotten is
+        an input whose figure looks as checkable as the others and is not.
+
+        They are **stamps**, not inputs: the writer owns them and the mapping may never
+        name one. That is the same rule `Template_Version` and `Run_Id` are under, and for
+        the same reason - a model that could route a figure into a provenance cell could
+        write its own provenance.
+
+        Empty for a template that does not declare the column."""
+        if not self.sources_beside_values:
+            return ()
+        return tuple(f"{i.name}{SOURCE_SUFFIX}" for i in self.inputs)
 
     def get(self, name: str) -> TemplateInput | None:
         return next((i for i in self.inputs if i.name == name), None)
@@ -136,7 +170,12 @@ class TemplateInputs:
             currency=str(raw.get("currency", "USD")),
             stamps=tuple(str(s) for s in raw.get("stamps", [])),
             inputs=tuple(inputs),
+            sources_beside_values=bool(raw.get("sources_beside_values", False)),
         )
+        # The source cells join the stamps here rather than in the file: they are one per
+        # input and they follow the inputs exactly, so deriving them is the only version
+        # of this that cannot fall out of step with the list it mirrors.
+        schema = replace(schema, stamps=schema.stamps + schema.sources)
         if schema.key != key:
             raise RegistryError(
                 diagnose(

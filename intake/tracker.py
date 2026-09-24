@@ -28,7 +28,7 @@ from __future__ import annotations
 import io
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from intake.readers.classify import Evidence, classify
@@ -171,14 +171,26 @@ def _what_is_it(storage: Any, path: str) -> tuple[str | None, float]:
     if data:
         sheets, rows = _peek(data, path)
 
-    evidence = Evidence(filename=Path(path).name, first_rows=rows, sheet_names=sheets)
+    evidence = Evidence(
+        filename=Path(path).name,
+        first_rows=rows,
+        sheet_names=sheets,
+        # Everything but the file itself. The client filed `2024 Board Minutes.pdf` under
+        # `Board Minutes/` and that is the plainest statement of what it is anybody made.
+        folders=[part for part in PurePosixPath(path).parts[:-1] if part not in ("", ".", "/")],
+    )
     found = classify(evidence)
     if found.document_type == "other" and not data and not rows:
         # Nothing was read and the name said nothing. "Nobody looked" rather than
         # "looked and it was nothing in particular" - `Arrived.kind` draws that line, and
         # a request item is never satisfied by the first.
         return None, 0.0
-    return found.document_type, float(getattr(found, "score", 0.0) or 0.0)
+    # `found.confidence`, not `getattr(found, "score", 0.0)`. `Classification` has never had
+    # a `score` attribute, so the default fired every time and every confidence this tracker
+    # ever reported was 0.0 - including the correct matches, which therefore read as
+    # uncertain as the wrong ones. The getattr default is what hid it: an attribute error
+    # would have said so on the first run.
+    return found.document_type, float(found.confidence)
 
 
 def _peek(data: bytes, path: str) -> tuple[list[str], list[str]]:

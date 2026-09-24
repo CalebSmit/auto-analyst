@@ -93,7 +93,7 @@ def find_checkpoint(plan: dict[str, Any], cid: str) -> dict[str, Any]:
 def phases_before(plan: dict[str, Any], cid: str) -> list[dict[str, Any]]:
     """Every phase that must be green before this checkpoint."""
     c = find_checkpoint(plan, cid)
-    return [p for p in plan["phases"] if p["id"] <= c["after"]]
+    return [p for p in plan["phases"] if number_of(p["id"]) <= number_of(c["after"])]
 
 
 # ---------------------------------------------------------------- running
@@ -249,7 +249,12 @@ def cmd_status(plan: dict[str, Any], _args: argparse.Namespace) -> int:
 def blocking_checkpoint(plan: dict[str, Any], pid: str) -> dict[str, Any] | None:
     """A checkpoint sitting between the last closed phase and this one, still red."""
     for c in plan["checkpoints"]:
-        if c["status"] != "done" and c["after"] < pid:
+        # By number - and this is the one that mattered most. CLAUDE.md's sixth rule is
+        # that a red checkpoint blocks the next phase, because phases that each passed
+        # alone disagreeing is the whole reason checkpoints exist. With `"P99" < "P100"`
+        # reading False, a red C59 did not block P100, and it did not: this phase was
+        # opened over a red checkpoint and the gate said nothing.
+        if c["status"] != "done" and number_of(c["after"]) < number_of(pid):
             unmet = [p for p in phases_before(plan, c["id"]) if p["status"] != "done"]
             if not unmet:
                 blocking: dict[str, Any] = c
@@ -276,7 +281,11 @@ def cmd_close(plan: dict[str, Any], args: argparse.Namespace) -> int:
         print(f"\n  {p['id']} is already closed ({p['closed']}).\n")
         return 0
 
-    earlier = [q for q in plan["phases"] if q["id"] < p["id"] and q["status"] != "done"]
+    earlier = [
+        q
+        for q in plan["phases"]
+        if number_of(q["id"]) < number_of(p["id"]) and q["status"] != "done"
+    ]
     if earlier:
         print(f"\n  REFUSED - {p['id']} cannot close while {earlier[0]['id']} is open.")
         print("            Phases close in order. That is the point of the order.\n")
@@ -498,7 +507,10 @@ def cmd_seal(plan: dict[str, Any], args: argparse.Namespace) -> int:
         "checks": [f"python -m uv run pytest tests/checkpoints/c{int(cid[1:]):02d} -q"],
     }
     plan["checkpoints"].append(checkpoint)
-    plan["checkpoints"].sort(key=lambda c: c["after"])
+    # By number. Sorting on the spelling filed a checkpoint after P100 between the ones
+    # after P10 and P11, so the plan would have carried its checkpoints out of order from
+    # the hundredth phase on - and `checkpoints[-1]` would have stopped being the last.
+    plan["checkpoints"].sort(key=lambda c: number_of(c["after"]))
 
     entry = [
         f"\n## {today()} - {cid} {args.title}",
@@ -521,14 +533,41 @@ def next_checkpoint_id(plan: dict[str, Any]) -> str:
     return f"C{last + 1}"
 
 
+def number_of(pid: str) -> int:
+    """The number in a phase or checkpoint id, for ordering two of them.
+
+    `P7` is 7 and `C12` is 12. Used everywhere the gate asks which of two came first,
+    because the obvious spelling of that question is wrong: ids are strings, and as
+    strings `"P100" < "P99"`.
+
+    The plan crossed a hundred phases on 2026-09-22 and three comparisons started giving
+    wrong answers the same day - quietly, because each of them is a safety net rather than
+    a step, and a safety net that has stopped working looks exactly like one that has
+    nothing to catch. C59 went red on `tests/p01` and that is the only reason it was found.
+
+    What was wrong, in the order it would have bitten:
+
+    * `phases_covered_by` took every phase with `id <= checkpoint.after`, so
+      `"P100" <= "P40"` put a phase inside a checkpoint that predates it by sixty phases.
+    * `cmd_close`'s in-order check took every phase with `id < this one`, and `"P99"` is
+      not less than `"P100"`, so the hundredth phase could close over an open ninety-ninth.
+    * `phases_after_last_checkpoint` compared the same way and stopped reporting anything
+      owed at all.
+    """
+    digits = "".join(c for c in pid if c.isdigit())
+    if not digits:
+        raise ValueError(f"{pid!r} carries no phase or checkpoint number")
+    return int(digits)
+
+
 def phases_after_last_checkpoint(plan: dict[str, Any]) -> list[str]:
     """Phases no checkpoint covers. A plan that ends in phases rather than in a
     checkpoint is a plan whose last block was never tested as a whole."""
     covered = {c["after"] for c in plan["checkpoints"]}
     if not covered:
         return [p["id"] for p in plan["phases"]]
-    last = max(covered)
-    return [p["id"] for p in plan["phases"] if p["id"] > last]
+    last = max(number_of(c) for c in covered)
+    return [p["id"] for p in plan["phases"] if number_of(p["id"]) > last]
 
 
 def cmd_amend(plan: dict[str, Any], args: argparse.Namespace) -> int:

@@ -126,7 +126,10 @@ def test_no_package_is_built_before_its_phase(package: str) -> None:
     """
     phase = FIRST_BUILT_BY[package]
     still_open = open_phases()
-    if not still_open or phase <= still_open[0]:
+    # By number. `"P11" <= "P100"` is False, so on the hundredth phase every package
+    # built before it read as work running ahead of the plan - four green tests turning
+    # red at once, against a tree that had not moved.
+    if not still_open or int(phase[1:]) <= int(still_open[0][1:]):
         # Its phase has closed, or is the one being worked now. A package the current
         # phase exists to build is not "running ahead" - it is the work.
         return
@@ -178,7 +181,10 @@ def test_claude_md_carries_the_session_rules() -> None:
 def test_plan_is_wellformed() -> None:
     plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
     ids = [p["id"] for p in plan["phases"]]
-    assert ids == sorted(ids), "phases must be in order"
+    # By number, not by spelling. `sorted(ids)` puts P100 between P10 and P11, so this
+    # assertion started failing on the hundredth phase against a plan that was in perfect
+    # order - the same defect P100 fixes in the gate, sitting in the test that checks it.
+    assert ids == sorted(ids, key=lambda i: int(i[1:])), "phases must be in order"
     assert len(ids) == len(set(ids)), "duplicate phase id"
     for p in plan["phases"]:
         for key in ("id", "title", "block", "gate", "status", "intent", "tasks", "exit", "checks"):

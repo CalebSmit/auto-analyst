@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-21.*
+*Last written 2026-09-23.*
 
 ## Where the build is
 
-- **95 of 95 phases closed**
-- Last green checkpoint: **C56**
+- **121 of 121 phases closed**
+- Last green checkpoint: **C68**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -114,4 +114,30 @@
 - **P93** What is owed before any of this is believed (2026-09-21)
 - **P94** A request list when nobody wrote one (2026-09-21)
 - **P95** The tracker reads the folder and updates itself (2026-09-21)
+- **P96** The documents a valuation engagement really receives (2026-09-21)
+- **P97** A name a scanner ran into the next word (2026-09-22)
+- **P98** A fiscal year the file states seven times (2026-09-22)
+- **P99** The totals that re-add, and the rows they cover (2026-09-22)
+- **P100** The hundredth phase, and the comparison that broke on it (2026-09-22)
+- **P101** Version 1's own recipe, ending at a workbook nobody has to trust (2026-09-22)
+- **P102** Asking the model whether it is there (2026-09-22)
+- **P103** The files a run never sees (2026-09-22)
+- **P104** Which documents a skill is even asked about (2026-09-22)
+- **P105** Thousands on the page, cents in the cell (2026-09-22)
+- **P106** The scale a person states (2026-09-22)
+- **P107** Ready to run has to mean it (2026-09-22)
+- **P108** The one multiplication, and where it is allowed to happen (2026-09-22)
+- **P109** The version nothing pointed at (2026-09-22)
+- **P110** Asking a question the profile already answers (2026-09-22)
+- **P111** What a step declares, and what its handler asks for (2026-09-22)
+- **P112** The waiver the message promised (2026-09-22)
+- **P113** The front page, and what it now has to say (2026-09-22)
+- **P114** Files one level above where anybody is looking (2026-09-22)
+- **P115** The column that was promised and never written (2026-09-22)
+- **P116** The four keys the API does not take (2026-09-22)
+- **P117** A workflow a run can finish, and a machine that has one (2026-09-22)
+- **P118** The key it never checked and the limit it mislabelled (2026-09-22)
+- **P119** The period a figure carries and the period the cell asks for (2026-09-22)
+- **P120** Guards that were checked by looking for a word (2026-09-22)
+- **P121** Which year is FY1 (2026-09-23)
 

@@ -304,6 +304,13 @@ Then, on the admin page, in this order:
 4. **Register an engagement** — its id, the client, the practice group picked from the
    list, the watch, the destination and its folder. It starts paused. A rush job can be
    given a shorter quiet period than the environment's, never a longer one.
+
+   **The folder has to be exactly as deep as the watch looks.** A pattern watch at depth 2
+   sweeps `<root>/<a>/<b>`, so its engagements are filed two levels down —
+   `Henderson Manufacturing/2026 Valuation`, not `Henderson Manufacturing`. The form says
+   how deep for whichever watch is selected, and registering refuses a folder that can
+   never be swept; before it did, a folder one level too shallow gave a green Setup page,
+   a correct-looking configuration, and no run, with nothing anywhere saying why.
 5. **Complete its engagement profile.** The page offers a form with everything the
    system already knows filled in; the blanks are judgments — the industry code, the size
    band, the owner-compensation benchmark, who reviews and how quickly. The engagement list

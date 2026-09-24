@@ -13,6 +13,7 @@ from graph.resolve import ScopeResolver, _read_bindings
 from intake.config import Destination, Watch
 from intake.roster import RosterState
 from registries.errors import RegistryError
+from tests.importing import imported_modules, reaches_any
 from tests.p24.conftest import HEND, PMBR, ROOT, WHO, entry, profile_for
 
 
@@ -190,14 +191,28 @@ def test_the_console_cannot_reach_a_guard_the_vault_a_skill_or_the_release_gate(
         load_graph,
     )
 
-    for module in (admin.console, admin.preflight, admin.app):
-        imports = [
-            line
-            for line in inspect.getsource(module).splitlines()
-            if line.startswith(("import ", "from "))
-        ]
-        for forbidden in ("guards", "privacy", "skills", "deliver.release", "harness", "precedent"):
-            assert not any(f"{forbidden}" in line for line in imports), (module, forbidden)
+    # By import tree rather than by substring. The text version matched the *name* in
+    # `from registries.recipes import unbuilt_skills` and called it a skill import - a
+    # guard that fires on a correct change is one people learn to route around - while
+    # missing every indented import, which is how `privacy.vault` got in. tests/importing
+    # has the rule.
+    forbidden = ("guards", "privacy", "skills", "deliver.release", "harness", "precedent")
+    for module in (admin.preflight, admin.app):
+        assert reaches_any(inspect.getsource(module), forbidden) == (), module
+
+    # The console has exactly one crossing, and it is a decision rather than an oversight.
+    # P107 made the Setup page *open* the mask vault instead of counting the key, because
+    # `secrets.has()` reports a malformed key as present and a key that survives setup and
+    # fails at the first run is the worst place to find out. Reading whether a key works
+    # is not reaching a guard: it disables nothing, relaxes nothing, and resolves no token.
+    # So the exception is named, and the next line is what keeps it narrow.
+    console = inspect.getsource(admin.console)
+    assert reaches_any(console, forbidden) == ("privacy",), "one crossing, and it is known"
+    assert {n for n in imported_modules(console) if n.startswith("privacy")} == {
+        "privacy.vault",
+        "privacy.vault.KEY_NAME",
+        "privacy.vault.open_vault",
+    }, "the console opens a vault and does nothing else with privacy"
     names = {n for n in dir(AdminConsole) if not n.startswith("_")}
     assert not {n for n in names if any(w in n for w in ("guard", "mask", "release", "skill"))}
     graph = load_graph()

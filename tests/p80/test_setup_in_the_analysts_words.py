@@ -37,19 +37,54 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def script() -> str:
     """The page's JavaScript, with the f-string doubling undone so it reads as it ships."""
-    return "\n".join(re.findall(r"<script>(.*?)</script>", PAGE, re.S)).replace(
-        "{{", "{"
-    ).replace("}}", "}")
+    return (
+        "\n".join(re.findall(r"<script>(.*?)</script>", PAGE, re.S))
+        .replace("{{", "{")
+        .replace("}}", "}")
+    )
 
 
 # ------------------------------------------------------------------ the wall, removed
+
+
+NUMBERS = [
+    "Zero",
+    "One",
+    "Two",
+    "Three",
+    "Four",
+    "Five",
+    "Six",
+    "Seven",
+    "Eight",
+    "Nine",
+    "Ten",
+    "Eleven",
+    "Twelve",
+    "Thirteen",
+]
 
 
 def test_the_profile_is_a_step_rather_than_a_refusal() -> None:
     """It was the longest job in setup and appeared in none of the six steps."""
     body = script()
     assert "Fill in the engagement profile" in body
-    assert "Seven steps, in order." in PAGE, "the count has to follow the steps"
+
+
+def test_the_count_in_the_prose_is_the_number_of_steps() -> None:
+    """The claim, counted, rather than the word that was right the day it was written.
+
+    This asserted the literal string "Seven steps, in order." P107 added two steps and
+    said "Nine", both tests were green alone, and C63 found them contradicting each other.
+    That is the seventh of these (B-066): a fact about the configuration on one day,
+    written down as though it were a rule. So the count is derived from the list it
+    counts, which is the only version of this assertion that cannot go stale.
+    """
+    steps = script().count("{done:")
+    assert steps, "the checklist has no steps at all"
+    assert f"{NUMBERS[steps]} steps, in order." in PAGE, (
+        f"the checklist has {steps} steps and the prose beside it says otherwise"
+    )
 
 
 def test_the_profile_step_comes_before_the_step_that_refuses_without_it() -> None:
@@ -142,10 +177,14 @@ def test_the_excel_template_says_which_model_it_means() -> None:
 
 
 def test_the_spend_limit_is_named_for_what_it_limits() -> None:
-    """The old label, `Model budget per run`, read as the Excel model's budget - and
-    per-run is not what most people mean by a spend limit, so it says both things now."""
-    assert "Spend limit per run (USD)" in PAGE
-    assert "per run, not per month" in PAGE
+    """The old label, `Model budget per run`, read as the Excel model's budget. P80 fixed
+    that and introduced a second wrongness: it said *per run*, and `harness/budget.py`
+    checks the number against the engagement's spend across every run it has ever had. A
+    label that lies about what a control does is a finding by this repo's own rule, so
+    what is asserted here now is that the label and the code agree."""
+    assert "Spend limit for this engagement" in PAGE
+    assert "across every run it has" in PAGE
+    assert "per run, not per month" not in PAGE, "the code has never meant that"
 
 
 def test_the_ai_model_is_visible_somewhere() -> None:
@@ -155,14 +194,22 @@ def test_the_ai_model_is_visible_somewhere() -> None:
     assert "ai_model" in script()
 
 
-def reported(monkeypatch, adapter: str) -> dict:
-    """What the console would say with that adapter selected. Both branches are exercised
-    rather than whichever one the test environment happens to be in - a test that asserts
-    only under `if adapter == "fake"` asserts nothing on the machine that matters."""
+def reported(monkeypatch, adapter: str, *, holds: tuple[str, ...] = ("ANTHROPIC_API_KEY",)) -> dict:
+    """What the console would say with that adapter selected, and that key present.
+
+    Both branches are exercised rather than whichever one the test environment happens to
+    be in - a test that asserts only under `if adapter == "fake"` asserts nothing on the
+    machine that matters. `holds` is what the Secrets Port has, because P118 made the
+    answer depend on it: the adapter's name alone used to be enough."""
+    import ports
     from admin.console import AdminConsole
 
     monkeypatch.setenv("AA_LLM_ADAPTER", adapter)
-    return AdminConsole._ai_model(object.__new__(AdminConsole))
+    ports.reset()
+    console = object.__new__(AdminConsole)
+    secrets = type("S", (), {"has": lambda self, name: name in holds})()
+    console.preflight = type("P", (), {"secrets": secrets})()  # type: ignore[attr-defined]
+    return AdminConsole._ai_model(console)
 
 
 def test_the_console_reports_which_adapter_answers(monkeypatch) -> None:

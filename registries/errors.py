@@ -102,6 +102,7 @@ UNKNOWN_CONSTRAINTS = "SCOPE.UNKNOWN_CONSTRAINTS"
 UNKNOWN_ADAPTER = "SCOPE.UNKNOWN_ADAPTER"
 MISSING_CREDENTIAL = "SCOPE.MISSING_CREDENTIAL"
 MODEL_PIN_UNAVAILABLE = "SCOPE.MODEL_PIN_UNAVAILABLE"
+PROVIDER_REFUSED_A_FIELD = "SCOPE.PROVIDER_REFUSED_A_FIELD"
 UNREADABLE_FILE = "INTAKE.UNREADABLE_FILE"
 WRITE_FAILED = "DELIVER.WRITE_FAILED"
 SCHEMA_INVALID = "SKILL.SCHEMA_INVALID"
@@ -293,6 +294,13 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "The pinned model is not available. Choose a new pin deliberately and "
         "re-run: a run that silently substituted a different model would produce "
         "figures nobody could attribute.",
+    ),
+    PROVIDER_REFUSED_A_FIELD: (
+        "system",
+        "The provider rejected a field in the request rather than the model or its "
+        "length. That is this build's mistake, not a configuration one: the adapter "
+        "sent something the API does not accept. The model pin is fine - do not change "
+        "it. The refusal names the field.",
     ),
     UNREADABLE_FILE: (
         "client-data",

@@ -105,6 +105,7 @@
    "config_document@1.2.0",
    "config_document@1.3.0",
    "engagement_profile@1.0.0",
+   "engagement_profile@1.1.0",
    "event@1.0.0",
    "event@1.1.0",
    "figure@1.0.0",
@@ -140,6 +141,7 @@
    "config_document@1.2.0": "sha256:2b42dd2ddd147c26f4c64fd060942cc2",
    "config_document@1.3.0": "sha256:a21b625c96592308fd46152577cfbe9e",
    "engagement_profile@1.0.0": "sha256:1ae3c76e19ad166727a225018b51fabf",
+   "engagement_profile@1.1.0": "sha256:1bca89d70f1c17c8e0c5219c8d2ecc56",
    "event@1.0.0": "sha256:226fe38211d99436b60a12fc5647788c",
    "event@1.1.0": "sha256:3bc238c289b1e8b798cfaa99cb8db4ef",
    "figure@1.0.0": "sha256:056ec7b7c6643252ae40f17a6e8c4b8d",
@@ -329,6 +331,7 @@
    "SCOPE.MISSING_CREDENTIAL": "config",
    "SCOPE.MODEL_PIN_UNAVAILABLE": "config",
    "SCOPE.PRECEDENT_OUT_OF_SCOPE": "config",
+   "SCOPE.PROVIDER_REFUSED_A_FIELD": "system",
    "SCOPE.RECIPE_INVALID": "config",
    "SCOPE.RECIPE_UNREGISTERED": "config",
    "SCOPE.SKILL_INVALID": "config",
@@ -714,7 +717,7 @@
     "qc",
     "release"
    ],
-   "plan_hash": "sha256:aaf429c015acdc509d553bd0e2fa6e7720df9fd0c5428560acb0885d4a9746dd"
+   "plan_hash": "sha256:febac9ce0c4726786568768b11b8a260d5100bd39dc8b0666ac150cce81e7b1c"
   },
   "monthly-refresh": {
    "loops": [
@@ -734,7 +737,7 @@
     "qc",
     "release"
    ],
-   "plan_hash": "sha256:28979b5f42c0a66cecac047df49ac705b447009d1f5626c755899c4fca52ff8c"
+   "plan_hash": "sha256:8f9050c9494160bf040fe0f2d721cc512280a18212bdb8d6694e46cca1a29e62"
   },
   "resolution_hash": "sha256:001fa7c7f7905edc49c16f6cc2feb5e1c3cb992c7394ba747340c875e11097bf",
   "scope": "valuation/esop/repeat",
@@ -752,7 +755,22 @@
    "repurchase-obligation",
    "timing-normalization"
   ],
-  "template": "Chartwell_ESOP_Model_v9.xlsx@9.4"
+  "template": "Chartwell_ESOP_Model_v9.xlsx@9.4",
+  "valuation-input-prep": {
+   "loops": [
+    "self_verification:tagging",
+    "guard_repair:model"
+   ],
+   "order": [
+    "intake",
+    "mask",
+    "timing",
+    "tagging",
+    "model",
+    "release"
+   ],
+   "plan_hash": "sha256:bfbe5b3e3e730ab54f4beb49d58d52fae60ef51ec8fd246ef110bba6b3da34e3"
+  }
  },
  "ports": {
   "compute": {
@@ -918,6 +936,28 @@
     "ebitda",
     "model",
     "qc",
+    "release"
+   ]
+  },
+  "valuation-input-prep@v1": {
+   "loops": [
+    "self_verification:tagging<=1",
+    "guard_repair:model<=2"
+   ],
+   "required_types": [
+    "financial_statements"
+   ],
+   "skills": [
+    "timing-normalization",
+    "line-item-tagging",
+    "model-load"
+   ],
+   "steps": [
+    "intake",
+    "mask",
+    "timing",
+    "tagging",
+    "model",
     "release"
    ]
   }

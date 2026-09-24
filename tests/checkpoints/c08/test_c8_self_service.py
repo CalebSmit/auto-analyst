@@ -61,6 +61,12 @@ def world(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     templates = TemplateRegistry()
     templates.register("Chartwell_ESOP_Model_v9.xlsx", "9.4")
     templates.register("Chartwell_Master_Model_v14.xlsx", "14.2")
+    # Version 1's deliverable as well as the two model masters. The world runs
+    # `valuation-input-prep`, which binds the input-help workbook, and a world that
+    # registers only the templates it used to need pins no version for the one it now
+    # delivers into - which the Policy Gate refuses at the schema lookup, five steps in,
+    # with a message about an argument rather than about a registry.
+    templates.register("Chartwell_Input_Help_v1.xlsx", "1.0")
     intake_store = IntakeStore(store)
     port = Spy(ports.get_storage())
     return {

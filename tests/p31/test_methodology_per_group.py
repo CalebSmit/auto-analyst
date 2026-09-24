@@ -26,6 +26,7 @@ from harness.context import ContextBuilder
 from registries.constraints import ConstraintRegistry
 from registries.errors import RegistryError
 from registries.methodology import MethodologyRegister, body_of
+from tests.counting import in_words
 from tools.surfaces import SNAPSHOT, foundations_surface
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -281,5 +282,10 @@ def test_the_blueprint_describes_the_layered_tree() -> None:
     assert "never consulting" in blueprint
     assert "size ceiling per layer" in blueprint
     assert "METHODOLOGY_TOO_LARGE" in blueprint
-    assert len(CHECKS) == 14
-    assert "Fourteen checks over a proposed or live configuration" in blueprint
+    # Derived from the list it counts, using the one table in tests/counting.py. This
+    # asserted 14 twice - once of the code and once of the prose - and P114 added a check,
+    # so both were wrong in the same breath. B-066, the ninth.
+    said = in_words(len(CHECKS))
+    assert f"{said} checks over a proposed or live configuration" in blueprint, (
+        f"preflight runs {len(CHECKS)} checks and the blueprint says otherwise"
+    )

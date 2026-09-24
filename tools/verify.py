@@ -58,7 +58,7 @@ COVERAGE: dict[str, tuple[str, ...]] = {
     "privacy": ("tests/p12", "tests/p13"),
     "guards": ("tests/p13", "tests/p14"),
     "review": ("tests/p15",),
-    "intake": ("tests/p16", "tests/p17", "tests/p24"),
+    "intake": ("tests/p16", "tests/p17", "tests/p24", "tests/p95", "tests/p96"),
     "deliver": ("tests/p21",),
     "evals": ("tests/p22", "tests/p27"),
     "ops": ("tests/p04", "tests/p23", "tests/p25"),

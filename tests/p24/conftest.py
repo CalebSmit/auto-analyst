@@ -60,7 +60,11 @@ def config_document(**overrides: Any) -> dict[str, Any]:
                 "kind": "pattern",
                 "name": "Valuation - client tree",
                 "root": "Clients",
-                "recipe": "monthly-refresh",
+                # The workflow a run can actually finish. This was `monthly-refresh`,
+                # which names `qc-tieout` - a skill with no procedure - so the fixture's
+                # idea of a clean setup was one that pays for four steps and stops at the
+                # fifth. P117 made preflight say so, and it said so about this.
+                "recipe": "valuation-input-prep",
                 "depth": 2,
             }
         ],
@@ -203,6 +207,7 @@ def templates() -> TemplateRegistry:
     registry = TemplateRegistry()
     registry.register("Chartwell_ESOP_Model_v9.xlsx", "9.4")
     registry.register("Chartwell_Master_Model_v14.xlsx", "14.2")
+    registry.register("Chartwell_Input_Help_v1.xlsx", "1.0")
     return registry
 
 

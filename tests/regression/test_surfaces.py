@@ -101,11 +101,16 @@ def test_the_load_bearing_surfaces_are_all_there(recorded: dict) -> None:
     }
     assert len(recorded["governance"]["stages"]) == 11
     assert len(recorded["record"]["run_states"]) == 7
-    assert set(recorded["recipes"]) == {
+    # A floor, like every other line here, rather than a roll-call. The three that shipped
+    # first must still be recorded - a recipe disappearing from the snapshot is exactly the
+    # emptying this test exists to catch - and a fourth arriving is not a failure. Written
+    # as an exact set, this reported `valuation-input-prep` as a defect on the day it was
+    # added, which is the same stale-premise failure that hit tests/p06 and tests/p33.
+    assert {
         "monthly-refresh@v3", "full-ddr-intake@v1", "mature-company-valuation@v3",
-    }
-    for name in ("monthly-refresh", "full-ddr-intake", "mature-company-valuation"):
-        assert recorded["plans"][name]["plan_hash"].startswith("sha256:")
+    } <= set(recorded["recipes"])
+    for name in recorded["recipes"]:
+        assert recorded["plans"][name.split("@")[0]]["plan_hash"].startswith("sha256:")
 
 
 def test_a_changed_surface_is_reported_in_words(recorded: dict) -> None:

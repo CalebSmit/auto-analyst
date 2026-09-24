@@ -155,10 +155,15 @@ steps:
     timeout_s: 300
     retries: 1
 
+  # Needs the mapping and the figures, not just the checklist. The writer resolves every
+  # `figure_ref` in the mapping against a catalogue built from timing's output, so a
+  # release handed `qc` alone has neither. Found by the P111 scan after the same defect
+  # stopped the first real client folder five steps in; no run had ever reached a release
+  # step here, because this recipe ends at a `qc-tieout` that has no procedure.
   - id: release
     kind: io
     label: Unmask, verify, release to review
-    needs: [qc]
+    needs: [qc, model, timing]
     on_failure: halt
     timeout_s: 300
 

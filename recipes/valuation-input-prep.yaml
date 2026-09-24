@@ -1,0 +1,136 @@
+# Valuation input prep - version 1's own path, and the only one a run can finish.
+#
+# The analyst set version 1's scope in the fourth interview: *"gathering data and putting
+# it into the same format every time so it is really easy for me to do the work in the
+# model. Version 1 of this is not for you to run the actual model."* This recipe is that
+# sentence as a graph.
+#
+# Two things make it different from the three that shipped before it, and both were found
+# by auditing what would happen if somebody actually pressed go.
+#
+# **Every skill here has a procedure.** `full-ddr-intake` names `ddr-tagging` and all three
+# earlier recipes name `qc-tieout`; both are skeletons - frontmatter, no procedure, and the
+# Skill Registry will not dispatch them. So every one of those recipes quarantines at a
+# step that was never built. Four skills in this tree are live, and this recipe is built
+# from three of them.
+#
+# **It ends at an input-help workbook, not at the model.** The two recipes that reach a
+# release step write through the firm's pinned model template. Version 1 must never touch
+# the real model: it fills a separate workbook laid out like the model's inputs, which a
+# person copies from. That is what the `valuation/non-esop` template binding now resolves
+# to, and the workbook says on its face that it is not the model.
+#
+# What is deliberately absent: EBITDA normalization, cost of capital, multiples and the
+# tie-out checklist. The first is a judgement about add-backs and the rest are the model's
+# own work - all four are outside version 1, and three of them have no procedure anyway.
+
+name: valuation-input-prep
+version: 1
+title: Valuation input prep
+description: >-
+  Read a client folder, normalize the periods, tag the line items, and map what was found
+  onto the input-help workbook. Anything version 1 cannot fill is listed as unmapped and
+  shown to a person rather than guessed at.
+
+inputs:
+  - name: source_documents
+    schema: null
+    note: >-
+      Bytes. The client's folder as it arrived - statements, schedules, whatever else came
+      with them, **including the request list**.
+
+      The request list is not a second declared input, and `full-ddr-intake` declaring one
+      is why it would be refused before it ran even if its skeletons were written: the run
+      boundary supplies `engagement_profile` and `source_documents`, so a third name has no
+      producer and the plan assertions stop the run. The DD list arrives the way every
+      other document does - in the folder, classified as `request_schedule` by the reader -
+      which is also the only way it arrives in real life.
+
+# What has to have arrived before the set is worth starting on. Financial statements and
+# nothing else: a valuation can begin on statements alone, and the three earlier recipes
+# each demand a trial balance that this firm's clients do not always send with the first
+# batch. A required type nobody sends is a run that never releases.
+intake:
+  required_types: [financial_statements]
+
+steps:
+  - id: intake
+    kind: io
+    label: Intake & fingerprint
+    run_inputs: [source_documents]
+    on_failure: halt
+    timeout_s: 120
+
+  - id: mask
+    kind: io
+    label: Mask & scan payload
+    needs: [intake]
+    on_failure: halt
+    timeout_s: 120
+
+  - id: timing
+    kind: skill
+    skill: timing-normalization
+    label: Timing normalization
+    needs: [mask]
+    output_schema: skills/timing-normalization@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  - id: tagging
+    kind: skill
+    skill: line-item-tagging
+    label: Line-item tagging
+    needs: [timing]
+    output_schema: skills/line-item-tagging@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  # The last step that asks a model anything. It maps what was read onto the workbook's
+  # declared inputs and names what it could not place; `unmapped_inputs_require_review` is
+  # the skill's own review level, so an unfilled input reaches a person by the skill's
+  # declaration rather than by this recipe remembering to ask.
+  - id: model
+    kind: skill
+    skill: model-load
+    label: Map onto the input-help workbook
+    needs: [timing, tagging]
+    output_schema: skills/model-load@1.0.0
+    on_failure: quarantine
+    timeout_s: 300
+    retries: 1
+
+  # Needs the mapping *and* the figures. `needs` is what a step is handed, not the order
+  # it runs in, and the writer resolves every `figure_ref` in the mapping against the
+  # catalogue built from timing's output - so a release declaring `model` alone is handed
+  # a mapping and nothing to look the figures up in. It failed there on the first real
+  # client folder, five steps deep, with "release needs the output of 'timing', which this
+  # run does not have". The three older recipes end at `qc-tieout`, which has no
+  # procedure, so no run had ever reached a release step to find out.
+  - id: release
+    kind: io
+    label: Unmask, verify, write the workbook
+    needs: [model, timing]
+    on_failure: halt
+    timeout_s: 300
+
+loops:
+  - loop: self_verification
+    head: tagging
+    members: [tagging]
+    max_iterations: 1
+    why: >-
+      Pass two is a separate invocation that sees the source excerpt and the proposal,
+      never the first pass's reasoning. A model asked to check its own work in the same
+      conversation reliably ratifies it.
+
+  - loop: guard_repair
+    head: model
+    members: [model]
+    max_iterations: 2
+    why: >-
+      A mapping that names a destination the workbook does not declare comes back with the
+      guard's own refusal appended, once. Two attempts, then a quarantine record and a
+      review item - the mapping is never widened to fit what the model proposed.

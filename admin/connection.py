@@ -69,6 +69,31 @@ BOX_STEPS: tuple[tuple[str, str], ...] = (
 )
 
 
+MODEL_STEPS: tuple[tuple[str, str], ...] = (
+    ("adapter", "A real model adapter is selected"),
+    ("credentials", "The API key is set"),
+    ("call", "The model answers"),
+    ("cost", "What the answer cost"),
+)
+"""Four, and the third one spends money.
+
+Every other connection test in this module is free. This one buys the smallest completion
+the API will sell, because the alternative is checking that a key is *shaped* like a key -
+which passes for a revoked key, a key for the wrong account, and a key with no credit on
+it. Those are the three things that actually go wrong, and none of them is visible without
+making a call.
+
+The cost is a step rather than a footnote so that the price of pressing the button is on
+the same screen as the button.
+"""
+
+
+THE_SMALLEST_QUESTION = "Reply with the single word: ready"
+"""The test call. Short, answerable in one token, and carrying nothing about anybody - it
+crosses the same boundary a client payload would, and a connection test is not a reason to
+send one."""
+
+
 @dataclass(frozen=True)
 class Step:
     """One question and its answer."""
@@ -284,10 +309,12 @@ def _named_credentials(
             step_id,
             label,
             FAIL,
-            f"not set: {', '.join(missing)}. Add them to .env - no value is read here, "
-            f"only whether one is there.",
+            f"not set: {', '.join(missing)}. Add them to .env on this machine - not to "
+            f"knowledge/, not to a committed file, and not to a web form. No value is "
+            f"read here, only whether one is there.",
         )
-    return Step(step_id, label, PASS, f"all three set: {', '.join(names)}")
+    plural = "all " + ("one" if len(names) == 1 else str(len(names)))
+    return Step(step_id, label, PASS, f"{plural} set: {', '.join(names)}")
 
 
 def _credentials(label: str, secrets: Any) -> Step:
@@ -357,3 +384,134 @@ def _file(label: str, storage: Any) -> Step:
     except DiagnosticError as refused:
         return _refusal("file", label, refused)
     return Step("file", label, PASS, f"read {len(data)} bytes of {first.path}")
+
+
+def probe_model(
+    llm: Any, secrets: Any, *, in_use: bool = True, pin: Any = None
+) -> ConnectionReport:
+    """Walk the model door in order: adapter, key, a real call, and what it cost.
+
+    The one connection test that spends money, which changes two things about it.
+
+    **It asks whether the key is set before it calls.** `has()` on the Secrets Port, so the
+    absence is reported without a request being made and without the value being read.
+
+    **It says what the test itself cost.** A person who presses this a dozen times while
+    getting a key right should be able to see what that came to, and a figure that only
+    appears on a monthly invoice is not an answer.
+
+    Takes the adapter rather than reaching for the configured one, like `probe_box`: a
+    function that built its own could only ever test the machine it ran on, and a test that
+    passes against an adapter no run uses is worse than no test - which is what `in_use` is
+    for.
+    """
+    # Deferred: importing the port at module scope would make every admin page import
+    # the model door, and this is the one function that needs it.
+    from ports.llm import (  # noqa: PLC0415
+        LLMRequest,
+        Message,
+        ModelPin,
+        TransportFailure,
+    )
+
+    name = getattr(llm, "name", "unknown")
+    done: list[Step] = []
+
+    # 1. a real adapter. `fake` replays fixtures and `scripted` answers from a stand-in;
+    # both would sail through a key check and neither would tell anybody anything.
+    if name in ("fake", "scripted"):
+        done.append(
+            Step(
+                "adapter",
+                MODEL_STEPS[0][1],
+                FAIL,
+                f"the selected adapter is {name!r}, which answers without calling anybody. "
+                "Set AA_LLM_ADAPTER=anthropic_messages to reach the API.",
+            )
+        )
+    else:
+        done.append(Step("adapter", MODEL_STEPS[0][1], PASS, f"{name}"))
+
+    # 2. the key, asked of the secrets port rather than read.
+    if done[-1].status != PASS:
+        done.append(_not_reached("credentials", MODEL_STEPS[1][1], done[-1]))
+    else:
+        done.append(
+            _named_credentials(
+                "credentials", MODEL_STEPS[1][1], secrets, "llm", "anthropic_messages"
+            )
+        )
+
+    # 3. the call itself.
+    answered = None
+    if done[-1].status != PASS:
+        done.append(_not_reached("call", MODEL_STEPS[2][1], done[-1]))
+    else:
+        asked = ModelPin.for_tier("low") if pin is None else pin
+        try:
+            answered = llm.complete(
+                LLMRequest(
+                    pin=asked,
+                    system="You are answering a connection test.",
+                    messages=(Message(role="user", content=THE_SMALLEST_QUESTION),),
+                    max_tokens=16,
+                    metadata={"purpose": "connection_test"},
+                    cache_system=False,
+                )
+            )
+            served = answered.model
+            done.append(
+                Step(
+                    "call",
+                    MODEL_STEPS[2][1],
+                    PASS,
+                    f"{served} answered"
+                    + (
+                        f" (asked for {asked.model}; the provider served {served})"
+                        if served != asked.model
+                        else ""
+                    ),
+                )
+            )
+        except DiagnosticError as refused:
+            done.append(_refusal("call", MODEL_STEPS[2][1], refused))
+        except TransportFailure as failed:
+            done.append(Step("call", MODEL_STEPS[2][1], FAIL, str(failed)[:300]))
+
+    # 4. what it cost.
+    if done[-1].status != PASS or answered is None:
+        done.append(_not_reached("cost", MODEL_STEPS[3][1], done[-1]))
+    else:
+        done.append(Step("cost", MODEL_STEPS[3][1], PASS, _priced(answered)))
+
+    return ConnectionReport(
+        service="model",
+        ran_at=datetime.now(tz=UTC).isoformat(timespec="seconds"),
+        steps=tuple(done),
+        in_use=in_use,
+    )
+
+
+def _not_reached(step_id: str, label: str, after: Step) -> Step:
+    """The same rule the other two probes follow: a step after a failure is `not reached`.
+
+    Reporting the call as failed when the key was never set would send somebody to the
+    Anthropic console to debug a key that is simply absent from `.env`."""
+    return Step(step_id, label, NOT_REACHED, f"not asked: {after.id} did not pass")
+
+
+def _priced(answered: Any) -> str:
+    """What the test call cost, from the published rates and the usage the API reported.
+
+    Arithmetic over what came back rather than an estimate, which is the same rule the
+    cost meter follows - "what did that cost" is a question with an answer.
+    """
+    from ports.llm import RATES_USD_PER_MTOK  # noqa: PLC0415
+
+    usage = answered.usage
+    rate = RATES_USD_PER_MTOK.get(answered.model)
+    tokens = f"{usage.input_tokens} in, {usage.output_tokens} out"
+    if rate is None:
+        return f"{tokens}; no published rate for {answered.model} in this build"
+    usd = (usage.input_tokens * rate[0] + usage.output_tokens * rate[1]) / 1_000_000
+    return f"{tokens} - ${usd:.6f}"
