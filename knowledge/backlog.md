@@ -1130,3 +1130,50 @@ from the thing it counts). What is left from the audit:
   thing that re-runs everything.
 
 Size: small each. The helpers exist now, so these are mechanical.
+
+## B-083 The catalogue's repeated keys, and whether a table reads as well as rows
+
+P124 took the whitespace out of every payload - 13% of a real-sized model-load context,
+for no change to what the model is asked. The larger half of the same saving is still
+there and is **not** free: on eleven hundred catalogue rows, the key names alone
+(`figure_ref`, `source_output`, `description`, `period`, written out once per row) are
+56 KB, and one repeated value - `"timing.normalized_historicals"` on every row - is
+another 31 KB. Together that is a third of the payload carrying no information.
+
+Sending it as a header plus rows (`{"columns": [...], "rows": [[...], ...]}`), or hoisting
+the constant `source_output` to the top, would recover most of it. What stops it being a
+serialization change is that **it changes the shape the model has to understand**, and
+this build has exactly one way to find out whether that made the answers worse: the eval
+harness, over the candidate skills, against a real key. So this waits behind a measurement
+rather than being done because the arithmetic is obvious.
+
+Worth doing when the ceiling is actually being hit. Until then P124's headroom is enough,
+and the failure this would cause - a model that reads a positional row wrongly and binds a
+figure to the wrong cell - is the exact failure the Numeric Integrity Lock cannot see.
+
+Size: small to build, and the eval around it is the real cost.
+
+## B-084 A cheap model for the bulk read, with the verifier already built
+
+From the same harness study as P124 (SoL-Pi, arXiv 2609.20519). Its fourth mechanism is:
+let a cheap model read the bulk and write a receipt of exact quoted lines; have
+**deterministic code** check every quote against the archived original; on any failure,
+hand the original to the frontier model. The claim is that delegation stops requiring
+trust in a fluent summary once the quotes are checkable.
+
+This build already has the verifier half, and did not build it for this reason. Model-load
+proposes bindings by `figure_ref` and `apply()` refuses any ref the catalogue does not
+hold, any input bound twice, any figure whose period is not the one its cell asks for.
+Timing-normalization's output is held to provenance and tie-out arithmetic. In both cases
+a wrong answer from a cheaper model is *caught by code*, not by reading it.
+
+So the open question is narrow and empirical: **which steps still give the same answer on
+a cheaper pin.** Model-load's judgement - deciding that "Costs of Goods Sold" is the
+template's "Cost of sales" - is the one thing no deterministic check covers (the module
+docstring says so) and is the last place to economise. Timing's bulk extraction is the
+first, because arithmetic covers it.
+
+Needs: the eval harness, a real key, and a scorecard run per pin. Do not guess at it -
+the whole point of the mechanism is that the saving is measured against held-out quality.
+
+Size: medium, and it is the largest recurring-cost lever this build has left.

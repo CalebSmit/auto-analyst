@@ -27,6 +27,7 @@ from privacy.mask import Identifier
 from registries.contracts import ContractRegistry
 from registries.skills import SkillTree
 from review import ConfidenceRouter, ReviewQueue, ReviewSurface
+from tests.messages import json_objects
 from tests.p02.conftest import walk_schemas
 from tests.p18.conftest import load_case, tool_inputs
 from tests.p19.conftest import (
@@ -112,7 +113,14 @@ def test_the_model_sees_descriptions_and_the_taxonomy_never_a_value(
     user = request.messages[0].content
     assert user.startswith(BEGIN)
     assert "Officer salary" in user or "officer salary" in user.lower()
-    assert '"id": "officer_compensation"' in user
+    # Asked of the payload rather than of its spelling. This read `'"id": "officer_
+    # compensation"' in user` until P124 compacted the separators, at which point a test
+    # about *whether the taxonomy reaches the model* failed over a space after a colon.
+    assert any(
+        c.get("id") == "officer_compensation"
+        for body in json_objects(user)
+        for c in body.get("taxonomy", {}).get("categories", [])
+    ), "the taxonomy the model is meant to choose from did not reach it"
     for value in values:
         assert value not in user, f"a value reached the model: {value}"
     assert SENTINEL_RULE in request.system

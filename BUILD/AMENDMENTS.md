@@ -2267,3 +2267,28 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C69 after P123, covering P122, P123
 - proves: A slow provider produces a bounded, visible failure rather than an unbounded silence, and a run in progress can be watched from one command that changes nothing.
+
+## 2026-09-25 - P124 A payload with the padding taken out
+
+**Why:** A harness study (SoL-Pi, arXiv 2609.20519) puts a number on something this build has been paying without measuring: the model-load context is 305 KB against a 400 KB ceiling, and more than half of it is structural repetition carrying no information. The paper's third mechanism is 'keep access, drop repetition'; the cheapest form of that here is the serializer, which has been pretty-printing a machine-read payload since the first procedure was written.
+
+- phase added: P124 A payload with the padding taken out (the run, gate: auto)
+- exit criterion: Every procedure payload round-trips: json.loads(compact) equals json.loads(indented)
+- exit criterion: A catalogue of about 1100 rows serializes at least 10% smaller than it did
+- exit criterion: No payload is pretty-printed for a reader that does not exist
+
+## 2026-09-25 - P124 A payload with the padding taken out
+
+**Why:** The checks were written without the venv runner, so the gate ran a bare pytest that cannot import jsonschema or cryptography. Every other phase spells it 'python -m uv run pytest'.
+
+- check dropped: pytest tests/p124 -q
+- check dropped: pytest tests/p121 tests/p110 tests/p19 -q
+- check added: python -m uv run pytest tests/p124 -q
+- check added: python -m uv run pytest tests/p121 tests/p110 tests/p19 tests/p71 tests/p73 -q
+
+## 2026-09-25 - C70 The same payload, spelled smaller
+
+**Why:** P124 sits past C69 and the gate's own invariant is that the last checkpoint covers the last phase. The payload change touches every procedure at once, which is exactly the shape a checkpoint exists to catch: each phase's tests pass on its own module, and what they cannot see is a run where all four send a differently-spelled payload through the same assembler, guards and stand-in.
+
+- checkpoint added: C70 after P124, covering P124
+- proves: That compacting every procedure's payload changed nothing a run depends on: the assembled context still passes the guards, the scripted analyst still reads every payload, the review loop still resumes, and the workbook still comes out - while the context that was nearest the ceiling is measurably further from it.

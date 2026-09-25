@@ -16,6 +16,7 @@ from harness.procedures.ebitda_normalization import ProposalRefused, Verificatio
 from ops.run_store import SqlRunStore
 from registries.contracts import ContractRegistry
 from registries.errors import VERIFICATION_PASS, diagnose
+from tests.messages import anywhere, sections_with, values_at
 from tests.p20.conftest import ProposalPort, dispatch, events_of, first_pass
 
 
@@ -79,9 +80,16 @@ def test_the_verifier_sees_amounts_citations_and_excerpts_and_never_the_reasonin
     )
     (request,) = port.requests
     user = request.messages[0].content
-    assert '"verification": true' in user
-    assert '"raw": "85,000"' in user and '"locator": "IS!B' in user, "amounts and citations"
-    assert '"value": 85000' in user, "the stated amount, for the verifier to check"
+    # Asked of what was sent rather than of how it was punctuated. These read
+    # `'"verification": true' in user` until P124 compacted the separators, at which point
+    # three claims about what the verifier is handed failed over a space (tests/messages.py).
+    (sent,) = sections_with(user, "verification", "items")
+    assert sent["verification"] is True
+    assert anywhere(user, "raw", "85,000"), "the cited excerpt, as the document wrote it"
+    assert any(str(loc).startswith("IS!B") for loc in values_at(user, "locator")), (
+        "the citation the verifier re-reads"
+    )
+    assert anywhere(user, "value", 85000), "the stated amount, for the verifier to check"
     for rationale in (c["rationale"] for c in case["proposal"]["candidates"]):
         assert rationale not in user, (
             f"the first pass's reasoning reached the verifier: {rationale}"

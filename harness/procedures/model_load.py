@@ -38,6 +38,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
+from harness.procedures.payload import as_payload
 from harness.runtime import BoundTools
 from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
 from review.router import Item
@@ -247,7 +248,7 @@ class ModelLoad:
             "period_slots": {slot: label for label, slot in inputs.period_slots},
             "catalogue": [f.as_row() for f in inputs.catalogue],
         }
-        return json.dumps(body, indent=1)
+        return as_payload(body)
 
     def parse(self, text: str) -> dict[str, Any]:
         start, end = text.find("{"), text.rfind("}")

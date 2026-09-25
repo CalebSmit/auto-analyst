@@ -27,6 +27,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
+from harness.procedures.payload import as_payload
 from harness.runtime import BoundTools
 from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
 from registries.taxonomy import UNMAPPED, load_taxonomy
@@ -221,7 +222,7 @@ class LineItemTagging:
                 for i in inputs.items
             ],
         }
-        return json.dumps(body, indent=1)
+        return as_payload(body)
 
     def parse(self, text: str) -> dict[str, Any]:
         start, end = text.find("{"), text.rfind("}")

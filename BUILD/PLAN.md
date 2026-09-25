@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**123 of 123 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**124 of 124 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -284,4 +284,11 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P122** A call the plan can bound, and no loop the graph does not own | auto | A step that declares 300 seconds cannot spend longer than that in one call | 2026-09-24 |
 | [x] | **P123** Watching a run happen | auto | A run in progress can be watched from one command with no browser | 2026-09-24 |
 | [x] | **C69 - Bounding a real call, and being able to watch one** | integration | A slow provider produces a bounded, visible failure rather than an unbounded silence, and a run in progress can be watched from one command that changes nothing. | 2026-09-24 |
+
+## the run
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P124** A payload with the padding taken out | auto | Every procedure payload round-trips: json.loads(compact) equals json.loads(indented) | 2026-09-25 |
+| [x] | **C70 - The same payload, spelled smaller** | integration | That compacting every procedure's payload changed nothing a run depends on: the assembled context still passes the guards, the scripted analyst still reads every payload, the review loop still resumes, and the workbook still comes out - while the context that was nearest the ceiling is measurably further from it. | 2026-09-25 |
 

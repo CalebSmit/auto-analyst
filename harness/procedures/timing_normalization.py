@@ -11,6 +11,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
+from harness.procedures.payload import as_payload
 from harness.runtime import BoundTools
 from review.router import Item
 
@@ -228,7 +229,7 @@ class TimingNormalization:
             if inputs.calendar is not None
             else {"recorded": False, "note": NO_CALENDAR}
         )
-        return json.dumps(body, indent=1)
+        return as_payload(body)
 
     def parse(self, text: str) -> dict[str, Any]:
         start, end = text.find("{"), text.rfind("}")

@@ -22,6 +22,7 @@ from ops.run_store import SqlRunStore
 from registries.contracts import ContractRegistry
 from registries.skills import SkillTree
 from review import ConfidenceRouter, Item, Money, ReviewQueue, ReviewSurface
+from tests.messages import anywhere
 from tests.p15.conftest import profile
 from tests.p20.conftest import (
     CLIENT,
@@ -98,7 +99,9 @@ def test_the_model_sees_lines_tags_and_periods_never_a_value(
     user = request.messages[0].content
     assert user.startswith(BEGIN)
     assert "Legal settlement" in user and '"periods_present"' in user
-    assert '"basis": "survey_median"' in user, "the benchmark's provenance, not its amount"
+    # The provenance, asked of the message's content rather than of its spelling - this
+    # read `'"basis": "survey_median"' in user` until P124 (tests/messages.py).
+    assert anywhere(user, "basis", "survey_median"), "the benchmark's provenance, not its amount"
     # The engagement profile is its own context section and carries the benchmark's
     # amount by design; the payload - what this skill chose to send - carries no value.
     payload = user.split("=== payload:", 1)[1]

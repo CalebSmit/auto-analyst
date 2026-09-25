@@ -3647,6 +3647,31 @@
       ],
       "notes": "",
       "closed": "2026-09-24"
+    },
+    {
+      "id": "P124",
+      "title": "A payload with the padding taken out",
+      "block": "the run",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Every procedure serializes its payload with indent=1, which spends a newline and a space on every key of every row. On a catalogue shaped like the real client folder that is 52 KB of whitespace in 269 KB - and the assembled model-load context is the step closest to the ceiling that refuses it. Compacting the separators changes no key, no value and no structure: the same object parses out the other side. What it buys is headroom on the one step most likely to refuse a real client, and it buys it without changing anything the model is asked to understand.",
+      "builds": [],
+      "tasks": [
+        "Serialize every procedure payload compactly rather than pretty-printed",
+        "Prove the compact form parses to the same object as the indented one",
+        "Measure the saving on a catalogue shaped like the real folder, and hold it with a test"
+      ],
+      "exit": [
+        "Every procedure payload round-trips: json.loads(compact) equals json.loads(indented)",
+        "A catalogue of about 1100 rows serializes at least 10% smaller than it did",
+        "No payload is pretty-printed for a reader that does not exist"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p124 -q",
+        "python -m uv run pytest tests/p121 tests/p110 tests/p19 tests/p71 tests/p73 -q"
+      ],
+      "notes": "",
+      "closed": "2026-09-25"
     }
   ],
   "checkpoints": [
@@ -4409,6 +4434,17 @@
         "python -m uv run pytest tests/checkpoints/c69 -q"
       ],
       "closed": "2026-09-24"
+    },
+    {
+      "id": "C70",
+      "title": "The same payload, spelled smaller",
+      "after": "P124",
+      "status": "done",
+      "proves": "That compacting every procedure's payload changed nothing a run depends on: the assembled context still passes the guards, the scripted analyst still reads every payload, the review loop still resumes, and the workbook still comes out - while the context that was nearest the ceiling is measurably further from it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c70 -q"
+      ],
+      "closed": "2026-09-25"
     }
   ]
 }

@@ -390,12 +390,19 @@ engagement has spent across its runs. A run that would cross any of them halts a
 rather than continuing and billing, and says which ceiling. Cost per run and per engagement
 is on the Activity page.
 
-**Roughly, on a real folder.** Thirteen documents from an actual engagement produce a
+**Roughly, on a real folder.** Thirteen documents from an actual engagement produced a
 128 KB payload at timing, 102 KB at tagging and 305 KB at model-load. On the mid tier
 (`claude-sonnet-5`, $2 per million in and $10 out) that is on the order of **a dollar for
 one clean pass**, and a few dollars once the review loop has sent a step back once or
 twice. The firm ceiling of $40 a run is a backstop, not a budget; set the engagement's own
 to something you would not mind spending twice.
+
+Those were measured before the payloads stopped being pretty-printed, and every one of
+them is now about an eighth smaller. The dollar figure is unchanged, because whitespace is
+the cheapest thing in a prompt. What it bought is headroom: the assembled context for a
+step is refused above 400 KB, model-load is the step nearest that line, and how near it
+comes is a function of how many line items the client has. A bigger client is the way this
+run refuses, and there is now more room before it does.
 
 ### Watching a run while it happens
 

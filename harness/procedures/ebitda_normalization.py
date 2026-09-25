@@ -35,6 +35,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from harness.procedures.line_item_tagging import line_item_ref
+from harness.procedures.payload import as_payload
 from harness.runtime import BoundTools
 from ops.source_parse import SheetRange, parse_locator
 from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
@@ -301,7 +302,7 @@ class EbitdaNormalization:
                 for ln in inputs.lines
             ],
         }
-        return json.dumps(body, indent=1)
+        return as_payload(body)
 
     def parse(self, text: str) -> dict[str, Any]:
         return _json_object(text)
@@ -612,7 +613,7 @@ class EbitdaVerification:
                     "recurs_in_all_periods": s.get("recurs_in_all_periods", False),
                 }
             )
-        return json.dumps({"verification": True, "items": items}, indent=1)
+        return as_payload({"verification": True, "items": items})
 
     def parse(self, text: str) -> dict[str, Any]:
         return _json_object(text)
