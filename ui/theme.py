@@ -234,10 +234,31 @@ b,strong{font-weight:600}
 .card .why{margin:.25rem 0 0;font-size:var(--t-xs);color:var(--ink-3);line-height:1.5;max-width:74ch}
 .card .body{flex:1;min-height:0;padding:var(--s2) var(--s5) var(--s4);}
 
-/* A stream: a panel whose content has no end - an event log, a map of a hundred and
-   eighteen nodes, a list of every seam. These are the only panels that scroll, and the
-   shadows below say so. Every other panel is as tall as what it holds, so a shadow on one
-   now means there is genuinely more rather than meaning the grid was short. */
+/* A stream: a panel whose height is not this design's to decide.
+
+   The test is **whose length it is**. A panel with one row per step of setup, per practice
+   group, per recipe, per seam is as long as this build made it, and it is as tall as what
+   it holds. A panel with one row per run, per engagement, per open question, per week of
+   history is as long as the firm's own work, and nothing here can know how long that is -
+   so it gets a cap and scrolls inside it.
+
+   P142 wrote the first half of that and applied a different one. "Content that has no end"
+   was the reason given; what actually got a cap was whatever looked long on a screen with
+   three runs on it. So the event log was capped and the list of every run the firm has ever
+   done was not. Measured at a realistic firm - 54 runs over 18 engagements - the Runs panel
+   grew to 4148px and the page to 4787, and a reader who scrolled to the last run found that
+   clicking it opened a panel 3570px above them. The cap is a max-height, so at the three
+   runs this machine has it changes nothing: measured both ways, 305px either way.
+
+   There is a second reason to cap, and it is worth keeping apart from the first: a list
+   this build decides can still be long because this build made it long - 118 nodes of the
+   design, eleven seams with a paragraph each. Those are capped too, and they are the two
+   the first version got right. What it missed is everything in the other group, which is
+   short today and short only because this machine has three runs on it.
+
+   These are the only panels that scroll, and the shadows below say so. Every other panel is
+   as tall as what it holds, so a shadow on one means there is genuinely more rather than
+   meaning the grid was short. */
 .card.stream>.body{max-height:26rem;overflow:auto;
  scrollbar-gutter:stable;
  /* Two pairs: the white ones scroll with the content and cover the shadows when there is

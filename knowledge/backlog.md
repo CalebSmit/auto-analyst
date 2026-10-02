@@ -2055,3 +2055,44 @@ status: measured, nothing to fix
 * **The help page's colour key** uses real `.pill` components rather than hand-painted
   swatches, which is the pattern P147 had to put into the trace's key.
 
+## B-117 The cap went to what was long that day, not to what grows
+status: fixed (P149)
+2026-10-02, found by putting a realistic firm through the real page rather than by reading
+anything. 54 runs over 18 engagements, same server, nothing changed but the number of rows:
+
+| | before | after |
+|---|---|---|
+| the page | 4787px | **1134px** |
+| the Runs panel | 4148px, four screens | **494px** |
+| scrolling to reach the last run | 3686px down | **24px** |
+| where the detail panel then is | **3570px above the window** | 91px, on screen |
+| tallest panel / shortest | 8x | **2.1x** |
+
+The fourth row is the one with consequence. A reader scrolls to a run near the bottom, clicks
+it, and the panel it opens is three and a half screens behind them: once the list is long,
+**the list and the thing the list is for cannot be on screen together.**
+
+**P142 wrote the right rule and applied a different one.** The reason beside `stream` said
+*a panel whose content has no end*. What actually got a cap was whatever looked long on a
+screen with three runs on it - so the event log was capped and the list of every run the firm
+has ever done was not. Seven panels across the three boards have a length that belongs to the
+firm: Runs, Waiting on a person and Alerts; Engagements and Preflight; What to fix first and
+Outcomes by week. None was capped. Two of the three that were capped are design-sized and
+fixed, which is a second and perfectly good reason to cap - just not the one that was written
+down.
+
+The rule is now a question that can be asked of a panel rather than seen on a screen:
+**whose length is it?** One row per step of setup, per practice group, per recipe, per seam is
+as long as this build made it. One row per run, per engagement, per open question, per week of
+history is as long as the firm's own work, and nothing here can know how long that is.
+
+**It costs nothing until it is needed.** The cap is a `max-height`, so at the three runs this
+machine has, every measurement is identical both ways - the Runs panel is 422px with it and
+422px without. That is what made it safe to do to seven panels at once.
+
+Two things the tests caught in my own reasoning. The first draft asserted capped-if-and-only-
+if-the-firm's and went red on the map and the seam list, which are this build's and are right
+to be capped - there are two reasons to cap and only one is about the firm. And `tests/p142`
+required a reason in the markup beside every stream, which the seven new ones did not have;
+writing them was better than weakening the test.
+

@@ -73,8 +73,17 @@ def test_a_stream_is_declared_in_markup_and_nowhere_else() -> None:
         for found in re.findall(r'class="card stream"', page):
             assert found
         assert "classList.add('stream')" not in page, f"{where} makes a stream at runtime"
-    streams = sum(page.count('class="card stream"') for page, _ in BOARDS)
-    assert streams == 3, f"{streams} streams; the three are the log, the map and the seams"
+    # This asserted there were exactly three, which was the count on the day and not a
+    # property. P149 found the criterion had been "long on a screen with three runs on it"
+    # rather than the one written down, and capped the seven panels whose length belongs to
+    # the firm. Which panels those are is `tests/p149`; what belongs here is that every one
+    # of them says so in the markup, so the reason still travels with the panel.
+    for page, where in BOARDS:
+        declared = page.count('class="card stream"')
+        explained = len(re.findall(r'<!--[^>]*?-->\s*<section class="card stream"', page, re.S))
+        assert declared == explained, (
+            f"{where}: {declared} streams and {explained} reasons beside them"
+        )
 
 
 # ------------------------------------------------ a link is a link on every surface

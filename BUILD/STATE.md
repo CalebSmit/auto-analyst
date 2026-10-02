@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **148 of 148 phases closed**
-- Last green checkpoint: **C81**
+- **149 of 149 phases closed**
+- Last green checkpoint: **C82**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -167,4 +167,5 @@
 - **P146** Seventy ways to wire a handler, and a guard that knew one (2026-10-02)
 - **P147** The key that was a second copy of the drawing (2026-10-02)
 - **P148** Four sentences that count, and two that count wrong (2026-10-02)
+- **P149** The panels whose length is not ours (2026-10-02)
 

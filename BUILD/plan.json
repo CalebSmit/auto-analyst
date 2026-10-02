@@ -4353,6 +4353,32 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P149",
+      "title": "The panels whose length is not ours",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Give the cap to the panels whose length belongs to the firm rather than to the ones that happened to be long the day the screen was measured, and write the rule down as something that can be asked of a panel rather than seen on a screen.",
+      "builds": [],
+      "tasks": [
+        "the seven panels whose rows are one per thing the firm has are marked as streams",
+        "the sheet says what a stream is in terms a panel can be asked rather than a screen looked at",
+        "a test derives which panels should be capped from what fills them, not from a list"
+      ],
+      "exit": [
+        "Every panel whose rows are one per thing the firm has is capped, and the rule says which those are rather than listing them",
+        "A reader who picks a run can still see what it opened, measured at a firm's worth of runs rather than at three",
+        "A cap costs nothing at the size this machine is actually at, measured both ways"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p149 -q",
+        "python -m uv run pytest tests/p47 tests/p136 tests/p142 tests/checkpoints/c78 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p149"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5245,6 +5271,17 @@
       "proves": "Every number a reader is shown in prose, on the consoles and in the guide, is derived from the thing it counts or is recorded as a claim that cannot drift, and there is one table of number words that production and tests both stand on.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c81 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C82",
+      "title": "A page the firm cannot stretch",
+      "after": "P149",
+      "status": "done",
+      "proves": "Every panel on the three boards is bounded by a number this build chose - one cap shared by all of them, or a list whose length the build fixes - so how tall a page gets is never a function of how long the firm has been using it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c82 -q"
       ],
       "closed": "2026-10-02"
     }

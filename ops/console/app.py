@@ -961,7 +961,8 @@ PAGE = (
  </div>
 
  <div class="board">
-  <section class="card" style="grid-area:runs">
+  <!-- A stream: one row per run, for as long as the firm keeps running them. -->
+  <section class="card stream" style="grid-area:runs">
    <header><h2>Runs<span class="of" id="n-runs"></span></h2>
     <p class="why">Grouped by engagement, newest first, because a repeat client is one
      job with several runs. Pick one to see what it did, step by step, as it happened.</p>
@@ -989,7 +990,8 @@ PAGE = (
    </div>
   </section>
 
-  <section class="card" style="grid-area:inbox">
+  <!-- A stream: one per question a run has stopped on, and nothing bounds how many. -->
+  <section class="card stream" style="grid-area:inbox">
    <header><h2>Waiting on a person<span class="of" id="n-inbox"></span></h2>
     <p class="why">What the system was not sure enough about to decide alone. Open one to read the source first, then the proposal.</p></header>
    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
@@ -1017,7 +1019,8 @@ PAGE = (
    </div>
   </section>
 
-  <section class="card" style="grid-area:alerts">
+  <!-- A stream: one per run gone quiet or review past its SLA. -->
+  <section class="card stream" style="grid-area:alerts">
    <header><h2>Alerts<span class="of" id="n-alerts"></span></h2>
     <p class="why">Runs that have gone quiet, reviews past their SLA, guards repeating.</p></header>
    <div class="body"><div id="alerts"><div class="skel"></div></div></div>

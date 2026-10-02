@@ -69,7 +69,8 @@ PAGE = f"""<!doctype html>
    <div class="body"><div id="funnel"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:failures">
+  <!-- A stream: one per thing going wrong, ranked - as many as there are. -->
+  <section class="card stream" style="grid-area:failures">
    <header><h2>What to fix first</h2>
     <p class="why">Ranked by how often it happened, each with the owner the diagnostics
      registry gives it. The largest class is usually client data, and no amount of
@@ -83,7 +84,8 @@ PAGE = f"""<!doctype html>
    <div class="body"><div id="stuck"><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:outcomes">
+  <!-- A stream: one row per week of the firm's history, forever. -->
+  <section class="card stream" style="grid-area:outcomes">
    <header><h2>Outcomes by week</h2>
     <p class="why">The mix, not the total. A rising share of clean runs is the thing to
      watch; a rising share of halted ones is the thing to act on.</p></header>

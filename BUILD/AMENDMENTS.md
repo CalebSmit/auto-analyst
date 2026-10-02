@@ -2780,3 +2780,27 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C81 after P148, covering P148
 - proves: Every number a reader is shown in prose, on the consoles and in the guide, is derived from the thing it counts or is recorded as a claim that cannot drift, and there is one table of number words that production and tests both stand on.
+
+## 2026-10-02 - P149 The panels whose length is not ours
+
+**Why:** P142 capped three panels and called them streams, with the reason written beside them: their content has no end. The criterion actually applied was different - it was whichever panels were long on the day the screen was measured, which had three runs on it. So the event log got a cap and the list of every run the firm has ever done did not. Measured by putting a realistic firm through the real page, 54 runs across 18 engagements: the Runs panel grows to 4148px, four screens tall; the page grows to 4787; scrolling to the last run puts the detail panel it opens 3570px above the window, so a reader clicks a run and what it opens is three and a half screens behind them; and the tallest panel is eight times the shortest, with two columns ending in a thousand pixels of white. Seven panels across the three consoles have a length that belongs to the firm rather than to the design - Runs, Waiting on a person and Alerts on Activity, Engagements and Preflight on Setup, Outcomes by week and What to fix first on Analytics - and not one of them is capped, while two of the three that are capped are design-sized and fixed. Marking Runs a stream takes the page from 4787 to 1134 and keeps the detail on screen, and at the three runs this machine actually has it changes nothing: the cap is a max-height, so it costs exactly nothing until it is needed.
+
+- phase added: P149 The panels whose length is not ours (Legible, gate: auto)
+- exit criterion: Every panel whose rows are one per thing the firm has is capped, and the rule says which those are rather than listing them
+- exit criterion: A reader who picks a run can still see what it opened, measured at a firm's worth of runs rather than at three
+- exit criterion: A cap costs nothing at the size this machine is actually at, measured both ways
+
+## 2026-10-02 - P149 The panels whose length is not ours
+
+**Why:** The tasks.
+
+- task added: the seven panels whose rows are one per thing the firm has are marked as streams
+- task added: the sheet says what a stream is in terms a panel can be asked rather than a screen looked at
+- task added: a test derives which panels should be capped from what fills them, not from a list
+
+## 2026-10-02 - C82 A page the firm cannot stretch
+
+**Why:** P149 gave the cap to the seven panels whose length belongs to the firm rather than to the ones that happened to be long the day the screen was measured. What the checkpoint asks that the phase could not is the property underneath all seven: every panel on every board is bounded by something this build decides - either it is capped, so at most one cap tall whatever is in it, or its rows come from a list this build fixes. One uncapped panel fed by the firm's own work and the page stops having a maximum height at all. That matters as a checkpoint rather than a phase because the measurement that found it needed a simulated firm and a running server, and a property that can only be seen that way is a property nobody will check again. This one is a question about the source, so it is asked on every run.
+
+- checkpoint added: C82 after P149, covering P149
+- proves: Every panel on the three boards is bounded by a number this build chose - one cap shared by all of them, or a list whose length the build fixes - so how tall a page gets is never a function of how long the firm has been using it.

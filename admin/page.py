@@ -76,7 +76,8 @@ body.all-done #checklist .bar{{display:none}}
    <div class="body"><div id="checklist"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:eng">
+  <!-- A stream: one per piece of client work on the roster, which only grows. -->
+  <section class="card stream" style="grid-area:eng">
    <header><h2>Engagements<span class="of" id="n-roster"></span></h2>
     <p class="why">One per piece of client work. The practice group you give it decides
      which skills it gets, which methodology it carries and which model it builds into.</p></header>
@@ -87,7 +88,8 @@ body.all-done #checklist .bar{{display:none}}
    </div>
   </section>
 
-  <section class="card" style="grid-area:pre">
+  <!-- A stream: one finding per thing wrong, and the things grow with the engagements. -->
+  <section class="card stream" style="grid-area:pre">
    <header><h2>Preflight</h2>
     <p class="why">{in_words(len(CHECKS))} checks over the live configuration. A setup mistake
      found here is one that does not stop a run at three in the afternoon.</p></header>
