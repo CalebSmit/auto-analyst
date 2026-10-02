@@ -2001,3 +2001,57 @@ fifth is said rather than drawn: *"and a name with no box at all is a node this 
 reached."* Drawing a box for the state whose whole appearance is not having one is how the
 two answers came to look alike.
 
+## B-115 Four sentences that count, and two that counted wrong
+status: fixed (P148, and two more found by C81)
+2026-10-02. Every number written in prose on the three consoles and the help page, held to
+what it counts:
+
+| where | said | counts |
+|---|---|---|
+| Setup, over Preflight | **Fourteen** checks | `CHECKS` has **15** |
+| Help, over the colour key | **Three** colours | **4** rows |
+| Setup, over the checklist | Eleven steps | 11 - right |
+| Help, over the walkthrough | Six steps | 6 - right |
+
+The first is the worst: the panel directly beneath that sentence prints the live count and
+reads `15 checks · 3 warnings`, so the page disagrees with itself in one glance. A third was
+in `admin/page.py`'s own module docstring, which named a count of the checklist that had been
+wrong for about a hundred phases - the first paragraph anybody maintaining the file reads.
+
+**`tests/counting.py` already existed for this.** Its rule is at the top: *derive the prose
+from the list, never write the number down twice.* It was written because the count of
+preflight checks came to be typed in three places and was wrong in all three the day P114
+added one. It had six users and not one was a console.
+
+The reason it did not hold is the useful part: **the table lived under `tests/`**, so a test
+could check a sentence after the fact and a page could never *build* one. A rule a page
+cannot reach is a rule a page will break. It is `ui/words.py` now and `tests/counting.py`
+re-exports it. Verified structurally rather than asserted: adding a check makes the sentence
+say *Sixteen*, adding a colour makes it say *Five* - the drift cannot be reintroduced by
+adding to the list, which is a stronger result than a guard going red.
+
+**C81 found two more by asking what the phase could not.**
+
+* `tests/p80` kept a third copy of the table. It was written before `counting.py` existed
+  and did the right thing with it - derived its count - which is exactly why nothing noticed
+  the table itself was the defect, one level up.
+* `docs/USING.md` says *"Three checks you can point at anything"* and printed a copyable
+  command line for **one** of them. A reader of the guide CLAUDE.md says to keep true could
+  not run the formula audit or the reasonableness questions at all - and the second has no
+  default tolerance, so it cannot run without a `--move` flag the guide never showed. Both
+  command lines added and checked against the tools' own `--help`.
+
+## B-116 What a frontend sweep found nothing in
+status: measured, nothing to fix
+2026-10-02, recorded so it is not re-derived. Beyond B-110's target sizes and markup hygiene:
+
+* **Text truncation.** One element on Activity clips, and it carries a `title`. Nothing on
+  Setup overflows its box at all.
+* **The run trace's state fills.** B-109 first claimed it told passed from failed by hue
+  alone. It does not: `failed` is weight 600 where the others are 400, running carries a
+  spinner, an untouched node has no box at all, and the text colours stay 9 to 17 apart
+  under simulated deuteranopia. The pale fills carry almost nothing - 0.5 to 3.2 - but they
+  are reinforcement, not the signal.
+* **The help page's colour key** uses real `.pill` components rather than hand-painted
+  swatches, which is the pattern P147 had to put into the trace's key.
+

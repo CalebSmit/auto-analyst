@@ -31,6 +31,7 @@ import re
 from pathlib import Path
 
 from admin.page import PAGE
+from tests.counting import in_words
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -47,23 +48,10 @@ def script() -> str:
 # ------------------------------------------------------------------ the wall, removed
 
 
-NUMBERS = [
-    "Zero",
-    "One",
-    "Two",
-    "Three",
-    "Four",
-    "Five",
-    "Six",
-    "Seven",
-    "Eight",
-    "Nine",
-    "Ten",
-    "Eleven",
-    "Twelve",
-    "Thirteen",
-]
-
+# The table this used to keep was written before `tests/counting.py` existed, and it was
+# the third copy in the repo - which is the defect this very test is about, one level up.
+# C81 found it. `in_words` refuses past its table rather than guessing, so a checklist that
+# grew past twenty would stop the suite instead of quietly printing a digit.
 
 def test_the_profile_is_a_step_rather_than_a_refusal() -> None:
     """It was the longest job in setup and appeared in none of the six steps."""
@@ -82,7 +70,7 @@ def test_the_count_in_the_prose_is_the_number_of_steps() -> None:
     """
     steps = script().count("{done:")
     assert steps, "the checklist has no steps at all"
-    assert f"{NUMBERS[steps]} steps, in order." in PAGE, (
+    assert f"{in_words(steps)} steps, in order." in PAGE, (
         f"the checklist has {steps} steps and the prose beside it says otherwise"
     )
 

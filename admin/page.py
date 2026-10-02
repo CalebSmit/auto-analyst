@@ -8,8 +8,10 @@ reading why preflight will not let an engagement start are all things a managing
 has to be able to do without a terminal.
 
 **The setup path is the page.** A first-time reader does not want six panels, they want to
-know what to do next - so the first thing they see is the six steps, which are done, and
-one button on the one that is not. The panels are underneath, for somebody who knows what
+know what to do next - so the first thing they see is the checklist: every step, which of
+them are done, and one button on the first that is not. This paragraph used to name a
+number here, and the number had been wrong for about a hundred phases: a count in prose is
+a count nothing checks, which is what `ui/words.py` and `tests/p148` are now for. The panels are underneath, for somebody who knows what
 they are looking for. The checklist is derived from the live configuration on every load
 rather than remembered, so it cannot claim a step is finished when the thing it describes
 was undone somewhere else.
@@ -26,8 +28,10 @@ than one that was pleasant to write.
 
 from __future__ import annotations
 
+from admin.preflight import CHECKS
 from ui import CSS, SHELL
 from ui.theme import shell
+from ui.words import in_words
 
 __all__ = ["PAGE"]
 
@@ -85,8 +89,8 @@ body.all-done #checklist .bar{{display:none}}
 
   <section class="card" style="grid-area:pre">
    <header><h2>Preflight</h2>
-    <p class="why">Fourteen checks over the live configuration. A setup mistake found here
-     is one that does not stop a run at three in the afternoon.</p></header>
+    <p class="why">{in_words(len(CHECKS))} checks over the live configuration. A setup mistake
+     found here is one that does not stop a run at three in the afternoon.</p></header>
    <div class="body"><div id="pre"><div class="skel"></div></div></div>
    <div class="foot"><button data-act="refresh">Run again</button></div>
   </section>

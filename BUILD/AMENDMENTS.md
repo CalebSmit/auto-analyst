@@ -2747,3 +2747,36 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C80 after P147, covering P146, P147
 - proves: A state's appearance is decided in one rule and every key in the product is drawn by it, and a control reaches its handler by one mechanism that every guard asks about the same way.
+
+## 2026-10-02 - P148 Four sentences that count, and two that count wrong
+
+**Why:** Four sentences on the consoles count something, and two of them are wrong. The Setup page says 'Fourteen checks over the live configuration' and admin/preflight.CHECKS has fifteen - the panel beside the sentence prints the live count and reads '15 checks', so the page disagrees with itself on the same screen. The help page says 'Three colours carry meaning everywhere' above four rows: fine, attention, problem and running. The other two are right - Setup's eleven steps are eleven, and the help page's six steps are six. A third is in admin/page.py's own module docstring, which says the first thing a reader sees is the six steps and there are eleven; that is the first paragraph anybody maintaining this file reads. tests/counting.py already exists for exactly this, with the rule written at the top - assert that the prose and the list agree, and derive the prose from the list, never write the number down twice - and it was written because the count of preflight checks came to be typed in three places and was wrong in all three the day a check was added. It has six users and not one of them is a console.
+
+- phase added: P148 Four sentences that count, and two that count wrong (Legible, gate: auto)
+- exit criterion: No number written in a console's prose is written down a second time; each is derived from what it counts
+- exit criterion: The page does not disagree with itself on one screen, measured against the live count the same panel prints
+- exit criterion: A test sweeps the pages for a number in prose rather than checking the ones known today
+
+## 2026-10-02 - P148 Four sentences that count, and two that count wrong
+
+**Why:** The tasks.
+
+- task added: the Setup page's count of preflight checks is interpolated from CHECKS rather than typed
+- task added: the help page's colour key states the number of colours it lists, from the list
+- task added: admin/page.py's docstring stops naming a number of steps that was true two years of phases ago
+- task added: a sweep over the three consoles and the help page finds a number in prose and fails unless it is derived
+
+## 2026-10-02 - P148 Four sentences that count, and two that count wrong
+
+**Why:** C81 found two more of the same thing, and a checkpoint finding them is the apparatus working rather than a reason to widen the checkpoint. tests/p80 keeps a third table of number words - it was written before tests/counting.py existed and does the right thing with its own copy, which is the defect one level up. And docs/USING.md says 'Three checks you can point at anything' and prints a copyable command line for one of them: a reader of that guide cannot run the formula audit or the reasonableness questions at all, and the second needs a --move flag the guide never shows. CLAUDE.md says to keep that file true because it is the guide for the people who use the tool rather than build it.
+
+- task added: tests/p80 stops keeping a third table of number words
+- task added: the guide prints a command line for each of the three checks it counts, including the flag the third one cannot run without
+- status: done -> open
+
+## 2026-10-02 - C81 A number in a sentence
+
+**Why:** P148 found four sentences on the consoles that count something and two that counted wrong - Fourteen checks where preflight has fifteen, said directly above a panel printing the live count, and Three colours above four of them. tests/counting.py had existed since P114 with the rule written at the top, and had six users and no console, because the table lived under tests/ where a page could never reach it: a rule a page cannot reach is a rule a page will break. What the checkpoint asks that the phase could not is whether the six tests already standing on that table are still measuring the same one, and whether a page that states a count now reaches for it rather than typing it. Asking that found two more of the same thing: tests/p80 kept a third copy of the table, written before counting.py existed and doing the right thing with the wrong copy, and docs/USING.md says Three checks you can point at anything and printed a command line for one of them - so a reader of the guide CLAUDE.md says to keep true could not run two of the three it counts, and the third takes a flag it has no default for.
+
+- checkpoint added: C81 after P148, covering P148
+- proves: Every number a reader is shown in prose, on the consoles and in the guide, is derived from the thing it counts or is recorded as a claim that cannot drift, and there is one table of number words that production and tests both stand on.

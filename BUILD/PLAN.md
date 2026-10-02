@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**147 of 147 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**148 of 148 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -354,4 +354,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P146** Seventy ways to wire a handler, and a guard that knew one | auto | No page carries an inline event handler of any name, proved by a sweep over every on* attribute rather than over one of them | 2026-10-02 |
 | [x] | **P147** The key that was a second copy of the drawing | auto | Every swatch in the trace's key is drawn by the same rule as the node it stands for, proved by comparing them rather than by reading either | 2026-10-02 |
 | [x] | **C80 - Said twice** | integration | A state's appearance is decided in one rule and every key in the product is drawn by it, and a control reaches its handler by one mechanism that every guard asks about the same way. | 2026-10-02 |
+| [x] | **P148** Four sentences that count, and two that count wrong | auto | No number written in a console's prose is written down a second time; each is derived from what it counts | 2026-10-02 |
+| [x] | **C81 - A number in a sentence** | integration | Every number a reader is shown in prose, on the consoles and in the guide, is derived from the thing it counts or is recorded as a claim that cannot drift, and there is one table of number words that production and tests both stand on. | 2026-10-02 |
 

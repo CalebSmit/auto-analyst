@@ -4324,6 +4324,35 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P148",
+      "title": "Four sentences that count, and two that count wrong",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Derive every number the consoles state in prose from the thing it counts, so the sentence cannot be left behind when the list changes - which is the failure tests/counting.py was written for and then not pointed at the pages.",
+      "builds": [],
+      "tasks": [
+        "the Setup page's count of preflight checks is interpolated from CHECKS rather than typed",
+        "the help page's colour key states the number of colours it lists, from the list",
+        "admin/page.py's docstring stops naming a number of steps that was true two years of phases ago",
+        "a sweep over the three consoles and the help page finds a number in prose and fails unless it is derived",
+        "tests/p80 stops keeping a third table of number words",
+        "the guide prints a command line for each of the three checks it counts, including the flag the third one cannot run without"
+      ],
+      "exit": [
+        "No number written in a console's prose is written down a second time; each is derived from what it counts",
+        "The page does not disagree with itself on one screen, measured against the live count the same panel prints",
+        "A test sweeps the pages for a number in prose rather than checking the ones known today"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p148 -q",
+        "python -m uv run pytest tests/p30 tests/p31 tests/p107 tests/p117 tests/p118 tests/p81 tests/checkpoints/c66 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p148"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5205,6 +5234,17 @@
       "proves": "A state's appearance is decided in one rule and every key in the product is drawn by it, and a control reaches its handler by one mechanism that every guard asks about the same way.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c80 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C81",
+      "title": "A number in a sentence",
+      "after": "P148",
+      "status": "done",
+      "proves": "Every number a reader is shown in prose, on the consoles and in the guide, is derived from the thing it counts or is recorded as a claim that cannot drift, and there is one table of number words that production and tests both stand on.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c81 -q"
       ],
       "closed": "2026-10-02"
     }

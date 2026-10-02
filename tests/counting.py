@@ -8,39 +8,16 @@ checkpoint rather than by anyone reading.
 
 The rule this file exists to make easy: **assert that the prose and the list agree, and
 derive the prose from the list.** Never write the number down twice.
+
+**The table moved in P148.** It lived here, under `tests/`, which meant a test could check
+a sentence after the fact but a page could never build one - so the pages went on typing
+their numbers, and two of the four on the consoles were wrong. It is `ui/words.py` now,
+where production can reach it, and this module re-exports it so there is still one table
+and the test measures the same thing the sentence was built from.
 """
 
 from __future__ import annotations
 
-WORDS = [
-    "Zero",
-    "One",
-    "Two",
-    "Three",
-    "Four",
-    "Five",
-    "Six",
-    "Seven",
-    "Eight",
-    "Nine",
-    "Ten",
-    "Eleven",
-    "Twelve",
-    "Thirteen",
-    "Fourteen",
-    "Fifteen",
-    "Sixteen",
-    "Seventeen",
-    "Eighteen",
-    "Nineteen",
-    "Twenty",
-]
+from ui.words import WORDS, in_words
 
-
-def in_words(count: int) -> str:
-    """`14` -> `"Fourteen"`. Raises rather than guessing past the end of the table."""
-    if not 0 <= count < len(WORDS):
-        raise AssertionError(
-            f"{count} is past this table; extend WORDS rather than writing the number down"
-        )
-    return WORDS[count]
+__all__ = ["WORDS", "in_words"]

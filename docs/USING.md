@@ -231,6 +231,14 @@ come in three strengths - *wrong* means the file disagrees with itself and is pr
 cell address, which on the firm's own model is everywhere and is off unless you ask for it.
 It **never edits the workbook**.
 
+```
+python -m uv run python tools/formula_audit.py "WS Grouping 2026.xlsx"
+python -m uv run python tools/formula_audit.py "WS Grouping 2026.xlsx" --all
+```
+
+`--all` turns on the cross-sheet references by cell address. Leave it off on the firm's own
+model, where they are the house style rather than a finding.
+
 **The prose.** Em dashes first, then the vocabulary and the rhythms that read as
 machine-written; the mechanical slips (a word typed twice, a space before a comma, a
 bracket that never closes); and the two spellings of one thing - *the Company* beside *the
@@ -254,6 +262,15 @@ verdict** - whether a margin moving eight points is a problem depends on the bus
 the tool has no way to know. Nothing in it concludes anything about a valuation. The
 tolerances are yours and have no defaults: a ratio you give no tolerance for is reported as
 a question nobody asked rather than quietly left out.
+
+```
+python -m uv run python tools/reasonableness.py normalized.json --move points=5 --move days=10
+```
+
+Each `--move` is a unit and how much of it counts as a move: `points` for the margins and
+anything else measured in percentage points, `days` for receivable, inventory and payable
+days, `x` for the current ratio. There is no default for any of them on purpose - what
+counts as material is the practice's judgement, not this tool's.
 
 Also on the run's detail on Activity: a **Check formulas** button beside each delivered
 workbook. It re-reads the released file, which matters because one of the checks - whether

@@ -14,6 +14,24 @@ from __future__ import annotations
 
 from ui import CSS, SHELL
 from ui.theme import shell
+from ui.words import in_words
+
+# The colours that carry meaning, and what each one means. A list rather than four rows of
+# markup, because the sentence above them counts it: it said "Three" over four rows until
+# P148, and a number typed beside a list is a number that is right until the list changes.
+MEANINGS: tuple[tuple[str, str, str], ...] = (
+    ("good", "fine", "Passed, cleared, delivered - nothing for you to do."),
+    ("warn", "attention", "Waiting on a person, or worth a look: a warning, a stopped run, "
+     "a count of items for you."),
+    ("bad", "problem", "Failed or refused, always with the reason and what to do about it."),
+    ("accent", "running", "Working right now."),
+)
+
+COLOUR_ROWS = ("\n    ").join(
+    f'<div class="r"><span class="pill {kind}"><i class="dot"></i>{name}</span>'
+    f'<span class="lbl">{says}</span></div>'
+    for kind, name, says in MEANINGS
+)
 
 __all__ = ["PAGE"]
 
@@ -99,17 +117,20 @@ PAGE = (
     )
     + """</div></div>
   </section>
-
+"""
+    # Its own piece, because the rest of this page is a plain string and the two things
+    # here are computed: the rows, and the sentence that counts them.
+    + f"""
   <section class="card" style="grid-area:colours">
    <header><h2>What the colours mean</h2>
-    <p class="why">Three colours carry meaning everywhere; everything else is neutral.</p></header>
+    <p class="why">{in_words(len(MEANINGS))} colours carry meaning everywhere; everything else
+     is neutral.</p></header>
    <div class="body">
-    <div class="r"><span class="pill good"><i class="dot"></i>fine</span><span class="lbl">Passed, cleared, delivered - nothing for you to do.</span></div>
-    <div class="r"><span class="pill warn"><i class="dot"></i>attention</span><span class="lbl">Waiting on a person, or worth a look: a warning, a stopped run, a count of items for you.</span></div>
-    <div class="r"><span class="pill bad"><i class="dot"></i>problem</span><span class="lbl">Failed or refused, always with the reason and what to do about it.</span></div>
-    <div class="r"><span class="pill accent"><i class="dot"></i>running</span><span class="lbl">Working right now.</span></div>
+    {COLOUR_ROWS}
    </div>
   </section>
+"""
+    + """
 
   <section class="card" style="grid-area:stops">
    <header><h2>When something stops</h2>
