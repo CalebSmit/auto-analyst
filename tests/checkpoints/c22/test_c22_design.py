@@ -67,7 +67,21 @@ def test_the_served_ink_is_legible_on_the_served_paper(served: TestClient) -> No
 
 
 def test_the_keyboard_and_a_reduced_motion_preference_are_served(served: TestClient) -> None:
+    """Asked of the token rather than the colour.
+
+    This named `var(--accent)` until P145, which found the ring at 2.40:1 on the navy
+    chrome - the one surface a keyboard arrives at first - and made the colour a token the
+    ground can redefine. What a browser is sent still has to carry a ring, and the ring
+    still has to resolve to something: a rule naming a token the page never defines paints
+    nothing at all, silently.
+    """
+    import re
+
     for path in PATHS:
         page = served.get(path).text
-        assert ":focus-visible{outline:2px solid var(--accent)" in page, path
+        rule = re.search(r":focus-visible\{outline:[\d.]+px solid var\(--([\w-]+)\)", page)
+        assert rule, f"{path} is served with no focus ring"
+        assert re.search(rf"--{re.escape(rule.group(1))}\s*:", page), (
+            f"{path} rings with --{rule.group(1)} and never defines it"
+        )
         assert "@media (prefers-reduced-motion:reduce)" in page, path

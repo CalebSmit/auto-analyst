@@ -47,7 +47,7 @@ PAGE = f"""<!doctype html>
    fix first. Read it weekly, not while something is on fire.</p>
   <div class="tools">
    <label for="days" style="margin:0">Period</label>
-   <select id="days" onchange="refresh()">
+   <select id="days" data-act="setPeriod">
     <option value="7">Last 7 days</option>
     <option value="30" selected>Last 30 days</option>
     <option value="90">Last 90 days</option>
@@ -326,6 +326,10 @@ function skills(rows) {{
       ${{k.drift_flags.length ? `<span class="pill bad">drift: ${{k.drift_flags.map(esc).join(', ')}}</span>` : ''}}
      </div>`).join('');
 }}
+
+/* The period select is a field, so it reaches its handler the same way a button does -
+   through the table, by name, with no script written into the markup. */
+ACTIONS.setPeriod = () => refresh();
 
 refresh();
 poll(refresh, 60000);

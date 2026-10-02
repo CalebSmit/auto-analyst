@@ -15,6 +15,7 @@ import pytest
 from admin.connection import BOX_STEPS, ConnectionReport, Step, probe_box
 from ports.storage.box import BoxStorage
 from tests.fake_box import ROOT_ID, Credentials, FakeBox, without
+from tests.reading import inline_handlers
 
 
 @pytest.fixture
@@ -245,7 +246,7 @@ def test_the_button_on_the_page_reaches_an_action_that_exists() -> None:
     from admin.page import PAGE as html
     assert 'data-act="testBox"' in html
     assert "ACTIONS.testBox" in html
-    assert "onclick=" not in html, "values reach a handler through data- attributes"
+    assert inline_handlers(html) == [], "values reach a handler through data- attributes"
 
 
 def test_the_route_is_a_post_because_it_costs_a_round_trip() -> None:

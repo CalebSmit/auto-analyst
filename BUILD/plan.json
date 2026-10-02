@@ -4271,6 +4271,59 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P146",
+      "title": "Seventy ways to wire a handler, and a guard that knew one",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the one mechanism cover the events a field actually fires, move the three handlers onto it, and widen the guards from a string they happen to match to the thing they are about - then take out the narrow-width rules that undo nothing.",
+      "builds": [],
+      "tasks": [
+        "the dispatcher carries the events a field fires, and the table of them is the list the listeners are built from",
+        "the three inline handlers move onto data-act, and a field's action is its own rather than its row's",
+        "the six guards that spelled the rule 'onclick=' are pointed at one definition of an inline handler, in tests/reading.py beside the other two readers",
+        "the three declarations in the narrow-width block that undo rules P142 removed are taken out"
+      ],
+      "exit": [
+        "No page carries an inline event handler of any name, proved by a sweep over every on* attribute rather than over one of them",
+        "A control that is a field reaches its handler through the same table a button does, and the dispatcher's own rule says which events may travel that way",
+        "Every declaration in the narrow-width block changes something, proved by applying the block and measuring"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p146 -q",
+        "python -m uv run pytest tests/p45 tests/p81 tests/p132 tests/p142 tests/checkpoints/c54 tests/checkpoints/c74 tests/checkpoints/c78 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p146"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P147",
+      "title": "The key that was a second copy of the drawing",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the trace's key the nodes themselves, so a swatch cannot say something the drawing does not, and so the five inline colour decisions stop being five places to keep in step.",
+      "builds": [],
+      "tasks": [
+        "the five hand-written swatches become the node's own classes, the way the map's key already does it",
+        "the state that has no box is drawn with no box, and the key says so in words rather than in a border",
+        "a test compares each swatch to its node rather than reading either on its own"
+      ],
+      "exit": [
+        "Every swatch in the trace's key is drawn by the same rule as the node it stands for, proved by comparing them rather than by reading either",
+        "The key carries no colour of its own, so there is one place a state's appearance is decided",
+        "The state with no box is drawn with no box, because that is the distinction the panel says matters most"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p147 -q",
+        "python -m uv run pytest tests/p45 tests/p46 tests/p146 tests/checkpoints/c22 tests/checkpoints/c79 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p147"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5141,6 +5194,17 @@
       "proves": "Every colour in the three consoles and the map comes from a token and every token clears the floor for what it is used as - 4.5:1 for a word, 3:1 for a shape - including the numbers the stylesheet states about itself in prose.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c79 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C80",
+      "title": "Said twice",
+      "after": "P147",
+      "status": "done",
+      "proves": "A state's appearance is decided in one rule and every key in the product is drawn by it, and a control reaches its handler by one mechanism that every guard asks about the same way.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c80 -q"
       ],
       "closed": "2026-10-02"
     }

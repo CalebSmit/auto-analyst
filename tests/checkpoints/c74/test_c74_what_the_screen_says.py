@@ -26,6 +26,7 @@ import re
 from ops.console.analytics_page import PAGE as ANALYTICS
 from ops.console.app import PAGE as ACTIVITY
 from ops.console.help_page import PAGE as HELP
+from tests.reading import inline_handlers
 
 
 def script() -> str:
@@ -139,7 +140,7 @@ def test_every_control_on_the_page_is_a_named_action() -> None:
     """`ui/who.py`'s rule, across everything these three phases added: a page builds no
     handler out of data, because a client's line item is whatever the client typed."""
     body = script()
-    assert "onclick=" not in body
+    assert inline_handlers(body) == []
     assert "javascript:" not in body
     # The confirm dialog's two buttons are handled by a listener on the dialog itself
     # rather than by the shared table, which is right: that listener is scoped to one

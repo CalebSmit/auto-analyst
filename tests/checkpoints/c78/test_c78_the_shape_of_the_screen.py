@@ -25,6 +25,7 @@ from pathlib import Path
 from admin.page import PAGE as SETUP
 from ops.console.analytics_page import PAGE as ANALYTICS
 from ops.console.app import PAGE as ACTIVITY
+from tests.reading import inline_handlers
 from ui.theme import CSS
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -103,7 +104,7 @@ def test_every_console_still_builds_its_handlers_from_the_actions_table() -> Non
     """`ui/who.py`'s rule, which the anchors had to keep: a control that is also a link
     still reaches its handler by name rather than by anything in the URL."""
     for page, where in BOARDS:
-        assert "onclick=" not in page, f"{where} wires a handler inline"
+        assert inline_handlers(page) == [], f"{where} wires a handler inline"
         assert "javascript:" not in page, f"{where} has a javascript: URL"
     for anchor in re.findall(r"<a [^>]*href=\"#[a-z]+=[^\"]*\"[^>]*>", SETUP):
         assert "data-act=" in anchor, f"a deep link with no action: {anchor[:70]}"

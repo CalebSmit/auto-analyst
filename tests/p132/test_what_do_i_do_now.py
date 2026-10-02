@@ -30,6 +30,7 @@ from __future__ import annotations
 import re
 
 from ops.console.app import PAGE as ACTIVITY
+from tests.reading import inline_handlers
 
 
 def script() -> str:
@@ -117,7 +118,7 @@ def test_the_chip_is_a_named_action_rather_than_a_handler_in_the_markup() -> Non
     """`ui/who.py`'s rule, which this had to keep while adding a control to the chrome:
     a page builds no handler out of data."""
     inner = body_of("refresh")
-    assert "onclick" not in inner
+    assert inline_handlers(inner) == []
     assert "javascript:" not in inner
 
 

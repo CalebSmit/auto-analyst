@@ -404,15 +404,21 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 }
 
 /* --------------------------------------------------- narrower than a desk */
-/* One screen, no scrolling, is the rule at desk width. Below it the same rule hides
-   whatever does not fit, with no way to reach it: so the board becomes one column, the
-   cards take their own height, and the page scrolls like a page. */
+/* Three columns need the width for three columns. Below that there is one, and the rest
+   of the chrome stops trying to sit on a single line.
+
+   It used to carry three more declarations - `overflow:auto` on html and body,
+   `overflow:visible` on `.wrap`, and `max-height:none` on a card's body - and all three
+   undid rules that P142 removed. Nothing on this page has had an overflow to undo since,
+   and `.card .body` loses to `.card.stream>.body` on specificity, so the one body that is
+   still capped stayed capped either way. Verified by applying all three at the top of the
+   sheet and measuring: the stream's cap read 377px before and 377px after.
+
+   What this block is about is the column count, which is a question about width. The
+   height rule that used to sit below it is gone for the same reason - see the note there. */
 @media (max-width:1100px){
- html,body{overflow:auto}
- .wrap{overflow:visible}
  .board{display:block!important}
  .board>.card{margin-bottom:var(--s3)}
- .card .body{max-height:none}
  .chrome{flex-wrap:wrap;gap:.3rem .8rem}
  .page-head{flex-direction:column;align-items:flex-start;gap:.2rem}
 }
@@ -687,8 +693,18 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 .legend{display:flex;gap:var(--s4);flex-wrap:wrap;margin:0 0 var(--s3);padding-bottom:var(--s2);
  font-size:var(--t-xs);color:var(--ink-3);border-bottom:1px solid var(--line-soft)}
 .legend span{display:inline-flex;align-items:center;gap:.4rem}
-.legend i{width:.55rem;height:.55rem;border-radius:2px;display:inline-block;
- box-shadow:inset 0 0 0 1px rgba(12,46,63,.12)}
+/* The key is the nodes. It used to be five squares coloured by hand in the markup, and
+   measured against the nodes they stood for, all five disagreed - failed was drawn as a
+   solid plum block where the node is pale pink, running as solid blue where the node is
+   pale blue, touched as solid grey where the node is near-white. The map's key was
+   repaired for exactly this and says why: a key whose swatches are a second copy of the
+   drawing's rules is a key that drifts from the drawing.
+
+   The fifth state is said rather than drawn. A node the run never reached has no box -
+   that is the whole of what it looks like - and drawing a bordered square for it was how
+   the two answers this panel says it matters most not to confuse came to look alike. */
+.legend .node{cursor:default}
+.legend-note{color:var(--ink-3)}
 .diag{margin-top:var(--s3)}
 .diag .d-row{padding:.55rem .85rem;border-radius:0 var(--radius-sm) var(--radius-sm) 0;
  background:var(--surface-2);box-shadow:inset 3px 0 0 var(--bad);margin-bottom:.45rem}
@@ -729,19 +745,37 @@ const data = o => Object.entries(o || {}).map(([k, v]) => ` data-${k}="${esc(v)}
    being rebound - and the same listener answers Enter and Space, which is how anybody
    working from the keyboard reaches a row at all. */
 const ACTIONS = {};
+
+/* Which events may travel. A press climbs: you click the text inside a row and the row is
+   what acts. A field's own events do not - `change` and `input` belong to the control that
+   fired them, and letting them climb would run a row's action on every keystroke typed
+   into a box that happens to sit inside it. So a field's action is written on the field.
+
+   This table is also the list of events a page may reach a handler through at all, which
+   is the half that was missing: a field had nowhere to go, so three of them were wired
+   with `oninput=` and `onchange=` instead - and the six tests that forbid wiring a handler
+   inline were all looking for the word `onclick`. */
+const CLIMBS = {click: true, keydown: true, change: false, input: false};
+
 function _fire(ev) {
-  const el = ev.target.closest('[data-act]');
+  const el = CLIMBS[ev.type]
+    ? ev.target.closest('[data-act]')
+    : (ev.target.matches && ev.target.matches('[data-act]') ? ev.target : null);
   if (!el || !ACTIONS[el.dataset.act]) return;
   if (ev.type === 'keydown') {
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
     if (ev.target.closest('input,textarea,select')) return;
   }
-  ev.preventDefault();
-  ev.stopPropagation();
+  /* Only a press is cancelled. A `change` has already happened by the time it is heard,
+     and stopping an `input` would take it from everything else listening, the browser's
+     own work on the field included. */
+  if (CLIMBS[ev.type]) {
+    ev.preventDefault();
+    ev.stopPropagation();
+  }
   ACTIONS[el.dataset.act](el.dataset, el, ev);
 }
-document.addEventListener('click', _fire);
-document.addEventListener('keydown', _fire);
+for (const kind of Object.keys(CLIMBS)) document.addEventListener(kind, _fire);
 
 /* The server, when a page cannot reach it. Said once and left standing - not toasted every
    few seconds - and taken down as soon as a load succeeds. The page keeps whatever it had:

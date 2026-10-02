@@ -58,11 +58,29 @@ def test_no_page_writes_a_handler_out_of_data(name: str) -> None:
     assert generated == [], f"{name} builds script out of data: {generated[:2]}"
 
 
+def listens_for(event: str) -> bool:
+    """Whether the one dispatcher hears this kind of event.
+
+    P146 derived the listeners from the `CLIMBS` table rather than writing one line per
+    event, so that the list of events a handler may travel on is written down once. These
+    two tests used to look for the `addEventListener` line itself, which is the spelling
+    rather than the property.
+    """
+    table = re.search(r"const CLIMBS = \{([^}]*)\}", SHELL)
+    assert table, "the dispatcher no longer says which events it carries"
+    bound = re.search(
+        r"for \(const kind of Object\.keys\(CLIMBS\)\) document\.addEventListener", SHELL
+    )
+    assert bound, "the table is written down and nothing binds it"
+    return event in dict(re.findall(r"(\w+):\s*(true|false)", table.group(1)))
+
+
+
 def test_a_row_carries_its_id_and_the_page_says_once_what_that_means() -> None:
     body = scripts(ACTIVITY)
     assert 'data-act="open" data-run=' in body
     assert "ACTIONS.open = d => open_(d.run);" in body
-    assert "ACTIONS" in SHELL and "document.addEventListener('click', _fire)" in SHELL
+    assert "ACTIONS" in SHELL and listens_for("click"), "a press no longer reaches a row"
 
 
 @pytest.mark.parametrize("name", ["setup", "activity"])
@@ -70,7 +88,7 @@ def test_a_row_can_be_reached_from_the_keyboard(name: str) -> None:
     """A row that only answers a mouse cannot be used at all by somebody working from the
     keyboard, and the runs list is how every other panel is reached."""
     assert 'role="button" tabindex="0"' in PAGES[name] or "data-act=" in PAGES[name]
-    assert "document.addEventListener('keydown', _fire)" in SHELL
+    assert listens_for("keydown"), "a row cannot be reached from the keyboard"
 
 
 def test_what_the_app_says_is_announced() -> None:
@@ -171,11 +189,27 @@ def test_the_page_stops_asking_when_nobody_is_looking() -> None:
 
 def test_the_layout_has_a_width_below_which_it_scrolls() -> None:
     """One screen with no scrolling is a good rule at a desk and a trap on a laptop: the
-    columns get to about 310px, rows overflow, and the page cannot scroll to reach them."""
+    columns get to about 310px, rows overflow, and the page cannot scroll to reach them.
+
+    This used to check for `html,body{overflow:auto}` in the narrow block. P142 made the
+    page scroll at *every* width, which is the stronger version of the same thing, and
+    P146 took the declaration out once it was shown to be undoing nothing. So the property
+    is asked of the base rules now, where it actually lives, plus the one thing the narrow
+    block is still for.
+    """
+    import re
+
     from ui.theme import CSS
 
-    assert "@media (max-width:1100px)" in CSS
-    assert "html,body{overflow:auto}" in CSS
+    for selector in ("html", "body"):
+        rule = re.search(r"(?:^|\n)" + selector + r"\{([^}]*)\}", CSS)
+        assert rule, f"{selector} has no rule"
+        assert "overflow:hidden" not in rule.group(1), f"{selector} clips the page again"
+    assert "@media (max-width:1100px)" in CSS, "there is no width below which the board folds"
+    narrow = CSS[CSS.index("@media (max-width:1100px)") :]
+    assert ".board{display:block!important}" in narrow[: narrow.index("\n}")], (
+        "below a desk's width the board is still three columns of about 310px"
+    )
 
 
 # --------------------------------------------- dialogs, and the live feed

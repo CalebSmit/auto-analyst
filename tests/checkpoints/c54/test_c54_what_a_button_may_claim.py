@@ -25,6 +25,7 @@ import pytest
 
 import ports
 from ports.storage import ReceivingStorage
+from tests.reading import inline_handlers
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -279,7 +280,7 @@ def test_every_button_in_this_block_reaches_an_action_that_exists() -> None:
     for action in ("testBox", "testShareFile", "signInShareFile", "updateFromShareFile"):
         assert f'data-act="{action}"' in PAGE, action
         assert f"ACTIONS.{action}" in PAGE, action
-    assert "onclick=" not in PAGE, "values reach a handler through data- attributes"
+    assert inline_handlers(PAGE) == [], "values reach a handler through data- attributes"
 
 
 def test_the_relay_refuses_a_destination_it_cannot_write_to(tmp_path: Path) -> None:

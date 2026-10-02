@@ -44,3 +44,37 @@ def page_script(page_source: str) -> str:
 def page_code(page_source: str) -> str:
     """The page's JavaScript with its comments removed as well."""
     return _JS_LINE.sub("", _JS_BLOCK.sub("", page_script(page_source)))
+
+
+# Every attribute whose value the browser runs as script. The list is the HTML spec's
+# event-handler content attributes, which is the thing the rule is actually about - six
+# tests spelled that rule `"onclick=" not in page`, and three handlers written `oninput=`
+# and `onchange=` sat under all six of them for as long as they existed.
+_INLINE_HANDLER = re.compile(
+    r"""\son(?:abort|auxclick|beforeinput|beforematch|beforetoggle|blur|cancel|canplay
+        |canplaythrough|change|click|close|command|contextlost|contextmenu|contextrestored
+        |copy|cuechange|cut|dblclick|drag|dragend|dragenter|dragleave|dragover|dragstart
+        |drop|durationchange|emptied|ended|error|focus|formdata|input|invalid|keydown
+        |keypress|keyup|load|loadeddata|loadedmetadata|loadstart|mousedown|mouseenter
+        |mouseleave|mousemove|mouseout|mouseover|mouseup|paste|pause|play|playing|progress
+        |ratechange|reset|resize|scroll|scrollend|securitypolicyviolation|seeked|seeking
+        |select|slotchange|stalled|submit|suspend|timeupdate|toggle|volumechange|waiting
+        |wheel)\s*=""",
+    re.X | re.I,
+)
+
+
+def inline_handlers(page_source: str) -> list[str]:
+    """Every inline event handler attribute in a page, by name, with what is around it.
+
+    Asked of the markup with its comments taken out first, because this module exists for
+    exactly that failure and this check invites it: the comment in `ui/theme.py` explaining
+    why there are no inline handlers any more contains the words `oninput=` and `onchange=`.
+    """
+    markup = _JS_BLOCK.sub("", page_source)
+    found = []
+    for match in _INLINE_HANDLER.finditer(markup):
+        if markup.count("<script", 0, match.start()) > markup.count("</script", 0, match.start()):
+            continue  # inside a script block: `el.onclick = f` is wiring, not markup
+        found.append(markup[max(0, match.start() - 50) : match.end() + 24].replace("\n", " "))
+    return found

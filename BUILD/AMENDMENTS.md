@@ -2705,3 +2705,45 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C79 after P145, covering P144, P145
 - proves: Every colour in the three consoles and the map comes from a token and every token clears the floor for what it is used as - 4.5:1 for a word, 3:1 for a shape - including the numbers the stylesheet states about itself in prose.
+
+## 2026-10-02 - P146 Seventy ways to wire a handler, and a guard that knew one
+
+**Why:** Two things found by reading the screen against the rules this repo already states for itself. First: CLAUDE.md says a page builds no handler out of data and reaches one through the ACTIONS table instead, and six separate tests enforce that by asserting the literal string 'onclick=' is absent. HTML has about seventy inline handler attributes. Three are in use right now - oninput on the run filter, onchange on the trace's touched-only box, onchange on the analytics period - and all six guards pass over every one of them. The reason the three exist is that the shared dispatcher listens for click and keydown only, so a field had nowhere to go. P45 records the defect these guards were written for: a client named O'Brien whose apostrophe closed an onclick. Nothing would catch that today if it came back in an oninput. Second: the max-width 1100px block still undoes three rules P142 removed - an overflow on html and body, an overflow on .wrap, and a max-height on a card's body. Verified in the browser by injecting all three at the top level: nothing moves, because there is no overflow on those elements any more and the stream's cap wins on specificity. The comment over the block describes the behaviour as its own and it has been the base behaviour at every width since P142.
+
+- phase added: P146 Seventy ways to wire a handler, and a guard that knew one (Legible, gate: auto)
+- exit criterion: No page carries an inline event handler of any name, proved by a sweep over every on* attribute rather than over one of them
+- exit criterion: A control that is a field reaches its handler through the same table a button does, and the dispatcher's own rule says which events may travel that way
+- exit criterion: Every declaration in the narrow-width block changes something, proved by applying the block and measuring
+
+## 2026-10-02 - P146 Seventy ways to wire a handler, and a guard that knew one
+
+**Why:** The tasks were never recorded when the phase was opened, which tests/p01 catches - a closed phase with no tasks renders as a phase that did nothing.
+
+- task added: the dispatcher carries the events a field fires, and the table of them is the list the listeners are built from
+- task added: the three inline handlers move onto data-act, and a field's action is its own rather than its row's
+- task added: the six guards that spelled the rule 'onclick=' are pointed at one definition of an inline handler, in tests/reading.py beside the other two readers
+- task added: the three declarations in the narrow-width block that undo rules P142 removed are taken out
+
+## 2026-10-02 - P147 The key that was a second copy of the drawing
+
+**Why:** The run trace's legend is five swatches written by hand in inline styles, and measured against the nodes they stand for, every one of the five disagrees. Failed is drawn as a solid plum block and the node is pale pink; running is a solid blue block and the node is pale blue; touched is a solid grey block and the node is near-white; passed is the only one whose fill matches and its ring is the solid green where the node wears the pale one; and never-reached is drawn as a bordered box when the node has no box at all - which is the distinction the panel's own sentence calls the two answers it matters most not to confuse. This is the same defect the map's legend was repaired for, and the comment there says it in words: the key's swatches are the node's own rules rather than a second copy of them, which had already drifted. The map's legend uses the node's class. This one does not.
+
+- phase added: P147 The key that was a second copy of the drawing (Legible, gate: auto)
+- exit criterion: Every swatch in the trace's key is drawn by the same rule as the node it stands for, proved by comparing them rather than by reading either
+- exit criterion: The key carries no colour of its own, so there is one place a state's appearance is decided
+- exit criterion: The state with no box is drawn with no box, because that is the distinction the panel says matters most
+
+## 2026-10-02 - P147 The key that was a second copy of the drawing
+
+**Why:** The tasks.
+
+- task added: the five hand-written swatches become the node's own classes, the way the map's key already does it
+- task added: the state that has no box is drawn with no box, and the key says so in words rather than in a border
+- task added: a test compares each swatch to its node rather than reading either on its own
+
+## 2026-10-02 - C80 Said twice
+
+**Why:** Two phases about a thing written down twice. P146 found that the rule 'a page builds no handler out of data' was enforced by six tests all spelling it as the one attribute they happened to know, with three handlers sitting under all six in attributes none of them looked at - and that the reason those three existed was that the dispatcher carried click and keydown only, so a field had nowhere to go. P147 found the Run trace's key was five swatches painted by hand, and that every one of the five disagreed with the node it stood for. What the checkpoint can ask that neither phase could: there are two keys in this product, in two files, and P147 only touched one - the map's was repaired for this same drift in an earlier phase and had to still be right. And the guards have to agree about what the rule is, so the sweep for a guard that spells it as one attribute is over the test suite itself, walked as a tree rather than as text, because every one of those modules explains the defect in a docstring that contains the string it is explaining.
+
+- checkpoint added: C80 after P147, covering P146, P147
+- proves: A state's appearance is decided in one rule and every key in the product is drawn by it, and a control reaches its handler by one mechanism that every guard asks about the same way.

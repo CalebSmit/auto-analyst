@@ -1859,26 +1859,145 @@ the token composited onto its ground, so `touched` - the one translucent fill - 
 navy at 17:1 and two tests passed without ever looking at the thing they name. Found by the
 revert harness, which is what it is for.
 
-## B-109 The run trace tells passed from failed by hue alone
+## B-109 The run trace's fills say less than the panel claims they do
+status: open (first written wrong - see below)
+2026-10-02. **What I first wrote here was overstated and the measurement did not hold it
+up.** The entry said the trace "tells passed from failed by hue alone". It does not: the
+failed node is set at weight 600 where the others are 400, which is a non-colour cue on the
+one state that matters most, and the text colours are far apart and stay apart. Simulated
+over the three states, CIE76 against each other:
+
+| pair | normal | protanopia | deuteranopia |
+|---|---|---|---|
+| the pale fills, passed vs failed | 6.8 | 3.3 | **0.5** |
+| the pale fills, passed vs running | 3.2 | 2.6 | **1.6** |
+| the text inside, passed vs failed | 48.2 | 27.5 | 16.7 |
+| the text inside, passed vs running | 21.8 | 17.3 | 9.0 |
+
+A just-noticeable difference is about 2.3. **The fills are below it for everybody** - passed
+against running is 3.2 with ordinary colour vision - and they collapse to nothing under
+deuteranopia. The text does all the work, and does it robustly.
+
+So the design is sound and the finding is a smaller one: the panel's own prose presents the
+fill as the signal - *"Mint passed, plum failed with its diagnostic below, a ring on
+whatever is running"* - and the fill is the part that carries least. A reader told to look
+for mint is being pointed at a 3.2. This is the same class of thing C79 now tests for in the
+stylesheet: a sentence about the design that the design does not support. The fix is to make
+the sentence true, and to decide whether a fill worth naming is worth having.
+
+**Why it is not folded into P145.** That phase was about things measured against a floor.
+This is about a claim, and the measurement that settles it is a perceptual distance under
+simulated colour vision, which nothing in this repo computes yet.
+
+## B-110 What target size, names and markup hygiene measure, so nobody measures them again
+status: measured, nothing to fix
+2026-10-02, swept across all three consoles while looking for the next thing to improve.
+Recorded because a negative result that is not written down gets re-derived:
+
+* **Target size (WCAG 2.5.8).** Six controls are under 24x24 - the chip at 77x19, three
+  `.small` buttons at 23 tall, a checkbox at 13x13. **Every one passes the spacing
+  exception**: the nearest other target's centre is 31 to 616px away, against a bar of 24.
+  The first sweep said the chip failed at 15px; that was measured with the map open, and the
+  map is a full-screen overlay, so the two were never clickable at once.
+* **Accessible names.** Nothing unnamed. The touched-only checkbox looked unnamed to a first
+  probe that only read `aria-label`; it is wrapped in its `<label>`, which is the better way.
+* **Duplicate ids, dangling `aria-*`/`for` references, controls nested inside controls,
+  unlabelled fields, images with no alt.** None, on any of the three.
+* **Truncated text.** One element clips - a diagnostic line on the Activity console - and it
+  carries a `title`. Nothing else on any page overflows its box.
+* **Heading structure.** One `h1` per page, `h2` per panel, `h3` per band in the trace.
+
+One cosmetic thing left: a panel's count is inside its heading, so `<h2>Engagements<span>3`
+reads as "Engagements three" rather than "Engagements, 3".
+
+## B-111 Six guards for one rule, all spelling it the same wrong way
+status: fixed (P146)
+2026-10-02. CLAUDE.md: *"Pages build no handler out of data - values reach a handler through
+`data-` attributes and the `ACTIONS` table."* Six tests enforce it, in six files, and all six
+are the same line: `assert "onclick=" not in page`. HTML has about seventy event-handler
+attributes. Three were in use - `oninput` on the run filter, `onchange` on the trace's
+touched-only box, `onchange` on the analytics period - and **every one of the six guards
+passed over every one of them, for as long as they existed.**
+
+**Why they existed is the part that matters.** The shared dispatcher listened for `click` and
+`keydown`. A field fires neither. The one mechanism did not cover the one case, so three
+controls went around it - not by anybody's decision, but because there was nowhere to go. A
+guard that forbids a workaround without providing the road gets worked around again.
+
+`tests/p45` records the defect those guards were written for: a client called `O'Brien`,
+whose apostrophe closed the `onclick` it had been interpolated into. If that came back as
+`oninput="go('" + client + "')"`, all six would have stayed green.
+
+The dispatcher carries `change` and `input` now, from a `CLIMBS` table the listeners are
+built from, and the table also says which events may *climb*: a press travels up from the
+text you clicked to the row that acts, and a field's own events do not, because a search box
+sits inside a row and typing in it would otherwise run the row's action per keystroke. Both
+halves verified in the browser: a click inside a row still opens the run, and `input` and
+`change` fired on a field inside a `data-act` row do nothing.
+
+"An inline handler" is defined once now, in `tests/reading.py`, beside the two other readers
+that exist because a substring is not a question about code - and this one needed that module
+more than either: the comment explaining why there are no inline handlers contains the words
+`oninput=` and `onchange=`.
+
+## B-112 Rules that undid rules nothing sets any more
+status: fixed (P146)
+2026-10-02. The `max-width:1100px` block carried six declarations and three of them undid
+rules P142 removed:
+
+    html,body{overflow:auto}      nothing sets an overflow on html or body
+    .wrap{overflow:visible}       nor on .wrap
+    .card .body{max-height:none}  0,2,1 against .card.stream>.body at 0,3,1 - it loses
+
+Verified in the browser by injecting all three at the top of the sheet and measuring: the
+stream's cap read 377px before and 377px after, and no other card body was ever capped. The
+comment over the block described the page scrolling as something the block achieves; it has
+been the base behaviour at every width since P142. What the block is actually for is the
+column count, which is the one question about width.
+
+## B-113 A checkpoint does not re-run the checkpoints before it
 status: open
-2026-10-02, found while measuring B-108 and deliberately left out of it. The inline run trace
-draws all 118 nodes and fills the ones this run touched. Measured against the white panel:
+2026-10-02, found by being bitten by it. `gate checkpoint CNN` runs `tests/pNN` for every
+phase it covers, plus its own integration test. It does **not** run
+`tests/checkpoints/cNN` for any earlier checkpoint. Its own summary line says *"everything
+built so far still works together"*, which is broader than what it ran.
 
-    node (untouched)   1.00:1 fill   2.86:1 text
-    node passed        1.11:1 fill   5.58:1 text
-    node active        1.12:1 fill   6.08:1 text
-    node failed        1.13:1 fill  10.55:1 text
+The consequence, this session: P145 changed the focus rule from `var(--accent)` to
+`var(--ring)`. Seven tests asserted the old literal. Six were found and updated; the seventh
+was `tests/checkpoints/c22`, and **C79 went green with it broken.** It surfaced only on a
+full `pytest tests/`, two phases later.
 
-The three states are within 0.02 of each other and of the paper. What separates them is hue -
-a pale mint, a pale blue, a pale pink - and the colour of the name inside. The panel's own
-prose says so out loud: *"Mint passed, plum failed."* Green against pink at the same
-luminance is the pair that red-green colour blindness loses, and this is the panel that says
-which part of the system broke.
+Worth fixing, and the cost is the question: the prior-phase regression already takes about
+ten minutes at 147 phases. The checkpoint integration tests are mostly pure-source reads and
+should be cheap, so running all of them may be nearly free - measure before deciding. The
+alternative is to leave the scope alone and make the summary line say what it actually ran,
+which is the cheaper honest fix.
 
-Not folded into P145 because it is a different fix with a different cost: P145 moved tokens
-and added a missing rule, and this one changes how the trace reads. The map's own version of
-the same node already carries a left mark in the state's colour plus a border (`--good-line`,
-`--bad`), and the inline one has `border-width:0` - so the shape that would fix it already
-exists ten lines away in the sheet it shares. Worth measuring the map's version against the
-same bar before copying it.
+## B-114 The key that was a second copy of the drawing
+status: fixed (P147)
+2026-10-02. The Run trace draws 118 nodes and colours the ones a run touched. Above them sat
+a key of five swatches written as five inline styles. Measured in the browser against the
+nodes they stand for, **all five disagreed**:
+
+| the key drew | the node is |
+|---|---|
+| passed: mint box, **solid** green ring | mint box, pale green ring |
+| failed: a **solid plum** block `#512a44` | a pale pink box `#f7eff4` |
+| running: a **solid blue** block `#4f758b` | a pale blue box `#eef3f6` |
+| touched: a **solid grey** block `#696f71` | a near-white box `#f7f6f1` |
+| never reached: a bordered square | **no box at all** |
+
+The last line is the one with consequence, and the panel's own sentence says why: *"never ran
+and passed are the two answers it matters most not to confuse."* The key drew both as a pale
+bordered square.
+
+**This defect was found and fixed once already, in the other key.** `map_view.py` says so:
+*"its swatches are the node's own rules rather than a second copy of them, which had already
+drifted."* The map's key uses the node's class. This one used `<i style="background:...">`.
+
+The key is the nodes now - each entry a real `.node` of its state carrying its own name, so
+the reader meets the same chip in the key and in the drawing because it is the same chip. The
+fifth is said rather than drawn: *"and a name with no box at all is a node this run never
+reached."* Drawing a box for the state whose whole appearance is not having one is how the
+two answers came to look alike.
 

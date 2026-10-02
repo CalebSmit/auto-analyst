@@ -968,7 +968,7 @@ PAGE = (
     <div class="filter">
      <input id="q" type="search" placeholder="Find a client, engagement or scope"
       autocomplete="off" spellcheck="false" aria-label="Filter runs by client, engagement or scope"
-      oninput="applyFilter()">
+      data-act="filterRuns">
      <button class="btn small" id="q-needs" data-act="onlyNeedsAPerson" hidden
       aria-pressed="false">Needs a person</button>
      <button class="btn small" id="q-clear" data-act="clearFilter" hidden>Clear</button>
@@ -1004,12 +1004,12 @@ PAGE = (
      and <i>passed</i> are the two answers it matters most not to confuse.</p></header>
    <div class="body">
     <div class="legend">
-     <span><i style="background:var(--good-soft);box-shadow:inset 0 0 0 1px var(--good)"></i>passed</span>
-     <span><i style="background:var(--bad)"></i>failed</span>
-     <span><i style="background:var(--accent)"></i>running</span>
-     <span><i style="background:var(--ink-3)"></i>touched</span>
-     <span><i style="box-shadow:inset 0 0 0 1px var(--line)"></i>never reached</span>
-     <label class="toggle" style="margin-left:auto"><input type="checkbox" id="touched-only" onchange="repaint()">only what this run touched</label>
+     <span class="node passed"><span class="id">passed</span></span>
+     <span class="node failed"><span class="id">failed</span></span>
+     <span class="node active"><i class="ring"></i><span class="id">running</span></span>
+     <span class="node used"><span class="id">touched</span></span>
+     <span class="legend-note">and a name with no box at all is a node this run never reached</span>
+     <label class="toggle" style="margin-left:auto"><input type="checkbox" id="touched-only" data-act="onlyTouched">only what this run touched</label>
      <span id="map-count"></span>
     </div>
     <div class="diag" id="diag"></div>
@@ -1068,6 +1068,10 @@ const needAPerson = n => n + (n === 1 ? ' needs' : ' need') + ' a person';
    next thing they want is those twelve - so the number they read is the control they
    press, rather than a fact they then have to act on somewhere else. */
 ACTIONS.onlyNeedsAPerson = () => { ONLY_NEEDS = !ONLY_NEEDS; paintRuns(); };
+/* The two controls that are fields rather than buttons. They reach their handler the
+   same way every other control does; what is different is only which event carries it. */
+ACTIONS.filterRuns = () => applyFilter();
+ACTIONS.onlyTouched = () => repaint();
 /* The questions count goes to the questions, rather than filtering the runs: an item is
    answered in the review panel, and sending somebody to a filtered run list would be one
    more click away from the thing they read the number for. */
