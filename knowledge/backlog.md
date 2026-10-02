@@ -1090,6 +1090,25 @@ Files: `privacy/people.py`, `precedent/writeback.py`. Size: small to widen; the 
 where to stop, since every widening costs a real precedent that should have been kept.
 
 ## B-081 The DD tracker writes into the repo and silently loses the analyst's notes
+status: built 2026-10-02, P128
+Fixed, and found exactly the way the item said it would not be. The last line of this
+entry was *"no test covers it: every test passes an explicit path, and the default-path
+shape - the only shape the UI uses - is untested"*. `aa owed --write` was the first caller
+to use the default, and the first run of its test left a `Clients/A Non-ESOP Client/2026/`
+tree in the git working copy. The path is joined to `_local_root` now, the way
+`engagement_files` already joined it, and where storage is not a folder on this machine it
+refuses rather than returning a relative path that will land somewhere.
+
+Two tests in `tests/p128`, and the second is the one that matters: the loud half is that
+the tracker lands beside the documents, and the silent half is that something a person
+typed into it survives a refresh - which the promise claimed and was keeping against the
+wrong file. Both fail when the join is taken out.
+
+The refusals are also ordered now. "This division has no request list" is about the
+engagement and "there is nowhere to put a workbook" is about the machine; asked the other
+way round, an engagement in a division nobody has written a list for was told about the
+storage port, which is a true statement and the wrong answer.
+
 
 `admin/console.py`'s `_tracker_beside(relative)` returns `Path(relative) / "DD request
 list.xlsx"` where `relative` is inbox-relative, and it is never joined to the storage root.
@@ -1177,3 +1196,211 @@ Needs: the eval harness, a real key, and a scorecard run per pin. Do not guess a
 the whole point of the mechanism is that the saving is measured against held-out quality.
 
 Size: medium, and it is the largest recurring-cost lever this build has left.
+
+## B-085 The three reads a reviewer makes
+status: built (the workbook and the prose; the figures are B-087)
+2026-10-01, from the analyst: "make checks like when it is actually running - from a
+managing director standpoint, does the valuation actually make sense; from a grammar
+standpoint, does this sound like AI slop, are there em dashes; and one looking for
+consistency and silly mistakes, a missing comma, a formula summing one too many rows."
+
+Three reads of what leaves the system. Two are built:
+
+- **`tools/formula_audit.py`** (P125). Eight checks in three severities over openpyxl.
+  The one the analyst named - a total whose range stops a row short of its block - is
+  `total_misses_rows` and is severity `wrong`, because it is provable from the file.
+  Wired three ways: every workbook a run releases (`release.audited`, recorded and never
+  a refusal), a console route behind a **Check formulas** button, and the command line.
+- **`tools/prose_checks.py`** (P126). Tells, slips, and the two spellings of one thing.
+  Calibrated against documents with nothing wrong with them, which was most of the work.
+
+The third - whether the numbers make sense to somebody who has seen a hundred of these -
+is B-087, and it is a different kind of problem: every finding is a question for a person
+rather than a statement about a file, because "this margin is implausible" depends on the
+industry and the bands belong to the practice.
+
+## B-086 The Oxford comma, which needs a parser
+status: proposed
+2026-10-01, from P126. A `serial_comma_both_ways` check was written, measured and taken
+out. Over this project's own four longest documents it reported 23 lists with the comma
+before "and" and 26 without, and nearly every match was an ordinary compound sentence:
+"That is the design, and it holds" is a comma joining two clauses and has nothing to do
+with a list.
+
+Telling a list from a clause needs to know where the clause boundaries are, which needs a
+parser rather than a pattern. `tests/p126::test_the_serial_comma_check_stays_out` is what
+stops it coming back without one. Size: medium, and it needs a dependency this build does
+not have - which is the real reason it is here rather than built.
+
+## B-087 The questions a reviewer asks of the numbers
+status: built (the engine and the command; the run-path wire waits on B-004)
+2026-10-02, P127. The third of the analyst's three reads (B-085), and the one that is a
+different kind of problem: `tools/reasonableness.py` asks questions and answers none,
+because the answer depends on the business.
+
+Three families. **A line that implies another** - depreciation with no fixed assets,
+interest expense with no debt (the first question an MD asks, and the one the debt tab in
+B-007 answers), tax in a loss year, amortisation with no intangibles, a lease liability
+with no right-of-use asset, rent beside a related-party balance. **A ratio over time** -
+gross and operating margin, days receivable, days inventory, days payable, the current
+ratio, each compared step to step *and* first period to last, because a margin giving up
+two points a year for three years trips no step tolerance and has moved six. **The shape
+of the history** - a year missing from the middle, and fewer years than the engagement
+asked for.
+
+Three things about it that are deliberate and worth not undoing:
+
+- **No defaults, anywhere.** Tolerances are keyed by the ratio's own unit (points, days,
+  turns) and a unit with no tolerance is reported as a question nobody asked rather than
+  left out. One number across all three units is right for one of them.
+- **Nothing concludes.** `tests/p127::test_nothing_in_the_output_concludes_anything`
+  reads the module's own output for the words a verdict would use.
+- **The ratios are built from the pinned taxonomy**, not from a list in the module, so the
+  operating margin cannot end up computed over fifteen of seventeen operating expense
+  lines and look plausible while doing it.
+
+**What is owed.** The run-path wire. It belongs where `statement_checks.py` belongs - in
+the qc-tieout procedure (B-004) - and that waits on the same two decisions B-004 waits on,
+plus the governance chain. Until then the command line is the honest front door, and it is
+the one the analyst asked for. Size: small once B-004 exists.
+
+## B-088 The second front door, and the Box connector's join
+status: built
+2026-10-02, P128. From the analyst: *"when I get home or when I go to lunch, I just want
+to do a slash command in this and point it to the right folders, quickly tell it what to
+do... and it just starts working and then I can come back and review."*
+
+`tools/aa.py`, three subcommands, each doing something the dashboard does not:
+
+- **`review`** dispatches the three reads by what a file is, so one command over a client
+  folder reads the workbooks for formulas, the documents for prose and the tables for the
+  questions. That is what lets one slash command be enough - the person does not have to
+  know which check a file wants, and neither does the command they typed.
+- **`where`** prints the folder an engagement's documents go in.
+- **`stage`** puts them there through `AdminConsole.add_file`, the only writer.
+
+`stage` is the **Box connector's join**, and the shape is the sanctioned one rather than a
+convenience: a connector reads the client's folder into Claude Code, not into this
+process, and anything outside the boundary talks through a surface - the line Power
+Automate was held to (BUILD/OPEN.md section 6). Read from Box, save locally, stage in, and
+the sweep finds it as it finds a file a person dropped there, with who and why on the
+record.
+
+Deliberately **no `aa status`**: `serve.py --check` and `watch_run.py --once` already
+answer those two questions, and a third renderer of either is B-046 under a new name.
+
+Four slash commands in `.claude/commands/`. `tests/p128` holds each to naming a tool that
+exists, a subcommand that parses, a flag something takes, and the environment prefix - a
+slash command is read by a model that will *try* the line.
+
+## B-089 Nine documented commands that would have failed on a fresh clone
+status: built
+2026-10-02, found while writing P128's guard for the slash commands.
+
+`tests/p58` existed to stop exactly this and had a blind spot the size of the other half
+of the problem: it read **fenced blocks only**. `interview/PROTOCOL.md` opens by
+instructing the reader to run every command in it through uv and then writes `python
+tools/interview.py ...` seven times inline without the prefix; `CLAUDE.md` does it twice
+more. `interview.py` needs PyYAML, so each was the exact `ModuleNotFoundError` P58 was
+written about - in the file the next interview session reads first.
+
+Four things, together, because any one alone leaves the hole:
+
+1. **The invocations.** Fifteen across `CLAUDE.md`, `CHANGING.md`, `docs/USING.md` and
+   `interview/PROTOCOL.md` now carry the prefix.
+2. **The check.** It reads inline code as well as fenced blocks, and covers
+   `CHANGING.md`, `interview/PROTOCOL.md` and every slash command.
+3. **The exemption, derived.** It was `gate.py` by name. It is now a property: a tool is
+   exempt when it imports nothing outside the standard library *anywhere in the file*.
+   `verify.py` has that property and was being reported as an offence; `surfaces.py` and
+   `serve.py` have no third-party import at module level because they defer them into
+   functions, so a check reading only the top would have called both dependency-free.
+4. **Six tools that said nothing.** `bootstrap_scaffold`, `reasonableness`,
+   `simulate_files`, `surfaces`, `synthesize_templates` and `watch_run` all need the
+   environment and all raised a traceback about somebody else's library instead of the
+   line to type. Each calls `needs()` now, and a test holds every documented tool to it.
+
+## B-090 Read the firm's model rather than wait to be told about it
+status: built
+2026-10-02, P129. B-008 ("register the non-ESOP Excel template") and the roll-forward's
+Excel half (B-036) have both been blocked on the same thing: `Model Template - MASTER
+2026`, and four hundred lines of YAML nobody has written. CLAUDE.md said the named ranges
+"are not knowable from a photograph", which is true and was being read as "not knowable".
+
+`tools/read_template.py` reads them off the file. The inventory - every defined name, the
+sheet and cell behind it, whether that cell is empty, a number, a formula or a block - is
+what the roll-forward's Excel half needs as much as the schema does. The draft schema is
+in the exact shape `TemplateInputs.load` reads.
+
+**The half that matters is the refusal.** Every `line:` is marked `REVIEW` and the draft
+will not load until a person has removed them. Reading `Revenue_FY1` as the line *Revenue*
+in period *FY1* is reading a naming convention - a thing a firm has, not a thing a file
+states - and a schema filled in silently would bind the firm's model by inference. The
+first symptom would be a figure in the wrong row of a workbook that opens perfectly.
+`--scale` defaults to 1 and not to the firm's thousands convention for the same reason.
+
+`tests/p129` generates a draft, strips the markers as a reviewer would, and loads it into
+the registry: the shape is proved, the judgement is not taken. It runs that end to end
+against the repository's own synthetic master template, which this tool was not written
+against.
+
+**What is still owed:** the file. And then the `line:` values, which are an hour of
+somebody's reading rather than a design problem.
+
+## B-091 Three questions the interview map was not asking
+status: built
+2026-10-02, P130, from the analyst: *"at work I'm building a bunch of things within Claude
+Code like workflows to help me write restricted use reports through a Word document and
+also restricted use PowerPoints... it has a lot of context of how to do all these things
+on my work computer that hopefully this tool can integrate with. And then also it has a
+lot of context of how the model, the master model works and how to fill in the inputs."*
+
+Two new topics and one rewritten angle in `interview/topics.yaml`:
+
+- **`work-machine-context`** (priority 1). What has already been built on the work machine,
+  what each thing knows, and for each one whether it is copied here, called from here, or
+  left where it is. This is the handoff: knowledge this build is missing and somebody has
+  already written down. It was not a question anybody was going to be asked - `ai-tools`
+  asks which tools are *approved*, which is a different thing from what has been built with
+  them. The topic also asks, explicitly, which of it carries a client's name, because
+  moving any of it here puts it under the outbound scan.
+- **`report-and-deck`** (priority 2). `report/` can already copy last year's document and
+  put this period's appendices into it by name, and nothing told it which appendices a
+  restricted-use report has. `tools/prose_checks.py` can read a draft for the tells and the
+  slips, and nothing told it what the firm's house style is - which dash, how amounts are
+  written, which terms are capitalised because they are defined. Both are waiting on the
+  same answers and neither had a question.
+- **`excel-models`**, rewritten. It asked the analyst to write the template's input map,
+  which is four hundred rows of transcription. It now asks them to run
+  `tools/read_template.py` against a blank copy and bring back what it prints - and then to
+  answer the one part the file cannot state, which is what each name means.
+
+The map is still generic: no client, no project, no figure. `interview.py scan` prints
+clean over it.
+
+## B-092 What happens the first time a run reaches release, traced
+status: proposed (the trace; the fix is B-043's decision)
+2026-10-02, while wiring the formula audit into the release path (P125). B-043 records that
+`privacy.unmask` and `privacy.verify` are reached by nothing in production, and says the
+consequence is that "no run has ever resolved a token back". This is the rest of that
+sentence, traced rather than inferred, because the audit wire made it worth knowing exactly
+what would happen on the day:
+
+1. the masker replaces the client's declared identifiers before anything reaches a model;
+2. nothing unmasks them on the way out - `deliver/builder.py` opens by *claiming* its
+   inputs are unmasked, and nothing makes that true;
+3. so the workbook the writer produces carries mask tokens in its cells;
+4. `deliver/qc.py` searches every cell and every formula for `TOKEN_PATTERN` and refuses on
+   one, which is tested (`tests/p21/test_release.py` passes it `"Officer salary
+   [[PERSON_1]]"` and expects "residual mask token");
+5. so the **first run ever to reach release is refused by QC**, with the right diagnostic,
+   and nothing partial escapes.
+
+That is the system failing correctly, and it is the only way this could have gone that does
+not end with a client's workbook full of `[[PERSON_1]]`. Worth having written down because
+the symptom - "QC refuses every deliverable" - looks like a QC defect and is not one.
+
+**No new work here.** Where the unmask belongs on the release path is the design decision
+B-043 holds, and OPEN.md says it is not one to take while tidying something else. What
+changed is that the consequence is now a trace with a test at the end of it rather than a
+paragraph.

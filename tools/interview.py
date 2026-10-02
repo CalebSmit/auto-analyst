@@ -30,11 +30,24 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+from tools._environment import needs  # noqa: E402
+
+# PyYAML, and this is the only third-party thing this tool needs. Before this line, a bare
+# `python tools/interview.py status` on a machine where nobody had activated the
+# virtualenv raised `ModuleNotFoundError: No module named 'yaml'` - a traceback about
+# somebody else's library, handed to the person following `interview/PROTOCOL.md`, whose
+# own first instruction is to run these commands through uv and which then wrote nine of
+# them without the prefix. P58 was written about exactly this failure and did not catch it,
+# because its check read fenced blocks and these were inline. All three are fixed together:
+# the invocations, the check, and this line - which is the one that means the next tool to
+# acquire a dependency says what to type rather than what broke.
+needs("yaml", script="tools/interview.py")
+
+import yaml  # noqa: E402
 
 KNOWLEDGE = ROOT / "knowledge"
 TOPICS_FILE = ROOT / "interview" / "topics.yaml"

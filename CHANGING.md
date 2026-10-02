@@ -67,9 +67,9 @@ depends on. Three questions, in order:
 Then, and only then:
 
 ```
-python tools/surfaces.py --check     # read the diff once more
+python -m uv run python tools/surfaces.py --check    # read the diff once more
 python tools/gate.py amend P28 "why the cap moved"
-python tools/surfaces.py --update    # accept it
+python -m uv run python tools/surfaces.py --update   # accept it
 ```
 
 The snapshot is not the authority on what is correct. The reason recorded beside it is.
@@ -138,15 +138,15 @@ explicitly and record the resolution.
 ## The commands
 
 ```
-python tools/verify.py                 # everything: surfaces, lint, types, blueprint, state, suite
-python tools/verify.py --fast          # the first five, four seconds, no suite
-python tools/verify.py --changed       # only the suites the changed packages cover
-python tools/verify.py --repeat 2      # the suite twice: order and timing luck
-python tools/verify.py --postgres --redis --container    # the opt-in halves
+python tools/verify.py                               # everything: surfaces, lint, types, blueprint, state, suite
+python tools/verify.py --fast                        # the first five, four seconds, no suite
+python tools/verify.py --changed                     # only the suites the changed packages cover
+python tools/verify.py --repeat 2                    # the suite twice: order and timing luck
+python tools/verify.py --postgres --redis --container # the opt-in halves
 
-python tools/surfaces.py --check       # what public surface moved
-python tools/gate.py status            # where the build is
-python tools/gate.py check P28         # one phase's exit criteria
+python -m uv run python tools/surfaces.py --check    # what public surface moved
+python tools/gate.py status                          # where the build is
+python tools/gate.py check P28                       # one phase's exit criteria
 ```
 
 `verify` says what it did **not** run, every time. Postgres, Redis and the container each

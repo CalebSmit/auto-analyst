@@ -35,6 +35,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "tools") not in sys.path:
     sys.path.insert(0, str(ROOT / "tools"))
 
+from tools._environment import needs  # noqa: E402
+
+# What this tool cannot run without. Called here, before the first project import, because
+# that import is where a bare `python tools/simulate_files.py` fails - and what it fails with is a
+# traceback about somebody else's library rather than the line to type. P58 was written
+# about that failure for `serve.py`; six more tools had it, and this is one of them.
+needs("cryptography", "fastapi", "openpyxl", script="tools/simulate_files.py")
+
 import simulate_firm as sim  # noqa: E402 - beside this file, on the path just added
 from openpyxl import Workbook  # noqa: E402
 from openpyxl.chart import BarChart, Reference  # noqa: E402

@@ -3672,6 +3672,195 @@
       ],
       "notes": "",
       "closed": "2026-09-25"
+    },
+    {
+      "id": "P125",
+      "title": "The formulas a workbook gets wrong",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Find the formulas in a workbook that are quietly wrong - a total short of its block, a total counting a total, a plug in a row of formulas, a copy that landed a row off - and put the findings where a run records them and a person reads them, without ever gating a release on them.",
+      "builds": [],
+      "tasks": [
+        "tools/formula_audit.py: eight checks in three severities over openpyxl, reporting only",
+        "tests/workbooks.py: generated workbooks holding one of each defect, and a clean one",
+        "the footing check reports what it could not evaluate rather than passing",
+        "ReleaseGate records release.audited for every workbook it releases, after the ledger",
+        "a console route and a Check formulas button, re-derived from the released bytes",
+        "fix the P82 scan listing tools/ twice now that it has an __init__.py"
+      ],
+      "exit": [
+        "Each of the eight checks fires on a workbook built to contain its defect, and none fires on a workbook built to be correct",
+        "A workbook with a wrong formula is still released; the findings are a record, never a refusal",
+        "The footing check names how many totals it could not evaluate, so silence is never read as a pass",
+        "The audit is reachable three ways - a released run, the console, the command line - and a test holds each"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p125 -q",
+        "python -m uv run pytest tests/p82 tests/p21 tests/p43 -q",
+        "python -m uv run ruff check tools/formula_audit.py deliver/release.py tests/workbooks.py",
+        "python -m uv run mypy tools/formula_audit.py deliver/release.py ops/console/app.py"
+      ],
+      "notes": "",
+      "closed": "2026-10-01"
+    },
+    {
+      "id": "P126",
+      "title": "The tells, the slips, and the two spellings of one thing",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Read a .docx or a Markdown document for the marks of machine-written prose, the mechanical slips, and the terms a document spells two ways - and be quiet on a document that is fine, because a check whose findings are mostly not findings teaches a reader to skip the section it is in.",
+      "builds": [],
+      "tasks": [
+        "tools/prose_checks.py: tells, slips and inconsistencies, each with its kind and a sentence",
+        "read a .docx through python-docx so the heading style, the table cells and the bolded lead-in survive",
+        "calibrate against this repo's own documents: strip code fences, indented blocks, tables, inline spans, CLI flags, file paths and fiscal years",
+        "take out the Oxford comma check rather than ship it, and record why (B-086)",
+        "--fix for the four mechanical substitutions, refusing a .docx and never touching code",
+        "printable(): a report that survives a console that cannot encode the document"
+      ],
+      "exit": [
+        "Every check fires on prose written to contain its defect, and the module describes each one",
+        "A Markdown document built out of code fences, tables, CLI flags, file paths and fiscal years produces no slips at all",
+        "A well-written paragraph produces nothing, and the defined-term check is silent on an ordinary word that sometimes starts a line",
+        "--fix makes four substitutions, leaves a fenced block and a table byte-identical, refuses a .docx, and refuses to write without being told where",
+        "A tell alone is a zero exit and a slip is not, so nobody's commit fails over an em dash"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p126 -q",
+        "python -m uv run pytest tests/p82 -q",
+        "python -m uv run ruff check tools/prose_checks.py tests/p126",
+        "python -m uv run mypy tools/prose_checks.py"
+      ],
+      "notes": "",
+      "closed": "2026-10-01"
+    },
+    {
+      "id": "P127",
+      "title": "The questions a reviewer asks of the numbers",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Ask of the normalized table what a managing director asks on first looking at it - a line that implies another and is not there, a ratio that has moved, a history with a hole in it - and conclude nothing, default nothing, and ask each question once.",
+      "builds": [],
+      "tasks": [
+        "tools/reasonableness.py: implications, ratios and the shape of the history, sharing Line and the finding shape with statement_checks",
+        "the ratios are built from the pinned taxonomy's sections, not from a list in the module",
+        "tolerances keyed by the ratio's own unit, with no defaults and a unit with none reported as unasked",
+        "each ratio compared step to step and first period to last",
+        "ask each question once, naming the periods it applies to"
+      ],
+      "exit": [
+        "Each family of question fires on a table built to contain its gap, and a table with nothing worth asking about produces no question at all",
+        "Every tolerance is the caller's: a unit with none is could_not_evaluate naming the unit, and zero is refused",
+        "Nothing in the output concludes anything - held by a test reading the module's own text for the words a verdict would use",
+        "Every finding is a result the qc-tieout contract allows, read out of the schema rather than repeated",
+        "The ratios cover every operating expense and current-section category the taxonomy declares"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p127 -q",
+        "python -m uv run pytest tests/p82 -q",
+        "python -m uv run ruff check tools/reasonableness.py tests/p127",
+        "python -m uv run mypy tools/reasonableness.py"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P128",
+      "title": "A command, not a page - and nine lines that would have failed on a clone",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Give a person one command that reads a whole client folder with whichever check each file wants, one that says where an engagement's documents go, and one that puts them there through the only writer - then hold every slash command and every documented command to naming something that exists and runs.",
+      "builds": [],
+      "tasks": [
+        "tools/aa.py: review dispatches, where prints the folder, stage goes through AdminConsole.add_file",
+        "deliver/audit.py so the console reaches the audit without ops importing tools",
+        "four slash commands, each held to a tool that exists, a subcommand that parses and a flag something takes",
+        "tests/p58 reads inline code as well as fenced blocks, over CHANGING.md, PROTOCOL.md and the slash commands",
+        "the environment exemption derived from a property rather than a name",
+        "needs() in the six tools that gave a traceback instead of the line to type",
+        "aa owed: what the client still owes, through the same dd_tracker the Setup page calls, writing nothing unless asked",
+        "a /owed slash command that drafts a chase note from the essential items and sends nothing",
+        "fix B-081: join the tracker path to the storage root, and refuse where storage is not a folder"
+      ],
+      "exit": [
+        "One command over a folder of mixed files reads each with the right check, renders through that check's own reporter, and one unreadable file does not take the folder with it",
+        "stage goes through the only writer, records who and why, and takes the name rather than the path it came from",
+        "ops/ imports no tool module: the console reaches the formula audit through deliver/, and tests/p10 is green",
+        "Every command named in a slash command or a document exists, parses, and carries the environment unless it provably needs none",
+        "A tool that needs the environment says what to type when it does not have it",
+        "A command may be a second surface on a capability and never a second answer - stated in the module and held by the subcommand census",
+        "The tracker lands beside the documents, and what a person wrote in it survives a refresh - both failing when the join is taken out"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p128 -q",
+        "python -m uv run pytest tests/p58 tests/p10 tests/p82 -q",
+        "python -m uv run ruff check tools/ tests/p128",
+        "python -m uv run mypy tools/ deliver/ ops/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P129",
+      "title": "Reading the firm's model, and refusing to say what its names mean",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Turn the work-machine handoff from a design exercise into an hour of reading: one command against the real model writes the named-range inventory and a draft input schema in the registry's own shape, with every line it proposed marked so the draft cannot be registered unread.",
+      "builds": [],
+      "tasks": [
+        "tools/read_template.py: the inventory, and a draft in TemplateInputs.load's shape",
+        "an input is an empty single cell under a name this build did not reserve",
+        "every proposed line carries a REVIEW marker; the draft does not load until they are gone",
+        "scale defaults to 1, not to the firm's thousands convention",
+        "a name it cannot follow is reported, never dropped"
+      ],
+      "exit": [
+        "The inventory resolves every defined name - global and sheet-local - to a sheet, a cell and whether it is empty, a number, a formula or a block",
+        "A draft a person has read loads into TemplateInputs, and one they have not does not",
+        "A name pointing at a missing sheet, two destinations or a whole column is reported rather than dropped",
+        "The whole path works against a workbook this tool was not written against, and every name it proposes is a name that workbook really has",
+        "It never writes into the workbook, and never over a draft somebody has been through"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p129 -q",
+        "python -m uv run pytest tests/p21 tests/p82 tests/p58 -q",
+        "python -m uv run ruff check tools/read_template.py tests/p129",
+        "python -m uv run mypy tools/read_template.py"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P130",
+      "title": "Three questions the interview was not asking",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the interview ask for the work-machine context, the restricted-use report and deck, and the template's named ranges in the form a command can produce - so the next session brings back what report/ and prose_checks.py are waiting on rather than what they already have.",
+      "builds": [],
+      "tasks": [
+        "interview/topics.yaml: a work-machine-context topic at priority 1",
+        "a report-and-deck topic, feeding report/appendices.py and prose_checks.py",
+        "excel-models asks for read_template.py's output rather than a transcribed input map"
+      ],
+      "exit": [
+        "The map loads, every topic has angles, a done_when and feeds, and the ids are unique",
+        "The two new topics read as open in interview status, so the next session is offered them",
+        "The map is still generic: interview.py scan prints clean over the repository"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p37 tests/checkpoints/c27 -q",
+        "python -m uv run pytest tests/p54 tests/p62 tests/p64 tests/p65 tests/p66 -q",
+        "python -m uv run python tools/interview.py scan",
+        "python -m uv run pytest tests/p130 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -4445,6 +4634,28 @@
         "python -m uv run pytest tests/checkpoints/c70 -q"
       ],
       "closed": "2026-09-25"
+    },
+    {
+      "id": "C71",
+      "title": "The three reads, agreeing with each other",
+      "after": "P128",
+      "status": "done",
+      "proves": "A workbook delivered by a run is audited identically by the release record, the console route and the command line; no read has acquired a default tolerance; and the combined output of all three concludes nothing about a valuation.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c71 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C72",
+      "title": "The handoff, read end to end",
+      "after": "P130",
+      "status": "done",
+      "proves": "The interview asks for what read_template.py produces, what it produces loads where the question says it goes under the filename the registry wants, and the route that invites work-machine files here still passes the outbound scan.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c72 -q"
+      ],
+      "closed": "2026-10-02"
     }
   ]
 }

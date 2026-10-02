@@ -1165,9 +1165,11 @@ class AdminConsole:
             "default_scope", ""
         )
 
-        target = Path(tracker_path) if tracker_path else self._tracker_beside(relative)
-        held = read_tracker(target)
-
+        # The list first, then where to write. Both can refuse and they are about
+        # different things: "this division has no request list" is about the engagement,
+        # and "there is nowhere to put a workbook" is about the machine. Asked in the
+        # other order, an engagement in a division nobody has written a list for would be
+        # told about the storage port - which is a true statement and the wrong answer.
         listing = for_scope(str(scope_path))
         if listing is None:
             raise AdminRefused(
@@ -1182,6 +1184,9 @@ class AdminConsole:
                 )
             )
 
+        target = Path(tracker_path) if tracker_path else self._tracker_beside(relative)
+        held = read_tracker(target)
+
         tracker = Tracker(listing, look_at(self.preflight.storage, relative), held)
         report = tracker.report()
         report["tracker"] = str(target)
@@ -1190,9 +1195,36 @@ class AdminConsole:
             write_tracker(tracker, target)
         return report
 
-    @staticmethod
-    def _tracker_beside(relative: str) -> Path:
-        return Path(relative) / "DD request list.xlsx"
+    def _tracker_beside(self, relative: str) -> Path:
+        """Where the tracker goes: beside the documents, which means under the root.
+
+        `relative` is storage-relative - `Clients/<client>/<folder>` - and this used to
+        return it unjoined. `write_tracker` creates the parent, so pressing **Update**
+        wrote `<cwd>/Clients/<client name>/<folder>/DD request list.xlsx`: a client-named
+        directory tree inside whatever folder the server was started from, usually the git
+        working copy, while the documents themselves sat under the inbox.
+
+        Two things followed, and the second is the one that mattered. The analyst never
+        found the file. And `read_tracker` read the same wrong path, so the module's stated
+        rule - *a re-run preserves everything a person wrote* - failed silently: `In
+        Model?`, `Notes` and `Not Applicable` were carried across from a file nobody had
+        written in. Recorded as B-081, which also says why no test caught it: every test
+        passed an explicit path, and the default - the only shape the page uses - was
+        untested. The test that found it is `tests/p128`, where a command wrote a
+        `Clients/` tree into this repository.
+
+        Joined the same way `engagement_files` joins it. Where storage is not a folder on
+        this machine there is nowhere to put a workbook, and that is a refusal rather than
+        a relative path that will land somewhere.
+        """
+        base = _local_root(self.preflight.storage)
+        if base is None:
+            raise ValueError(
+                "the tracker is a workbook beside the engagement's documents, and this "
+                "machine's storage is not a folder - so there is nowhere to put it. Pass "
+                "a path explicitly, or read the report without writing it."
+            )
+        return Path(base) / relative / "DD request list.xlsx"
 
     # -- setting up the report, one appendix at a time
 

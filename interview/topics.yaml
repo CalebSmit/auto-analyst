@@ -128,8 +128,17 @@ topics:
       - The tabs, in the order you fill them, and which inputs are typed in versus linked
       - Whether the template already has named ranges, and if not, which cells are the inputs
       - How a template change reaches analysts, and whether old engagements keep the old version
-      - Can you share a blank copy of the template
-    done_when: The non-ESOP template is identified, its input map is written, and a copy (or its structure) is in knowledge/.
+      - >-
+        Can you run `tools/read_template.py` against a blank copy on the work machine and bring
+        back what it prints. That is the whole of the named-range half: it reads every defined
+        name, the cell behind it, and whether that cell is empty - and it writes a draft input
+        schema with every `line:` marked, because what a name *means* is the part you have to
+        tell it. One command instead of transcribing four hundred rows.
+      - For the names it finds, what each one means: the line as the statements call it, and which period
+    done_when: >-
+      The non-ESOP template is identified, `read_template.py` has been run against it and its
+      inventory is in knowledge/, and the `REVIEW` markers in the draft schema have been
+      answered - so the schema loads and can be bound at a scope.
     feeds: [templates/bindings.yaml, templates/inputs/, skills/valuation/_group/model-load]
 
   - id: ai-tools
@@ -295,6 +304,48 @@ topics:
       - Something that slipped through review once, and how it was caught
     done_when: A pre-review checklist and the most common review comments are written down.
     feeds: [skills/_firm/qc-tieout, harness/procedures (qc-tieout), knowledge/decisions.md]
+
+  - id: report-and-deck
+    title: The restricted-use report, and the deck that goes with it
+    priority: 2
+    why: >-
+      `report/` can already copy last year's document and put this period's appendices into
+      it by name, and nothing tells it which appendices a restricted-use report has. The
+      prose checks can read a draft for the tells and the slips, and nothing tells them
+      what the firm's house style actually is.
+    angles:
+      - What a restricted-use report is at this firm, how it differs from the full report, and which sections it keeps
+      - The sections and appendices in order, and which of them change every year versus which are boilerplate
+      - Which parts you write and which you copy forward, and what "setting it up" means before any writing starts
+      - Whether a presentation goes with it, what is on each slide, and where those figures come from
+      - House style: the dash the firm uses, how amounts are written, how the valuation date is referred to, and the terms that are capitalised because they are defined
+      - A report comment you have had about wording rather than about numbers
+    done_when: >-
+      The restricted-use report's sections are listed in order with which change annually,
+      the deck's slides are listed, and the house style rules are written down as rules
+      `tools/prose_checks.py` can be held to.
+    feeds: [report/appendices.py, tools/prose_checks.py, knowledge/workflow.md]
+
+  - id: work-machine-context
+    title: What you have already built at work, and what it knows
+    priority: 1
+    why: >-
+      The analyst has built workflows in Claude Code on the work machine that already hold
+      context about the master model and about writing the reports. That is the handoff: it
+      is knowledge this build is missing and somebody has already written down. Reading it
+      is cheaper than asking for it twice, and the two must not end up disagreeing.
+    angles:
+      - What you have built there - slash commands, skills, prompts, instruction files - and what each one does
+      - Which of them hold context about the master model: the input tab, the named ranges, what each one means
+      - Which hold context about the report or the deck, and what they say about how to write one
+      - Whether any of it can be copied here as it stands, and whether any of it contains a client's name or figure
+      - What it does badly, or refuses to do, that you have to finish by hand every time
+      - Where this system should meet them: whether it hands over a workbook they read, or they call it
+    done_when: >-
+      Each thing built on the work machine is named with what it knows, and for each one it
+      is decided whether it is copied here, called from here, or left where it is - and
+      anything carrying a client's name is named as such before it moves.
+    feeds: [knowledge/projects/, templates/inputs/, .claude/commands/, BUILD/OPEN.md]
 
   - id: repeat-clients
     title: Repeat clients versus new ones

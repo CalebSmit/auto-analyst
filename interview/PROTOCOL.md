@@ -22,10 +22,10 @@ dependencies, and the gap report then says `could not ...` instead of answering.
 1. Read `CLAUDE.md`. Its rules and non-negotiables bind you here too. In particular:
    nothing concludes, signs or certifies; a skill proposes and never acts; guards are not
    configurable; only a human decision writes precedent.
-2. Run `python tools/interview.py status`. It creates `knowledge/` on first use and tells
+2. Run `python -m uv run python tools/interview.py status`. It creates `knowledge/` on first use and tells
    you: sessions so far, topic coverage, open follow-ups, the backlog, **what the code
    says is missing for the focus division**.
-3. Run `python tools/interview.py session` and note the path it prints. That is this
+3. Run `python -m uv run python tools/interview.py session` and note the path it prints. That is this
    session's log.
 4. Skim `knowledge/profile.md`, `knowledge/workflow.md`, `knowledge/decisions.md` and the
    last session log, so you do not ask something already answered.
@@ -87,12 +87,12 @@ Before the next question:
    - `projects/<codename>/notes.md` — a project's timeline, documents and decisions
    Cite the session (e.g. `(2026-09-16-1)`) on everything you write.
 3. **Mark coverage** when a topic moves:
-   `python tools/interview.py mark <topic> partial --note "..." --session 2026-09-16-1`.
+   `python -m uv run python tools/interview.py mark <topic> partial --note "..." --session 2026-09-16-1`.
    Use `covered` only when the topic's `done_when` is actually met.
 4. **Queue follow-ups** in `followups.md` as `- [ ] ...` for anything worth returning to
    that you are not asking next. Tick `- [x]` ones you have asked.
 5. **Add identifiers** the moment a name appears:
-   `python tools/interview.py register "Northgate Dental Partners" "R. Whitfield"` -
+   `python -m uv run python tools/interview.py register "Northgate Dental Partners" "R. Whitfield"` -
    every client, person, entity, place, account or product name that could identify a
    client. Not at the end: `scan` is step 6 of the close-out and refuses an empty register,
    so a session that leaves this until then has left it until after every answer was given.
@@ -125,17 +125,17 @@ touched unless something went wrong.
 5. **Build what they approve**, the way the repo requires (section 6), then mark those
    items `built`.
 6. **Close out every session, built or not:**
-   - `python tools/interview.py scan` must print `clean`. If it finds an identifier in a
+   - `python -m uv run python tools/interview.py scan` must print `clean`. If it finds an identifier in a
      committable file, remove it from that file (codename or generic wording) and rescan.
 
      If it prints `UNCHECKED`, the register is empty and something has been learned. Run
-     `python tools/interview.py suggest` - it reads the answers already in `knowledge/` and
+     `python -m uv run python tools/interview.py suggest` - it reads the answers already in `knowledge/` and
      proposes what has the shape of a name, with where each appeared - then `register` the
      real ones. **Never invent a name to fill it**; ask.
 
      If the session genuinely named nobody - which happens, and did for the first three -
      the person records that they looked:
-     `python tools/interview.py register --none "no client was named this session"`.
+     `python -m uv run python tools/interview.py register --none "no client was named this session"`.
      That is theirs to run, not yours to run for them: it records that a person checked.
      It expires as soon as another session is logged. Do not work around the refusal any
      other way - it is the check.
@@ -176,7 +176,7 @@ Where an approved change lands, and the path it must take:
 **The build's rules apply to every change.** New work is a phase: `python tools/gate.py
 extend` with the reason. (`gate amend` is for a phase that is still open; there usually is
 not one, because a session closes the phase it opened.) A moved public
-surface is checked with `python tools/surfaces.py --check` and accepted only after the
+surface is checked with `python -m uv run python tools/surfaces.py --check` and accepted only after the
 reason is recorded. Record abandoned approaches with `gate ledger`. Run the rehearsals
 (`tools/simulate_firm.py`, and `--scripted`) after changes to intake, the driver, the
 guards or the consoles.
@@ -193,7 +193,7 @@ part of the work on a real engagement and the analyst would not redo it. Across 
 aim the build toward this, in order:
 
 1. The pilot engagement type has a recipe that runs end to end on the local dashboard
-   (`python tools/serve.py`) with a person pressing run and answering the review queue.
+   (`python -m uv run python tools/serve.py`) with a person pressing run and answering the review queue.
 2. Every step in it has a real skill and a mechanical half — no step stops for want of one.
 3. It loads the division's real Excel template.
 4. It has been run on real projects from this interview, with the analyst's decisions as

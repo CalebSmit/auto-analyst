@@ -42,6 +42,14 @@ SNAPSHOT = ROOT / "BUILD" / "surfaces.json"
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from tools._environment import needs  # noqa: E402
+
+# What this tool cannot run without. Called here, before the first project import, because
+# that import is where a bare `python tools/surfaces.py` fails - and what it fails with is a
+# traceback about somebody else's library rather than the line to type. P58 was written
+# about that failure for `serve.py`; six more tools had it, and this is one of them.
+needs("yaml", "pydantic", script="tools/surfaces.py")
+
 # The scope and versions the sample plans are compiled against. Fixed here so the hash
 # moves when the system moves rather than when the caller does.
 SAMPLE_SCOPE = "valuation/esop/repeat"

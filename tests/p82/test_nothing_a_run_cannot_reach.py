@@ -52,9 +52,16 @@ that drives them cannot be the kind of thing that goes quietly out of date. `tes
 the only exclusion: it is not shipped.
 """
 
-# `tools` has no __init__.py but ships and is scanned: its modules are commands a person
-# runs, and one nothing invokes is the same defect under a different name.
-SHIPPED = (*SHIPPED, "tools")
+# `tools` ships and is scanned whether or not it is a package: its modules are commands a
+# person runs, and one nothing invokes is the same defect under a different name.
+#
+# It did not have an `__init__.py` when this was written and now it does, so the derived
+# list above already holds it - and appending unconditionally put it in twice, which
+# scanned every tool twice and reported any finding under `tools/` twice. Harmless, and
+# exactly the shape of thing this file is about: a comment and the code beneath it saying
+# different things about the tree.
+if "tools" not in SHIPPED:
+    SHIPPED = (*SHIPPED, "tools")
 
 # A module nothing reaches, excused. Each entry is a decision, so each names the backlog
 # item carrying it and says what is actually missing. The test below refuses an entry whose

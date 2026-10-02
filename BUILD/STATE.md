@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-09-25.*
+*Last written 2026-10-02.*
 
 ## Where the build is
 
-- **124 of 124 phases closed**
-- Last green checkpoint: **C70**
+- **130 of 130 phases closed**
+- Last green checkpoint: **C72**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -143,4 +143,10 @@
 - **P122** A call the plan can bound, and no loop the graph does not own (2026-09-24)
 - **P123** Watching a run happen (2026-09-24)
 - **P124** A payload with the padding taken out (2026-09-25)
+- **P125** The formulas a workbook gets wrong (2026-10-01)
+- **P126** The tells, the slips, and the two spellings of one thing (2026-10-01)
+- **P127** The questions a reviewer asks of the numbers (2026-10-02)
+- **P128** A command, not a page - and nine lines that would have failed on a clone (2026-10-02)
+- **P129** Reading the firm's model, and refusing to say what its names mean (2026-10-02)
+- **P130** Three questions the interview was not asking (2026-10-02)
 

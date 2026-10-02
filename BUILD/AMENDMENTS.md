@@ -2292,3 +2292,101 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C70 after P124, covering P124
 - proves: That compacting every procedure's payload changed nothing a run depends on: the assembled context still passes the guards, the scripted analyst still reads every payload, the review loop still resumes, and the workbook still comes out - while the context that was nearest the ceiling is measurably further from it.
+
+## 2026-10-01 - P125 The formulas a workbook gets wrong
+
+**Why:** The analyst asked for three reads a reviewer makes before a deliverable leaves - does the valuation make sense, does the prose sound like a person wrote it, and is there a silly mistake in the file. The third is the one this build can prove things about, because a formula is arithmetic: a total whose range stops a row short of its block opens cleanly, prints a plausible number and is wrong by one line, and deliver/qc.py asks only whether a workbook is broken in the ways Excel admits to. This phase is the workbook half.
+
+- phase added: P125 The formulas a workbook gets wrong (The reviewer's reads, gate: auto)
+- exit criterion: Each of the eight checks fires on a workbook built to contain its defect, and none fires on a workbook built to be correct
+- exit criterion: A workbook with a wrong formula is still released; the findings are a record, never a refusal
+- exit criterion: The footing check names how many totals it could not evaluate, so silence is never read as a pass
+- exit criterion: The audit is reachable three ways - a released run, the console, the command line - and a test holds each
+
+## 2026-10-01 - P126 The tells, the slips, and the two spellings of one thing
+
+**Why:** The second of the analyst's three reads: the prose. A restricted-use report is the one thing a valuation engagement sends a client in words, and the analyst named three things to look for in it - does it sound like AI slop, are there em dashes, and is there a silly mistake like a missing comma. The hard half was not finding things: the first version of this module, over this repository's own four longest documents, reported about a hundred and fifty findings of which almost none were about the writing.
+
+- phase added: P126 The tells, the slips, and the two spellings of one thing (The reviewer's reads, gate: auto)
+- exit criterion: Every check fires on prose written to contain its defect, and the module describes each one
+- exit criterion: A Markdown document built out of code fences, tables, CLI flags, file paths and fiscal years produces no slips at all
+- exit criterion: A well-written paragraph produces nothing, and the defined-term check is silent on an ordinary word that sometimes starts a line
+- exit criterion: --fix makes four substitutions, leaves a fenced block and a table byte-identical, refuses a .docx, and refuses to write without being told where
+- exit criterion: A tell alone is a zero exit and a slip is not, so nobody's commit fails over an em dash
+
+## 2026-10-02 - P127 The questions a reviewer asks of the numbers
+
+**Why:** The third of the analyst's three reads: the figures. It is a different kind of check from the other two - the formula audit and the prose checks each make a statement about an artifact, provable from the artifact, and nothing about whether a margin is plausible is provable from a spreadsheet. So every finding is a question for a person, there are no default tolerances, and a test holds the module's own output to saying nothing that concludes.
+
+- phase added: P127 The questions a reviewer asks of the numbers (The reviewer's reads, gate: auto)
+- exit criterion: Each family of question fires on a table built to contain its gap, and a table with nothing worth asking about produces no question at all
+- exit criterion: Every tolerance is the caller's: a unit with none is could_not_evaluate naming the unit, and zero is refused
+- exit criterion: Nothing in the output concludes anything - held by a test reading the module's own text for the words a verdict would use
+- exit criterion: Every finding is a result the qc-tieout contract allows, read out of the schema rather than repeated
+- exit criterion: The ratios cover every operating expense and current-section category the taxonomy declares
+
+## 2026-10-02 - P128 A command, not a page - and nine lines that would have failed on a clone
+
+**Why:** The analyst wants a second way in: a command, not a page - point it at the right folders at lunchtime, come back and review. Three subcommands, each doing something the dashboard does not, and the slash commands that wrap them. Writing the guard for those slash commands found nine documented invocations that would have failed on a fresh clone, in the file the next interview session reads first, and the check that exists to stop that had been reading fenced blocks only.
+
+- phase added: P128 A command, not a page - and nine lines that would have failed on a clone (The reviewer's reads, gate: auto)
+- exit criterion: One command over a folder of mixed files reads each with the right check, renders through that check's own reporter, and one unreadable file does not take the folder with it
+- exit criterion: stage goes through the only writer, records who and why, and takes the name rather than the path it came from
+- exit criterion: ops/ imports no tool module: the console reaches the formula audit through deliver/, and tests/p10 is green
+- exit criterion: Every command named in a slash command or a document exists, parses, and carries the environment unless it provably needs none
+- exit criterion: A tool that needs the environment says what to type when it does not have it
+
+## 2026-10-02 - C71 The three reads, agreeing with each other
+
+**Why:** The four phases of the reviewer's reads each pass alone, and what none of their own suites can see is whether they still say the same thing as each other: one workbook is audited in three places, three modules were each written to have no default tolerance, and 'nothing concludes' is a property of what a person reads rather than of any one module's output.
+
+- checkpoint added: C71 after P128, covering P125, P126, P127, P128
+- proves: A workbook delivered by a run is audited identically by the release record, the console route and the command line; no read has acquired a default tolerance; and the combined output of all three concludes nothing about a valuation.
+
+## 2026-10-02 - P129 Reading the firm's model, and refusing to say what its names mean
+
+**Why:** B-008 and B-036 have both been blocked on the firm's model arriving, and what they are blocked on it for is four hundred lines of YAML: the named ranges, and what each one means. CLAUDE.md said the named ranges are not knowable from a photograph, which is true and had been read as not knowable at all. They are knowable from the file, and the half that must not be knowable from the file is what each name means - so that half is marked and refused rather than guessed.
+
+- phase added: P129 Reading the firm's model, and refusing to say what its names mean (The reviewer's reads, gate: auto)
+- exit criterion: The inventory resolves every defined name - global and sheet-local - to a sheet, a cell and whether it is empty, a number, a formula or a block
+- exit criterion: A draft a person has read loads into TemplateInputs, and one they have not does not
+- exit criterion: A name pointing at a missing sheet, two destinations or a whole column is reported rather than dropped
+- exit criterion: The whole path works against a workbook this tool was not written against, and every name it proposes is a name that workbook really has
+- exit criterion: It never writes into the workbook, and never over a draft somebody has been through
+
+## 2026-10-02 - P130 Three questions the interview was not asking
+
+**Why:** The analyst described two things this build has no question for: the workflows already built in Claude Code on the work machine, which hold context about the master model and about writing the reports, and the restricted-use report and deck themselves. Both are knowledge somebody has already written down, and the interview map was the only route in and was not asking. The excel-models topic was also asking for four hundred rows of transcription that tools/read_template.py now reads off the file.
+
+- phase added: P130 Three questions the interview was not asking (The reviewer's reads, gate: auto)
+- exit criterion: The map loads, every topic has angles, a done_when and feeds, and the ids are unique
+- exit criterion: The two new topics read as open in interview status, so the next session is offered them
+- exit criterion: The map is still generic: interview.py scan prints clean over the repository
+
+## 2026-10-02 - P130 Three questions the interview was not asking
+
+**Why:** The phase closed with its checks pointing only at the suites that already existed, which is how a data change comes to be covered by tests that would have passed over it. tests/p130 holds what the phase actually claims: that each topic asks for what the module it feeds is waiting on.
+
+- check added: python -m uv run pytest tests/p130 -q
+
+## 2026-10-02 - C72 The handoff, read end to end
+
+**Why:** P129 reads the firm's model and drafts the binding it needs; P130 makes the interview ask for the part the file cannot state. Separately each is small and well tested. Together they are supposed to be a route - a command on the work machine, a question for the rest, a schema that loads here - and whether that route joins up is exactly what neither suite can see.
+
+- checkpoint added: C72 after P130, covering P129, P130
+- proves: The interview asks for what read_template.py produces, what it produces loads where the question says it goes under the filename the registry wants, and the route that invites work-machine files here still passes the outbound scan.
+
+## 2026-10-02 - P128 A command, not a page - and nine lines that would have failed on a clone
+
+**Why:** A fourth subcommand and a fifth slash command. The analyst's lunchtime question is whether there is anything to do yet, and that is what the client still owes - which had a button on the Setup page and no way to ask from a terminal. Adding it also forced the phase's own stated principle to be corrected: 'each subcommand does something the dashboard does not' was not quite true of any of them. The real line is that a command may be a second surface on a capability and may not be a second answer.
+
+- task added: aa owed: what the client still owes, through the same dd_tracker the Setup page calls, writing nothing unless asked
+- task added: a /owed slash command that drafts a chase note from the essential items and sends nothing
+- exit criterion added: A command may be a second surface on a capability and never a second answer - stated in the module and held by the subcommand census
+
+## 2026-10-02 - P128 A command, not a page - and nine lines that would have failed on a clone
+
+**Why:** The fourth subcommand found B-081. aa owed --write was the first caller ever to use the tracker's default path, and the first run of its test wrote a client-named directory tree into the git working copy - which is what B-081 described and said no test covered, because every test passed an explicit path and the default was the only shape the page used. Fixed with the test that found it.
+
+- task added: fix B-081: join the tracker path to the storage root, and refuse where storage is not a folder
+- exit criterion added: The tracker lands beside the documents, and what a person wrote in it survives a refresh - both failing when the join is taken out

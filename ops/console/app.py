@@ -28,6 +28,7 @@ from fastapi.responses import HTMLResponse, Response, StreamingResponse
 from pydantic import BaseModel
 
 import ports
+from deliver.audit import AUDITED_SUFFIXES, audit_workbook
 from ops.analytics import Analytics
 from ops.blobs import ContentRef, ContentStore
 from ops.console.analytics_page import PAGE as ANALYTICS_PAGE
@@ -489,12 +490,15 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
         _known(console, run_id)
         return console.artifacts(run_id)
 
-    @app.get("/api/runs/{run_id}/artifacts/{name:path}/download")
-    def download(run_id: str, name: str) -> Response:
-        """A deliverable, from where it was delivered, when that is a folder on this machine.
-        Read from the delivery root and checked against the digest the release recorded, so
-        what downloads is what was released - not whatever is at that path now."""
-        _known(console, run_id)
+    def _released(run_id: str, name: str) -> tuple[bytes, Path]:
+        """The bytes of a delivered artifact, from where it was delivered, checked against
+        the digest the release recorded - so what is read is what was released, not
+        whatever is at that path now.
+
+        Shared by the download and the audit, deliberately. Two routes reading the same
+        file through two copies of this check is two chances for one of them to stop
+        checking, and the one that stopped would be the one serving a file nobody
+        released."""
         found = next((a for a in console.store.artifacts(run_id) if a.name == name), None)
         if found is None or not found.path:
             raise HTTPException(status_code=404, detail=f"no delivered file {name!r} on {run_id}")
@@ -511,11 +515,35 @@ def create_app(console: Console, surface: ReviewSurface | None = None, pool: Any
                 status_code=409,
                 detail=f"{found.path} has changed since it was released; it is not the deliverable",
             )
+        return data, target
+
+    @app.get("/api/runs/{run_id}/artifacts/{name:path}/download")
+    def download(run_id: str, name: str) -> Response:
+        """A deliverable, from where it was delivered, when that is a folder on this machine."""
+        _known(console, run_id)
+        data, target = _released(run_id, name)
         return Response(
             content=data,
             media_type="application/octet-stream",
             headers={"Content-Disposition": f'attachment; filename="{target.name}"'},
         )
+
+    @app.get("/api/runs/{run_id}/artifacts/{name:path}/audit")
+    def audit_artifact(run_id: str, name: str, convention: bool = False) -> dict[str, Any]:
+        """What is wrong with the formulas in a delivered workbook.
+
+        Re-derived from the released bytes rather than read back off the event the
+        release wrote, so this answers for the file as it stands - including the cached
+        totals Excel fills in the first time somebody opens and saves it, which is
+        exactly when the footing check becomes able to run at all."""
+        _known(console, run_id)
+        if not name.lower().endswith(AUDITED_SUFFIXES):
+            raise HTTPException(
+                status_code=409,
+                detail=f"{name} is not a workbook; there are no formulas in it to audit",
+            )
+        data, _ = _released(run_id, name)
+        return audit_workbook(data, include_convention=convention).as_dict()
 
     @app.get("/api/runs/{run_id}/stream")
     async def stream(
@@ -1015,6 +1043,7 @@ ACTIONS.review = d => { open_(d.run); review(d.run, d.item); };
 ACTIONS.runAction = d => runAction(d.run, d.do);
 ACTIONS.reveal = d => revealProposal(d.run, d.item);
 ACTIONS.clearFilter = () => { const q = $('q'); if (q) { q.value = ''; q.focus(); } paintRuns(); };
+ACTIONS.auditFile = d => auditFile(d.run, d.name, d.box);
 
 /* Narrowing is a redraw of what the page already has, not a request: the answer is in
    RUNS, and asking the server again would make a person wait to be told something the
@@ -1447,12 +1476,48 @@ async function deliverables(id) {
   const all = await get(`/api/runs/${encodeURIComponent(id)}/artifacts`).catch(() => []);
   const files = all.filter(a => a.path && !/manifest|\\.json$/i.test(a.name));
   const record = all.filter(a => a.path && /manifest/i.test(a.name));
-  box.innerHTML = files.length ? `<div class="section-label" style="margin-top:.2rem">Delivered</div>` + files.map(a => `<div class="r">
+  box.innerHTML = files.length ? `<div class="section-label" style="margin-top:.2rem">Delivered</div>` + files.map((a, i) => `<div class="r">
      <span class="lbl"><b>${esc(a.name)}</b><span class="sub" style="display:block;white-space:normal">${esc(a.path)} &middot; ${esc(ago(a.written_at))}</span></span>
-     <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>`).join('') : '';
+     ${/\\.xls[xm]$/i.test(a.name) ? `<button class="btn small"${data({act: 'auditFile', run: id, name: a.name, box: 'audit-' + i})}>Check formulas</button>` : ''}
+     <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>
+     <div id="audit-${i}" class="sub" style="display:none;white-space:normal;padding:.1rem 0 .6rem .2rem"></div>`).join('') : '';
   box.innerHTML += record.length ? `<div class="section-label" style="margin-top:.2rem">Record</div>` + record.map(a => `<div class="r">
      <span class="lbl"><b>Run manifest</b><span class="sub" style="display:block;white-space:normal">what was in context, which model, which skill versions, what each guard said</span></span>
      <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>`).join('') : '';
+}
+
+/* What is wrong with the formulas in a workbook this run released.
+
+   Asked for rather than painted on load: reading a workbook's every formula is work, and
+   the answer changes the first time somebody opens the file in Excel and saves it - that
+   is when the cached totals appear and the footing check becomes able to run at all. So
+   the button is the honest shape: press it when you want the current answer. */
+async function auditFile(id, name, boxId) {
+  const box = $(boxId);
+  if (!box) return;
+  box.style.display = 'block';
+  box.textContent = 'Reading the formulas...';
+  let a;
+  try { a = await get(`/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(name)}/audit`); }
+  catch (e) { box.textContent = e.text || String(e); return; }
+  const groups = [
+    ['wrong', 'Wrong - the file disagrees with itself', 'bad'],
+    ['suspect', 'Suspect - worth an eye', 'warn'],
+  ];
+  let html = `<div>${esc(a.formulas)} formula(s) over ${esc((a.sheets || []).join(', ') || 'no sheets')}</div>`;
+  let found = 0;
+  for (const [severity, heading, tone] of groups) {
+    const rows = (a.findings || []).filter(f => f.severity === severity);
+    if (!rows.length) continue;
+    found += rows.length;
+    html += `<div style="margin-top:.35rem"><span class="pill ${tone}">${esc(heading)}</span></div>`;
+    html += rows.map(f => `<div style="margin:.2rem 0 0 .2rem"><b>${esc(f.sheet)}!${esc(f.cell)}</b> ${esc(f.says)}<br><span style="color:var(--ink-4)">${esc(f.check)}: ${esc(f.formula)}</span></div>`).join('');
+  }
+  if (!found) html += '<div style="margin-top:.35rem"><span class="pill good">Nothing found</span></div>';
+  if ((a.skipped || []).length) {
+    html += `<div style="margin-top:.35rem;color:var(--ink-4)">Did not run: ` + a.skipped.map(esc).join(' ') + `</div>`;
+  }
+  box.innerHTML = html;
 }
 
 let OPENING = 0;

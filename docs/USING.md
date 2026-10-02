@@ -204,6 +204,78 @@ build* — that is the conversation to have, and it becomes a recipe with your n
 its own, or learn from its own unreviewed output. Only a decision a person actually made
 becomes precedent.
 
+### Checking a workbook, a report, or a whole folder
+
+Three checks you can point at anything, whether this system made it or not. They are
+useful on last year's model, on a client's own spreadsheet and on a report you are part
+way through, and none of them changes the file.
+
+```
+python -m uv run python tools/aa.py review "C:/Clients/Northgate/2026"
+```
+
+That reads each file with whichever check it wants: a workbook goes to the formula audit,
+a Word or Markdown document to the prose checks, a normalized table to the reasonableness
+questions. One command over a client folder, and you do not have to know which is which.
+
+**The formulas.** The one the suite could never catch: a total whose range stops a row
+short of the block above it. It opens cleanly, prints a plausible number and is wrong by
+one line. The audit also finds a total that counts another total, a typed number sitting in
+a row of formulas, and a formula that breaks the pattern its neighbours share. Findings
+come in three strengths - *wrong* means the file disagrees with itself and is provable;
+*suspect* means a pattern break worth an eye; *convention* means a cross-sheet reference by
+cell address, which on the firm's own model is everywhere and is off unless you ask for it.
+It **never edits the workbook**.
+
+**The prose.** Em dashes first, then the vocabulary and the rhythms that read as
+machine-written; the mechanical slips (a word typed twice, a space before a comma, a
+bracket that never closes); and the two spellings of one thing - *the Company* beside *the
+company*, $1.2 million beside $1,200,000, two date formats in one document. Only the slips
+are a failing exit, because an em dash is a judgement and no commit should fail over one.
+
+```
+python -m uv run python tools/prose_checks.py "draft.md" --fix --out fixed.md
+```
+
+`--fix` makes four mechanical substitutions and nothing else. It will not rewrite a
+sentence, it will not touch a code block, it refuses a `.docx` outright (a paragraph's text
+is split across runs that carry the formatting, and a substitution across a run boundary
+loses the formatting after it), and it needs `--out` or `--in-place` - overwriting your
+report is not a default.
+
+**The figures.** The questions a reviewer asks on first looking at the numbers:
+depreciation with no fixed assets, interest expense with no debt, tax in a loss year, a
+margin or a working-capital ratio that has moved. **Every one is a question, not a
+verdict** - whether a margin moving eight points is a problem depends on the business, and
+the tool has no way to know. Nothing in it concludes anything about a valuation. The
+tolerances are yours and have no defaults: a ratio you give no tolerance for is reported as
+a question nobody asked rather than quietly left out.
+
+Also on the run's detail on Activity: a **Check formulas** button beside each delivered
+workbook. It re-reads the released file, which matters because one of the checks - whether
+a saved total equals the cells it adds - cannot run until Excel has opened and saved the
+file once.
+
+### Asking from a terminal instead of a page
+
+```
+python -m uv run python tools/aa.py where HEND-2026-04    # the folder, and what is in it
+python -m uv run python tools/aa.py owed HEND-2026-04     # what the client still owes
+```
+
+`owed` reads the folder against the engagement's request list and lists what is missing,
+essential items first, plus any document that answered nothing on the list. It **writes
+nothing**; `--write` refreshes the tracker workbook beside the folder, and anything you
+wrote in that tracker is read back and kept.
+
+If the client's documents are somewhere else - Box, a download folder - put them in with:
+
+```
+python -m uv run python tools/aa.py stage a.pdf b.xlsx --engagement HEND-2026-04 --who "your name" --why "where they came from"
+```
+
+Same thing as dropping them in the folder, recorded against you with each file's digest.
+
 **What reaches the model, and what does not.** The client's name is masked before any
 model sees it — the full name and each distinctive word of it on its own, so
 "Henderson Income Statement.xlsx" names nobody. Anything shaped like a social security
@@ -273,7 +345,7 @@ python -m uv run python tools/serve.py                     # start it
 ```
 
 The `python -m uv run` prefix is what puts the project's own dependencies on the path. A
-bare `python tools/serve.py` works only in a shell where the virtualenv is already
+bare `python -m uv run python tools/serve.py` works only in a shell where the virtualenv is already
 activated; run without one it now tells you this rather than raising `ModuleNotFoundError`
 about a library you have never heard of.
 

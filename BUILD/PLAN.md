@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**124 of 124 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**130 of 130 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -291,4 +291,17 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 |---|---|---|---|---|
 | [x] | **P124** A payload with the padding taken out | auto | Every procedure payload round-trips: json.loads(compact) equals json.loads(indented) | 2026-09-25 |
 | [x] | **C70 - The same payload, spelled smaller** | integration | That compacting every procedure's payload changed nothing a run depends on: the assembled context still passes the guards, the scripted analyst still reads every payload, the review loop still resumes, and the workbook still comes out - while the context that was nearest the ceiling is measurably further from it. | 2026-09-25 |
+
+## The reviewer's reads
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P125** The formulas a workbook gets wrong | auto | Each of the eight checks fires on a workbook built to contain its defect, and none fires on a workbook built to be correct | 2026-10-01 |
+| [x] | **P126** The tells, the slips, and the two spellings of one thing | auto | Every check fires on prose written to contain its defect, and the module describes each one | 2026-10-01 |
+| [x] | **P127** The questions a reviewer asks of the numbers | auto | Each family of question fires on a table built to contain its gap, and a table with nothing worth asking about produces no question at all | 2026-10-02 |
+| [x] | **P128** A command, not a page - and nine lines that would have failed on a clone | auto | One command over a folder of mixed files reads each with the right check, renders through that check's own reporter, and one unreadable file does not take the folder with it | 2026-10-02 |
+| [x] | **C71 - The three reads, agreeing with each other** | integration | A workbook delivered by a run is audited identically by the release record, the console route and the command line; no read has acquired a default tolerance; and the combined output of all three concludes nothing about a valuation. | 2026-10-02 |
+| [x] | **P129** Reading the firm's model, and refusing to say what its names mean | auto | The inventory resolves every defined name - global and sheet-local - to a sheet, a cell and whether it is empty, a number, a formula or a block | 2026-10-02 |
+| [x] | **P130** Three questions the interview was not asking | auto | The map loads, every topic has angles, a done_when and feeds, and the ids are unique | 2026-10-02 |
+| [x] | **C72 - The handoff, read end to end** | integration | The interview asks for what read_template.py produces, what it produces loads where the question says it goes under the filename the registry wants, and the route that invites work-machine files here still passes the outbound scan. | 2026-10-02 |
 

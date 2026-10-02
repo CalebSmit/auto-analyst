@@ -85,6 +85,118 @@ that is going, how long it has been going against the bound its own step declare
 been spent against the ceiling, what is waiting on a person, and anything the stall detector
 raised. It reads and writes nothing.
 
+## When the firm's model arrives
+
+The one file this build has been waiting on since P24 is `Model Template - MASTER 2026`,
+and what it is waiting on it *for* is four hundred lines of YAML - the named ranges, and
+what each one means. CLAUDE.md used to say the named ranges "are not knowable from a
+photograph". They are knowable from the file:
+
+```
+python -m uv run python tools/read_template.py <model.xlsx> --sheet Input --inventory
+python -m uv run python tools/read_template.py <model.xlsx> --sheet Input --version 2026.1 --out draft.yaml
+```
+
+It writes the inventory - every defined name, the sheet and cell behind it, and whether
+that cell is empty, a number, a formula or a block - and a **draft input schema** in the
+shape that `TemplateInputs.load` in [`deliver/registry.py`](deliver/registry.py) reads.
+
+**Every `line:` in that draft is marked `REVIEW` and the draft will not load until the
+markers are gone.** Reading `Revenue_FY1` as the line *Revenue* in period *FY1* is reading
+a naming convention, and a convention is something a firm has rather than something a file
+states. A schema this filled in silently would bind the firm's model by inference from the
+spelling of its ranges, and the first symptom would be a figure written into the wrong row
+of a workbook that opens perfectly. `tests/p129` generates a draft, strips the markers the
+way a reviewer would, and loads it - so the shape is proved, and the judgement is yours.
+`--scale` defaults to 1 for the same reason: a workbook states a layout and never its units.
+
+## The second front door
+
+The dashboard is the right shape for watching a run and the wrong one for *"point it at
+the right folders, quickly tell it what to do, and it starts working"*. That is a command.
+
+```
+python -m uv run python tools/aa.py review <file-or-folder>   # whichever of the three reads each file wants
+python -m uv run python tools/aa.py where HEND-2026-04        # the folder this engagement's documents go in
+python -m uv run python tools/aa.py owed HEND-2026-04         # what the client still owes; writes nothing
+python -m uv run python tools/aa.py stage a.pdf b.xlsx --engagement HEND-2026-04 --who "Caleb" --why "from Box"
+```
+
+`review` **dispatches**, so one command over a client folder reads the workbooks for
+formulas, the documents for prose and the tables for the questions - which is what lets one
+slash command be enough. `owed` reads the folder against the engagement's request list and
+says what is still missing, essential items first. `stage` is the **join a Box connector
+needs** - read the client's folder with the connector, save locally, stage it in, and the
+sweep finds it exactly as it finds a file a person dropped there.
+
+**The line these are held to.** A command may be a second *surface* on a capability:
+`where`, `owed` and `stage` all reach the same `AdminConsole` methods the Setup page
+reaches, so the page and the command cannot drift because there is one implementation. What
+is refused is a second *answer* - there is deliberately no `aa status`, because
+`serve.py --check` says what is wired and `watch_run.py --once` says what a run is doing,
+and a third renderer of either is B-046's defect under a new name.
+
+**The slash commands** in `.claude/commands/` are thin wrappers over those: `/review`,
+`/intake`, `/owed`, `/where-things-stand`, and `/improve-agent`. `tests/p128` holds each of
+them to naming a tool that exists, a subcommand that parses, a flag something takes, and
+the environment prefix - because a slash command is read by a model that will *try* the
+line rather than by a person who would notice it was wrong.
+
+## The reads a reviewer makes
+
+Checks the analyst asked for, over the things that leave this system. Each is
+**deterministic Python** and each **reports rather than repairs** - a tool that silently
+widened a SUM to what it guessed was meant would be the most dangerous thing in this
+repository.
+
+```
+python -m uv run python tools/formula_audit.py <workbook.xlsx>          # the formulas a workbook gets wrong
+python -m uv run python tools/formula_audit.py <workbook.xlsx> --all    # and the cross-sheet address references
+python -m uv run python tools/prose_checks.py <report.docx>             # the tells, the slips, the two spellings
+python -m uv run python tools/prose_checks.py <notes.md> --fix --out fixed.md
+python -m uv run python tools/reasonableness.py <table.json> --move points=5 --move days=10
+```
+
+**The workbook.** Eight checks in three severities: *wrong* is arithmetic the file
+disagrees with itself about - a total whose range stops a row short of its block, a total
+counting another total, a saved total that does not equal what it adds; *suspect* is a
+pattern break - a plug in a row of formulas, a copy that landed a row off; *convention* is
+a cross-sheet reference by address, which on the firm's own model fires everywhere and so
+is off unless asked for. It does not gate. It runs on every workbook a run releases -
+recorded as `release.audited`, never as a refusal, because a formula in the firm's own
+pinned template being wrong is not this build's call to make. The console's deliverables
+panel has a **Check formulas** button that re-derives the audit from the released bytes,
+which matters because the footing check cannot run until Excel has saved the file once.
+
+**The prose.** Three kinds: *tells* (an em dash, the register vocabulary, the three-item
+rhythm, a bolded lead-in, sentences that never vary in length), *slips* (a word typed
+twice, a space before a comma, a bracket that never closes), and *the two spellings of one
+thing* - `the Company` beside `the company`, $1.2 million beside $1,200,000, two date
+formats. Only a slip is a non-zero exit, because a tell is a judgement and nobody's commit
+should fail over an em dash. `--fix` makes four mechanical substitutions, needs `--out` or
+`--in-place`, never edits a `.docx`, and never touches code in a Markdown file.
+
+**The figures.** The questions a reviewer asks on first looking at the numbers, over the
+normalized table: a line that implies another and the other is not there (depreciation
+with no fixed assets, interest with no debt - the first question an MD asks and the one
+that feeds the debt tab), a ratio that moves (gross and operating margin, days receivable,
+days inventory, days payable, the current ratio), and the shape of the history. **Every
+finding is a question, never a verdict** - a margin that moves eight points is a problem in
+one industry and a Tuesday in another, and the code cannot know which. Nothing in it
+concludes anything about a valuation, and `tests/p127` holds it to that over its own
+output. Every tolerance is the caller's, in the ratio's own unit, with no defaults:
+materiality belongs to the practice. A unit with no tolerance is reported as a question
+nobody asked rather than left out. It does not duplicate `statement_checks.movements`,
+which is the single-line version; it asks what no single-line check can see. Its run-path
+wire waits on the qc-tieout procedure (B-004), so today the command line is the way in.
+
+All three were calibrated against things with nothing wrong with them, and that mattered
+more than finding things: the first prose run over this repo's own four longest documents
+reported about 150 findings of which almost none were about the writing, and the first
+reasonableness run asked the same six questions three times each. One check - the Oxford
+comma - could not be made precise and was taken out rather than shipped (B-086). A check
+whose findings are mostly not findings teaches a reader to skip the section it is in.
+
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not
 tell them from dead code:
@@ -136,8 +248,8 @@ interview. Pointing the focus elsewhere is that one entry.
 time and, on stop, turns what it learned into changes through the gate. What it learns
 lives in `knowledge/`, committed to the private repo so it travels between machines, and
 it may hold client data - **nothing identifying leaves it** for a skill, methodology file
-or fixture; `python tools/interview.py scan` must print `clean` before a
-session ends. Run `python tools/interview.py status` to see where the interview stands and
+or fixture; `python -m uv run python tools/interview.py scan` must print `clean` before a
+session ends. Run `python -m uv run python tools/interview.py status` to see where the interview stands and
 what the code says the focus division is still missing.
 
 The scan checks `knowledge/identifiers.txt`, and it refuses rather than passing over an

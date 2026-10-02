@@ -12,6 +12,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from tools._environment import needs  # noqa: E402
+
+# What this tool cannot run without. Called here, before the first project import, because
+# that import is where a bare `python tools/bootstrap_scaffold.py` fails - and what it
+# fails with is a traceback about somebody else's library rather than the line to
+# type. P58 was written about that failure for `serve.py`; six more tools had it, and
+# this is one of them.
+needs("yaml", script="tools/bootstrap_scaffold.py")
+
 import gate  # noqa: E402  - after the path insert, deliberately
 
 ROOT = Path(__file__).resolve().parents[1]

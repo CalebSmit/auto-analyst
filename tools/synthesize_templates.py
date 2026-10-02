@@ -27,6 +27,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:  # this is run as a script, from wherever somebody is standing
     sys.path.insert(0, str(ROOT))
 
+from tools._environment import needs  # noqa: E402
+
+# What this tool cannot run without. Called here, before the first project import, because
+# that import is where a bare `python tools/synthesize_templates.py` fails - and what it
+# fails with is a traceback about somebody else's library rather than the line to
+# type. P58 was written about that failure for `serve.py`; six more tools had it, and
+# this is one of them.
+needs("openpyxl", "yaml", script="tools/synthesize_templates.py")
+
 # The word the writer puts in a waived input's cell. Imported rather than repeated: this
 # front page describes what the writer does, and two copies of one string drift apart.
 from deliver.builder import NOT_FOUND  # noqa: E402

@@ -20,6 +20,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from deliver.audit import as_event_payload, audit_workbook, is_a_workbook
 from deliver.qc import DeliverableQC
 from guards import GuardFailed
 from harness.notice import Notice, notice
@@ -144,6 +145,12 @@ class ReleaseGate:
                 already_released=True,
             )
 
+        # After the ledger, not before it. A delivery whose acknowledgement was lost is
+        # retried with the same bytes, and auditing per *attempt* rather than per
+        # *artifact* would put two audits of one file in the record - leaving a reviewer
+        # to work out which answer was about which, when there is only one file.
+        self._audit(run_id, engagement_id, name, data)
+
         path = release_path(engagement_id, run_id, name)
         self.delivery.ensure_folder(f"{engagement_id}/{run_id}")
         written = self.delivery.put(path, data)
@@ -173,4 +180,50 @@ class ReleaseGate:
             content_hash=digest,
             version=record.version,
             already_released=False,
+        )
+
+    def _audit(self, run_id: str, engagement_id: str, name: str, data: bytes) -> None:
+        """Read the workbook's formulas and record what is wrong with them.
+
+        **This does not gate.** QC decides whether a file is released; this says what a
+        reviewer should look at in the file that was. The distinction is deliberate and
+        it is the same one the acceptance rule makes: a figure is proved by arithmetic or
+        it is *seen*, and a total whose range stops a row short of its block is seen. A
+        formula audit that refused a release would be this build deciding that a formula
+        in the firm's own pinned template is wrong, which is not its decision to take.
+
+        Nothing here can stop a release. An audit that raises is recorded as not having
+        run - absence is never a pass - and the release proceeds.
+        """
+        if not is_a_workbook(name):
+            return
+        try:
+            result = audit_workbook(data)
+        except Exception as exc:  # noqa: BLE001 - a failed audit must not fail a release
+            self.bus.emit(
+                run_id=run_id,
+                engagement_id=engagement_id,
+                node_id=NODE,
+                type="release.audit_skipped",
+                level="warn",
+                message=f"{name}: the formula audit did not run ({exc})",
+                step_id="release",
+                payload={"artifact": name, "reason": str(exc)},
+            )
+            return
+
+        payload = as_event_payload(name, result)
+        counts = payload["counts"]
+        self.bus.emit(
+            run_id=run_id,
+            engagement_id=engagement_id,
+            node_id=NODE,
+            type="release.audited",
+            level="warn" if result.wrong else "info",
+            message=(
+                f"{name}: {len(result.wrong)} formula(s) the file disagrees with itself "
+                f"about, {counts['suspect']} worth an eye, over {result.formulas} formula(s)"
+            ),
+            step_id="release",
+            payload=payload,
         )

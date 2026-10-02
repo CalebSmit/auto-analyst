@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import ast
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -28,36 +29,156 @@ ROOT = Path(__file__).resolve().parents[2]
 # A line in a fenced block that invokes one of this project's tools.
 INVOCATION = re.compile(r"^(?P<cmd>[a-z][^#\n]*?tools/[a-z_]+\.py[^#\n]*?)(?:\s+#.*)?$")
 
+# The same invocation written inline, in backticks, in the middle of a sentence.
+#
+# Added after this check missed nine of them. `interview/PROTOCOL.md` opens by instructing
+# the reader to run every command in it through uv and then writes `python
+# tools/interview.py status` seven times without the prefix; `CLAUDE.md` does it twice
+# more. Every one was invisible here, because this file read fenced blocks only - and
+# `interview.py` needs PyYAML, so on a fresh clone each was the exact
+# `ModuleNotFoundError` that P58 exists to prevent. A check that looks in one of the two
+# places a command can be written has a blind spot the size of the other one.
+INLINE = re.compile(r"`(?P<cmd>python[^`\n]*?tools/[a-z_]+\.py[^`\n]*?)`")
+
+# Every page that tells somebody - or something - to run a command. The slash commands are
+# here because they are read by a model that will *try* the line, rather than by a person
+# who would notice it was wrong.
+PAGES = (
+    "docs/USING.md",
+    "CLAUDE.md",
+    "CHANGING.md",
+    "interview/PROTOCOL.md",
+    *sorted(
+        str(q.relative_to(ROOT).as_posix())
+        for q in (ROOT / ".claude" / "commands").glob("*.md")
+    ),
+)
+
 
 def documented_commands(page: Path) -> list[str]:
+    """Every invocation on a page, fenced or inline.
+
+    Both, because both are read as instructions. A line in a fenced block is a line
+    somebody copies; a line in backticks mid-sentence is a line somebody copies. The only
+    difference was that this function used to see one of them.
+    """
     found, inside = [], False
-    for line in page.read_text(encoding="utf-8").splitlines():
+    text = page.read_text(encoding="utf-8")
+    for line in text.splitlines():
         if line.startswith("```"):
             inside = not inside
             continue
-        if not inside:
-            continue
-        match = INVOCATION.match(line.strip())
-        if match:
+        if inside and (match := INVOCATION.match(line.strip())):
             found.append(match.group("cmd").strip())
+    found.extend(
+        match.group("cmd").strip()
+        for match in INLINE.finditer(text)
+        if "..." not in match.group("cmd")  # the sentence stating the rule, not a command
+    )
     return found
 
+
+
+def needs_the_environment(tool: str) -> bool:
+    """Whether a bare `python tools/<tool>` would fail on a machine nobody has set up.
+
+    Derived, not listed. The original version of this check exempted `gate.py` by name,
+    with a comment explaining that it has no dependencies beyond the standard library -
+    which is the right reason and the wrong mechanism, because `verify.py` has exactly the
+    same property and was being reported as an offence while `surfaces.py`, which does
+    need the environment, was exempt from nothing and documented bare anyway.
+
+    So: a tool is exempt when it imports nothing outside the standard library **anywhere
+    in the file**, and nothing from this project except `tools._environment`. Anywhere
+    matters: `serve.py` and `surfaces.py` have no third-party import at module level
+    because they defer them into functions, and a check reading only the top of the file
+    would call both of them dependency-free.
+    """
+    tree = ast.parse((ROOT / "tools" / tool).read_text(encoding="utf-8"))
+    roots: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            roots.update(a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            roots.add(node.module.split(".")[0])
+    project = {
+        p.name for p in ROOT.iterdir() if p.is_dir() and (p / "__init__.py").is_file()
+    } | {"tools"}
+    outside = {r for r in roots if r not in sys.stdlib_module_names}
+    # `tools` is this package itself; `tools._environment` is the module whose whole job
+    # is saying what to type, and it imports nothing but the standard library.
+    return bool((outside - {"tools"}) | (outside & project - {"tools"}))
+
+
+def test_the_discriminator_tells_the_two_cases_apart() -> None:
+    """A sanity check on the property, not a census of the tools.
+
+    The first version of this asserted that exactly `gate.py` and `verify.py` need no
+    environment, and that was wrong in both directions: several tools are stdlib-only
+    because they are pure arithmetic, and a list of names would have had to be kept. What
+    matters is that the property separates the two cases it exists to separate.
+    """
+    # Needs nothing: it runs the others, so it cannot need them.
+    assert not needs_the_environment("gate.py")
+    # Needs nothing: everything it runs, it runs through `python -m uv run` as a subprocess.
+    assert not needs_the_environment("verify.py")
+    # Needs the environment, and both defer their imports into functions - which is why
+    # reading only the top of the file would have called them dependency-free.
+    assert needs_the_environment("serve.py")
+    assert needs_the_environment("surfaces.py")
+    # Needs the environment at module level, which is the obvious case.
+    assert needs_the_environment("interview.py")
+
+
+def test_every_tool_that_needs_the_environment_says_so_when_it_does_not_have_it() -> None:
+    """The other half of the same promise. A tool documented with the prefix is still run
+    without it by somebody in a hurry, and `needs()` is the difference between the line to
+    type and a traceback about PyYAML.
+
+    Not every tool is a command somebody types - `_environment.py` is a helper and
+    `postgres.py` is run by the suite - so the ones held to this are the ones a document
+    tells a person to run.
+    """
+    told = {
+        Path(part).name
+        for page in PAGES
+        for command in documented_commands(ROOT / page)
+        for part in command.split()
+        if part.startswith("tools/") and part.endswith(".py")
+    }
+    silent = [
+        tool
+        for tool in sorted(told)
+        if needs_the_environment(tool)
+        and "needs(" not in (ROOT / "tools" / tool).read_text(encoding="utf-8")
+    ]
+    assert not silent, (
+        f"{silent} need the project environment and say nothing when they do not have "
+        f"it. Add `needs(...)` so the message is the line to type."
+    )
 
 # ------------------------------------------------------- what the documents tell a person
 
 
-@pytest.mark.parametrize("page", ["docs/USING.md", "CLAUDE.md"])
+@pytest.mark.parametrize("page", PAGES)
 def test_every_documented_command_carries_the_environment_with_it(page: str) -> None:
     """`python tools/x.py` is only correct inside an activated shell, and the page is read
     by somebody who has just cloned. `gate.py` is the exception and says so itself: it has
     no dependencies beyond the standard library, which is why it can run the others."""
     commands = documented_commands(ROOT / page)
-    assert commands, f"no tool invocations found in {page}; has the format changed?"
+    if page.startswith(".claude/"):
+        # A slash command legitimately runs nothing - `improve-agent` hands the whole
+        # conversation to a protocol file. The prose pages below are documentation of
+        # commands and an empty list there means the format has changed.
+        pass
+    else:
+        assert commands, f"no tool invocations found in {page}; has the format changed?"
 
     wrong = [
         c
         for c in commands
-        if c.startswith("python tools/") and not c.startswith("python tools/gate.py")
+        if c.startswith("python tools/")
+        and needs_the_environment(Path(c.split()[1]).name)
     ]
     assert not wrong, (
         f"{page} tells a person to run a command that fails outside an activated shell: "
