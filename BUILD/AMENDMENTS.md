@@ -2390,3 +2390,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - task added: fix B-081: join the tracker path to the storage root, and refuse where storage is not a folder
 - exit criterion added: The tracker lands beside the documents, and what a person wrote in it survives a refresh - both failing when the join is taken out
+
+## 2026-10-02 - P128 A command, not a page - and nine lines that would have failed on a clone
+
+**Why:** The needs() additions broke two of the six tools they were added to, and the test written to cover that was green on the break. Both are recorded in B-089 because the shape is the lesson: a check on the text of an invocation is not a check that it runs, and a subprocess whose launcher fails produces an error message that matches neither of the things being looked for.
+
+- task added: fix the two tools the needs() addition broke, which put tools/ on the path rather than the repo
+- exit criterion added: Every documented tool starts: run with the interpreter running the suite, asserting the return code rather than searching the output for words

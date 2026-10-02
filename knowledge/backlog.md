@@ -1320,6 +1320,25 @@ Four things, together, because any one alone leaves the hole:
    environment and all raised a traceback about somebody else's library instead of the
    line to type. Each calls `needs()` now, and a test holds every documented tool to it.
 
+**And then the fix broke two of them, which is the part worth reading.** `from
+tools._environment import needs` is right in four of the six and wrong in
+`simulate_files.py` and `bootstrap_scaffold.py`: both put `tools/` on the path rather than
+the repo, because both import a sibling (`simulate_firm`, `gate`). So the package `tools`
+is not importable there, and both raised `ModuleNotFoundError: No module named 'tools'` on
+their first line. The suite stayed green - `simulate_files` is a rehearsal the suite does
+not run, `bootstrap_scaffold` is run by hand, and every check in `tests/p58` was satisfied
+by the *text* of the invocation rather than by running it. The rehearsal found it, which is
+what the rehearsals are for.
+
+**The test written for that was green on the break too.** It ran each tool through
+`python -m uv run`, and `uv` lives in the system interpreter rather than in the
+virtualenv - so under pytest the subprocess died with `No module named uv`, which contains
+neither "Traceback" nor "ModuleNotFoundError", and both assertions passed on a command
+that never started. Found by breaking the tool again on purpose and watching the test pass.
+It now runs each tool with the interpreter already running the suite and asserts the
+**return code**: 0 is its help, 2 is it refusing arguments, and anything else - including a
+launcher that could not launch - is a tool that did not start.
+
 ## B-090 Read the firm's model rather than wait to be told about it
 status: built
 2026-10-02, P129. B-008 ("register the non-ESOP Excel template") and the roll-forward's

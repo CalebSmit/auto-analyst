@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import ast
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -247,3 +248,70 @@ def test_it_costs_nothing_when_the_environment_is_there() -> None:
 
     assert missing(("sys", "json", "pathlib")) == ()
     needs("sys", "json", script="tools/serve.py")  # returns, raises nothing
+
+
+# ------------------------------------------- and whether the line actually starts
+
+
+def every_documented_tool() -> list[str]:
+    """Every `tools/*.py` any document tells somebody to run, by filename."""
+    return sorted(
+        {
+            Path(part).name
+            for page in PAGES
+            for command in documented_commands(ROOT / page)
+            for part in command.split()
+            if part.startswith("tools/") and part.endswith(".py")
+        }
+    )
+
+
+@pytest.mark.parametrize("tool", every_documented_tool())
+def test_a_documented_tool_gets_as_far_as_its_own_arguments(tool: str) -> None:
+    """Run it. The whole of this file above asks whether a command is *spelled* right, and
+    none of it asks whether it starts.
+
+    That gap had a cost the same evening it was written. Adding `needs()` to six tools put
+    `from tools._environment import needs` at the top of each - correct in four of them,
+    and wrong in `simulate_files.py` and `bootstrap_scaffold.py`, which put `tools/` on the
+    path rather than the repo so that they can import a sibling. Both raised
+    `ModuleNotFoundError: No module named 'tools'` on their first line. The suite was
+    green: `simulate_files` is a rehearsal the suite does not run, `bootstrap_scaffold` is
+    run by hand, and every check above was satisfied by the *text* of the invocation.
+
+    **And the first version of this test was green on the break too**, which is worth
+    writing down because it is the defect this repository is named for. It ran the tool
+    through `python -m uv run`, and `uv` is installed in the system interpreter rather than
+    in the virtualenv - so under pytest the subprocess died with `No module named uv`,
+    which contains neither "Traceback" nor "ModuleNotFoundError", and both assertions
+    passed on a command that never started. Hence the return code: a tool that ran and
+    printed its help exits 0, one that refused its arguments exits 2, and **1 is a
+    traceback or a launcher that could not launch**. The interpreter running the suite is
+    already the project's, so there is nothing to wrap it in.
+
+    `--help` is the argument every one of them takes and none acts on, so this reaches the
+    end of the imports and the top of `main` and stops.
+    """
+    done = subprocess.run(
+        [sys.executable, f"tools/{tool}", "--help"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=180,
+    )
+    said = done.stdout + done.stderr
+    assert done.returncode in (0, 2), (
+        f"tools/{tool} exited {done.returncode}. 0 is its help, 2 is it refusing "
+        f"arguments, and anything else is a tool that did not start:\n{said[-1500:]}"
+    )
+    assert "Traceback" not in said, f"tools/{tool} does not start:\n{said[-1500:]}"
+    assert said.strip(), f"tools/{tool} printed nothing at all for --help"
+
+
+def test_that_check_covers_the_tools_that_broke() -> None:
+    """A parametrised test over an empty list passes forever. These two are the ones the
+    gap cost, so they are the ones named."""
+    covered = every_documented_tool()
+    assert "simulate_files.py" in covered
+    assert "bootstrap_scaffold.py" in covered
+    assert len(covered) >= 10, covered

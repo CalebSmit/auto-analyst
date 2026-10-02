@@ -35,12 +35,17 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT / "tools") not in sys.path:
     sys.path.insert(0, str(ROOT / "tools"))
 
-from tools._environment import needs  # noqa: E402
+# `_environment`, not `tools._environment`: this file puts `tools/` on the path rather
+# than the repo, because it imports `simulate_firm` as a sibling. So the package `tools`
+# is not importable here and its modules are, and the dotted spelling - which is right in
+# every other tool - raises `ModuleNotFoundError: No module named 'tools'` on the first
+# line of the file. It did, for an hour, and the suite passed over it: a rehearsal is not
+# a test, which is the whole reason there are rehearsals.
+from _environment import needs  # noqa: E402
 
-# What this tool cannot run without. Called here, before the first project import, because
-# that import is where a bare `python tools/simulate_files.py` fails - and what it fails with is a
-# traceback about somebody else's library rather than the line to type. P58 was written
-# about that failure for `serve.py`; six more tools had it, and this is one of them.
+# What this tool cannot run without. Called before the first heavy import, because that
+# import is where a bare `python tools/simulate_files.py` fails, and what it fails with is
+# a traceback about somebody else's library rather than the line to type.
 needs("cryptography", "fastapi", "openpyxl", script="tools/simulate_files.py")
 
 import simulate_firm as sim  # noqa: E402 - beside this file, on the path just added

@@ -3784,7 +3784,8 @@
         "needs() in the six tools that gave a traceback instead of the line to type",
         "aa owed: what the client still owes, through the same dd_tracker the Setup page calls, writing nothing unless asked",
         "a /owed slash command that drafts a chase note from the essential items and sends nothing",
-        "fix B-081: join the tracker path to the storage root, and refuse where storage is not a folder"
+        "fix B-081: join the tracker path to the storage root, and refuse where storage is not a folder",
+        "fix the two tools the needs() addition broke, which put tools/ on the path rather than the repo"
       ],
       "exit": [
         "One command over a folder of mixed files reads each with the right check, renders through that check's own reporter, and one unreadable file does not take the folder with it",
@@ -3793,7 +3794,8 @@
         "Every command named in a slash command or a document exists, parses, and carries the environment unless it provably needs none",
         "A tool that needs the environment says what to type when it does not have it",
         "A command may be a second surface on a capability and never a second answer - stated in the module and held by the subcommand census",
-        "The tracker lands beside the documents, and what a person wrote in it survives a refresh - both failing when the join is taken out"
+        "The tracker lands beside the documents, and what a person wrote in it survives a refresh - both failing when the join is taken out",
+        "Every documented tool starts: run with the interpreter running the suite, asserting the return code rather than searching the output for words"
       ],
       "checks": [
         "python -m uv run pytest tests/p128 -q",

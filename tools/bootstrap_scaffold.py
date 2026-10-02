@@ -12,13 +12,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from tools._environment import needs  # noqa: E402
+# `_environment`, not `tools._environment`: this file puts `tools/` on the path rather
+# than the repo, because it imports `gate` as a sibling. The dotted spelling raises
+# `ModuleNotFoundError: No module named 'tools'` here - see `simulate_files.py`, which had
+# the same break for the same reason and on the same evening.
+from _environment import needs  # noqa: E402
 
-# What this tool cannot run without. Called here, before the first project import, because
-# that import is where a bare `python tools/bootstrap_scaffold.py` fails - and what it
-# fails with is a traceback about somebody else's library rather than the line to
-# type. P58 was written about that failure for `serve.py`; six more tools had it, and
-# this is one of them.
+# What this tool cannot run without, before the import that would fail on it.
 needs("yaml", script="tools/bootstrap_scaffold.py")
 
 import gate  # noqa: E402  - after the path insert, deliberately
