@@ -606,3 +606,13 @@ def test_fix_says_so_and_writes_nothing_when_there_is_nothing_mechanical_to_fix(
     assert main([str(document), "--fix", "--out", str(out)]) == 0
     assert "Nothing to fix mechanically" in capsys.readouterr().out
     assert not out.exists(), "and no file was written"
+
+
+def test_a_bare_file_extension_is_not_a_space_before_a_full_stop() -> None:
+    """`a source .docx` is a file extension written on its own, which this project's own
+    prose does constantly. Reporting it is the check being wrong about a sentence that is
+    right - found by running the checks over `BUILD/OPEN.md`."""
+    text = "Whether a source .docx is the appendix whole is the question.\n"
+    assert "space_before_punctuation" not in _checks(text)
+    # And the check still fires on the thing it is for.
+    assert "space_before_punctuation" in _checks("The margin held , and cash rose.\n")

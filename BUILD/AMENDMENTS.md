@@ -2415,3 +2415,10 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C73 after P131, covering P131
 - proves: The appendix preview and the command line read the same words and report the same findings; neither changes the document; the appendix moves whatever the words say; and the house style the checks are held to is still an open question on the interview map rather than a quietly settled one.
+
+## 2026-10-02 - P126 The tells, the slips, and the two spellings of one thing
+
+**Why:** A false positive found by pointing the checks at BUILD/OPEN.md: a bare file extension written in prose - 'whether a source .docx is the appendix whole' - reads as a space before a full stop. The extension list was already there for the missing-space check and now covers this one too. Calibration against documents that are fine is the half of this phase that took the work, and it does not stop when the phase closes.
+
+- task added: a bare file extension in prose is not a space before a full stop
+- exit criterion added: A bare file extension written in prose produces no slip, and the check still fires on a real space before a comma

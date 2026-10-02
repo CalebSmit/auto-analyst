@@ -688,6 +688,12 @@ def _per_paragraph(para: Paragraph, sentences: Sequence[str]) -> Iterator[Findin
         )
 
     for match in re.finditer(r"\s+([,.;:!?)\]])", text):
+        # ` .docx` is a file extension written on its own, which this project's prose does
+        # all the time - *"whether a source .docx is the appendix whole"*. A space before
+        # a full stop that is followed by an extension is not a space before a full stop,
+        # and reporting it is the check being wrong about a sentence that is right.
+        if match.group(1) == "." and _starts_an_extension(text[match.end() :]):
+            continue
         yield Finding(
             check="space_before_punctuation",
             kind=SLIP,
@@ -990,6 +996,12 @@ def _terms_both_ways(paragraphs: Sequence[Paragraph], lowered: str) -> Iterator[
                 says=f"{word!r} {times} times and {lower!r} {plain} time(s)",
                 evidence={"term": word, "capitalised": times, "lowercase": plain},
             )
+
+
+def _starts_an_extension(tail: str) -> bool:
+    """Whether what follows a dot is a file extension this project writes in prose."""
+    word = re.match(r"[A-Za-z0-9]+", tail)
+    return word is not None and word.group().lower() in EXTENSIONS
 
 
 def _is_a_filename_or_an_abbreviation(text: str, match: re.Match[str]) -> bool:

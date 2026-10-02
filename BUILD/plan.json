@@ -3718,14 +3718,16 @@
         "calibrate against this repo's own documents: strip code fences, indented blocks, tables, inline spans, CLI flags, file paths and fiscal years",
         "take out the Oxford comma check rather than ship it, and record why (B-086)",
         "--fix for the four mechanical substitutions, refusing a .docx and never touching code",
-        "printable(): a report that survives a console that cannot encode the document"
+        "printable(): a report that survives a console that cannot encode the document",
+        "a bare file extension in prose is not a space before a full stop"
       ],
       "exit": [
         "Every check fires on prose written to contain its defect, and the module describes each one",
         "A Markdown document built out of code fences, tables, CLI flags, file paths and fiscal years produces no slips at all",
         "A well-written paragraph produces nothing, and the defined-term check is silent on an ordinary word that sometimes starts a line",
         "--fix makes four substitutions, leaves a fenced block and a table byte-identical, refuses a .docx, and refuses to write without being told where",
-        "A tell alone is a zero exit and a slip is not, so nobody's commit fails over an em dash"
+        "A tell alone is a zero exit and a slip is not, so nobody's commit fails over an em dash",
+        "A bare file extension written in prose produces no slip, and the check still fires on a real space before a comma"
       ],
       "checks": [
         "python -m uv run pytest tests/p126 -q",
