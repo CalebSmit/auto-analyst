@@ -1048,6 +1048,16 @@ ACTIONS.clearFilter = () => {
   const q = $('q'); if (q) { q.value = ''; q.focus(); }
   ONLY_NEEDS = false; paintRuns();
 };
+/* The phrase, with its verb, in one place.
+
+   Two surfaces counted the same thing and each wrote the sentence itself, so the
+   engagement header read **"1 need a person"** on a real engagement with one halted run.
+   `plural()` inflects the noun and this phrase inflects the verb, which is not something a
+   caller should be expected to remember at each site.
+
+   Found by looking at a console with three real runs on it, not by reading the source. */
+const needAPerson = n => n + (n === 1 ? ' needs' : ' need') + ' a person';
+
 /* The count in the chrome is the filter. Somebody reads "12 need a person", and the
    next thing they want is those twelve - so the number they read is the control they
    press, rather than a fact they then have to act on somewhere else. */
@@ -1099,6 +1109,30 @@ const VERDICT_SAYS = {
   halted: 'the run ended without delivering',
 };
 
+/* The states a run is in when nothing is happening to it. Derived from STATE_SAYS rather
+   than listed again: each of these sentences begins by saying the run stopped. */
+const STOPPED = new Set(['quarantined', 'waiting', 'halted', 'superseded']);
+
+/* The second pill: what the scorecard says, beside what the run is.
+
+   `in_progress` on a scorecard means **no verdict yet**, and the pill rendered that as
+   "in progress" with the tooltip "still running". On a quarantined run that put
+   `quarantined` and `in progress` side by side - a run that has stopped, labelled as
+   running, with the tooltip insisting on it. Seen on a console with three real runs.
+
+   The scorecard's vocabulary is not the run's and was never meant to be read as it. When
+   the run has stopped, a scorecard with no verdict says exactly that. */
+function scorecardPill(c, state) {
+  const stopped = STOPPED.has(state);
+  const label = c.in_progress ? (stopped ? 'no verdict' : 'in progress') : c.verdict;
+  if (label === state) return '';   // one word, said once
+  const says = c.in_progress
+    ? (stopped ? 'the run stopped before the scorecard reached a verdict' : 'still running')
+    : (VERDICT_SAYS[c.verdict] || "the scorecard's verdict");
+  const tone = c.in_progress ? (stopped ? '' : 'accent') : (VERDICT_TONE[c.verdict] ?? '');
+  return `<span class="pill ${tone}" title="${esc(says)}">${esc(label)}</span>`;
+}
+
 /* A count beside a panel's title, or nothing at all when there is nothing to count. */
 function count(id, n) {
   const box = $(id);
@@ -1138,7 +1172,7 @@ async function refresh() {
     ? `<span class="attention">${plural(RUNS.length, 'run', 'runs')}`
       + (attention ? ` &middot; <b class="chip" role="button" tabindex="0" data-act="onlyNeedsAPerson"`
          + ` title="Show only these. A run stops on itself when a step failed in a way retrying`
-         + ` will not fix, or on a person when it has a question.">${attention} need a person</b>` : '')
+         + ` will not fix, or on a person when it has a question.">${needAPerson(attention)}</b>` : '')
       + (inbox.length ? ` &middot; <b class="chip" role="button" tabindex="0" data-act="toReview"`
          + ` title="Open questions waiting for an answer. Each sits on one of the runs above.">`
          + `${plural(inbox.length, 'question', 'questions')} waiting</b>` : '')
@@ -1241,7 +1275,7 @@ function paintRuns() {
       <div class="grp-head">
        <b>${esc(rs[0].client || id)}</b>
        <span class="sub">${esc(rs[0].scope_path || '')}</span>
-       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="questions waiting for an answer on this engagement">${open}</span> ${open === 1 ? 'question' : 'questions'}` : ''}${attention ? ` &middot; <b style="color:var(--gold)">${attention} need a person</b>` : ''} &middot; ${esc(ago(last))}</span>
+       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="questions waiting for an answer on this engagement">${open}</span> ${open === 1 ? 'question' : 'questions'}` : ''}${attention ? ` &middot; <b style="color:var(--gold)">${needAPerson(attention)}</b>` : ''} &middot; ${esc(ago(last))}</span>
       </div>
       <div class="grp-runs">${rs.map(runRow).join('')}</div>
      </div>`;
@@ -1612,7 +1646,7 @@ async function open_(id) {
   $('card').innerHTML =
     `<div class="r" style="border:0;padding:0 0 .4rem">
       <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot"></i>${esc(run.state)}</span>
-       ${(c.in_progress ? 'in progress' : c.verdict) !== run.state ? `<span class="pill ${c.in_progress ? 'accent' : VERDICT_TONE[c.verdict] ?? ''}" title="${esc(c.in_progress ? 'still running' : (VERDICT_SAYS[c.verdict] || "the scorecard's verdict"))}">${c.in_progress ? 'in progress' : esc(c.verdict)}</span>` : ''}</span>
+       ${scorecardPill(c, run.state)}</span>
       <span id="run-actions"></span></div>
      ${run.state_reason ? `<p class="note" style="margin:.1rem 0 .2rem">${esc(STATE_SAYS[run.state] ? STATE_SAYS[run.state] + '.' : '')}</p>
       ${run.state_reason.length > 160
@@ -1624,7 +1658,11 @@ async function open_(id) {
       ${(run.versions || {}).model_pin ? `<dt>Model</dt><dd class="mono" title="the pin this run holds">${esc(run.versions.model_pin)}</dd>` : ''}
       <dt>Model spend</dt><dd>${esc(usd(run.spend ? run.spend.usd : run.cost_usd))}${run.budget_usd ? ` <span class="sub">of ${esc(usd(run.budget_usd))}</span>` : ''} <span class="sub">&middot; ${esc(run.spend ? run.spend.model_calls : run.model_calls)} calls</span></dd>
       ${run.superseded_by ? `<dt>Replaced by</dt><dd><a href="#${encodeURIComponent(run.superseded_by)}" data-act="open" data-run="${esc(run.superseded_by)}">${esc(run.superseded_by)}</a> <span class="sub">&middot; a newer file covers this work</span></dd>` : ''}
-      ${row.open_review_items ? `<dt>Waiting on you</dt><dd><span class="count">${row.open_review_items}</span></dd>` : ''}
+      <!-- "Questions waiting", the chrome's words for the same count. P132 retired
+           "waiting on you" and replaced it in the two places it was looking; this is the
+           fourth, on the panel somebody reads *after* clicking the chrome's number, so the
+           two were a click apart and spelled differently. -->
+      ${row.open_review_items ? `<dt>Questions waiting</dt><dd><span class="count">${row.open_review_items}</span></dd>` : ''}
      </dl>
      <div id="steps"></div>
      <div id="decisions"></div>

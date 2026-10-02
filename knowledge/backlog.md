@@ -1508,3 +1508,238 @@ what they do before they are pressed.
 What this says about method: four defects in surfaces that are heavily tested, found by
 opening them. The suite can only ask whether a page does what its code says; whether what
 it says is true of what a person sees is a different question and needs eyes.
+
+## B-096 A fresh clone could not set itself up
+status: fixed (P135)
+2026-10-02. Started a server against an empty store - the state the work machine begins in -
+and opened `/admin`. The page was twelve grey rectangles under a red banner reading *"This
+page cannot reach the server"*. Five defects, each of which alone stops a first day:
+
+1. `SETUP` was `null` on an unconfigured machine and `checklist()` dereferenced it. Most of
+   the page guarded for null; one step did not, threw, and took every panel after it with
+   it. **Null was the wrong shape for "nothing is set up"**; an empty object is the right
+   one, and whether a configuration exists is a separate flag because it is a separate
+   question.
+2. The refusal was reported as an unreachable server. `refresh()` tested `e.code`, and only
+   *structured* diagnostics carry a code - so the one refusal this page exists to handle
+   took the other branch. Every refusal now says `refused: true`, which is the question
+   actually being asked.
+3. The masking key and the model adapter were only ever returned inside `/api/admin/setup`,
+   which refuses when there is no document - so steps one and two of the checklist read
+   "unknown" and "?" on the one machine where they are the whole job. They need no
+   configuration and are now their own route.
+4. **`SETUP.recipes` is returned by no route at all.** The workflows live behind
+   `/api/admin/recipes`. So on *every* machine, configured or not, step seven could not be
+   ticked, its Approve button could not appear, and the checklist could not reach "Ready to
+   run" however much was done - while the panel beside it said four approved. This build's
+   most-named defect, in the list a person follows on their first day.
+5. A step's control rendered only when that step was `next`. A fresh clone runs on the fake
+   adapter, so step two can never be marked done, so it was permanently `next`, so step
+   three's **Set it up** never appeared. There was no way to configure the machine from the
+   page whose only purpose is configuring it.
+
+And two sentences that were not sentences: `the firm ceiling of $undefined`, and `Next:
+connect the ai model`.
+
+Not found by reading. Found by starting a server on an empty database and looking at it.
+
+## B-097 The board is a monitor layout
+status: fixed (P136)
+2026-10-02. Measured rather than guessed: with the Setup page's wrapper forced to 600px -
+a 1366x768 laptop less the browser's chrome - the "Getting set up" panel reported
+`clientHeight 259, scrollHeight 750`. **35% of its own content**: three steps of eleven, in
+the panel a first day is spent in, with the other eleven panels no better.
+
+The stylesheet already contained the argument, for the other dimension: *"One screen, no
+scrolling, is the rule at desk width. Below it the same rule hides whatever does not fit,
+with no way to reach it."* Nobody had said it about height. Below 760px the board now falls
+back exactly as it does below 1100px of width, a finished step costs one line instead of
+two, and the checklist holds four of the board's six rows while it has work in it. Eleven
+of eleven, visible at once.
+
+Worth saying plainly: this was invisible on the machine it was built on and is the shape of
+the machine it is moving to.
+
+## B-098 What the three reads say on real input
+status: fixed (P137)
+2026-10-02. Ran `aa review` over a normalisation workbook with the two mistakes the analyst
+named, a page of appendix commentary written the way a model writes one, and a three-year
+table with signed amounts.
+
+**The formula audit was right.** It found the total one row short and the total that reached
+up over a subtotal, named the cell, named the rule, printed the formula, and said which
+checks it could not run and why. Nothing to do.
+
+**The prose read reported a bullet list as a sentence missing its full stop.** The rule
+looked only at the first line of a Markdown block, so
+
+    Key considerations include:
+    - owner compensation normalised to a market rate
+
+is one block beginning with a sentence - the commonest shape in a report, and every one of
+them a finding. The last line decides now. It also said `ends in 'k'`, which is the last
+character of the sentence printed directly above it.
+
+**The reasonableness read asked twelve questions about figures that cannot exist.** Given a
+table with a cost of sales of -10,900 rather than 10,900 - what a trial balance looks like -
+it reported a gross margin of 173.6 points and asked *"What changed in the business - and is
+it in the forecast?"* A margin above 100 points is not a business event; profit cannot
+exceed revenue. Each ratio now carries the range its own arithmetic can produce, a value
+outside it is reported once with the negative rows named, and no movement is asked about.
+
+Both failures are the same one: **a read asserting something it had not established.** The
+fixtures were in the shape the checks were written against, so neither had ever been seen.
+A margin has no floor - a business can lose more than it earns - so only the bound the
+arithmetic actually gives is claimed.
+
+## B-099 What three real runs say on the screen
+status: fixed (P138)
+2026-10-02. Ran `simulate_firm.py --scripted --keep` into a directory that survives it,
+started a server on the store it left, and read the console against three runs it had
+actually produced. Three things:
+
+**"1 need a person."** The chrome and the engagement header count the same states and C74
+holds them to the same *words*. Both wrote the sentence themselves, so they agreed on the
+noun and neither inflected the verb - invisible until a count came out as one, which no
+fixture and no screenshot had ever produced. `needAPerson(n)` owns the phrase and its verb
+now, and C74's test was changed from counting the literal twice to asserting one home and
+two callers, which is the property it was reaching for.
+
+**"quarantined · in progress", tooltip "still running."** `in_progress` on a scorecard means
+*no verdict yet*; the pill rendered it as the run's own motion. So a run that had stopped on
+itself was labelled as running, with a tooltip insisting on it. Two vocabularies - run
+states and scorecard verdicts - and the page read one in the other's terms. On a stopped run
+a scorecard with no verdict now says `no verdict`.
+
+**Two keys the map answers to and never mentions.** `+` and `-` zoom; the hint line named
+five keys and not those, and "0 fits" reads as a count of something beside "/ finds", which
+is the same shape and does not. A test now holds the line to the handler in both directions.
+
+(The keys themselves all work - verified in the browser. A first probe suggested they did
+not, and was wrong: a `KeyboardEvent` dispatched on `document` has `target === document`,
+`document` has no `.closest`, and the handler's second line throws before any key is read.
+Dispatch on an element.)
+
+## B-100 One vocabulary, and there were four surfaces
+status: fixed (P139)
+2026-10-02. C74 held the chrome, the engagement header and the Help page to one set of
+words. There are four surfaces. The Analytics console titled the same condition **Needs
+attention** - one tab away from a chrome reading **2 need a person** - and the run detail
+still said **Waiting on you**, on the panel somebody reads *after* pressing the chrome's
+number. Both are phrases P132 retired; both survived because P132's guard was scoped to the
+two functions it had changed.
+
+And the Help page, which exists so a reader can look up a word they met on a screen, defined
+`Waiting` and `Quarantined` but not `Needs a person` - the word printed larger than either,
+and the only one in this vocabulary that is not a state. It also did not define `queued` or
+`superseded`, two states a run can be in that want nothing from anybody, which is why nobody
+had missed them.
+
+**What is worth keeping is the test, not the strings.** It finds the surfaces rather than
+listing them - every module that defines a `PAGE` - so the next page added to this product
+is held to the same words without anybody remembering. A list of three was what let the
+fourth drift.
+
+## B-101 Sixty-eight skipped tests that say they are unwritten and are not
+status: proposed
+2026-10-02, noticed while writing C76. `gate seal` writes a stub beside each new checkpoint:
+
+    @pytest.mark.skip(reason="written at the end of P139")
+    def test_c76_integration():
+        raise NotImplementedError
+
+It exists so the integration test has a home before it is needed, which is right. What
+nothing does is remove it once the real test is written beside it - so there are **68 of
+them**, every one skipped, every one saying "This checkpoint is not written yet" about a
+checkpoint that is written and green.
+
+Why it is worth fixing rather than ignoring: this repo's whole apparatus is built on a
+skipped test not being a passing one, and the session summary counts skips so that a real
+one is visible. Sixty-eight permanent ones are the noise a real one hides in.
+
+Two ways, and the choice is a small design one:
+
+* **Delete each stub when its checkpoint's real test lands**, and add one test asserting
+  that a closed checkpoint has no stub left. 68 file deletions, mechanical, and the `Proves:`
+  sentence each stub carries is already in `BUILD/PLAN.md`.
+* **Make `gate seal` write the real file**, so there is one file per checkpoint from the
+  start and nothing to remove. Does nothing about the 68 already there.
+
+Not done here because it is 68 deletions in a session that was about the consoles, and
+because which of the two is right is a judgement about the gate rather than a defect in it.
+
+## B-102 The consoles were served with no cache headers
+status: fixed (P140)
+2026-10-02. Fixed a syntax error in the Setup page, restarted the server, and the page was
+still the broken one. Three more restarts, same. It only came back when the URL was changed
+to `/admin?v=1`.
+
+The three consoles are Python strings built at import, so the only way a new one reaches a
+person is a restart - and the responses carried **no cache headers at all**, which leaves a
+browser free to reuse one without asking. It does.
+
+On the machine this is moving to that reads as "I pulled the update and the fix is not
+there", with nothing on screen to say otherwise, and the next thing somebody does is look
+for a bug that was already fixed. `ui/who.py` now adds `Cache-Control: no-store` to every
+`text/html` answer - in the middleware rather than on each route, because a route added
+later would not know to, which is exactly how `/analytics` and `/help` would have been
+missed. The API answers are untouched: the scripts ask for those afresh anyway.
+
+## B-103 The gate ordered an id as a string, in a fourth place
+status: fixed (P141)
+2026-10-02. `gate amend C76 --set-after P140` ran `amend_checkpoint`, which sorted the
+checkpoint list with `sort(key=lambda x: x["after"])` - on the spelling. The plan came back
+with its 76 checkpoints in the order P03, P06, P09, **P100**, P102, ..., and C59-after-P99
+last. `tests/p01` then said *"the last checkpoint must cover the last phase"*, which was a
+true statement about a plan whose order had just been scrambled by the tool reporting it.
+
+`number_of()` exists for exactly this. Its docstring already named three sites fixed on
+2026-09-22 when the plan crossed a hundred phases - `phases_covered_by`, `cmd_close`'s
+in-order check, `phases_after_last_checkpoint`. This was a fourth, and that sweep could not
+have found it: **a sort key is not a comparison**, so looking for `<` finds three.
+
+Nothing was lost. `save()` renders PLAN.md from the plan, and the order was repaired
+numerically before anything was generated from it. What it cost was an hour.
+
+`tests/p141` now holds the rule over the whole file with an `ast` walk rather than site by
+site: no comparison and no sort key in `tools/gate.py` orders a phase or checkpoint id
+except through `number_of`. Run against the code as it stood, it found that one offender and
+nothing else.
+
+## B-104 One diagnostic code was doing the work of five
+status: fixed (P141)
+2026-10-02, found by running `aa owed` against a real store. An engagement whose division
+has no request list is refused correctly and then told:
+
+    what to do: The run criteria version named is not a file under ops/criteria/ ... Pin a
+    version that exists; a run scored against 'whatever is newest' cannot say what bar it
+    was judged by.
+
+`SCOPE.UNKNOWN_CRITERIA` was raised at five sites, four of which are not about criteria.
+`what to do` is the half a person acts on, and borrowing a code borrows its advice for a
+problem it was not written about. `/owed` is one of the slash commands.
+
+| raised for | now |
+|---|---|
+| a criteria version not on disk | `SCOPE.UNKNOWN_CRITERIA` (correct, `ops/scorecard.py`) |
+| a division with no request list | `SCOPE.NO_REQUEST_LIST` |
+| an appendix id that does not exist | `SCOPE.UNKNOWN_APPENDIX` |
+| a malformed appendix registry | `SCOPE.APPENDIX_REGISTRY_INVALID` |
+| an appendix that carries forward | `SCOPE.APPENDIX_CARRIES_FORWARD` |
+
+**Three things found by the layer above, in order.** The phase searched two files and wrote
+its test over those two. C77 walked every module that raises a diagnostic and found the
+fifth, in `report/setup.py` - so the phase reopened through `gate amend --reopen` rather
+than letting the fix arrive uncovered, and its test now walks rather than searches. Closing
+that found the four codes missing from the blueprint's `ERRCODES` table, which `tests/p14`
+exists to catch because ten codes once grew in the registry over nine phases without
+reaching it. Accepting *that* found the public-surface snapshot refusing them, correctly: a
+code is a published contract, a caller may key on it, so adding one is a surface change and
+the reason goes in `gate amend` before the snapshot takes it.
+
+**And one correction to the fix itself, found by reading the output rather than the diff.**
+The first draft of `NO_REQUEST_LIST`'s `what_now` restated the refusal almost word for word
+- the "why" twice and the "what to do" nowhere. The two halves do different jobs: the
+message says what happened and why another division's list is not lent; the advice says
+where to write one and which scopes a file serves. `tests/p141` asserts both halves and that
+neither takes the other's job.

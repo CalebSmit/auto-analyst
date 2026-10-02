@@ -2458,3 +2458,165 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C74 after P134, covering P132, P133, P134
 - proves: The chrome, the engagement header and the filter use one phrase for a run that wants a person and the Help page defines it; the funnel's sentence and its numbers make the same claim and neither can move alone; and three phases of additions to the review modal left the reveal gate exactly where it was.
+
+## 2026-10-02 - P135 The page a new machine starts on
+
+**Why:** A fresh clone cannot set itself up: the Setup page throws on load, calls a reachable server unreachable, and shows no way to write the first configuration. This is the exact state the work machine starts in.
+
+- phase added: P135 The page a new machine starts on (The first day, gate: auto)
+- exit criterion: The Setup page renders every panel on an empty store and offers the control that writes the first configuration
+- exit criterion: A refusal from a server that answered is not reported as a server nobody can reach
+- exit criterion: The checklist's eleven steps each read from something that exists, and none of them prints a value nobody has
+
+## 2026-10-02 - P136 The dashboard on a laptop
+
+**Why:** Measured the Setup page at a laptop viewport: the panel somebody's first day is spent in showed 35% of its own content. The board's one-screen grid is right for a monitor and wrong for the machine this is moving to.
+
+- phase added: P136 The dashboard on a laptop (The first day, gate: auto)
+- exit criterion: At a short viewport the board scrolls like a page and no panel hides content behind an inner scrollbar
+- exit criterion: A finished checklist step takes one line rather than two, and an unfinished one is unchanged
+- exit criterion: Nothing about the desk-width layout changes
+
+## 2026-10-02 - P137 What the three reads say on real input
+
+**Why:** Ran the three reads against documents shaped like the real work rather than like their fixtures. The formula audit found exactly what it was asked to; the other two said things that were wrong, at length and with confidence.
+
+- phase added: P137 What the three reads say on real input (The first day, gate: auto)
+- exit criterion: A Markdown list introduced by a lead-in line is not reported as a paragraph missing its full stop, and a sentence that follows bullets still is
+- exit criterion: A ratio whose value its arithmetic cannot produce is reported once, naming the rows responsible, and no movement question is asked about it
+- exit criterion: A table in the shape the ratios are defined on is reported exactly as before
+
+## 2026-10-02 - C75 The first day
+
+**Why:** Three phases, all found by using the tool as a new machine would rather than by reading it: the Setup page on an empty store, the board at a laptop's viewport, and the three reads against documents shaped like the work. The block ends here because what is left to find needs a run, and a run needs B-004.
+
+- checkpoint added: C75 after P137, covering P135, P136, P137
+- proves: A machine nobody has configured can be configured from its own dashboard, at the size of screen it will be configured on, and the checks that read a deliverable say only what they have established.
+
+## 2026-10-02 - P135 The page a new machine starts on
+
+**Why:** the phase was opened with exit criteria and checks but no tasks; these are what it actually did
+
+- task added: SETUP is an empty object and whether a configuration exists is its own flag, so checklist() renders rather than throwing
+- task added: every refusal says it came back from a server, so a refusal is not reported as an unreachable one
+- task added: the masking key and the model adapter are answerable without a configuration document
+- task added: the checklist reads the workflows from the route that has them, and every step's control renders whether or not it is next
+
+## 2026-10-02 - P136 The dashboard on a laptop
+
+**Why:** opened with no tasks
+
+- task added: a finished step's title and detail share one line
+- task added: the checklist holds four of the board's six rows while it has work in it
+- task added: below 760px of viewport the board scrolls like a page, as it already does below 1100px of width
+
+## 2026-10-02 - P137 What the three reads say on real input
+
+**Why:** opened with no tasks
+
+- task added: a Markdown block whose last line is a list item is a list, and the finding says what is missing rather than what is there
+- task added: each ratio carries the range its arithmetic can produce, and a value outside it is reported once, naming the rows responsible
+- task added: no movement question is asked about a ratio whose figures do not mean anything
+- task added: the refusal on an unreadable table says what a line looks like
+
+## 2026-10-02 - P138 What three real runs say on the screen
+
+**Why:** Ran the console against a rehearsal's three real runs and read it. The engagement header said '1 need a person', a quarantined run was labelled 'in progress' with the tooltip 'still running', and the map's key hints left out two keys it handles.
+
+- phase added: P138 What three real runs say on the screen (The first day, gate: auto)
+- exit criterion: The phrase for a run that wants a person is inflected in one place and both surfaces call it
+- exit criterion: A run that has stopped is not labelled as running by the scorecard's pill, and a run that is going still is
+- exit criterion: Every key the map handles appears in its own hint line, and every key the line names is handled
+
+## 2026-10-02 - P138 What three real runs say on the screen
+
+**Why:** opened with no tasks
+
+- task added: the phrase for a run that wants a person carries its verb, in one function both surfaces call
+- task added: the scorecard pill reads the run's own state, so a stopped run with no verdict says so rather than claiming motion
+- task added: the map's hint line names every key it handles, and the fit key reads as a key and a verb
+
+## 2026-10-02 - P139 One vocabulary, across four surfaces
+
+**Why:** C74 held three surfaces to one vocabulary and there are four. The Analytics console still titled the same condition 'Needs attention', and the Help page - which exists so somebody can look a screen word up - did not define the phrase the chrome counts with.
+
+- phase added: P139 One vocabulary, across four surfaces (The first day, gate: auto)
+- exit criterion: No surface says 'needs attention' for a condition another surface calls needing a person
+- exit criterion: Help defines every state word the other three screens show, including the one that is not a state
+
+## 2026-10-02 - P139 One vocabulary, across four surfaces
+
+**Why:** opened with no tasks
+
+- task added: the retired phrase is refused on every surface the product serves, found rather than listed
+- task added: the Analytics panel and the run detail use the words the chrome uses
+- task added: Help defines every state the screens show, and the phrase that covers two of them
+
+## 2026-10-02 - C76 Three real runs
+
+**Why:** Two phases found by running a rehearsal into a store that survives it and reading the console against three real runs. The block ends here because the next thing to look at - the review modal with an item open in it - needs a run that reaches one, and on the fake adapter none does.
+
+- checkpoint added: C76 after P139, covering P138, P139
+- proves: What the consoles say about a run in front of them is true of that run, and the four surfaces say it in one set of words.
+
+## 2026-10-02 - P140 The consoles are parsed, not only read
+
+**Why:** Broke the Setup page while improving it - an HTML comment inside a JavaScript template literal, with backticks in it - and shipped a page whose every panel was a grey bar with the suite green. Nothing in this repo parses the JavaScript the three consoles are made of.
+
+- phase added: P140 The consoles are parsed, not only read (Parsed, gate: auto)
+- exit criterion: Every page this product serves has its script parsed, and a syntax error in any of them fails
+- exit criterion: The check is proved by breaking each page in the way that broke this one
+
+## 2026-10-02 - P140 The consoles are parsed, not only read
+
+**Why:** opened with no tasks
+
+- task added: every page's script is compiled by node's own parser, never executed
+- task added: the parser is proved to refuse four shapes of broken JavaScript, including the one that caused this
+- task added: a machine without node skips loudly, and CHANGING.md says so
+
+## 2026-10-02 - C76 Three real runs, and a parser
+
+**Why:** P140 was opened after this was sealed, so the last checkpoint stopped covering the last phase and tests/p01 said so - which is the structural rule working. Folding P140 in rather than sealing a second checkpoint behind it is also the truer story: it exists because a console broke while P138 and P139 were being written, on the same surfaces, in the same morning. Three phases, inside the limit of four.
+
+- title: 'Three real runs' -> 'Three real runs, and a parser'
+- proves: 'What the consoles say about a run in front of them is true of that run, and the four surfaces say it in one set of words.' -> 'What the consoles say about a run in front of them is true of that run, the four surfaces say it in one set of words, and a syntax error in any of their scripts is a test failure rather than something a person finds by opening the page.'
+- after: P139 -> P140
+
+## 2026-10-02 - P141 The fourth site, and the borrowed code
+
+**Why:** Moving C76 to cover P140 ran gate.py's own checkpoint sort, which orders ids as strings - so the plan came back with its 76 checkpoints out of order from the hundredth phase on, and the red that followed was the tool reporting itself. The same shape turned up in a refusal: aa owed answers a missing request list with advice about pinning a criteria version.
+
+- phase added: P141 The fourth site, and the borrowed code (Said once, meant everywhere, gate: auto)
+- exit criterion: Nothing in tools/gate.py orders a phase or checkpoint id as a string, in a comparison or a sort key
+- exit criterion: A missing request list and an unknown appendix each carry a code whose what-to-do is about them
+- exit criterion: The plan's checkpoints are in order on disk
+
+## 2026-10-02 - P141 The fourth site, and the borrowed code
+
+**Why:** opened with no tasks
+
+- task added: amend_checkpoint orders checkpoints by number, like every other ordering in the gate
+- task added: number_of's docstring names the fourth site and says a sort counts as well as a comparison
+- task added: a missing request list, an unknown appendix and a malformed appendix registry each carry their own code
+- task added: each new code's what-to-do adds what the refusal cannot say rather than repeating it
+
+## 2026-10-02 - C77 Said once, meant everywhere
+
+**Why:** P141 is the only phase in its block and it checks tests/p01, which refuses while the last phase sits past the last checkpoint - so this has to be sealed before the phase it covers can close. One phase rather than four because the block is one idea: a rule written down in a file and a second site in that file not following it.
+
+- checkpoint added: C77 after P141, covering P141
+- proves: The two rules this repo already stated - order an id by its number, and let a code's advice be about its own problem - hold over the files that state them rather than over the sites somebody happened to list.
+
+## 2026-10-02 - P141 The fourth site, and the borrowed code
+
+**Why:** C77 walked every module that raises a diagnostic and found a fifth borrowed site the phase's two-file search had missed - report/setup.py answers 'this appendix carries forward and nothing updates it' with the criteria advice. That is a sixth distinct problem wearing the same code, and it is this phase's work, so the phase reopens rather than the fix arriving uncovered.
+
+- task added: an appendix that carries forward says so with a code of its own, found by walking every module rather than the two that were looked at
+- status: done -> open
+
+## 2026-10-02 - P141 The fourth site, and the borrowed code
+
+**Why:** The public surface gains four diagnostic codes - SCOPE.NO_REQUEST_LIST, UNKNOWN_APPENDIX, APPENDIX_REGISTRY_INVALID and APPENDIX_CARRIES_FORWARD - and they are in the blueprint's ERRCODES table beside the rest of the SCOPE family. A code is a published contract: a caller may key on it, so adding one is a surface change and is recorded here before the snapshot accepts it. Nothing was removed and nothing was renamed; UNKNOWN_CRITERIA keeps its meaning and loses the four problems it was standing in for.
+
+- check added: python -m uv run python tools/surfaces.py --check

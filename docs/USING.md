@@ -69,6 +69,10 @@ that machine - press Enter to go without one), makes the inbox and outbox folder
 the dashboard in the browser. After that it just starts. Close the window to stop it.
 `tools\start.ps1 -SetupOnly` prepares everything and runs `--check` without starting.
 
+Which page it opens is the server's answer rather than a fixed address: a machine that has
+no configuration yet lands on **Setup**, because every step of a first morning starts there,
+and a machine that is set up lands on **Activity**.
+
 Or by hand:
 
 ```

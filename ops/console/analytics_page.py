@@ -125,7 +125,10 @@ async function refresh() {{
   }}
   online();
 
-  $('chrome-right').innerHTML = 'since ' + esc(a.since);
+  /* A date a person reads, not the wire format. Everywhere else on these three screens
+     a time is "4 min ago" or "2026-09-02 14:19"; this one line put `2026-09-02T14:19:01Z`
+     in the chrome, which is the shape of the data rather than a date. */
+  $('chrome-right').innerHTML = 'since ' + esc(String(a.since || '').slice(0, 16).replace('T', ' '));
   head(a.head);
   funnel(a.funnel, a.head.runs);
   failures(a.failures);
@@ -245,7 +248,13 @@ function stuck(s) {{
   const flagged = s.skills_flagged_by_drift || [];
   $('stuck').innerHTML =
     `<div class="r" style="border:0;padding:0 0 10px"><span class="lbl">
-      <span class="pill ${{total || flagged.length ? 'warn' : 'good'}}"><i class="dot"></i>${{total || flagged.length ? 'Needs attention' : 'Nothing is stuck'}}</span>
+      <!-- "Needs a person", not "Needs attention". P132 replaced that phrase everywhere on
+           the Activity console and C74 holds the three surfaces there to one vocabulary;
+           this is the fourth surface and nobody looked at it. Somebody reading "2 need a
+           person" on one page and "Needs attention" on the next has to work out that they
+           are the same condition, and on this panel they are: every line under it is work
+           that has stopped and is waiting on somebody. -->
+      <span class="pill ${{total || flagged.length ? 'warn' : 'good'}}"><i class="dot"></i>${{total || flagged.length ? 'Needs a person' : 'Nothing is stuck'}}</span>
      </span></div>` +
     lines.map(([k, v, why]) => `<div class="r">
       <span class="lbl">${{k}}<span class="d">${{why}}</span></span>

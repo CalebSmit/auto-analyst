@@ -371,7 +371,11 @@ def amend_checkpoint(plan: dict[str, Any], args: argparse.Namespace) -> int:
             sys.exit(f"unknown phase {target}")
         changes.append(f"after: {c['after']} -> {target}")
         c["after"] = target
-        plan["checkpoints"].sort(key=lambda x: x["after"])
+        # By number, like every other ordering in this file. Sorting on the spelling
+        # put P100 between P09 and P12 and left C59-after-P99 last, which `tests/p01`
+        # caught as "the last checkpoint must cover the last phase" - a true statement
+        # about a plan whose order had just been scrambled by this line.
+        plan["checkpoints"].sort(key=lambda c: number_of(c["after"]))
     if args.add_check:
         for check in args.add_check:
             c["checks"].append(check)
@@ -553,6 +557,13 @@ def number_of(pid: str) -> int:
       not less than `"P100"`, so the hundredth phase could close over an open ninety-ninth.
     * `phases_after_last_checkpoint` compared the same way and stopped reporting anything
       owed at all.
+
+    A fourth was found on 2026-10-02, and it is the one that sweep could not see:
+    `amend_checkpoint` **sorted** on `after` rather than comparing, and a sort key is
+    not a comparison, so looking for `<` found three sites and left this one. Moving a
+    checkpoint ran it and the plan came back with its checkpoints out of order from the
+    hundredth phase on. `tests/p141` now asserts the rule over the whole file rather
+    than site by site: nothing here orders an id except through this.
     """
     digits = "".join(c for c in pid if c.isdigit())
     if not digits:

@@ -94,7 +94,10 @@ def test_the_two_counts_name_their_units() -> None:
     """One counts runs and one counts questions, and a question sits on a run already in
     the first number. Written without the units they read as two disjoint buckets."""
     inner = body_of("refresh")
-    assert "need a person" in inner
+    # Through `needAPerson`, which owns the phrase *and its verb*. Both surfaces wrote the
+    # sentence themselves and the engagement header read "1 need a person" on a real
+    # engagement with one halted run; P138 moved it into one function.
+    assert "needAPerson(" in inner
     assert "'question', 'questions'" in inner, "the second count does not say it counts questions"
     assert "need attention" not in inner, "the old wording is back"
     assert "waiting on you" not in inner, "the old wording is back"
@@ -218,6 +221,6 @@ def test_the_group_header_uses_the_same_words_as_the_chrome() -> None:
     The chrome says "need a person" and the engagement header said "need attention" -
     and the header is still shown, for a client with several runs."""
     inner = body_of("paintRuns")
-    assert "need a person" in inner
+    assert "needAPerson(" in inner, "the header writes the sentence itself again"
     assert "need attention" not in inner
     assert "'question' : 'questions'" in inner, "the open count does not say what it counts"

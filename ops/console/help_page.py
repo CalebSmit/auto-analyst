@@ -30,9 +30,19 @@ GLOSSARY: tuple[tuple[str, str], ...] = (
     ("Review item", "Something the system was not sure enough about to decide alone - an add-back, a tag, a period that does not line up. The run waits for your answer."),
     ("Precedent", "An answer you gave, kept (masked) and shown on later engagements in the same practice group as an example of how the firm decides. Only a person's decision becomes precedent. It teaches later runs; it does not change the run you answered on."),
     ("Decided on this run", "The questions already answered on a run: what was proposed, what was decided, by whom, why, and whether the proposal was revealed before the decision."),
+    # The phrase the chrome counts with and the Analytics panel is titled by, and the one
+    # word in all of this that is not a state a run can be in - it is the two below it,
+    # named together. Help is where somebody goes when a word on a screen is unfamiliar,
+    # and "2 need a person" is the most prominent word on the most-looked-at screen.
+    ("Needs a person", "A run that has stopped and will not start again by itself: either waiting on an answer, or quarantined. The two below say which. The count in the top right of Activity is these, and pressing it shows only them."),
     ("Waiting", "A run stopped on a person: it resumes on its own once its review items are answered."),
     ("Quarantined", "A run stopped on itself: a step failed in a way retrying will not fix. Fix the cause, then Resume - or Halt it."),
     ("Halted", "A run that ended without delivering. Nothing partial leaves the system; the reason is on the run."),
+    # The two states the screens show and this page had never named. Neither wants anything
+    # from you, which is why neither had been missed - and is exactly why somebody who sees
+    # one needs to be told so rather than left wondering.
+    ("Queued", "A run that is ready and waiting for a worker to pick it up. Nothing is wrong; nothing is needed from you."),
+    ("Superseded", "A run replaced by a newer one, because newer files covering the same work arrived. It stops where it is and the newer run is the one to read."),
     ("Provenance", "Every number says which file, sheet and cell it came from - and the check confirms the number is actually there."),
     ("Tie-out", "Every total is added up again from the rows it cites. A total that does not re-add is stopped, with both numbers."),
     ("Masking", "Client names and identifiers are replaced before anything reaches a model, and put back afterwards by code, never by the model."),

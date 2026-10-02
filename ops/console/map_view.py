@@ -342,7 +342,11 @@ MAP_HTML = """
     </span>
     <span class="hidden-note" id="dmap-drawn"></span>
     <span class="hidden-note" id="dmap-hidden"></span>
-    <span class="keys">n and p walk the run &middot; / finds &middot; 0 fits &middot; Esc closes</span>
+    <!-- Every key the map handles, because a shortcut nobody can find is one nobody uses:
+         `+` and `-` were bound and undocumented, and "0 fits" reads as a count of
+         something rather than as a key and a verb. A test holds this line to the handler. -->
+    <span class="keys">n and p walk the run &middot; / finds &middot; + and &minus; zoom
+     &middot; 0 fits it to the window &middot; Esc closes</span>
    </div>
   </div>
   <aside class="side" id="dmap-side"><div class="side-in" id="dmap-side-in"></div></aside>

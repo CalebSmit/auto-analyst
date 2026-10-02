@@ -38,8 +38,8 @@ from pathlib import Path
 from typing import Any
 
 from registries.errors import (
+    APPENDIX_CARRIES_FORWARD,
     PATH_UNREADABLE,
-    UNKNOWN_CRITERIA,
     DiagnosticError,
     RegistryError,
     diagnose,
@@ -198,7 +198,7 @@ def _run(
         # the copy of last year's report; there is no content for this to put anywhere.
         raise RegistryError(
             diagnose(
-                UNKNOWN_CRITERIA,
+                APPENDIX_CARRIES_FORWARD,
                 f"appendix {entry.letter} ({entry.title}) is not updated by this tool. It "
                 f"carries forward in the copy of last year's report. The ones with an "
                 f"update are {', '.join(a.id for a in updatable(registry))}.",

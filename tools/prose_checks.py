@@ -504,7 +504,23 @@ def paragraphs_of(text: str, *, markup: bool = True) -> tuple[Paragraph, ...]:
         if not body.strip():
             continue
         style = "Heading" if body.lstrip().startswith("#") else ""
-        if re.match(r"^\s*([-*+>]|\d+[.)])\s", body):
+        # A list, whether the block opens with a bullet or leads into one. The rule used to
+        # look only at the first line, so the commonest shape in a report -
+        #
+        #     Key considerations include:
+        #     - owner compensation normalised to a market rate
+        #     - rent adjusted to an arm's length rate
+        #
+        # is one Markdown block that starts with a sentence, and every one of them was
+        # reported for ending without a full stop. Bullets routinely take none; that is a
+        # house-style question and not a mistake, and this check only claims mistakes.
+        #
+        # The last line decides, and only the last line, because the one check that reads
+        # this is about how a paragraph *ends*. Bullets with a closing sentence under them
+        # are checked on that sentence, which is right - it is prose and it is where a
+        # tail gets lost in an edit.
+        lines = [line for line in body.splitlines() if line.strip()]
+        if lines and re.match(r"^\s*([-*+>]|\d+[.)])\s", lines[-1]):
             style = "ListParagraph"
         if body.strip() == CODE or body.strip().startswith(CODE):
             style = "Code"
@@ -780,7 +796,10 @@ def _per_paragraph(para: Paragraph, sentences: Sequence[str]) -> Iterator[Findin
             kind=SLIP,
             where=where,
             excerpt=_line(body[-80:]),
-            says=f"ends in {body[-1]!r}",
+            # What is missing, not what is there. "ends in 'k'" is the last character of
+            # the sentence quoted directly above it, which tells a reader nothing they
+            # cannot already see.
+            says="no full stop at the end",
             evidence={"last": body[-1]},
         )
 

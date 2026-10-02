@@ -175,6 +175,10 @@ METHODOLOGY_TOO_LARGE = "CONFIG.METHODOLOGY_TOO_LARGE"
 CONTEXT_TOO_LARGE = "INTAKE.CONTEXT_TOO_LARGE"
 RECIPE_UNREGISTERED = "SCOPE.RECIPE_UNREGISTERED"
 UNKNOWN_CRITERIA = "SCOPE.UNKNOWN_CRITERIA"
+NO_REQUEST_LIST = "SCOPE.NO_REQUEST_LIST"
+UNKNOWN_APPENDIX = "SCOPE.UNKNOWN_APPENDIX"
+APPENDIX_REGISTRY_INVALID = "SCOPE.APPENDIX_REGISTRY_INVALID"
+APPENDIX_CARRIES_FORWARD = "SCOPE.APPENDIX_CARRIES_FORWARD"
 OUTCOME_CONTRADICTED = "PROCESS.OUTCOME_CONTRADICTED"
 WORKER_LOST = "PROCESS.WORKER_LOST"
 TRANSPORT_EXHAUSTED = "PROCESS.TRANSPORT_EXHAUSTED"
@@ -254,6 +258,39 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "The run criteria version named is not a file under ops/criteria/, or names a "
         "criterion the scorecard cannot measure. Pin a version that exists; a run scored "
         "against 'whatever is newest' cannot say what bar it was judged by.",
+    ),
+    # Two that were raised as UNKNOWN_CRITERIA until 2026-10-02, so a missing request
+    # list and an unknown appendix were both answered with advice about pinning a
+    # criteria version. `what to do` is the half a person acts on, and borrowing a code
+    # borrows its advice for a problem it was not written about.
+    NO_REQUEST_LIST: (
+        "config",
+        "Write a starting list for the division under intake/request_lists/, named for "
+        "the scope path with slashes as hyphens - valuation-non-esop.yaml serves "
+        "valuation/non-esop and every segment under it, because the lookup walks up "
+        "and stops at the practice. Or pass a list on the command for this one "
+        "engagement. The refusal itself says why another division's is not lent.",
+    ),
+    UNKNOWN_APPENDIX: (
+        "config",
+        "No appendix in this report carries that id. The refusal lists the ones an "
+        "update can be applied to; everything else in the registry carries forward "
+        "from last year's document and nothing writes it. Name one of the listed ids.",
+    ),
+    APPENDIX_CARRIES_FORWARD: (
+        "config",
+        "The appendix named is real and nothing updates it: it arrives already written "
+        "in the copy of last year's report and this tool has no content to put anywhere. "
+        "That is the line it is holding, not a failure. The refusal lists the appendices "
+        "an update does apply to; name one of those.",
+    ),
+    APPENDIX_REGISTRY_INVALID: (
+        "config",
+        "The appendix registry itself is wrong rather than the id asked for: an entry "
+        "without the fields an appendix needs, or two entries sharing an id. The id is "
+        "what a button names, so a duplicate makes one unreachable and the other "
+        "ambiguous. Fix APPENDICES in report/appendices.py, or the rows passed to "
+        "registry_from.",
     ),
     OUTCOME_CONTRADICTED: (
         "system",

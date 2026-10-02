@@ -241,6 +241,16 @@ def create_admin_app(console: AdminConsole, identity: Any | None = None) -> Fast
         # traceback there reads as "broken"; a diagnostic reads as "not set up".
         return _guard(console.setup)
 
+    @app.get("/api/admin/environment")
+    def environment() -> dict[str, Any]:
+        """The masking key and the model adapter - the two steps that come before setup.
+
+        Not behind `_guard` reading the configuration, because it reads none: this is the
+        one answer a machine nobody has configured can still give, and it is the answer
+        that machine needs first.
+        """
+        return console.environment()
+
     @app.get("/api/admin/preflight")
     def preflight(engagement_id: str | None = None) -> dict[str, Any]:
         return _guard(lambda: console.check(engagement_id).as_dict())

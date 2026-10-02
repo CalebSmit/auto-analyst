@@ -45,7 +45,12 @@ def test_the_page_uses_one_phrase_for_a_run_that_wants_a_person() -> None:
     Three names for it is the reader's problem."""
     body = without_comments(script())
     assert "need attention" not in body, "two phrases for one thing"
-    assert body.count("need a person") >= 2, "the chrome and the engagement header"
+    # One function owns the phrase, and both surfaces call it. This used to count the
+    # literal twice, which held the words together and not the grammar - the engagement
+    # header said "1 need a person" on a real engagement and the count was satisfied.
+    assert body.count("const needAPerson") == 1, "the phrase has more than one home"
+    assert body.count("needAPerson(") == 2, "the chrome and the engagement header both call it"
+    assert "'needs' : ' need'" in body or "? ' needs' : ' need'" in body, "it stopped inflecting"
     assert "Needs a person" in body, "and the button that filters to them"
 
 

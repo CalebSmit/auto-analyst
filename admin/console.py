@@ -33,9 +33,9 @@ from intake.roster import ProjectRoster, RosterEntry, RosterState
 from registries.constraints import ConstraintRegistry
 from registries.errors import (
     ADMIN_FORBIDDEN,
+    NO_REQUEST_LIST,
     RECIPE_INVALID,
     UNKNOWN_ADAPTER,
-    UNKNOWN_CRITERIA,
     DiagnosticError,
     diagnose,
 )
@@ -132,6 +132,22 @@ class AdminConsole:
             "can": CAN,
             "cannot": CANNOT,
         }
+
+    def environment(self) -> dict[str, Any]:
+        """What is true about this machine, with no configuration document involved.
+
+        `setup()` reads the document first and raises when there is none, so on a fresh
+        clone the page lost everything in the same answer - including these two, which
+        never needed the document at all. They come from `.env` and from the selected
+        ports, and they are steps one and two of the checklist, before "Set this
+        environment up". A new machine was being asked to do step three in order to be
+        told what steps one and two say.
+
+        Kept separate rather than making `setup()` partial: a half-answered setup document
+        is how a page starts rendering a configuration that is not there. This one is a
+        different question with a different answer.
+        """
+        return {"environment_ready": self._environment(), "ai_model": self._ai_model()}
 
     # -- an engagement's files, for the person who has them
 
@@ -1175,7 +1191,7 @@ class AdminConsole:
             raise AdminRefused(
                 (
                     diagnose(
-                        UNKNOWN_CRITERIA,
+                        NO_REQUEST_LIST,
                         f"there is no request list for {scope_path!r}, and none was "
                         f"supplied. A list is what the client was asked for; the tool "
                         f"does not borrow another division's.",

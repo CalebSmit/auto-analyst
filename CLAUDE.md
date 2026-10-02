@@ -193,6 +193,15 @@ nobody asked rather than left out. It does not duplicate `statement_checks.movem
 which is the single-line version; it asks what no single-line check can see. Its run-path
 wire waits on the qc-tieout procedure (B-004), so today the command line is the way in.
 
+**The one thing it states rather than asks** is a ratio its own arithmetic cannot have
+produced: a gross margin above 100 points, days below zero, a current ratio below zero.
+That is not a verdict about the business - it is a statement about the table, and the
+ordinary cause is signed amounts where these are defined on magnitudes. It names the
+negative rows and asks nothing about how the figure moved, because every such question
+would be a difference between two figures that do not mean anything. Found by running it
+over a table shaped like a trial balance, which reported twelve confident questions about
+a margin of 173.6 points (P137).
+
 All three were calibrated against things with nothing wrong with them, and that mattered
 more than finding things: the first prose run over this repo's own four longest documents
 reported about 150 findings of which almost none were about the writing, and the first

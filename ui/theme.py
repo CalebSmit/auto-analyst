@@ -342,8 +342,15 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 .card .body:has(>.empty:only-child){display:flex;align-items:center;justify-content:center}
 .empty{padding:var(--s6) var(--s4);text-align:center;color:var(--ink-3);font-size:var(--t-xs);
  line-height:1.55;max-width:44ch;margin:0 auto}
-.empty b{display:block;color:var(--navy);font:400 var(--t-subtitle)/1.3 var(--serif);
+/* The title, which is the first thing in every empty state and nothing else. It used to
+   be every `b` inside one, and the Activity console's "here is how one starts" puts a `b`
+   mid-sentence to name a control - so "files" and "Waiting on a person" rendered as
+   display-serif headings on their own lines, with the sentence's full stop orphaned on the
+   line after. A rule meant for the one element at the top was being applied to emphasis. */
+.empty>b:first-child{display:block;color:var(--navy);font:400 var(--t-subtitle)/1.3 var(--serif);
  margin-bottom:.35rem;letter-spacing:-.005em}
+/* And a `b` anywhere else in one is emphasis, at the size of the text around it. */
+.empty b{font-weight:600;color:var(--ink-2)}
 .note{font-size:var(--t-xs);color:var(--ink-3);margin-top:var(--s3);line-height:1.5}
 /* A note that follows straight on from what it is about, rather than closing a section. */
 .note.tight{margin-top:0}
@@ -367,6 +374,26 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
  .card .body{max-height:none}
  .chrome{flex-wrap:wrap;gap:.3rem .8rem}
  .page-head{flex-direction:column;align-items:flex-start;gap:.2rem}
+}
+
+/* ---------------------------------------------------- shorter than a desk */
+/* The same argument, about the other dimension, which nobody had made. A laptop is wide
+   enough to keep the board a grid and short enough that every panel in it becomes a
+   peephole: measured on the Setup page at a 600px viewport, "Getting set up" showed 35%
+   of its own content - three steps of eleven, in the panel somebody's first day is spent
+   in - and the other eleven panels were no better.
+
+   Six rows of a fixed grid is a good layout for a monitor and a bad one for a laptop, and
+   the honest fallback is the one already written above: the cards take their own height
+   and the page scrolls like a page. 760px is the viewport a 1366x768 laptop leaves after
+   the browser's own chrome, rounded up so that machine lands inside the rule rather than
+   on its edge. */
+@media (max-height:760px){
+ html,body{overflow:auto}
+ .wrap{overflow:visible}
+ .board{display:block!important}
+ .board>.card{margin-bottom:var(--s3)}
+ .card .body{max-height:none}
 }
 @media (max-width:640px){
  .wrap{padding-left:16px;padding-right:16px}
@@ -463,6 +490,12 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
  color:var(--ink-3);margin:var(--s4) 0 .4rem;font-weight:600;
  display:flex;align-items:center;gap:var(--s2)}
 .section-label::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+/* A line under a section label, for a group of fields whose numbers need a sentence
+   before somebody types in one. Beside `.section-label` rather than inside `.field`,
+   because it is about the group and the fields in it are laid out as a grid. */
+.section-note{font-size:var(--t-xs);color:var(--ink-3);line-height:1.45;
+ margin:0 0 var(--s2);max-width:74ch}
+.section-note b{color:var(--ink-2);font-weight:600}
 .reveal{display:flex;align-items:center;gap:var(--s3);padding:.8rem .9rem;border-radius:var(--radius-sm);
  background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line);margin:.25rem 0 var(--s3)}
 .reveal p{margin:0;font-size:var(--t-sm);color:var(--ink-2);flex:1;line-height:1.5}
@@ -519,7 +552,11 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
    A finished step costs one line and an unfinished one costs three. Five done and two
    left used to fill the panel evenly, which put most of the ink on the part nobody has to
    read again. */
-.steps{display:flex;flex-direction:column;--mark:1.6rem}
+/* Capped at a readable measure. Inside the board's three columns the panel is narrower
+   than this and nothing changes; in the single-column fallback a laptop and a narrow
+   window both get, the rows would otherwise run the full width of the screen and put a
+   step's button a thousand pixels from the step it belongs to. */
+.steps{display:flex;flex-direction:column;--mark:1.6rem;max-width:84ch}
 .step{display:flex;gap:var(--s3);align-items:flex-start;padding:var(--s2) var(--s3);
  border-radius:var(--radius-sm);position:relative;
  transition:background .16s var(--ease)}
@@ -546,8 +583,17 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 .step.done .t{color:var(--ink-3);font-weight:500}
 .step.now .t{font-size:var(--t-subtitle);letter-spacing:-.006em}
 .step .d{display:block;font-size:var(--t-xs);color:var(--ink-3);margin-top:.1rem;line-height:1.5}
-/* Confirmation, not instruction: what a finished step says is worth one line and no more. */
-.step.done .d{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Confirmation, not instruction: a finished step is a receipt, so its title and its one
+   line of detail share a line rather than taking two.
+
+   Measured rather than guessed. At a 600px viewport - a laptop with browser chrome, which
+   is the shape of the machine this is moving to - the "Getting set up" panel was showing
+   35% of its own content: three of eleven steps, in the panel a first day is spent in.
+   Half of what it was scrolling past was the detail under steps already done. */
+.step.done>span:not(.mark):not(.go){white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step.done .t{display:inline}
+.step.done .d{display:inline;margin-top:0}
+.step.done .d::before{content:"·";margin:0 .4rem;color:var(--line)}
 .step .go{margin-left:auto}
 
 /* The count, set as a figure. The panel had no anchor at all - its largest element was a
@@ -672,14 +718,20 @@ function say(message, kind, code) {
 }
 
 // A refusal is a diagnostic the person can act on, not a status code.
+/* `refused: true` on every one of them, because the question a caller asks is "did the
+   server answer" and not "did it answer with a code". Only some refusals carry a
+   structured diagnostic; all of them came back from a server that was reached. A page
+   that tests for the code instead reports a reachable server as unreachable, which is
+   what the Setup page did on the one machine it most had to work on. */
 async function refusal(response) {
   try {
     const body = await response.json();
     const d = ((body.detail || {}).refused || [])[0];
-    if (d) return { text: d.what_now || d.detail, code: d.code + ' — ' + d.detail };
-    return { text: typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail) };
+    if (d) return { refused: true, text: d.what_now || d.detail, code: d.code + ' — ' + d.detail };
+    return { refused: true,
+             text: typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail) };
   } catch (e) {
-    return { text: response.status + ' ' + response.statusText };
+    return { refused: true, text: response.status + ' ' + response.statusText };
   }
 }
 async function get(url) {

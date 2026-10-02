@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**134 of 134 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**141 of 141 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -310,4 +310,29 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P133** Where runs stop was not a funnel | auto | No stage reports more than the stage before it, held against the run shape that broke it - intake and a passing guard and no skill | 2026-10-02 |
 | [x] | **P134** The source a reviewer was told to read | auto | A workbook classified 'other' reaches a reviewer carrying the headers it was judged on and the file they came from, end to end through the real reader and the real surface | 2026-10-02 |
 | [x] | **C74 - The screen says one thing, and it is true** | integration | The chrome, the engagement header and the filter use one phrase for a run that wants a person and the Help page defines it; the funnel's sentence and its numbers make the same claim and neither can move alone; and three phases of additions to the review modal left the reveal gate exactly where it was. | 2026-10-02 |
+
+## The first day
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P135** The page a new machine starts on | auto | The Setup page renders every panel on an empty store and offers the control that writes the first configuration | 2026-10-02 |
+| [x] | **P136** The dashboard on a laptop | auto | At a short viewport the board scrolls like a page and no panel hides content behind an inner scrollbar | 2026-10-02 |
+| [x] | **P137** What the three reads say on real input | auto | A Markdown list introduced by a lead-in line is not reported as a paragraph missing its full stop, and a sentence that follows bullets still is | 2026-10-02 |
+| [x] | **C75 - The first day** | integration | A machine nobody has configured can be configured from its own dashboard, at the size of screen it will be configured on, and the checks that read a deliverable say only what they have established. | 2026-10-02 |
+| [x] | **P138** What three real runs say on the screen | auto | The phrase for a run that wants a person is inflected in one place and both surfaces call it | 2026-10-02 |
+| [x] | **P139** One vocabulary, across four surfaces | auto | No surface says 'needs attention' for a condition another surface calls needing a person | 2026-10-02 |
+
+## Parsed
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P140** The consoles are parsed, not only read | auto | Every page this product serves has its script parsed, and a syntax error in any of them fails | 2026-10-02 |
+| [x] | **C76 - Three real runs, and a parser** | integration | What the consoles say about a run in front of them is true of that run, the four surfaces say it in one set of words, and a syntax error in any of their scripts is a test failure rather than something a person finds by opening the page. | 2026-10-02 |
+
+## Said once, meant everywhere
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P141** The fourth site, and the borrowed code | auto | Nothing in tools/gate.py orders a phase or checkpoint id as a string, in a comparison or a sort key | 2026-10-02 |
+| [x] | **C77 - Said once, meant everywhere** | integration | The two rules this repo already stated - order an id by its number, and let a code's advice be about its own problem - hold over the files that state them rather than over the sites somebody happened to list. | 2026-10-02 |
 

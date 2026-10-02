@@ -31,7 +31,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from registries.errors import UNKNOWN_CRITERIA, RegistryError, diagnose
+from registries.errors import (
+    APPENDIX_REGISTRY_INVALID,
+    UNKNOWN_APPENDIX,
+    RegistryError,
+    diagnose,
+)
 
 __all__ = ["APPENDICES", "Appendix", "appendix", "registry_from", "updatable"]
 
@@ -130,7 +135,7 @@ def appendix(appendix_id: str, registry: tuple[Appendix, ...] = APPENDICES) -> A
     carried = ", ".join(f"{a.id} (appendix {a.letter})" for a in registry if not a.updated)
     raise RegistryError(
         diagnose(
-            UNKNOWN_CRITERIA,
+            UNKNOWN_APPENDIX,
             f"there is no appendix called {appendix_id!r}. The ones with an update are "
             f"{', '.join(a.id for a in updatable(registry))}"
             + (f"; {carried} carry forward and nothing updates them" if carried else ""),
@@ -154,7 +159,7 @@ def registry_from(rows: Any) -> tuple[Appendix, ...]:
         if missing:
             raise RegistryError(
                 diagnose(
-                    UNKNOWN_CRITERIA,
+                    APPENDIX_REGISTRY_INVALID,
                     f"an appendix entry is missing {', '.join(missing)}. Every appendix "
                     f"needs an id, a letter, a title and the anchor it binds to; an entry "
                     f"without an anchor would have nowhere to put its content.",
@@ -175,7 +180,7 @@ def registry_from(rows: Any) -> tuple[Appendix, ...]:
     if len(set(ids)) != len(ids):
         raise RegistryError(
             diagnose(
-                UNKNOWN_CRITERIA,
+                APPENDIX_REGISTRY_INVALID,
                 f"two appendices share an id: {sorted({i for i in ids if ids.count(i) > 1})}. "
                 f"The id is what a button names, so a duplicate would make one of them "
                 f"unreachable and the other ambiguous.",

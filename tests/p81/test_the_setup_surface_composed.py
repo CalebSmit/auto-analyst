@@ -82,8 +82,16 @@ def test_the_step_being_worked_on_is_the_subject() -> None:
 def test_a_finished_step_costs_one_line() -> None:
     """Five done and two left filled the panel evenly, which put most of the ink on the
     part nobody has to read again. What a finished step says is confirmation, not
-    instruction, and confirmation is worth one line."""
-    assert re.search(r"\.step\.done \.d\{[^}]*text-overflow:ellipsis", CSS, re.S)
+    instruction, and confirmation is worth one line.
+
+    P136 made it cost one line rather than two: the title and the detail share a line, and
+    the truncation moved from the detail to the row around it - or the title would be
+    clipped by a rule meant for the sentence after it. The property is the same and this
+    asserts it where it now lives.
+    """
+    assert re.search(r"\.step\.done>span:not\(\.mark\):not\(\.go\)\{[^}]*ellipsis", CSS, re.S)
+    assert ".step.done .t{display:inline}" in CSS
+    assert ".step.done .d{display:inline" in CSS
 
 
 # ------------------------------------------------------------ and the panel has an anchor
@@ -121,8 +129,12 @@ def test_a_finished_checklist_gives_its_rows_to_the_panels() -> None:
     areas = dict(re.findall(r"([\w.\- ]*\.board)\{[^}]*grid-template-areas:([^}]*)\}", style))
     assert set(areas) == {".board", "body.all-done .board"}, sorted(areas)
     normal, done = areas[".board"], areas["body.all-done .board"]
-    assert normal.count("steps") == 3, "the checklist no longer leads the board"
-    assert done.count("steps") == 1, "a finished checklist still keeps three rows"
+    # How many rows it holds while there is work in it is a design decision that has moved
+    # once already - P136 gave it a fourth, having measured the panel at a laptop's
+    # viewport. What this test is about is that finishing gives them back, so it asserts
+    # the relation rather than either number.
+    assert normal.count("steps") > done.count("steps"), "the checklist no longer leads the board"
+    assert done.count("steps") == 1, "a finished checklist still holds more than one row"
     assert done.count("eng") > normal.count("eng"), "nothing gained the space it gave up"
     assert set(re.findall(r"\w+", normal)) == set(re.findall(r"\w+", done)), (
         "a panel appears in one layout and not the other"

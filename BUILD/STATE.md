@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **134 of 134 phases closed**
-- Last green checkpoint: **C74**
+- **141 of 141 phases closed**
+- Last green checkpoint: **C77**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -153,4 +153,11 @@
 - **P132** The dashboard answers what do I do now (2026-10-02)
 - **P133** Where runs stop was not a funnel (2026-10-02)
 - **P134** The source a reviewer was told to read (2026-10-02)
+- **P135** The page a new machine starts on (2026-10-02)
+- **P136** The dashboard on a laptop (2026-10-02)
+- **P137** What the three reads say on real input (2026-10-02)
+- **P138** What three real runs say on the screen (2026-10-02)
+- **P139** One vocabulary, across four surfaces (2026-10-02)
+- **P140** The consoles are parsed, not only read (2026-10-02)
+- **P141** The fourth site, and the borrowed code (2026-10-02)
 

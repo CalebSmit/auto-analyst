@@ -3979,6 +3979,191 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P135",
+      "title": "The page a new machine starts on",
+      "block": "The first day",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the Setup page work on a machine nobody has configured, which is the one machine it exists for: render rather than throw, name a refusal as a refusal, give the two environment steps their answers, and let the configuration be written.",
+      "builds": [],
+      "tasks": [
+        "SETUP is an empty object and whether a configuration exists is its own flag, so checklist() renders rather than throwing",
+        "every refusal says it came back from a server, so a refusal is not reported as an unreachable one",
+        "the masking key and the model adapter are answerable without a configuration document",
+        "the checklist reads the workflows from the route that has them, and every step's control renders whether or not it is next"
+      ],
+      "exit": [
+        "The Setup page renders every panel on an empty store and offers the control that writes the first configuration",
+        "A refusal from a server that answered is not reported as a server nobody can reach",
+        "The checklist's eleven steps each read from something that exists, and none of them prints a value nobody has"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p135 -q",
+        "python -m uv run ruff check admin/ ui/ tools/ tests/p135",
+        "python -m uv run mypy admin/ ui/ tools/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P136",
+      "title": "The dashboard on a laptop",
+      "block": "The first day",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the consoles usable at the viewport a work laptop actually has, by the rule the stylesheet already states for narrow screens and never stated for short ones.",
+      "builds": [],
+      "tasks": [
+        "a finished step's title and detail share one line",
+        "the checklist holds four of the board's six rows while it has work in it",
+        "below 760px of viewport the board scrolls like a page, as it already does below 1100px of width"
+      ],
+      "exit": [
+        "At a short viewport the board scrolls like a page and no panel hides content behind an inner scrollbar",
+        "A finished checklist step takes one line rather than two, and an unfinished one is unchanged",
+        "Nothing about the desk-width layout changes"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p136 -q",
+        "python -m uv run ruff check ui/ admin/ tests/p136"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P137",
+      "title": "What the three reads say on real input",
+      "block": "The first day",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Stop the reviewer's reads asserting what they have not established: a bullet list is not an unterminated sentence, and a ratio outside what its own arithmetic can produce is a finding about the table rather than a question about the business.",
+      "builds": [],
+      "tasks": [
+        "a Markdown block whose last line is a list item is a list, and the finding says what is missing rather than what is there",
+        "each ratio carries the range its arithmetic can produce, and a value outside it is reported once, naming the rows responsible",
+        "no movement question is asked about a ratio whose figures do not mean anything",
+        "the refusal on an unreadable table says what a line looks like"
+      ],
+      "exit": [
+        "A Markdown list introduced by a lead-in line is not reported as a paragraph missing its full stop, and a sentence that follows bullets still is",
+        "A ratio whose value its arithmetic cannot produce is reported once, naming the rows responsible, and no movement question is asked about it",
+        "A table in the shape the ratios are defined on is reported exactly as before"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p137 -q",
+        "python -m uv run pytest tests/p126 tests/p127 tests/p131 -q",
+        "python -m uv run ruff check tools/ tests/p137",
+        "python -m uv run mypy tools/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P138",
+      "title": "What three real runs say on the screen",
+      "block": "The first day",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the Activity console say what is true of the run in front of it: the right verb for the count, the scorecard's silence reported as silence rather than as motion, and every key the map answers to written down.",
+      "builds": [],
+      "tasks": [
+        "the phrase for a run that wants a person carries its verb, in one function both surfaces call",
+        "the scorecard pill reads the run's own state, so a stopped run with no verdict says so rather than claiming motion",
+        "the map's hint line names every key it handles, and the fit key reads as a key and a verb"
+      ],
+      "exit": [
+        "The phrase for a run that wants a person is inflected in one place and both surfaces call it",
+        "A run that has stopped is not labelled as running by the scorecard's pill, and a run that is going still is",
+        "Every key the map handles appears in its own hint line, and every key the line names is handled"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p138 -q",
+        "python -m uv run pytest tests/p63 tests/p130 tests/p132 tests/checkpoints/c74 -q",
+        "python -m uv run ruff check ops/ tests/p138"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P139",
+      "title": "One vocabulary, across four surfaces",
+      "block": "The first day",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the retired phrase unsayable on any surface, and make the phrase that replaced it findable in the place a reader goes to look a word up.",
+      "builds": [],
+      "tasks": [
+        "the retired phrase is refused on every surface the product serves, found rather than listed",
+        "the Analytics panel and the run detail use the words the chrome uses",
+        "Help defines every state the screens show, and the phrase that covers two of them"
+      ],
+      "exit": [
+        "No surface says 'needs attention' for a condition another surface calls needing a person",
+        "Help defines every state word the other three screens show, including the one that is not a state"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p139 -q",
+        "python -m uv run pytest tests/p63 tests/p132 tests/p138 tests/checkpoints/c74 -q",
+        "python -m uv run ruff check ops/ tests/p139"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P140",
+      "title": "The consoles are parsed, not only read",
+      "block": "Parsed",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make a syntax error in any console's script a test failure rather than something a person finds by opening the page.",
+      "builds": [],
+      "tasks": [
+        "every page's script is compiled by node's own parser, never executed",
+        "the parser is proved to refuse four shapes of broken JavaScript, including the one that caused this",
+        "a machine without node skips loudly, and CHANGING.md says so"
+      ],
+      "exit": [
+        "Every page this product serves has its script parsed, and a syntax error in any of them fails",
+        "The check is proved by breaking each page in the way that broke this one"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p140 -q",
+        "python -m uv run ruff check tests/p140"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P141",
+      "title": "The fourth site, and the borrowed code",
+      "block": "Said once, meant everywhere",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Hold a rule over the file that states it rather than over the sites somebody listed: nothing in the gate orders an id except by number, and no refusal borrows a code whose advice is about another problem.",
+      "builds": [],
+      "tasks": [
+        "amend_checkpoint orders checkpoints by number, like every other ordering in the gate",
+        "number_of's docstring names the fourth site and says a sort counts as well as a comparison",
+        "a missing request list, an unknown appendix and a malformed appendix registry each carry their own code",
+        "each new code's what-to-do adds what the refusal cannot say rather than repeating it",
+        "an appendix that carries forward says so with a code of its own, found by walking every module rather than the two that were looked at"
+      ],
+      "exit": [
+        "Nothing in tools/gate.py orders a phase or checkpoint id as a string, in a comparison or a sort key",
+        "A missing request list and an unknown appendix each carry a code whose what-to-do is about them",
+        "The plan's checkpoints are in order on disk"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p141 -q",
+        "python -m uv run pytest tests/p01 tests/p10 tests/checkpoints/c60 -q",
+        "python -m uv run ruff check tools/ registries/ admin/ report/ tests/p141",
+        "python -m uv run mypy tools/ registries/ admin/ report/",
+        "python -m uv run python tools/surfaces.py --check"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -4794,6 +4979,39 @@
       "proves": "The chrome, the engagement header and the filter use one phrase for a run that wants a person and the Help page defines it; the funnel's sentence and its numbers make the same claim and neither can move alone; and three phases of additions to the review modal left the reveal gate exactly where it was.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c74 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C75",
+      "title": "The first day",
+      "after": "P137",
+      "status": "done",
+      "proves": "A machine nobody has configured can be configured from its own dashboard, at the size of screen it will be configured on, and the checks that read a deliverable say only what they have established.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c75 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C76",
+      "title": "Three real runs, and a parser",
+      "after": "P140",
+      "status": "done",
+      "proves": "What the consoles say about a run in front of them is true of that run, the four surfaces say it in one set of words, and a syntax error in any of their scripts is a test failure rather than something a person finds by opening the page.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c76 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C77",
+      "title": "Said once, meant everywhere",
+      "after": "P141",
+      "status": "done",
+      "proves": "The two rules this repo already stated - order an id by its number, and let a code's advice be about its own problem - hold over the files that state them rather than over the sites somebody happened to list.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c77 -q"
       ],
       "closed": "2026-10-02"
     }

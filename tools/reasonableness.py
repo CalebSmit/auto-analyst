@@ -216,6 +216,7 @@ class Ratio:
         scale: float = 1.0,
         as_days: bool = False,
         unit: str = "points",
+        possible: tuple[float | None, float | None] = (None, None),
     ) -> None:
         self.name = name
         self.numerator = tuple(numerator)
@@ -223,6 +224,20 @@ class Ratio:
         self.scale = scale
         self.as_days = as_days
         self.unit = unit
+        self.possible = possible
+        """The range this ratio's arithmetic can produce, or (None, None) for no bound.
+
+        Not a plausibility band and not a tolerance - those are the practice's decision and
+        there are no defaults for them anywhere in this module. This is narrower and harder:
+        a value outside it cannot be produced by the formula from a table of the shape the
+        formula is defined on, so it is a statement about the table rather than about the
+        business, and the question the other findings ask of it is not answerable.
+
+        A gross margin above 100 points would need costs that add to revenue. Days
+        receivable below zero would need a negative receivable over positive revenue. The
+        current ratio below zero would need one side of it negative. Each has one ordinary
+        cause: a table carrying signed amounts where these are defined on magnitudes.
+        """
 
 
 def _in_section(taxonomy: Taxonomy, *sections: str) -> tuple[str, ...]:
@@ -254,24 +269,54 @@ def ratios_for(taxonomy: Taxonomy) -> tuple[Ratio, ...]:
     """
     operating = _in_section(taxonomy, "operating_expenses")
     return (
-        Ratio("gross margin", ("revenue", "-cost_of_sales"), ("revenue",), scale=100.0),
+        # Only the bound the arithmetic gives. A margin has no floor - a business can lose
+        # more than it earns, and a reviewer wants to be asked about that rather than told
+        # it is impossible - so the lower bound is left open on both margins.
+        Ratio(
+            "gross margin",
+            ("revenue", "-cost_of_sales"),
+            ("revenue",),
+            scale=100.0,
+            possible=(None, 100.0),
+        ),
         Ratio(
             "operating margin",
             ("revenue", "-cost_of_sales", *(f"-{c}" for c in operating)),
             ("revenue",),
             scale=100.0,
+            possible=(None, 100.0),
         ),
         Ratio(
             "the current ratio",
             _in_section(taxonomy, "current_assets"),
             _in_section(taxonomy, "current_liabilities"),
             unit="x",
+            possible=(0.0, None),
         ),
         Ratio(
-            "days receivable", ("accounts_receivable",), ("revenue",), as_days=True, unit="days"
+            "days receivable",
+            ("accounts_receivable",),
+            ("revenue",),
+            as_days=True,
+            unit="days",
+            possible=(0.0, None),
         ),
-        Ratio("days inventory", ("inventory",), ("cost_of_sales",), as_days=True, unit="days"),
-        Ratio("days payable", ("accounts_payable",), ("cost_of_sales",), as_days=True, unit="days"),
+        Ratio(
+            "days inventory",
+            ("inventory",),
+            ("cost_of_sales",),
+            as_days=True,
+            unit="days",
+            possible=(0.0, None),
+        ),
+        Ratio(
+            "days payable",
+            ("accounts_payable",),
+            ("cost_of_sales",),
+            as_days=True,
+            unit="days",
+            possible=(0.0, None),
+        ),
     )
 
 
@@ -390,7 +435,9 @@ def implications(lines: Sequence[Line]) -> list[dict[str, Any]]:
                         f"the question does not arise"
                     )
                     if not _touched(lines, rule)
-                    else f"in every period, {rule.name} appear together",
+                    # "related-party rent appear together" - the rule's name is a
+                    # thing, so the sentence is about the pair rather than about it.
+                    else f"in every period, {rule.name} is accounted for on both sides",
                 )
             )
     return findings
@@ -403,6 +450,21 @@ def _in_words(some: Sequence[str], all_of_them: Sequence[str]) -> str:
     if len(some) == 1:
         return some[0]
     return f"{len(some)} of {len(all_of_them)} periods"
+
+
+def _and_list(names: Sequence[str]) -> str:
+    """`a is`, `a and b are`, `a, b and c are`.
+
+    Carries the verb, because that is the half that keeps getting it wrong: this module has
+    already said "related-party rent appear together" and "Cost of sales, Rent is negative
+    here", both of which are a list being joined by code that did not know how many things
+    were in it.
+    """
+    if not names:
+        return ""
+    if len(names) == 1:
+        return f"{names[0]} is"
+    return f"{', '.join(names[:-1])} and {names[-1]} are"
 
 
 def _lead(some: Sequence[str], all_of_them: Sequence[str]) -> str:
@@ -560,6 +622,59 @@ def ratios(
         allowed: float | None = move.get(ratio.unit)
         ordered = sorted(series)
         reading = ", ".join(f"{p}: {series[p]:,.1f}" for p in ordered)
+
+        # Before anything is asked about how it moved. A reviewer looking at a gross margin
+        # of 173 points does not ask what changed in the business; they say the numbers are
+        # the wrong way round. Reported once, for the ratio, and the movement questions are
+        # not asked at all - every one of them would be a difference between two impossible
+        # figures, stated with a confidence this module has not earned.
+        low, high = ratio.possible
+        impossible = [
+            (period, value)
+            for period, value in ((p, series[p]) for p in ordered)
+            if (low is not None and value < low) or (high is not None and value > high)
+        ]
+        if impossible:
+            bound = (
+                f"below {low:,.1f}"
+                if low is not None and impossible[0][1] < low
+                else f"above {high:,.1f}"
+            )
+            # The lines that are actually negative, named, rather than a guess at the cause.
+            # Naming them is the difference between "something is probably signed" and a
+            # row somebody can go and look at. The categories, not every period of them:
+            # one signed line is signed in every year, and three periods of the same row is
+            # the same fact printed three times.
+            involved = {t.lstrip("-") for t in (*ratio.numerator, *ratio.denominator)}
+            when = {period for period, _ in impossible}
+            signed = sorted(
+                {
+                    line.label or line.category
+                    for line in lines
+                    if line.category in involved
+                    and any(
+                        line.amounts.get(period, 0.0) < 0 for period in when & set(line.amounts)
+                    )
+                }
+            )
+            findings.append(
+                _finding(
+                    ratio.name,
+                    "fail",
+                    # Short, because one signed table trips four of the six ratios and a
+                    # reader meets this sentence four times in a row. Everything that is
+                    # the same every time is said in as few words as it can be; what
+                    # differs - the figures, the bound, the rows - is what is left.
+                    (
+                        f"{', '.join(f'{p}: {v:,.1f}' for p, v in impossible)} {ratio.unit}, "
+                        f"{bound} - which this ratio's arithmetic cannot produce. It is "
+                        f"defined on magnitudes"
+                        + (f", and {_and_list(signed)} negative here" if signed else "")
+                        + ". No movement is asked about."
+                    ),
+                )
+            )
+            continue
         if allowed is None:
             findings.append(
                 _finding(
@@ -741,7 +856,16 @@ def lines_from(payload: Mapping[str, Any]) -> list[Line]:
                 )
             )
         except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError(f"lines[{i}] is not a line: {exc}") from exc
+            # The shape, not the exception. `amounts` as a list rather than a mapping is
+            # the ordinary mistake somebody writing one of these by hand makes, and
+            # "cannot convert dictionary update sequence element #0 to a sequence" sends
+            # them to read the traceback instead of the line they typed.
+            raise ValueError(
+                f"lines[{i}] is not a line ({exc}). A line is "
+                '{"category": "cost_of_sales", "amounts": {"FY2024": 7900}, '
+                '"label": "Cost of sales", "locator": "IS!6"} - `amounts` keyed by period, '
+                "and the figures are magnitudes rather than signed."
+            ) from exc
     return out
 
 

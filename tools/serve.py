@@ -279,6 +279,17 @@ class Served:
     """The review surface a person answers through. Built on the pool's queue, so a
     decision that frees a run enqueues its resume where the pool will find it."""
 
+    unregistered: tuple[tuple[str, str], ...] = ()
+    """(scope layer, why) for each binding whose template could not be registered.
+
+    Carried rather than printed. `build()` printed these as it assembled, so the first
+    thing a fresh machine saw - above the banner, before anything said what the program
+    was - was a raw diagnostic about a practice group that is not the focus division and
+    has no input schema because nobody has written one. A person reads that as "broken".
+    It is reported by `report()` now, in the place the report says what is not set up,
+    and in words.
+    """
+
     def close(self) -> None:
         self.store.close()
 
@@ -354,17 +365,23 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
     # masters are generated rather than committed, so absent is an ordinary first-day
     # state and not a reason the process should fail to start.
     templates = TemplateRegistry()
+    unregistered: list[tuple[str, str]] = []
     for binding in ScopeResolver(bindings=_bindings(config)).bindings.values():
         if not binding.file:
             continue  # a layer bound to nothing falls through to a higher one
         try:
             templates.register_bindings([binding])
-        except Exception as unregistered:  # noqa: BLE001, PERF203 - one bad binding is one
+        except Exception as refused:  # noqa: BLE001, PERF203 - one bad binding is one
             # One at a time on purpose. Registering them as a batch means the first
             # template without an input schema stops the rest from registering, and one
             # practice group being unfinished should not make every other group's
             # engagements unactivatable.
-            print(f"  {binding.layer}: {unregistered}")
+            # The diagnostic's own sentence when it has one, rather than its whole
+            # rendering. A startup report is read by a person looking for what to do
+            # next; the code, the path and the list of what is registered belong in
+            # the refusal a run gets, not in the line that says a group is unfinished.
+            said = getattr(getattr(refused, "diagnostic", None), "detail", None)
+            unregistered.append((binding.layer, str(said or refused)))
 
     preflight = Preflight(
         config,
@@ -476,6 +493,7 @@ def build(*, environment: str = "local", db_url: str | None = None) -> Served:
         roster=roster,
         pool=pool,
         surface=surface,
+        unregistered=tuple(unregistered),
     )
 
 
@@ -700,6 +718,16 @@ def report(served: Served) -> int:
     adapter = ports.selected("llm")
     rehearsal = "  (scripted - a rehearsal, not analysis)" if adapter == "scripted" else ""
     print(f"\n  Model port: {adapter}{rehearsal}")
+    if served.unregistered:
+        # Named, after the seams, in a sentence. A practice group whose model has no
+        # input schema is not a fault on this machine; it is a group nobody has set up
+        # yet, and every other group's engagements still activate. Said once, here,
+        # rather than ahead of the banner where it read as a crash.
+        print("\n  Practice groups with no model set up here:")
+        for layer, why in served.unregistered:
+            print(f"    {layer} - {why}")
+        print("    Engagements in every other group are unaffected.")
+
     print("\n  Configuration:")
     try:
         document = served.config.document()
@@ -709,9 +737,18 @@ def report(served: Served) -> int:
             f"    environment {served.config.environment}, "
             f"{watches} watch(es), {active} active engagement(s)"
         )
-    except Exception as unread:  # noqa: BLE001 - an unconfigured machine is the usual case
-        print(f"    no configuration document yet ({unread.__class__.__name__}).")
-        print("    Set one up at /admin, or see docs/USING.md.")
+    except KeyError:
+        # The ordinary first-day state, and the one this command is most often run in.
+        # It printed the exception class name, which tells a person nothing and reads
+        # like a fault. What they need is the next thing to do.
+        print(f"    nothing is set up yet on this machine "
+              f"(environment {served.config.environment}).")
+        print("    Start the server, open /admin, and press Set it up on step three.")
+        print("    docs/USING.md walks through the rest.")
+        return 1
+    except Exception as unread:  # noqa: BLE001 - anything but KeyError is a real fault
+        print(f"    the configuration could not be read: "
+              f"{unread.__class__.__name__}: {unread}")
         return 1
 
     check = served.admin.check()

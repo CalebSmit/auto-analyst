@@ -303,7 +303,14 @@ def test_the_command_reports_without_starting_anything(tmp_path: Path) -> None:
         check=False,
     )
     assert "Chartwell Automated Analyst" in result.stdout
-    assert "no configuration document yet" in result.stdout
+    # It says the machine is unconfigured, and then says what to do about it. P135 changed
+    # the sentence: it used to be `no configuration document yet (KeyError).`, which names
+    # a Python class to somebody who has just cloned a repository and reads like a fault
+    # rather than a first day. What is asserted here is the property - the state is named
+    # and a next action is given - rather than the words, which are free to improve.
+    assert "nothing is set up yet" in result.stdout
+    assert "/admin" in result.stdout, "it says the state and not what to do about it"
+    assert "KeyError" not in result.stdout, "an exception class is not an instruction"
 
     # Every seam that composition can join is joined. The one that is not is `reading a
     # scan`, which needs software installed rather than wiring - and saying so is the

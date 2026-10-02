@@ -45,6 +45,27 @@ def who(request: Request, claimed: str | None) -> str:
     return str(resolved.name)
 
 
+def _not_stored(answer: Any) -> Any:
+    """Tell the browser not to keep a page.
+
+    The three consoles are Python strings built at import time, so the only way a new one
+    reaches a person is a restart - and a response with no cache headers at all is one a
+    browser may reuse without asking. It does: after a restart, `/admin` kept serving the
+    previous page until the URL was changed, with nothing on screen to say so. On the
+    machine this is moving to that reads as "I updated it and the fix is not there".
+
+    Only the pages. The API answers are already asked for afresh by the scripts on them, and
+    a rule that reached them would be a rule about something that is not a problem.
+
+    Written here rather than on each route because a route added later would not know to do
+    it, which is how `/analytics` and `/help` would have been missed.
+    """
+    kind = answer.headers.get("content-type", "")
+    if kind.startswith("text/html"):
+        answer.headers["Cache-Control"] = "no-store"
+    return answer
+
+
 def install_identity(app: FastAPI, identity: Any | None = None) -> None:
     """Resolve who is asking on every request to `app`, or refuse before a route runs.
 
@@ -69,7 +90,8 @@ def install_identity(app: FastAPI, identity: Any | None = None) -> None:
             return JSONResponse(
                 status_code=401, content={"detail": {"refused": [refused.diagnostic.as_dict()]}}
             )
-        return await call_next(request)
+        answer = await call_next(request)
+        return _not_stored(answer)
 
 
 ALLOWED_HOSTS = frozenset({"127.0.0.1", "localhost", "::1", "testserver"})

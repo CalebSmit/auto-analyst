@@ -148,12 +148,26 @@ Write-Host ""
 Say "Starting on http://127.0.0.1:$Port/  (close this window, or press Ctrl+C, to stop it)"
 Write-Host ""
 if (-not $NoBrowser) {
-    $url = "http://127.0.0.1:$Port/"
-    Start-Job -ArgumentList $url -ScriptBlock {
-        param($url)
+    # Which page to open is the server's answer, not a guess here. `/api/admin/setup`
+    # refuses with 400 on a machine that has no configuration document, which is exactly
+    # the machine that should land on Setup: the Activity console's empty state lists four
+    # steps that all begin at Setup, so opening it first is one redirect a person does by
+    # hand on their first morning. A configured machine opens on Activity, which is what
+    # somebody coming back to it wants to see.
+    $base = "http://127.0.0.1:$Port/"
+    Start-Job -ArgumentList $base -ScriptBlock {
+        param($base)
         for ($i = 0; $i -lt 60; $i++) {
-            try { Invoke-WebRequest -UseBasicParsing -Uri ($url + 'api/runs') -TimeoutSec 2 | Out-Null; Start-Process $url; return }
-            catch { Start-Sleep -Seconds 1 }
+            try {
+                Invoke-WebRequest -UseBasicParsing -Uri ($base + 'api/admin/setup') -TimeoutSec 2 | Out-Null
+                Start-Process $base          # it answered: this machine is set up
+                return
+            } catch {
+                $code = $null
+                if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
+                if ($code -eq 400) { Start-Process ($base + 'admin'); return }
+                Start-Sleep -Seconds 1       # anything else is a server not up yet
+            }
         }
     } | Out-Null
 }

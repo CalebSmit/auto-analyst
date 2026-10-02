@@ -40,7 +40,7 @@ PAGE = f"""<!doctype html>
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
  grid-template-rows:repeat(6,minmax(0,1fr));
  grid-template-areas:"steps pre scopes" "steps pre scopes" "steps pre recipes"
-  "eng meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
+  "steps meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
 
 /* And gives them back when it is finished. A checklist with every box ticked is the least
    useful thing on a screen and it was holding the best position on it permanently: on a
@@ -218,7 +218,32 @@ body.all-done #checklist .bar{{display:none}}
 <div id="toast"></div>
 {SHELL}
 <script>
-let SETUP = null, SCOPES = null, METH = {{files: []}}, ME = null;
+/* SETUP is always an object, never null.
+
+   A fresh machine has no configuration document and `/api/admin/setup` refuses - which is
+   this page's whole purpose, because the button that writes the first one is step three of
+   the checklist below. SETUP was set to null for that case and most of the page guarded
+   for it; `checklist()` read `SETUP.recipes` without the guard, threw, and took every
+   panel after it down with it. So on the one machine that needs this page, the page was
+   twelve grey rectangles under a banner blaming the network.
+
+   Null was the wrong shape for "nothing is set up". An empty object is the true one: every
+   `(SETUP.x || [])` on this page then reads empty rather than throwing. Whether a
+   configuration exists is a separate fact, because it is a separate question. */
+let SETUP = {{}}, CONFIGURED = false, SCOPES = null, METH = {{files: []}}, ME = null;
+
+/* The approved workflows, fetched once and read by two things.
+
+   Step seven of the checklist read `SETUP.recipes`, and `/api/admin/setup` has never
+   returned a `recipes` key - the recipes live behind `/api/admin/recipes`, which is what
+   the Workflows panel has always used. So on every machine, configured or not, the step
+   saw an empty list: it could not be ticked, its Approve button could not appear, and the
+   checklist could not reach "Ready to run" however much was set up. The panel beside it
+   said four approved at the same time, which is how it stayed invisible - the right answer
+   was on the screen, two inches away, under a different name.
+
+   Built and wired to nothing, in the one list a person follows on their first day. */
+let RECIPES = [];
 
 /* The registry names a disposition "Repeat client"; this is what it means to somebody
    setting one up. Keyed by the registry's id so the two cannot drift apart silently. */
@@ -235,18 +260,18 @@ function who() {{ return ''; }}
 
 /* ---------------------------------------------------------------- the steps */
 function checklist() {{
-  const configured = !!SETUP;
-  const watches = configured ? (SETUP.watches || []).length : 0;
-  const dests = configured ? (SETUP.destinations || []).length : 0;
-  const roster = configured ? (SETUP.roster || []) : [];
+  const configured = CONFIGURED;
+  const watches = (SETUP.watches || []).length;
+  const dests = (SETUP.destinations || []).length;
+  const roster = SETUP.roster || [];
   const files = METH.files || [];
   const cleared = files.length > 0 && files.every(f => f.state === 'cleared');
   const active = roster.filter(r => r.state === 'active').length;
   /* The two that live in .env rather than in the configuration document. Without them the
      seven steps below can all be done and a run still cannot mask anything or ask anything,
      which is the state this screen used to call "Ready to run". */
-  const env = (SETUP && SETUP.environment_ready) || {{}};
-  const approved = (SETUP.recipes || []).filter(x => x.state === 'registered');
+  const env = SETUP.environment_ready || {{}};
+  const approved = RECIPES.filter(x => x.state === 'registered');
   const runnable = approved.filter(x => x.can_finish !== false);
   const vault = env.vault || {{ready: false, detail: 'unknown', name: 'AA_VAULT_KEY'}};
   const model = env.model || {{ready: false, adapter: '?', detail: 'unknown'}};
@@ -291,21 +316,28 @@ function checklist() {{
     {{done: approved.length > 0, t: 'Approve a workflow',
       d: approved.length
         ? approved.length + ' approved' + (runnable.length ? '; ' + runnable[0].name + ' is the one a run finishes' : '')
-        : 'Nothing runs a workflow nobody approved. ' + ((SETUP.recipes || []).length
-            ? (SETUP.recipes || []).length + ' are on disk, waiting.' : ''),
+        : 'Nothing runs a workflow nobody approved. ' + (RECIPES.length
+            ? RECIPES.length + ' are on disk, waiting.' : ''),
       go: (() => {{
-        const waiting = (SETUP.recipes || []).filter(x => x.state !== 'registered')
+        const waiting = RECIPES.filter(x => x.state !== 'registered')
           .sort((a, b) => (a.can_finish === false) - (b.can_finish === false))[0];
         return approved.length || !waiting ? null
           : ['Approve ' + waiting.name, 'approveRecipe', {{name: waiting.name, state: waiting.state}}];
       }})()}},
     {{done: roster.length > 0 && roster.every(r => Number(r.budget_usd) > 0), t: 'Set a spend limit',
       d: (() => {{
-        if (!roster.length) return 'What each engagement may cost in model calls, in total. Without one the only cap is the firm ceiling of $' + SETUP.firm_ceiling_usd + ' a run, with no limit on the number of runs.';
+        /* The ceiling comes from the configuration document, so an unconfigured machine
+           does not have it - and the sentence rendered "the firm ceiling of $undefined".
+           A number nobody has is left out of the sentence rather than printed as a word. */
+        const ceiling = SETUP.firm_ceiling_usd;
+        if (!roster.length) return 'What each engagement may cost in model calls, in total. Without one the only cap is '
+          + (ceiling === undefined ? 'the firm ceiling' : 'the firm ceiling of $' + ceiling)
+          + ' a run, with no limit on the number of runs.';
         const open = roster.filter(r => !(Number(r.budget_usd) > 0));
         if (!open.length) return 'Set on ' + plural(roster.length, 'engagement', 'engagements');
-        return open[0].client + ' has none, so its runs are capped only by the firm ceiling of $'
-          + SETUP.firm_ceiling_usd + ' each, with no limit on the total'
+        return open[0].client + ' has none, so its runs are capped only by '
+          + (ceiling === undefined ? 'the firm ceiling' : 'the firm ceiling of $' + ceiling)
+          + ' each, with no limit on the total'
           + (open.length > 1 ? '; ' + (open.length - 1) + ' more like it' : '');
       }})(),
       go: (() => {{
@@ -335,6 +367,16 @@ function checklist() {{
         ? ['Activate ' + roster[0].engagement_id, 'move',
            {{id: roster[0].engagement_id, to: 'activate'}}] : null}},
   ];
+  /* Every step that has something to press shows it, and only the next one shows it
+     loudly. The button used to render on `next` alone, which turned "in order" into a
+     requirement: a fresh clone runs on the fake adapter, so step two - connect the AI
+     model - can never be marked done, so it was permanently `next`, so step three's
+     **Set it up** button never appeared. A machine nobody had configured could not be
+     configured from the page whose whole purpose is configuring it.
+
+     Order is still the advice. It is not a lock, because the steps are not actually
+     dependent in that way: a person can write the first configuration before they have an
+     API key, and the checklist should not be the thing stopping them. */
   const next = steps.findIndex(s => !s.done);
   const done = steps.filter(s => s.done).length;
 
@@ -343,7 +385,7 @@ function checklist() {{
     `<div class="step ${{s.done ? 'done' : ''}} ${{i === next ? 'now' : ''}}">
        <span class="mark">${{s.done ? '&#10003;' : i + 1}}</span>
        <span><span class="t">${{esc(s.t)}}</span><span class="d">${{esc(s.d)}}</span></span>
-       ${{s.go && i === next ? `<span class="go"><button class="primary" data-act="${{esc(s.go[1])}}"${{data(s.go[2])}}>${{esc(s.go[0])}}</button></span>` : ''}}
+       ${{s.go ? `<span class="go"><button class="${{i === next ? 'primary' : 'quiet'}}" data-act="${{esc(s.go[1])}}"${{data(s.go[2])}}>${{esc(s.go[0])}}</button></span>` : ''}}
       </div>`).join('') + '</div>';
 
   /* The figure is what is left, not what is finished. "5 of 7 done" is a score; "2 steps
@@ -353,7 +395,10 @@ function checklist() {{
     `<div class="progress">
       <span class="n">${{left || '&#10003;'}}</span>
       <span class="of">${{left
-        ? `<b>${{left === 1 ? 'step left' : 'steps left'}}</b>Next: ${{esc(steps[next].t.toLowerCase())}}`
+        /* The step's own title, not a lowercased copy of it. `toLowerCase()` was there to
+           make it read as a continuation of "Next:", and it turned "Connect the AI model"
+           into "connect the ai model" - the one title with an acronym in it. */
+        ? `<b>${{left === 1 ? 'step left' : 'steps left'}}</b>Next: ${{esc(steps[next].t)}}`
         : '<b>Ready to run</b>A run would mask, ask a model and write a workbook.'}}</span>
       <span class="of done">${{done}} of ${{steps.length}}<br>done</span>
      </div>
@@ -448,24 +493,43 @@ ACTIONS.activateFrom = (d, el) => {{ el.closest('.modal').remove(); move(d.id, '
 async function refresh() {{
   try {{
     SETUP = await get('/api/admin/setup');
+    CONFIGURED = true;
     online();
   }} catch (e) {{
     // A machine nobody has configured yet answers with a refusal, and that is not the same
     // as a server nobody can reach: the first is this page's whole purpose, the second
     // means nothing below can be trusted.
-    SETUP = null;
-    if (!e || !e.code) offline(e);
+    //
+    // The test used to be `e.code`, which is only set when the server refused with a
+    // structured diagnostic. The refusal this page exists to handle - no configuration
+    // document yet - is a plain sentence with no code, so it took the other branch and a
+    // fresh machine was told its own server was unreachable. `refused` is set by every
+    // answer that came back from the server, which is the thing actually being asked.
+    SETUP = {{}};
+    CONFIGURED = false;
+    if (!e || !e.refused) offline(e);
+  }}
+
+  /* The two facts that are about this machine rather than about its configuration, asked
+     separately so a machine with no configuration still gets them. Merged in rather than
+     replacing, because a configured machine already has them in `setup` and the two
+     cannot disagree - they are the same two methods behind both routes. */
+  if (!CONFIGURED) {{
+    const env = await get('/api/admin/environment').catch(() => null);
+    if (env) Object.assign(SETUP, env);
   }}
 
   ME = await get('/api/admin/whoami').catch(() => null);
   $('chrome-right').innerHTML =
-    (SETUP ? esc(SETUP.environment) + ' &middot; configuration v' + esc(SETUP.version)
+    (CONFIGURED ? esc(SETUP.environment) + ' &middot; configuration v' + esc(SETUP.version)
            : '<span class="pill warn"><i class="dot"></i>not set up</span>') +
     (ME ? ' &middot; <span title="Every change is recorded against this name. It is who the '
         + 'system resolved you as, not something typed here.">acting as <b>'
         + esc(ME.name) + '</b></span>' : '');
 
   METH = await get('/api/admin/methodology').catch(() => ({{files: []}}));
+  /* Before `checklist()`, because step seven is about these. One fetch, two readers. */
+  RECIPES = (await get('/api/admin/recipes').catch(() => null) || {{}}).recipes || [];
   checklist();
   roster();
   preflight();
@@ -477,7 +541,7 @@ async function refresh() {{
 }}
 
 function roster() {{
-  const rows = SETUP ? (SETUP.roster || []) : [];
+  const rows = SETUP.roster || [];
   const n = $('n-roster');
   if (n) n.textContent = rows.length ? String(rows.length) : '';
   $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r engagement">
@@ -510,9 +574,25 @@ async function preflight() {{
   const warnings = p.checks.flatMap(c => c.failures.filter(f => f.severity !== 'fail'));
   const shown = blocking.concat(warnings);
 
+  /* "All clear" is only all clear when there is nothing under it. On a real setup this
+     badge read **All clear** with "15 checks, 3 warnings" beside it and two warning cards
+     below it - a green label on a panel that is telling you about three things. What
+     `passed` means is that nothing *blocks* a run, which is the fact worth being green
+     about, so when there is something to say the badge says that instead and the warnings
+     underneath are left to speak for themselves.
+
+     This comment is here rather than inside the template literal below, which is where it
+     was written first. An HTML comment is a comment to a browser parsing HTML; inside a
+     template literal it is text - so the two backticks in it ended the literal and took
+     the whole script with it. Every panel on the page rendered as a grey bar, the suite
+     stayed green, and it was found by looking at the screen. Nothing here parsed this
+     JavaScript until tests/p140. */
   $('pre').innerHTML =
     `<div class="r lede">
-      <span class="lbl"><span class="pill ${{p.passed ? 'good' : 'bad'}}"><i class="dot"></i>${{p.passed ? 'All clear' : plural(blocking.length, 'blocker', 'blockers')}}</span></span>
+      <span class="lbl"><span class="pill ${{p.passed ? 'good' : 'bad'}}"><i class="dot"></i>${{
+        p.passed
+          ? (warnings.length ? 'Nothing blocks a run' : 'All clear')
+          : plural(blocking.length, 'blocker', 'blockers')}}</span></span>
       <span class="sub">${{p.checks.length}} checks${{warnings.length ? ' &middot; ' + plural(warnings.length, 'warning', 'warnings') : ''}}</span>
      </div>` +
     (shown.length
@@ -567,9 +647,8 @@ function methodology() {{
    : '<div class="empty"><b>No methodology files</b>They live in <span class="mono">foundations/</span>.</div>';
 }}
 
-async function workflows() {{
-  const r = await get('/api/admin/recipes').catch(() => ({{recipes: []}}));
-  $('recipes').innerHTML = (r.recipes || []).length ? r.recipes.map(x => `<div class="r">
+function workflows() {{
+  $('recipes').innerHTML = RECIPES.length ? RECIPES.map(x => `<div class="r">
      <span class="lbl mono">${{esc(x.name)}}</span>
      <span class="sub">${{esc(x.approved_by || '')}}</span>
      <span class="pill ${{x.state === 'registered' ? 'good' : x.state === 'edited' ? 'bad' : 'warn'}}">${{x.state === 'registered' ? 'approved' : x.state === 'edited' ? 'edited since' : 'not approved'}}</span>
@@ -876,9 +955,13 @@ function showAdd() {{
      scopes.yaml appears here instead of being silently unofferable - in the registry's
      own words if nobody has written a plainer one. */
   if (kinds.length) $('e_kind').innerHTML = opts(kinds, d => d.id, d => KIND_SAYS[d.id] || d.name);
-  $('e_watch').innerHTML = opts(SETUP ? SETUP.watches || [] : [], w => w.id, w => w.id + ' \\u2014 ' + (w.root || '/'));
-  $('e_dest').innerHTML = opts(SETUP ? SETUP.destinations || [] : [], d => d.id, d => d.id + ' \\u2014 ' + (d.name || d.path || ''));
-  if (!SETUP) {{
+  $('e_watch').innerHTML = opts(SETUP.watches || [], w => w.id, w => w.id + ' \\u2014 ' + (w.root || '/'));
+  $('e_dest').innerHTML = opts(SETUP.destinations || [], d => d.id, d => d.id + ' \\u2014 ' + (d.name || d.path || ''));
+  /* `CONFIGURED`, not `!SETUP`. Making SETUP an empty object rather than null fixed the
+     page that threw on a fresh machine and silently killed this refusal in the same move,
+     because an empty object is truthy - so the form would have opened on a machine with no
+     configuration to save into. Any test for "has it been set up" is the flag, everywhere. */
+  if (!CONFIGURED) {{
     return say('The environment has not been set up yet - do the first step on this page, '
       + 'then add an engagement.', 'bad');
   }}
@@ -1193,6 +1276,28 @@ const kindOf = v => Array.isArray(v) ? 'list' : typeof v === 'number' ? 'number'
    arrival scale has a blank option and the working-paper convention does not: the firm
    always has a convention, and what the client sent is a fact that may not be known yet.
    Blank is sent as null and the store drops it, so "not stated" survives a save. */
+/* A line under the two groups whose numbers mean the opposite of what a number usually
+   means here: both of them get stricter as they get smaller, and one of them has a
+   perfectly ordinary-looking `0` in it on a complete profile.
+
+   Seen on a real engagement: **Materiality threshold · Amount · 0**, with no help text on
+   the group and "Complete" at the top of the form. Nothing tells a reader that 0 is the
+   strictest setting rather than an unfilled box, and the cost of guessing wrong is either
+   a reviewer asked about everything or a reviewer asked about nothing.
+
+   Said in the direction a person decides in - what happens if I raise it - rather than as
+   a definition of the field. */
+const GROUP_NOTE = {{
+  materiality_threshold:
+    'Anything above this goes to a person whatever its confidence. <b>0 means nothing is '
+    + 'immaterial</b> - every item is shown. Raising it shows fewer, and the firm floor in '
+    + 'the Constraint Registry is as high as it may go.',
+  checkpoint_policy:
+    'This can only ask for <b>more</b> review than the skills do, never less: a floor below '
+    + 'what a skill declares is refused, and a policy that sets no auto-accept '
+    + 'auto-accepts nothing.',
+}};
+
 const SCALES = [[1, 'units (as stated)'], [1000, 'thousands'], [1000000, 'millions']];
 const SCALE_FIELDS = {{
   scale_convention: {{blank: null, note: 'How this firm presents its own work.'}},
@@ -1225,6 +1330,7 @@ function profileForm(profile) {{
      &middot; ${{esc(f.schema_version || '')}}${{f.recorded_by ? ' &middot; last recorded by ' + esc(f.recorded_by) + (f.recorded_at ? ' on ' + esc(String(f.recorded_at).slice(0, 10)) : '') : ''}}</p>
     ${{loose.map(([k, v]) => profileField(k, k, v)).join('')}}
     ${{groups.map(([k, v]) => `<div class="section-label">${{esc(labelFor(k))}}</div>
+      ${{GROUP_NOTE[k] ? `<p class="section-note">${{GROUP_NOTE[k]}}</p>` : ''}}
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(12rem,1fr));gap:0 var(--s4)">
        ${{Object.entries(v).map(([ck, cv]) => kindOf(cv) === 'object'
           ? `<div class="field"><label>${{esc(labelFor(ck))}}</label><textarea class="pf" data-path="${{esc(k + '.' + ck)}}" data-kind="json" rows="2">${{esc(JSON.stringify(cv))}}</textarea></div>`

@@ -153,3 +153,13 @@ python tools/gate.py check P28                       # one phase's exit criteria
 need something a given machine may not have, and a green verdict means green on what ran.
 That is the same honesty the session summary gives you at the end of every test run, and
 it exists because a claim nobody has executed is not evidence.
+
+**One more thing a machine may not have: `node`.** The three consoles are JavaScript inside
+Python f-strings, so `ruff` and `mypy` check everything *around* the script and nothing
+inside it. `tests/p140` runs each page's script through node's own parser - compiled, never
+executed - so a syntax error is a test failure rather than something somebody finds by
+opening the page and seeing twelve grey bars. It exists because that happened: an HTML
+comment written inside a template literal, with backticks in it, ended the literal and took
+the whole script with it while the suite stayed green. Without node the parse tests **skip**,
+which is right - node is not a dependency of the product - and is why it is written down
+here, so a skip can be told from a pass.
