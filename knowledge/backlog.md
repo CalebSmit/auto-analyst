@@ -1471,3 +1471,40 @@ slide, which slides change every year, and where the figures come from. Then it 
 three pieces `report/` already has - find the place by name, move the content with the
 things that make it render, and never edit the file that was read.
 Size: medium, and it is a straight port of a pattern that works rather than a new design.
+
+## B-095 Four things found by reading the screen rather than the source
+status: built
+2026-10-02, P132 to P134, sealed by C74. The console was run against a store of eighteen
+real runs and looked at. Every one of these was visible in one look and none of them was
+visible from the code:
+
+- **An engagement with one run printed everything twice.** The group header carried the
+  client, the scope and the time; the run row under it carried all three again plus the run
+  id. All eighteen engagements had exactly one run - which is every engagement until a
+  client comes back - so the fold was pure duplication. Seven engagements now fit where
+  four did. The fold stays for a repeat client, which is what P63 built it for.
+- **"12 need attention . 2 waiting on you" counted two different things.** Twelve *runs*
+  and two *questions*, and both questions sat on runs already inside the twelve. They now
+  name their units, and both are pressable: the number somebody reads is the control they
+  press, because the next thing they want after reading it is the things it counted.
+- **The funnel was not a funnel.** "Skills dispatched 0 of 18" followed by "Guards 17 of
+  18". Each stage counted every run matching its own predicate with no reference to the
+  stages before it, and `max(0, previous - count)` clamped the impossible negative - so the
+  panel hid its own contradiction. It counts survivors now. The same stage was also named
+  for one thing and measured another: it counts `skill.completed`, so a run whose skill was
+  dispatched and then quarantined read as one that never started.
+- **The review modal told you to read a source it did not show** - and the source existed.
+  The classifier records the twelve headers it judged the document on under `headers`; the
+  review surface reads an excerpt from `source_excerpt`. Two names for one thing, so twelve
+  headers were captured for a reviewer and never reached one, on the one question that is
+  only answerable by looking.
+
+**And the primary button contradicted the sentence above it.** A quarantined run says
+"stopped on itself - a step failed in a way retrying will not fix" and **Resume** was the
+dark button. The Help page already said the right thing - *fix that, then Resume* - so the
+button was the only surface disagreeing. It is no longer primary and both actions now say
+what they do before they are pressed.
+
+What this says about method: four defects in surfaces that are heavily tested, found by
+opening them. The suite can only ask whether a page does what its code says; whether what
+it says is true of what a person sees is a different question and needs eyes.

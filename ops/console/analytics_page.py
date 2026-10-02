@@ -63,8 +63,9 @@ PAGE = f"""<!doctype html>
 
   <section class="card" style="grid-area:funnel">
    <header><h2>Where runs stop</h2>
-    <p class="why">Every run passes through these in order. The drop at each stage is
-     where the work actually goes &mdash; and where a person is being asked for something.</p></header>
+    <p class="why">Every run passes through these in order, and a stage counts only the
+     runs that got through every stage before it. The drop is where the work actually
+     goes &mdash; and where a person is being asked for something.</p></header>
    <div class="body"><div id="funnel"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 

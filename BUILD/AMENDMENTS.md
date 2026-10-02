@@ -2422,3 +2422,39 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - task added: a bare file extension in prose is not a space before a full stop
 - exit criterion added: A bare file extension written in prose produces no slip, and the check still fires on a real space before a comma
+
+## 2026-10-02 - P132 The dashboard answers what do I do now
+
+**Why:** Run the console against a store of eighteen real runs and read the screen rather than the source. Four things were visible in one look: an engagement with one run printed the client, the scope and the time twice, and every engagement had one run; the two counts in the chrome read as disjoint buckets and were not, one counting runs and one counting questions that sat on those runs; the counts were facts rather than controls, when the next thing somebody wants after reading a number is the things it counted; and the dark button on a quarantined run was Resume, directly under a sentence saying retrying will not fix it.
+
+- phase added: P132 The dashboard answers what do I do now (The reviewer's reads, gate: auto)
+- exit criterion: A single-run engagement renders one row carrying the client, the engagement, the scope and the run id; a multi-run engagement still folds
+- exit criterion: The two chrome counts say what they count, and the old wording cannot come back unnoticed
+- exit criterion: Narrowing to what needs a person is a redraw of what the browser holds, composes with the find box, and leaves newest-first alone
+- exit criterion: Resume is not the primary action under a sentence saying retrying will not fix it, and the sentence is asserted with it
+
+## 2026-10-02 - P133 Where runs stop was not a funnel
+
+**Why:** The Analytics funnel reported seventeen runs through the guards and none that ran a skill, on the same eighteen runs. Each stage counted every run matching its own predicate with no reference to whether that run got through the stages before it, and the max(0, ...) on the drop clamped the impossible negative - so the panel hid its own contradiction rather than showing it. A second label named one thing and measured another: Skills dispatched counted skill.completed, so a run whose skill was dispatched and then quarantined read as one that never started.
+
+- phase added: P133 Where runs stop was not a funnel (The reviewer's reads, gate: auto)
+- exit criterion: No stage reports more than the stage before it, held against the run shape that broke it - intake and a passing guard and no skill
+- exit criterion: That run is counted where it actually stopped rather than only excluded from later stages
+- exit criterion: A run that really passed everything is still in every stage
+- exit criterion: The drops are plain subtractions and sum to the runs that fell out
+
+## 2026-10-02 - P134 The source a reviewer was told to read
+
+**Why:** Opened a real review item on the console. The modal asked what a document was, said why it had come to a person, and then told the reviewer to read a source it did not show - because the excerpt block is conditional on there being one and that sentence was not. And the excerpt existed the whole time: the classifier records the twelve headers it looked at under 'headers', and the review surface reads an excerpt from 'source_excerpt'. Two names for one thing, in the one place where a person is being asked to disagree with the system and cannot see what the system saw.
+
+- phase added: P134 The source a reviewer was told to read (The reviewer's reads, gate: auto)
+- exit criterion: A workbook classified 'other' reaches a reviewer carrying the headers it was judged on and the file they came from, end to end through the real reader and the real surface
+- exit criterion: The modal only tells somebody to read the source when there is one, and says where to look when there is not
+- exit criterion: The reveal discipline is unchanged: Accept and Correct still wait on the proposal being shown
+
+## 2026-10-02 - C74 The screen says one thing, and it is true
+
+**Why:** Three phases found the same way - running the console against eighteen real runs and reading the screen. Each is small alone; what none of their own suites can see is whether they left the three surfaces using one vocabulary, making one claim about order, and keeping one rule about what a person is shown before they decide.
+
+- checkpoint added: C74 after P134, covering P132, P133, P134
+- proves: The chrome, the engagement header and the filter use one phrase for a run that wants a person and the Help page defines it; the funnel's sentence and its numbers make the same claim and neither can move alone; and three phases of additions to the review modal left the reveal gate exactly where it was.

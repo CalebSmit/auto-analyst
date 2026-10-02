@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **131 of 131 phases closed**
-- Last green checkpoint: **C73**
+- **134 of 134 phases closed**
+- Last green checkpoint: **C74**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -150,4 +150,7 @@
 - **P129** Reading the firm's model, and refusing to say what its names mean (2026-10-02)
 - **P130** Three questions the interview was not asking (2026-10-02)
 - **P131** The prose checks, where the prose actually moves (2026-10-02)
+- **P132** The dashboard answers what do I do now (2026-10-02)
+- **P133** Where runs stop was not a funnel (2026-10-02)
+- **P134** The source a reviewer was told to read (2026-10-02)
 

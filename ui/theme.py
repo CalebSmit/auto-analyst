@@ -480,6 +480,16 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
  box-shadow:0 1px 2px rgba(12,46,63,.16)}
 .attention{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;font-size:var(--t-xs)}
 .attention b{color:var(--navy)}
+
+/* A count in the chrome that is also the control. Somebody reads "12 need a person" and
+   the next thing they want is those twelve, so the number is pressable rather than a
+   fact to go and act on somewhere else. Styled to look pressable without becoming a
+   button in a header that has no room for one: the gold is the same gold the count
+   already used, and the dotted underline is the only thing added. */
+.chip{color:var(--gold);cursor:pointer;border-bottom:1px dotted currentColor;
+ padding-bottom:1px;transition:color .15s var(--ease)}
+.chip:hover,.chip:focus-visible{color:var(--navy);border-bottom-style:solid}
+.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
 .toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:var(--t-xs);color:var(--ink-3);
  cursor:pointer;user-select:none;text-transform:none;letter-spacing:0;margin:0;font-weight:400}
 .toggle input{width:auto;margin:0}

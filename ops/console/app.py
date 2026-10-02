@@ -969,6 +969,8 @@ PAGE = (
      <input id="q" type="search" placeholder="Find a client, engagement or scope"
       autocomplete="off" spellcheck="false" aria-label="Filter runs by client, engagement or scope"
       oninput="applyFilter()">
+     <button class="btn small" id="q-needs" data-act="onlyNeedsAPerson" hidden
+      aria-pressed="false">Needs a person</button>
      <button class="btn small" id="q-clear" data-act="clearFilter" hidden>Clear</button>
     </div>
     <p class="why" id="q-says" hidden></p></header>
@@ -1042,7 +1044,24 @@ ACTIONS.open = d => open_(d.run);
 ACTIONS.review = d => { open_(d.run); review(d.run, d.item); };
 ACTIONS.runAction = d => runAction(d.run, d.do);
 ACTIONS.reveal = d => revealProposal(d.run, d.item);
-ACTIONS.clearFilter = () => { const q = $('q'); if (q) { q.value = ''; q.focus(); } paintRuns(); };
+ACTIONS.clearFilter = () => {
+  const q = $('q'); if (q) { q.value = ''; q.focus(); }
+  ONLY_NEEDS = false; paintRuns();
+};
+/* The count in the chrome is the filter. Somebody reads "12 need a person", and the
+   next thing they want is those twelve - so the number they read is the control they
+   press, rather than a fact they then have to act on somewhere else. */
+ACTIONS.onlyNeedsAPerson = () => { ONLY_NEEDS = !ONLY_NEEDS; paintRuns(); };
+/* The questions count goes to the questions, rather than filtering the runs: an item is
+   answered in the review panel, and sending somebody to a filtered run list would be one
+   more click away from the thing they read the number for. */
+ACTIONS.toReview = () => {
+  const panel = $('inbox');
+  if (!panel) return;
+  panel.scrollIntoView({behavior: 'smooth', block: 'center'});
+  const first = panel.querySelector('[data-act="review"]');
+  if (first) first.focus();
+};
 ACTIONS.auditFile = d => auditFile(d.run, d.name, d.box);
 
 /* Narrowing is a redraw of what the page already has, not a request: the answer is in
@@ -1108,11 +1127,21 @@ async function refresh() {
   count('n-alerts', alerts.length);
   RUNS.sort((a, b) => String(b.started_at || '').localeCompare(String(a.started_at || '')));
 
+  /* The two numbers say what they count, and they are not the same kind of thing.
+     `attention` counts *runs* that have stopped on somebody; `inbox` counts *questions*
+     waiting to be answered - and a question sits on a run that is already in the first
+     number. Written as "12 need attention . 2 waiting on you" the two read as disjoint
+     buckets of one thing, and on the battery store that was twelve runs beside two items
+     that belonged to them. Naming the unit is the whole fix. */
   const attention = RUNS.filter(r => NEEDS_ATTENTION.has(r.state)).length;
   $('chrome-right').innerHTML = RUNS.length
     ? `<span class="attention">${plural(RUNS.length, 'run', 'runs')}`
-      + (attention ? ` &middot; <b style="color:var(--gold)">${attention} need attention</b>` : '')
-      + (inbox.length ? ` &middot; <b style="color:var(--gold)">${inbox.length} waiting on you</b>` : '')
+      + (attention ? ` &middot; <b class="chip" role="button" tabindex="0" data-act="onlyNeedsAPerson"`
+         + ` title="Show only these. A run stops on itself when a step failed in a way retrying`
+         + ` will not fix, or on a person when it has a question.">${attention} need a person</b>` : '')
+      + (inbox.length ? ` &middot; <b class="chip" role="button" tabindex="0" data-act="toReview"`
+         + ` title="Open questions waiting for an answer. Each sits on one of the runs above.">`
+         + `${plural(inbox.length, 'question', 'questions')} waiting</b>` : '')
       + `</span>`
     : '';
 
@@ -1143,9 +1172,18 @@ function haystack(r) {
   return [r.client, r.engagement_id, r.scope_path, r.run_id].join(' ').toLowerCase();
 }
 
+/* Narrowed to the runs that have stopped on somebody. Off by default: the list is
+   ordered newest-first because that is how an analyst finds the job they were just
+   working on, and reordering it by state would answer a different question than the one
+   somebody usually arrives with. This answers the other one - *what do I do now* - on a
+   button, and leaves the default alone. */
+let ONLY_NEEDS = false;
+
 function matching() {
   const q = ($('q') ? $('q').value : '').trim().toLowerCase();
-  return q ? RUNS.filter(r => haystack(r).includes(q)) : RUNS.slice();
+  let rows = q ? RUNS.filter(r => haystack(r).includes(q)) : RUNS.slice();
+  if (ONLY_NEEDS) rows = rows.filter(r => NEEDS_ATTENTION.has(r.state));
+  return rows;
 }
 
 /* Runs, folded by engagement. An analyst thinks in clients: a repeat client is one job
@@ -1155,13 +1193,27 @@ function matching() {
 function paintRuns() {
   const rows = matching();
   const q = ($('q') ? $('q').value : '').trim();
-  const clear = $('q-clear'); const says = $('q-says');
-  if (clear) clear.hidden = !q;
+  const narrowed = !!q || ONLY_NEEDS;
+  const clear = $('q-clear'); const says = $('q-says'); const needs = $('q-needs');
+  if (clear) clear.hidden = !narrowed;
+  if (needs) {
+    // Offered only when there is something to narrow to. A button that filters to
+    // nothing is a button that reads as broken.
+    const waiting = RUNS.filter(r => NEEDS_ATTENTION.has(r.state)).length;
+    needs.hidden = !waiting;
+    needs.setAttribute('aria-pressed', ONLY_NEEDS ? 'true' : 'false');
+    needs.classList.toggle('primary', ONLY_NEEDS);
+    needs.textContent = ONLY_NEEDS ? 'All runs' : `Needs a person (${waiting})`;
+  }
   if (says) {
-    says.hidden = !q;
-    says.textContent = q
-      ? (rows.length ? `${plural(rows.length, 'run', 'runs')} matching “${q}”.`
-                     : `Nothing matches “${q}”. ${plural(RUNS.length, 'run', 'runs')} in all.`)
+    says.hidden = !narrowed;
+    const what = ONLY_NEEDS ? 'needing a person' : '';
+    const quoted = q ? `matching “${q}”` : '';
+    const both = [quoted, what].filter(Boolean).join(' and ');
+    says.textContent = narrowed
+      ? (rows.length
+          ? `${plural(rows.length, 'run', 'runs')} ${both}.`
+          : `No run ${both}. ${plural(RUNS.length, 'run', 'runs')} in all.`)
       : '';
   }
 
@@ -1175,6 +1227,13 @@ function paintRuns() {
     String(b[1][0].started_at || '').localeCompare(String(a[1][0].started_at || '')));
 
   $('runs').innerHTML = rows.length ? ordered.map(([id, rs]) => {
+    // An engagement with one run is one row. The header and the run row carried the
+    // client's name, the scope path and the same timestamp each, so a single-run
+    // engagement - which is every engagement until a client comes back - printed all
+    // three twice and said nothing the second time. The fold earns its line when it is
+    // summarising more than one thing; folding one run is indenting it under itself.
+    if (rs.length === 1) return runRow(rs[0]);
+
     const open = rs.reduce((n, r) => n + (r.open_review_items || 0), 0);
     const attention = rs.filter(r => NEEDS_ATTENTION.has(r.state)).length;
     const last = rs.map(r => r.last_ts || r.started_at).sort().pop();
@@ -1182,7 +1241,7 @@ function paintRuns() {
       <div class="grp-head">
        <b>${esc(rs[0].client || id)}</b>
        <span class="sub">${esc(rs[0].scope_path || '')}</span>
-       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="open review items">${open}</span> waiting` : ''}${attention ? ` &middot; <b style="color:var(--gold)">${attention} need attention</b>` : ''} &middot; ${esc(ago(last))}</span>
+       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="questions waiting for an answer on this engagement">${open}</span> ${open === 1 ? 'question' : 'questions'}` : ''}${attention ? ` &middot; <b style="color:var(--gold)">${attention} need a person</b>` : ''} &middot; ${esc(ago(last))}</span>
       </div>
       <div class="grp-runs">${rs.map(runRow).join('')}</div>
      </div>`;
@@ -1232,9 +1291,17 @@ function actions(run) {
   if (!box) return;
   box.innerHTML =
     `<button class="small" data-act="map" data-run="${esc(run.run_id)}" title="Every node of the design, painted with what this run did">See the whole design</button>`
+    // Neither of these is primary, and that is the point. The line directly above them
+    // says a quarantined run "stopped on itself - a step failed in a way retrying will
+    // not fix", and the first version of this made **Resume** the dark button - so the
+    // design pointed at the one action the sentence had just said would not work.
+    // Resume is right *after* somebody has fixed the cause, which is why it is still
+    // here and why it says so.
     + (run.state === 'quarantined'
-      ? ` <button class="small primary" data-act="runAction" data-run="${esc(run.run_id)}" data-do="resume">Resume</button>
-       <button class="small ghost" data-act="runAction" data-run="${esc(run.run_id)}" data-do="halt">Halt</button>`
+      ? ` <button class="small" data-act="runAction" data-run="${esc(run.run_id)}" data-do="resume"
+          title="Replays from where it stopped. Only useful once whatever stopped it has been fixed - on its own, it stops again.">Resume</button>
+       <button class="small ghost" data-act="runAction" data-run="${esc(run.run_id)}" data-do="halt"
+          title="End it, with a reason. Nothing partial is delivered and the manifest is written.">Halt</button>`
       : '');
 }
 
@@ -1284,7 +1351,9 @@ async function review(runId, itemId) {
       <div class="excerpt">${esc(item.source_excerpt)}</div>` : ''}
      ${(item.reasons || []).length ? `<div class="section-label">Why it came to a person</div>
       <ul style="margin:.2rem 0 .8rem 1.1rem;padding:0;font-size:.9rem;color:var(--ink-2)">${item.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}
-     <div id="rv-proposal"><div class="reveal"><p>Read the source first. The system's proposal and its confidence are shown when you ask, and the asking is recorded - so an answer given without looking is visible later.</p>
+     <div id="rv-proposal"><div class="reveal"><p>${item.source_excerpt
+       ? `Read the source first.`
+       : `No excerpt was recorded for this one, so there is nothing above to read - open the file itself before you answer.`} The system's proposal and its confidence are shown when you ask, and the asking is recorded - so an answer given without looking is visible later.</p>
       <button data-act="reveal" data-run="${esc(runId)}" data-item="${esc(itemId)}">Show the proposal</button></div></div>
      <div class="section-label">Your decision</div>
      <div class="decide" id="rv-choices">

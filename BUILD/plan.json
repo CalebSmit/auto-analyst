@@ -3894,6 +3894,91 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P132",
+      "title": "The dashboard answers what do I do now",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make the Activity page answer the question somebody arrives with, by taking out what it said twice, naming what its numbers count, making those numbers the controls, and no longer pointing at an action the page has just ruled out.",
+      "builds": [],
+      "tasks": [
+        "an engagement with one run is one row; the fold stays for a client with several",
+        "the counts name their units - runs that need a person, questions waiting",
+        "the counts filter the list, and a Needs a person button beside the find box composes with it",
+        "Resume is no longer primary on a quarantined run, and both actions say what they do"
+      ],
+      "exit": [
+        "A single-run engagement renders one row carrying the client, the engagement, the scope and the run id; a multi-run engagement still folds",
+        "The two chrome counts say what they count, and the old wording cannot come back unnoticed",
+        "Narrowing to what needs a person is a redraw of what the browser holds, composes with the find box, and leaves newest-first alone",
+        "Resume is not the primary action under a sentence saying retrying will not fix it, and the sentence is asserted with it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p132 -q",
+        "python -m uv run pytest tests/p42 tests/p43 tests/p44 tests/p45 tests/p46 tests/p47 tests/p48 tests/p53 tests/p63 -q",
+        "python -m uv run ruff check ops/ ui/ tests/p132",
+        "python -m uv run mypy ops/ ui/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P133",
+      "title": "Where runs stop was not a funnel",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Count the survivors, so the panel's own sentence - every run passes through these in order - is true of its numbers rather than claimed over them, and name the stage for what it measures.",
+      "builds": [],
+      "tasks": [
+        "a stage counts only runs that got through every stage before it",
+        "the drop is a plain subtraction, with nothing left to clamp",
+        "Skills dispatched becomes Skills ran, which is what skill.completed measures",
+        "the panel says a stage counts only what got through the ones before"
+      ],
+      "exit": [
+        "No stage reports more than the stage before it, held against the run shape that broke it - intake and a passing guard and no skill",
+        "That run is counted where it actually stopped rather than only excluded from later stages",
+        "A run that really passed everything is still in every stage",
+        "The drops are plain subtractions and sum to the runs that fell out"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p133 -q",
+        "python -m uv run pytest tests/p23 tests/p44 tests/regression -q",
+        "python -m uv run ruff check ops/ tests/p133",
+        "python -m uv run mypy ops/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P134",
+      "title": "The source a reviewer was told to read",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Put the headers the classifier judged a document on in front of the person being asked to judge it, and stop the modal giving advice it cannot support when an item genuinely has no excerpt.",
+      "builds": [],
+      "tasks": [
+        "the classifier writes its headers under the name the review surface reads, with a locator",
+        "the excerpt is a line a person reads rather than a list that renders as a repr",
+        "the reveal note says what to do instead when there is no excerpt"
+      ],
+      "exit": [
+        "A workbook classified 'other' reaches a reviewer carrying the headers it was judged on and the file they came from, end to end through the real reader and the real surface",
+        "The modal only tells somebody to read the source when there is one, and says where to look when there is not",
+        "The reveal discipline is unchanged: Accept and Correct still wait on the proposal being shown"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p134 -q",
+        "python -m uv run pytest tests/p17 tests/p45 tests/p47 tests/p96 tests/p104 -q",
+        "python -m uv run ruff check intake/ ops/ tests/p134",
+        "python -m uv run mypy intake/ ops/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -4698,6 +4783,17 @@
       "proves": "The appendix preview and the command line read the same words and report the same findings; neither changes the document; the appendix moves whatever the words say; and the house style the checks are held to is still an open question on the interview map rather than a quietly settled one.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c73 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C74",
+      "title": "The screen says one thing, and it is true",
+      "after": "P134",
+      "status": "done",
+      "proves": "The chrome, the engagement header and the filter use one phrase for a run that wants a person and the Help page defines it; the funnel's sentence and its numbers make the same claim and neither can move alone; and three phases of additions to the review modal left the reveal gate exactly where it was.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c74 -q"
       ],
       "closed": "2026-10-02"
     }

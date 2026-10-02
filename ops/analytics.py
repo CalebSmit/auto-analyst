@@ -216,7 +216,12 @@ class Analytics:
         stages = (
             ("Intake & fingerprint", lambda f: f["read"]),
             ("Mask & payload scan", lambda f: f["guards"].get("payload_scan") == "pass"),
-            ("Skills dispatched", lambda f: f["dispatched"]),
+            # "Skills ran", not "Skills dispatched". The measure is `skill.completed`, so
+            # a run whose skill was dispatched and then quarantined counted as not having
+            # dispatched one - which is the difference between "the work never started"
+            # and "the work started and stopped", and is the state most of a bad day's
+            # runs are in. The measure is the right one for a funnel; the label was not.
+            ("Skills ran", lambda f: f["dispatched"]),
             (
                 "Guards",
                 lambda f: bool(f["guards"]) and all(v == "pass" for v in f["guards"].values()),
@@ -224,12 +229,24 @@ class Analytics:
             ("Review resolved", lambda f: f["items"] == 0 or f["open_items"] == 0),
             ("Released", lambda f: f["released"]),
         )
+        # A funnel, which this was not. Each stage used to count every run matching its own
+        # predicate, with no reference to whether that run got through the stages before it
+        # - so a later stage could report *more* than an earlier one, and on a store of
+        # eighteen real runs it did: "Skills ran 0 of 18" followed by "Guards 17 of 18",
+        # because a run can have a passing payload scan as its only guard without a skill
+        # ever having run. The `max(0, ...)` on the drop then clamped the impossible
+        # negative to zero, so the panel hid its own contradiction rather than showing it.
+        #
+        # Counting the survivors makes it monotonic by construction, which is what the
+        # panel says it is: *every run passes through these in order*. The drop is a plain
+        # subtraction now, with nothing to clamp.
+        alive = {r.run_id for r in runs}
         rows = []
         previous = len(runs)
         for label, reached in stages:
-            count = sum(1 for r in runs if reached(per_run[r.run_id]))
-            rows.append({"stage": label, "reached": count, "dropped": max(0, previous - count)})
-            previous = count
+            alive = {rid for rid in alive if reached(per_run[rid])}
+            rows.append({"stage": label, "reached": len(alive), "dropped": previous - len(alive)})
+            previous = len(alive)
         return rows
 
     def _failures(

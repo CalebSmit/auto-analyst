@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**131 of 131 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**134 of 134 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -306,4 +306,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C72 - The handoff, read end to end** | integration | The interview asks for what read_template.py produces, what it produces loads where the question says it goes under the filename the registry wants, and the route that invites work-machine files here still passes the outbound scan. | 2026-10-02 |
 | [x] | **P131** The prose checks, where the prose actually moves | auto | A preview names the em dashes, the register phrases and the mechanical slips in the content arriving, and an update says the same thing as its preview | 2026-10-02 |
 | [x] | **C73 - One check, two surfaces, one answer** | integration | The appendix preview and the command line read the same words and report the same findings; neither changes the document; the appendix moves whatever the words say; and the house style the checks are held to is still an open question on the interview map rather than a quietly settled one. | 2026-10-02 |
+| [x] | **P132** The dashboard answers what do I do now | auto | A single-run engagement renders one row carrying the client, the engagement, the scope and the run id; a multi-run engagement still folds | 2026-10-02 |
+| [x] | **P133** Where runs stop was not a funnel | auto | No stage reports more than the stage before it, held against the run shape that broke it - intake and a passing guard and no skill | 2026-10-02 |
+| [x] | **P134** The source a reviewer was told to read | auto | A workbook classified 'other' reaches a reviewer carrying the headers it was judged on and the file they came from, end to end through the real reader and the real surface | 2026-10-02 |
+| [x] | **C74 - The screen says one thing, and it is true** | integration | The chrome, the engagement header and the filter use one phrase for a run that wants a person and the Help page defines it; the funnel's sentence and its numbers make the same claim and neither can move alone; and three phases of additions to the review modal left the reveal gate exactly where it was. | 2026-10-02 |
 

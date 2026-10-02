@@ -206,6 +206,17 @@ def read_source(
                 "source_id": row.source_id,
                 "reasons": list(report.classification.reasons),
                 "headers": headers[:12],
+                # The headers again, under the name the review surface reads.
+                #
+                # `ReviewSurface.show` takes the excerpt from `source_excerpt`, and this
+                # item wrote the headers under `headers` - so twelve headers were captured
+                # for a reviewer and never reached one. The modal showed no source and
+                # still said "Read the source first", which is advice nobody could follow,
+                # on the one question that is *only* answerable by looking: what is this
+                # document. They are what the classifier itself looked at, so they are
+                # exactly what a person needs to disagree with it.
+                "source_excerpt": " | ".join(h for h in headers[:12] if h.strip()),
+                "locator": row.path or row.filename,
                 "proposal": {"document_type": "other"},
                 "confidence": report.classification.confidence,
             },
