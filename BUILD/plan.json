@@ -3863,6 +3863,35 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P131",
+      "title": "The prose checks, where the prose actually moves",
+      "block": "The reviewer's reads",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Read the words arriving into an appendix at the moment they arrive, put the findings beside the change where the preview already is, and never let any of it stop the appendix from moving.",
+      "builds": [],
+      "tasks": [
+        "report/setup.py: read the source's prose and carry the findings on Change",
+        "count the mechanical slips apart from the judgements, in the summary a person reads",
+        "a source that cannot be read is a recorded skip, not a clean result and not a refusal"
+      ],
+      "exit": [
+        "A preview names the em dashes, the register phrases and the mechanical slips in the content arriving, and an update says the same thing as its preview",
+        "The appendix moves whatever the words are; nothing here can refuse one",
+        "A source with nothing wrong with it produces no findings at all",
+        "A source the prose checks cannot read is reported with its reason, and the appendix still moves",
+        "Nothing here reaches Appendix H, asked of the registry rather than of a docstring"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p131 -q",
+        "python -m uv run pytest tests/p91 tests/p92 tests/p126 -q",
+        "python -m uv run ruff check report/ tests/p131",
+        "python -m uv run mypy report/"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -4656,6 +4685,17 @@
       "proves": "The interview asks for what read_template.py produces, what it produces loads where the question says it goes under the filename the registry wants, and the route that invites work-machine files here still passes the outbound scan.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c72 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C73",
+      "title": "One check, two surfaces, one answer",
+      "after": "P131",
+      "status": "done",
+      "proves": "The appendix preview and the command line read the same words and report the same findings; neither changes the document; the appendix moves whatever the words say; and the house style the checks are held to is still an open question on the interview map rather than a quietly settled one.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c73 -q"
       ],
       "closed": "2026-10-02"
     }

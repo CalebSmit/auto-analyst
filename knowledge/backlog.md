@@ -1423,3 +1423,51 @@ the symptom - "QC refuses every deliverable" - looks like a QC defect and is not
 B-043 holds, and OPEN.md says it is not one to take while tidying something else. What
 changed is that the consequence is now a trace with a test at the end of it rather than a
 paragraph.
+
+## B-093 The prose checks, where the prose actually moves
+status: built
+2026-10-02, P131. P126 built `tools/prose_checks.py` and reached it from the command line.
+This joins it to the one place in this build where prose enters a client deliverable: the
+moment an appendix's content is transplanted into the report.
+
+The reason for putting it there rather than leaving it to `/review` is the analyst's own
+words - *"checks like when it is actually running"*. Appendix commentary is where a draft
+written with a model enters a report, the preview is where somebody is already looking, and
+a check nobody has to remember is a check that runs. A preview now reads:
+
+    Appendix C: 3 block(s) out, 8 block(s), 1 style, 1 numbering, 1 image in;
+    5 thing(s) to look at in the words arriving, 2 of them mechanical  (nothing written)
+
+Three things it does not do, each with a test in `tests/p131`:
+
+- **it does not stop the update.** An appendix that failed to move because of an em dash
+  would be this tool deciding something that is not its decision. The slips are counted
+  apart from the tells for the same reason: one is provably a mistake and one is a
+  judgement.
+- **it does not report silence as clean.** A source that could not be read says so, with
+  the reason, and the appendix still moves.
+- **it does not reach Appendix H.** Asked of the registry rather than of a docstring: the
+  certification is not `updated`, is not in `updatable()`, and `preview` refuses it.
+
+What is still owed is the house style the checks are held to - which dash this firm uses,
+how amounts are written, which terms are capitalised because they are defined. That is the
+`report-and-deck` interview topic (B-091), and until it is answered the checks are held to
+a style they inferred.
+
+## B-094 The restricted-use deck has no path at all
+status: proposed
+2026-10-02. The analyst builds restricted-use **PowerPoints** at work alongside the
+restricted-use reports, and `report/` is Word-only: `python-docx` is a dependency,
+`python-pptx` is not, and nothing in this build has ever opened a `.pptx`.
+
+Not built tonight, and the reason is the one that matters: `report/` works because it binds
+by **name** - a bookmark or a heading, never a paragraph index - and the equivalent for a
+deck is a named placeholder or a named shape. Which of those this firm's template uses is
+not knowable from here, and a deck path built on a guess would bind by slide index, which
+is `B44` with a different spelling.
+
+What it needs is the second half of the `report-and-deck` topic (B-091): what is on each
+slide, which slides change every year, and where the figures come from. Then it is the same
+three pieces `report/` already has - find the place by name, move the content with the
+things that make it render, and never edit the file that was read.
+Size: medium, and it is a straight port of a pattern that works rather than a new design.

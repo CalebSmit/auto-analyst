@@ -168,7 +168,10 @@ pinned template being wrong is not this build's call to make. The console's deli
 panel has a **Check formulas** button that re-derives the audit from the released bytes,
 which matters because the footing check cannot run until Excel has saved the file once.
 
-**The prose.** Three kinds: *tells* (an em dash, the register vocabulary, the three-item
+**The prose.** It also runs where the prose actually moves: setting up an appendix reads
+the words arriving and puts the findings beside the change, in the preview, before anything
+is written - and it can never stop the appendix from moving, because whether a sentence
+should say something else is the analyst's judgement. Three kinds: *tells* (an em dash, the register vocabulary, the three-item
 rhythm, a bolded lead-in, sentences that never vary in length), *slips* (a word typed
 twice, a space before a comma, a bracket that never closes), and *the two spellings of one
 thing* - `the Company` beside `the company`, $1.2 million beside $1,200,000, two date

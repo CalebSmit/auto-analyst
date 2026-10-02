@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **130 of 130 phases closed**
-- Last green checkpoint: **C72**
+- **131 of 131 phases closed**
+- Last green checkpoint: **C73**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -149,4 +149,5 @@
 - **P128** A command, not a page - and nine lines that would have failed on a clone (2026-10-02)
 - **P129** Reading the firm's model, and refusing to say what its names mean (2026-10-02)
 - **P130** Three questions the interview was not asking (2026-10-02)
+- **P131** The prose checks, where the prose actually moves (2026-10-02)
 

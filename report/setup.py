@@ -32,7 +32,7 @@ check refuses.
 from __future__ import annotations
 
 import shutil
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -72,9 +72,29 @@ class Change:
     dry_run: bool = False
     source: str = ""
 
+    prose: dict[str, Any] = field(default_factory=dict)
+    """What `tools/prose_checks.py` found in the content arriving, in its own shape.
+
+    Read here rather than left to somebody remembering to look, because this is the moment
+    the prose moves and the analyst is standing in front of it. Appendix commentary is
+    where a draft written with a model actually enters a report, and an em dash in it is
+    the thing a reader notices.
+
+    **It never stops the update.** Whether a sentence should say something else is the
+    analyst's judgement; the findings sit beside the change so they are in front of them
+    while the preview still is. Empty when the source could not be read as a document,
+    with the reason inside - never empty because nothing was looked for."""
+
     @property
     def complete(self) -> bool:
         return self.carried is not None and self.carried.complete
+
+    @property
+    def slips(self) -> int:
+        """Mechanical mistakes in the arriving content: a word typed twice, a space before
+        a comma, a bracket that never closes. Separated from the tells because these are
+        provably mistakes and a tell is a judgement."""
+        return sum(1 for f in self.prose.get("findings", []) if f.get("kind") == "slip")
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -91,6 +111,7 @@ class Change:
             "complete": self.complete,
             "dry_run": self.dry_run,
             "written_to": self.written_to,
+            "prose": dict(self.prose),
         }
 
     def summary(self) -> str:
@@ -98,6 +119,11 @@ class Change:
             f"Appendix {self.letter}: {self.replaced_blocks} block(s) out, "
             f"{self.carried.summary() if self.carried else 'nothing'} in"
         )
+        if found := self.prose.get("findings"):
+            head += (
+                f"; {len(found)} thing(s) to look at in the words arriving"
+                + (f", {self.slips} of them mechanical" if self.slips else "")
+            )
         if self.dry_run:
             return f"{head}  (nothing written)"
         return f"{head} -> {self.written_to}"
@@ -194,6 +220,7 @@ def _run(
 
     document = Document(str(into_report))
     incoming = Document(str(from_source))
+    prose = _read_the_words_arriving(from_source)
 
     anchor = find_anchor(document, entry.anchor)
     owned = span_of(document, anchor)
@@ -227,6 +254,7 @@ def _run(
             carried,
             dry_run=True,
             source=str(from_source),
+            prose=prose,
         )
 
     into.parent.mkdir(parents=True, exist_ok=True)
@@ -239,7 +267,35 @@ def _run(
         carried,
         written_to=str(into),
         source=str(from_source),
+        prose=prose,
     )
+
+
+def _read_the_words_arriving(source: Path) -> dict[str, Any]:
+    """The prose checks over the document whose content is about to move.
+
+    The whole source rather than only the blocks being moved, and the difference is at
+    most a repeated heading - so the simpler reading is the honest one and it is what a
+    person would check anyway.
+
+    **It cannot stop an update.** A source this could not read is reported as unread
+    inside the result, with the reason, rather than as a document with nothing wrong with
+    it - and the appendix still moves, because whether the words are right is a separate
+    question from whether the content got there.
+    """
+    from tools.prose_checks import check, read  # noqa: PLC0415 - only when a report moves
+
+    try:
+        paragraphs, skipped = read(source)
+        return check(paragraphs, skipped=skipped).as_dict()
+    except Exception as exc:  # noqa: BLE001 - a reading that failed is a reading that failed
+        return {
+            "findings": [],
+            "skipped": [
+                f"{source.name} could not be read for the prose checks ({exc}). The "
+                f"appendix still moved; nothing was looked at in the words."
+            ],
+        }
 
 
 def _without_a_repeated_heading(incoming: Any, anchor: str) -> tuple[Any, ...]:

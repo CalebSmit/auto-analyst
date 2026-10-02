@@ -2397,3 +2397,21 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - task added: fix the two tools the needs() addition broke, which put tools/ on the path rather than the repo
 - exit criterion added: Every documented tool starts: run with the interpreter running the suite, asserting the return code rather than searching the output for words
+
+## 2026-10-02 - P131 The prose checks, where the prose actually moves
+
+**Why:** P126 built the prose checks and reached them from the command line, which means somebody has to remember. The analyst asked for checks that run when the thing is actually running, and there is exactly one place in this build where prose enters a client deliverable: the moment an appendix's content is transplanted into the report. The preview is where somebody is already looking.
+
+- phase added: P131 The prose checks, where the prose actually moves (The reviewer's reads, gate: auto)
+- exit criterion: A preview names the em dashes, the register phrases and the mechanical slips in the content arriving, and an update says the same thing as its preview
+- exit criterion: The appendix moves whatever the words are; nothing here can refuse one
+- exit criterion: A source with nothing wrong with it produces no findings at all
+- exit criterion: A source the prose checks cannot read is reported with its reason, and the appendix still moves
+- exit criterion: Nothing here reaches Appendix H, asked of the registry rather than of a docstring
+
+## 2026-10-02 - C73 One check, two surfaces, one answer
+
+**Why:** P131 gave the prose checks a second surface, and a check with two surfaces is a check that can come to say two things. That is the property C71 holds for the formula audit across its three, and it is worth holding for this one before it acquires a third.
+
+- checkpoint added: C73 after P131, covering P131
+- proves: The appendix preview and the command line read the same words and report the same findings; neither changes the document; the appendix moves whatever the words say; and the house style the checks are held to is still an open question on the interview map rather than a quietly settled one.

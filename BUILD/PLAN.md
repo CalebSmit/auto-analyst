@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**130 of 130 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**131 of 131 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -304,4 +304,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P129** Reading the firm's model, and refusing to say what its names mean | auto | The inventory resolves every defined name - global and sheet-local - to a sheet, a cell and whether it is empty, a number, a formula or a block | 2026-10-02 |
 | [x] | **P130** Three questions the interview was not asking | auto | The map loads, every topic has angles, a done_when and feeds, and the ids are unique | 2026-10-02 |
 | [x] | **C72 - The handoff, read end to end** | integration | The interview asks for what read_template.py produces, what it produces loads where the question says it goes under the filename the registry wants, and the route that invites work-machine files here still passes the outbound scan. | 2026-10-02 |
+| [x] | **P131** The prose checks, where the prose actually moves | auto | A preview names the em dashes, the register phrases and the mechanical slips in the content arriving, and an update says the same thing as its preview | 2026-10-02 |
+| [x] | **C73 - One check, two surfaces, one answer** | integration | The appendix preview and the command line read the same words and report the same findings; neither changes the document; the appendix moves whatever the words say; and the house style the checks are held to is still an open question on the interview map rather than a quietly settled one. | 2026-10-02 |
 
