@@ -948,7 +948,7 @@ PAGE = (
    least actionable panel on the page - had the largest share of the screen. */
 {MAP_STYLE}
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr);
- grid-template-rows:minmax(0,1fr) minmax(0,.9fr) minmax(0,1fr);
+ grid-template-rows:repeat(3,min-content);
  grid-template-areas:"runs detail inbox" "runs detail alerts" "trace trace feed"}}
 </style>
 {OPS_SHELL}
@@ -978,7 +978,11 @@ PAGE = (
   </section>
 
   <section class="card" style="grid-area:detail">
-   <header><h2>Run detail</h2>
+   <!-- The title is the run, once there is one. "Run detail" named the box rather than
+        the thing in it: the client was set in the smallest type on the page, below a
+        heading three sizes larger that said nothing a reader did not know from having
+        clicked. A panel about one thing is titled with that thing. -->
+   <header><h2 id="detail-title">Run detail</h2>
     <p class="why" id="detail-why">Nothing selected.</p></header>
    <div class="body">
     <div id="card"><div class="empty"><b>Choose a run</b>Its scorecard, its trace and its live activity appear here.</div></div>
@@ -991,7 +995,8 @@ PAGE = (
    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:trace">
+  <!-- A stream: a hundred and eighteen nodes, however many the run touched. -->
+  <section class="card stream" style="grid-area:trace">
    <header><h2>Run trace</h2>
     <p class="why">Every node in the design, painted with what this run actually did.
      Mint passed, plum failed with its diagnostic below, a ring on whatever is running,
@@ -1018,7 +1023,8 @@ PAGE = (
    <div class="body"><div id="alerts"><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:feed">
+  <!-- A stream: the event log, which only ever grows. -->
+  <section class="card stream" style="grid-area:feed">
    <header><h2>Live activity</h2>
     <p class="why" id="feed-src">Events arrive as they happen, newest first.</p></header>
    <div class="body"><div id="feed"></div></div>
@@ -1642,7 +1648,8 @@ async function open_(id) {
 
   if (mine !== OPENING) return;
   const c = run.scorecard;
-  $('detail-why').textContent = (row.client ? row.client + ' — ' : '') + (run.engagement_id || '') + ' — ' + id;
+  $('detail-title').textContent = row.client || run.engagement_id || 'Run detail';
+  $('detail-why').textContent = (run.engagement_id || '') + (run.engagement_id ? ' · ' : '') + id;
   $('card').innerHTML =
     `<div class="r" style="border:0;padding:0 0 .4rem">
       <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot"></i>${esc(run.state)}</span>

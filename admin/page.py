@@ -38,7 +38,7 @@ PAGE = f"""<!doctype html>
 /* Six panels and a checklist. The checklist holds three rows of the left column because
    while there is work in it, it is the screen. */
 .board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
- grid-template-rows:repeat(6,minmax(0,1fr));
+ grid-template-rows:repeat(6,min-content);
  grid-template-areas:"steps pre scopes" "steps pre scopes" "steps pre recipes"
   "steps meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
 
@@ -119,7 +119,8 @@ body.all-done #checklist .bar{{display:none}}
    <div class="body"><div id="report"><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:seams">
+  <!-- A stream: every seam the code has, plus the connections a person tests. -->
+  <section class="card stream" style="grid-area:seams">
    <header><h2>What is wired</h2>
     <p class="why">Derived from the code, not from this sentence.</p></header>
    <div class="body"><div id="seams"><div class="skel"></div></div>
@@ -551,8 +552,8 @@ function roster() {{
       ${{r.is_repeat && !r.prior_model ? `<span class="why-line"><a href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="A repeat client's work starts from last year's workbook. Until this is set there is nothing to roll forward from.">last year&rsquo;s model: not set</a></span>` : ''}}</span>
      <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
      <span class="acts">
-      <button class="quiet" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</button>
-      <button class="quiet" data-act="settings" data-id="${{esc(r.engagement_id)}}" title="Budget, review level and how long files are held before a run">settings</button>
+      <a class="btn quiet" href="#files=${{esc(r.engagement_id)}}" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</a>
+      <a class="btn quiet" href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" title="Budget, review level and how long files are held before a run">settings</a>
       <button class="quiet" data-act="setRecipe" data-id="${{esc(r.engagement_id)}}" data-recipe="${{esc(r.recipe || '')}}">workflow</button>
       <button class="quiet" data-act="editProfile" data-id="${{esc(r.engagement_id)}}">profile</button>
       ${{r.state === 'active'
@@ -1409,12 +1410,24 @@ async function saveProfile(id, base, box) {{
     'Profile saved for ' + id + '.');
 }}
 
-/* A link to a piece of setup opens it: #profile=ENGAGEMENT for its profile, so the person who
-   owns the missing judgements can be sent straight to them. */
+/* A link to a piece of setup opens it, so the person who owns a missing judgement can be
+   sent straight to it rather than told where to look.
+
+   One table, because the two halves had drifted: the page handed out `#settings=` and the
+   router did not know it, so that link worked when clicked - it carries `data-act` as well -
+   and did nothing when pasted or reloaded, which is the only reason a link has a URL. And
+   the router knew `#files=` while nothing linked to it. A test now asserts the two sides are
+   the same set, in both directions. */
+const DEEP_LINKS = {{
+  'profile=': editProfile,
+  'settings=': settings,
+  'files=': showFiles,
+}};
 refresh().then(() => {{
   const wanted = decodeURIComponent(location.hash.slice(1));
-  if (wanted.startsWith('profile=')) editProfile(wanted.slice(8));
-  if (wanted.startsWith('files=')) showFiles(wanted.slice(6));
+  for (const [prefix, open] of Object.entries(DEEP_LINKS)) {{
+    if (wanted.startsWith(prefix)) return open(wanted.slice(prefix.length));
+  }}
 }});
 </script>
 """

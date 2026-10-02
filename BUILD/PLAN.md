@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**141 of 141 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**143 of 143 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -335,4 +335,12 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 |---|---|---|---|---|
 | [x] | **P141** The fourth site, and the borrowed code | auto | Nothing in tools/gate.py orders a phase or checkpoint id as a string, in a comparison or a sort key | 2026-10-02 |
 | [x] | **C77 - Said once, meant everywhere** | integration | The two rules this repo already stated - order an id by its number, and let a code's advice be about its own problem - hold over the files that state them rather than over the sites somebody happened to list. | 2026-10-02 |
+
+## The shape of the screen
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P142** The board takes the shape of what is in it | auto | No panel on any board page hides content behind an inner scrollbar except the ones that hold an unbounded stream, and those say so | 2026-10-02 |
+| [x] | **P143** A link that survives being pasted | auto | Every hash the page links to is one the router handles, and every hash the router handles is one the page links to | 2026-10-02 |
+| [x] | **C78 - The shape of the screen** | integration | A panel is as tall as what it holds and no more, nothing is hidden behind a scrollbar a reader has to discover, and every deep link the Setup page prints opens the thing it names. | 2026-10-02 |
 

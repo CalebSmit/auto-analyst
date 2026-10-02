@@ -73,10 +73,16 @@ def test_a_refusal_is_a_refusal_on_every_page() -> None:
 
 
 def test_the_fallback_is_written_once_per_dimension_and_not_per_page() -> None:
-    """Both media queries live in the theme, so all three consoles fall back together. A
-    page-level copy is how two of them would end up behaving differently at the same size."""
+    """Whatever breakpoints exist live in the theme, so all three consoles fall back
+    together. A page-level copy is how two of them would end up behaving differently at the
+    same size.
+
+    One dimension now, not two. P136 added a height breakpoint and P142 removed it, having
+    made the board's rows as tall as their content at every size - so a short screen needs no
+    rule of its own. Width still does: how many columns fit is a question about width.
+    """
     assert "@media (max-width:1100px)" in CSS
-    assert "@media (max-height:760px)" in CSS
+    assert "@media (max-height" not in CSS, "a height breakpoint is back"
 
     # A page may carry a breakpoint for a component of its own - the map view moves its
     # side panel to the bottom on a narrow screen, which is about `#dmap` and nothing else.
@@ -91,9 +97,12 @@ def test_the_fallback_is_written_once_per_dimension_and_not_per_page() -> None:
                 )
 
 
-def test_the_board_is_still_one_screen_where_there_is_one() -> None:
-    assert ".board{flex:1;min-height:0;display:grid" in CSS
-    assert "grid-template-rows:repeat(6" in SETUP_PAGE
+def test_the_board_is_a_grid_whose_rows_fit_what_is_in_them() -> None:
+    """It filled the screen exactly until P142 measured what that cost: seven of twenty
+    panels hiding content behind an inner scrollbar while eight sat under seventy per cent
+    full, on the same screens."""
+    assert ".board{display:grid;gap:var(--s3);align-content:start}" in CSS
+    assert "grid-template-rows:repeat(6,min-content)" in SETUP_PAGE
 
 
 def test_every_page_that_lays_out_a_board_places_every_area_it_names() -> None:

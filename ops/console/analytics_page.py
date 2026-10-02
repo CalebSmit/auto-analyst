@@ -35,7 +35,7 @@ PAGE = f"""<!doctype html>
 <title>Analytics - Automated Analyst</title>
 <style>{CSS}
 .board{{grid-template-columns:repeat(3,minmax(0,1fr));
- grid-template-rows:auto minmax(0,1fr) minmax(0,1fr);
+ grid-template-rows:repeat(3,min-content);
  grid-template-areas:"head head head" "funnel failures stuck" "outcomes skills trends"}}
 </style>
 {shell("Analytics", "/analytics")}

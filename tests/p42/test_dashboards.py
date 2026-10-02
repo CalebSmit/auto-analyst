@@ -109,8 +109,14 @@ def test_a_refused_action_is_said_not_swallowed() -> None:
 
 
 def test_links_open_a_run_a_review_item_and_a_profile() -> None:
+    """The property, not the spelling. P143 put Setup's prefixes in one table and made the
+    router read it, because the page was handing out `#settings=` that the router did not
+    know - so asserting the literal `startsWith('profile=')` here would now require the bug
+    back. Activity still tests its prefixes directly; it has two and they are routed where
+    they are written."""
     assert "wanted.startsWith('review=')" in ACTIVITY
-    assert "wanted.startsWith('profile=')" in SETUP
+    assert "'profile=': editProfile" in SETUP, "Setup no longer routes a profile link"
+    assert 'href="#profile=' in SETUP, "and nothing links to one"
 
 
 @pytest.fixture

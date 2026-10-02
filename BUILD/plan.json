@@ -4164,6 +4164,59 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P142",
+      "title": "The board takes the shape of what is in it",
+      "block": "The shape of the screen",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Give each panel the height its content needs and let the page scroll, keeping the chrome that says what needs a person in view - so that nothing is hidden behind a scrollbar a reader has to discover, and no panel is half empty beside one that is overflowing.",
+      "builds": [],
+      "tasks": [
+        "every board's rows are as tall as what is in them, and the page scrolls instead of the panels",
+        "the chrome is sticky, so the counts that say what needs a person stay in view",
+        "only a panel whose content has no end is capped, and it is marked a stream in the markup with the reason",
+        "the run panel is titled with the run rather than with the word detail",
+        "the height breakpoint P136 added is removed, having been superseded rather than kept beside the fix"
+      ],
+      "exit": [
+        "No panel on any board page hides content behind an inner scrollbar except the ones that hold an unbounded stream, and those say so",
+        "The counts that say what needs a person stay visible while the page is scrolled",
+        "The short-viewport fallback P136 added still applies and is not a second layout"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p142 -q",
+        "python -m uv run pytest tests/p45 tests/p46 tests/p47 tests/p81 tests/p136 tests/checkpoints/c49 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p142"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P143",
+      "title": "A link that survives being pasted",
+      "block": "The shape of the screen",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make every deep link the Setup page hands out one it answers to, and every deep link it answers to one something reaches - so a URL in a message opens what it names.",
+      "builds": [],
+      "tasks": [
+        "one table holds the deep links, and the router reads it rather than repeating the prefixes",
+        "the files and settings controls are anchors, so they can be pasted as well as pressed",
+        "the theme pairs .btn with button in every modifier, so an anchor that is a control looks like one"
+      ],
+      "exit": [
+        "Every hash the page links to is one the router handles, and every hash the router handles is one the page links to",
+        "A deep link opens the same thing on arrival as its control opens on click"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p143 -q",
+        "python -m uv run pytest tests/p81 tests/p107 tests/p135 -q",
+        "python -m uv run ruff check admin/ tests/p143"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5012,6 +5065,17 @@
       "proves": "The two rules this repo already stated - order an id by its number, and let a code's advice be about its own problem - hold over the files that state them rather than over the sites somebody happened to list.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c77 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C78",
+      "title": "The shape of the screen",
+      "after": "P143",
+      "status": "done",
+      "proves": "A panel is as tall as what it holds and no more, nothing is hidden behind a scrollbar a reader has to discover, and every deep link the Setup page prints opens the thing it names.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c78 -q"
       ],
       "closed": "2026-10-02"
     }

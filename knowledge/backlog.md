@@ -1743,3 +1743,77 @@ The first draft of `NO_REQUEST_LIST`'s `what_now` restated the refusal almost wo
 message says what happened and why another division's list is not lent; the advice says
 where to write one and which scopes a file serves. `tests/p141` asserts both halves and that
 neither takes the other's job.
+
+## B-105 The board gave every panel the same share of the screen
+status: fixed (P142)
+2026-10-02, from a review of the dashboard's design. Measured every panel's body against the
+content inside it, on all three board pages, at a desk viewport with three real runs and
+three engagements:
+
+| page | starved (content over box) | half empty (under 0.7) |
+|---|---|---|
+| Activity | Live activity **6.07**, Run trace **3.58** | Alerts 0.44, Waiting 0.41, Runs 0.54 |
+| Setup | What is wired **4.39**, Engagements **3.16**, and three more | Methodology 0.56, report 0.69 |
+| Analytics | - | What to fix first **0.13**, By skill 0.36, Outcomes 0.34 |
+
+**Seven of twenty panels hid content behind an inner scrollbar while eight sat under seventy
+per cent full, on the same screens.** `grid-template-rows:repeat(6,minmax(0,1fr))` hands each
+panel an equal share of a fixed board whatever is in it, so it was wrong in both directions
+at once. A reader scrolled inside twelve boxes rather than scrolling one page, and a box only
+tells you it scrolls once you have found it.
+
+Rows are `min-content` now, `html`/`body` can scroll, and `.top` is sticky so the counts that
+say what needs a person stay in view - which is the half of "one screen, at a glance" that
+was worth keeping. Seventeen of twenty panels now hide nothing; the three that do are marked
+`stream` in the markup, with the reason beside them, because their content has no end: the
+event log, the map of a hundred and eighteen nodes, the list of every seam. Stretch after the
+change is two to three pixels a card, which is the border.
+
+**It made P136 dead.** That phase added a `max-height:760px` block so a laptop got one column
+and a scrolling page. Measured with the block applied and removed, the answer was identical -
+the same two panels scrolled either way. It was also wrong in principle: it let *height*
+decide the *column count*, and how many columns fit is a question about width. A 1366x600
+laptop is a wide screen. Removed, and P136's tests now assert the cause rather than the
+mechanism they were written for.
+
+**And the furniture outranked the content.** The two largest things on the Activity console
+were the words "Activity" (25px) and "Runs" (17px) - labels for things that label themselves -
+while the run the detail panel was *about* sat at 11.5px, the smallest tier on the page, in
+the same size as the panel's own explanatory sentence. The panel is titled with the run now.
+
+## B-106 A link the page handed out and did not answer to
+status: fixed (P143)
+2026-10-02. Read off the source, both halves side by side:
+
+    routed   #profile=   #files=
+    linked   #profile=   #settings=
+
+`#settings=` worked when clicked - the element carries `data-act` as well - and did nothing
+when pasted into a message or reloaded, which is the only reason a control is a link rather
+than a button. `#files=` was a destination the router knew and nothing reached. The comment
+over the router says what it is for: *"so the person who owns the missing judgements can be
+sent straight to them"*, which is the half that worked.
+
+One table now, and the router reads it rather than repeating the prefixes, so a fourth
+destination cannot be half-added. A test reads it in both directions.
+
+**Two things it turned up.** `.btn` exists so an anchor can look like a button, and half the
+theme's modifiers named only `button` - so the moment `files` and `settings` became anchors
+they rendered as solid buttons beside the quiet ones they sit with. Paired everywhere, and
+verified identical in the browser down to the padding. And two tests keyed on `selector + "{"`
+to find a rule, which asks whether a component is written *alone* rather than whether it
+exists; both failed the day a rule gained a second selector, and both now look for the
+selector in its list.
+
+## B-107 What cannot be checked in this browser harness
+status: noted
+2026-10-02. Chrome freezes CSS animations in a tab that is not foregrounded. Driving the
+browser from here leaves `document.visibilityState === "hidden"`, so every animation sits at
+`currentTime: 0` for ever - and `.modal` fades in with `animation:fade .18s`, which means a
+modal that is correctly built, laid out and positioned reads as `opacity: 0`.
+
+That cost a long detour chasing a deep-link "defect" that did not exist. The router matched,
+called its handler and appended the modal; only the fade never advanced. **Modal appearance
+cannot be verified in this environment.** What can: the DOM (is the element there, what are
+its rect and computed position), the console, the network, and `getAnimations()` - and
+calling `el.getAnimations().forEach(a => a.finish())` first makes opacity readable.

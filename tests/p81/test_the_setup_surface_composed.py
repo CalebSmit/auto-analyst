@@ -295,16 +295,20 @@ def test_every_style_promoted_into_the_sheet_is_still_worn_by_something() -> Non
     `.excerpt.said` and `.note.tight` are worn by `ask()` rather than by the page's own
     markup, so they are looked for in the whole document the page ships, which is where
     the shared dialog builder ends up too."""
-    for rule, worn in (
-        (".excerpt.path{", 'class="excerpt path"'),
-        (".excerpt.said{", 'class="excerpt said"'),
-        (".drop{", 'class="drop"'),
-        (".code-area{", 'class="code-area"'),
-        (".r.lede{", 'class="r lede"'),
-        (".note.tight{", 'class="note tight"'),
-        (".sm{", 'class="sm"'),
-        (".aside{", 'class="aside"'),
-        ("button.primary.danger{", "class=\"primary${danger ? ' danger' : ''}\""),
+    # The selector, not the selector followed by a brace. A rule may serve more than one -
+    # `button.primary.danger,.btn.primary.danger` is one rule for a button and for an anchor
+    # that looks like one - and keying on `{` asked whether it was written alone.
+    for selector, worn in (
+        (".excerpt.path", 'class="excerpt path"'),
+        (".excerpt.said", 'class="excerpt said"'),
+        (".drop", 'class="drop"'),
+        (".code-area", 'class="code-area"'),
+        (".r.lede", 'class="r lede"'),
+        (".note.tight", 'class="note tight"'),
+        (".sm", 'class="sm"'),
+        (".aside", 'class="aside"'),
+        ("button.primary.danger", "class=\"primary${danger ? ' danger' : ''}\""),
     ):
-        assert rule in CSS, f"{rule} is not in the stylesheet"
-        assert worn in PAGE, f"{rule} is in the sheet and nothing on the page wears it"
+        written = re.search(r"(?:^|[,}])\s*" + re.escape(selector) + r"\s*(?=[,{])", CSS, re.M)
+        assert written, f"{selector} is not in the stylesheet"
+        assert worn in PAGE, f"{selector} is in the sheet and nothing on the page wears it"

@@ -125,8 +125,8 @@ CSS = r"""
 }
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
  /* Fluid: the whole board fits a 13-inch laptop and a 27-inch monitor alike. */
- font-size:clamp(12px,.55vw + 5.5px,14.5px);height:100%;overflow:hidden}
-body{font:var(--t-body)/1.5 var(--sans);margin:0;height:100%;overflow:hidden;
+ font-size:clamp(12px,.55vw + 5.5px,14.5px);min-height:100%}
+body{font:var(--t-body)/1.5 var(--sans);margin:0;min-height:100%;
  background:var(--bg);background-image:linear-gradient(180deg,#f6f5f0 0,var(--bg) 22rem);
  background-attachment:fixed;color:var(--ink);display:flex;flex-direction:column;
  font-variant-numeric:lining-nums tabular-nums;text-rendering:optimizeLegibility}
@@ -144,8 +144,11 @@ b,strong{font-weight:600}
 *::-webkit-scrollbar-track{background:transparent}
 
 /* ---------------------------------------------------------------- masthead */
+/* Sticky because it carries the two counts - what needs a person, and what is waiting
+   on an answer - and the page scrolls now. A number you have to scroll back up to read
+   is a number nobody reads. */
 .top{flex:none;background:linear-gradient(180deg,#123b50 0%,var(--navy) 62%);
- color:var(--brand-s5);position:relative;
+ color:var(--brand-s5);position:sticky;top:0;z-index:30;
  box-shadow:0 1px 0 rgba(12,46,63,.16),0 6px 18px -12px rgba(12,46,63,.5)}
 /* The gold is a hairline, not a band: the guidelines allow it sparingly, and at one
    pixel it reads as a rule ruled under a masthead rather than as decoration. */
@@ -177,7 +180,7 @@ b,strong{font-weight:600}
  box-shadow:inset 0 0 0 1px rgba(193,155,43,.42)}
 
 /* ---------------------------------------------------------------- page */
-.wrap{flex:1;min-height:0;display:flex;flex-direction:column;gap:var(--s3);
+.wrap{flex:1;display:flex;flex-direction:column;gap:var(--s3);
  padding:var(--s4) var(--s6) var(--s5);max-width:1900px;margin:0 auto;width:100%}
 .page-head{flex:none;display:flex;align-items:baseline;gap:var(--s4);flex-wrap:wrap;
  padding:0 .1rem .7rem;border-bottom:1px solid var(--line)}
@@ -187,8 +190,20 @@ b,strong{font-weight:600}
  max-width:86ch;line-height:1.5}
 .page-head .tools{margin-left:auto;display:flex;align-items:center;gap:var(--s2)}
 
-/* The board: a grid that fills the rest of the screen. Each page names its areas. */
-.board{flex:1;min-height:0;display:grid;gap:var(--s3)}
+/* The board: a grid whose rows are as tall as what is in them. Each page names its areas.
+
+   It used to fill the screen exactly, every row an equal share of whatever height there
+   was. Measured across the three board pages at a desk viewport, that was wrong in both
+   directions at once: seven of twenty panels hid content behind an inner scrollbar - Live
+   activity showing a sixth of what it had, What is wired a quarter - while eight of twenty
+   sat under seventy per cent full. A reader scrolled inside twelve boxes instead of
+   scrolling one page, and a box only tells you it scrolls once you have found it.
+
+   The rule the old one was keeping - everything at a glance, no scrolling - is kept where
+   it can be: the chrome is sticky, so the counts that say what needs a person are in view
+   wherever the page is. What could not be kept was the claim, because the board was not
+   showing everything at a glance; it was hiding most of it. */
+.board{display:grid;gap:var(--s3);align-content:start}
 .board>.card{margin:0;min-height:0}
 
 /* Legacy flow layout, kept for anything rendered outside a board. */
@@ -205,7 +220,13 @@ b,strong{font-weight:600}
 .card h2 .of{font:600 var(--t-label)/1 var(--sans);letter-spacing:.1em;color:var(--ink-3);
  margin-left:.55rem;vertical-align:.12em;font-variant-numeric:tabular-nums}
 .card .why{margin:.25rem 0 0;font-size:var(--t-xs);color:var(--ink-3);line-height:1.5;max-width:74ch}
-.card .body{flex:1;min-height:0;overflow:auto;padding:var(--s2) var(--s5) var(--s4);
+.card .body{flex:1;min-height:0;padding:var(--s2) var(--s5) var(--s4);}
+
+/* A stream: a panel whose content has no end - an event log, a map of a hundred and
+   eighteen nodes, a list of every seam. These are the only panels that scroll, and the
+   shadows below say so. Every other panel is as tall as what it holds, so a shadow on one
+   now means there is genuinely more rather than meaning the grid was short. */
+.card.stream>.body{max-height:26rem;overflow:auto;
  scrollbar-gutter:stable;
  /* Two pairs: the white ones scroll with the content and cover the shadows when there is
     nothing past the edge; the shadows are fixed to the panel. So an edge with more behind
@@ -271,8 +292,8 @@ b,strong{font-weight:600}
 .r.engagement>.pill{margin-top:.15rem}
 .r.engagement .acts{flex:1 0 100%;display:flex;flex-wrap:wrap;gap:.25rem;justify-content:flex-end;
  align-items:center}
-.r.engagement .acts button.quiet{padding:.3rem .5rem;font-size:var(--t-xs);color:var(--ink-3)}
-.r.engagement .acts button.quiet:hover{color:var(--navy)}
+.r.engagement .acts button.quiet,.r.engagement .acts .btn.quiet{padding:.3rem .5rem;font-size:var(--t-xs);color:var(--ink-3)}
+.r.engagement .acts button.quiet:hover,.r.engagement .acts .btn.quiet:hover{color:var(--navy)}
 
 /* ---------------------------------------------------------------- pill */
 /* Quiet by design: a wash, a hairline and a dot carrying the colour. A row of saturated
@@ -296,6 +317,11 @@ b,strong{font-weight:600}
 .bar.bad>i{background:var(--bad)}
 
 /* ---------------------------------------------------------------- controls */
+/* `button` and `.btn` together, in every rule rather than only this one. `.btn` exists so
+   an anchor can look like a button - which is what a control that is also a link has to be,
+   and the engagement row's `files` and `settings` are exactly that. Half the rules below
+   named only `button`, so an anchor got the base style and none of the modifiers: a quiet
+   link rendered as a solid button beside the quiet buttons it sits with. */
 button,.btn{font:600 var(--t-sm)/1 var(--sans);background:var(--surface);color:var(--navy);
  border:1px solid var(--line-strong);border-radius:var(--radius-sm);
  padding:.5rem .85rem;cursor:pointer;letter-spacing:.005em;
@@ -304,22 +330,22 @@ button,.btn{font:600 var(--t-sm)/1 var(--sans);background:var(--surface);color:v
   box-shadow .16s var(--ease),transform .12s var(--ease)}
 button:hover,.btn:hover{background:var(--surface-2);border-color:var(--accent);
  box-shadow:0 1px 2px rgba(12,46,63,.08)}
-button:active{transform:translateY(1px);box-shadow:none}
-button.primary{background:linear-gradient(180deg,#17465f,var(--navy));color:#fff;
+button:active,.btn:active{transform:translateY(1px);box-shadow:none}
+button.primary,.btn.primary{background:linear-gradient(180deg,#17465f,var(--navy));color:#fff;
  border-color:var(--navy);box-shadow:0 1px 2px rgba(12,46,63,.24)}
-button.primary:hover{background:linear-gradient(180deg,#1b5271,#103a4f);border-color:var(--navy);
+button.primary:hover,.btn.primary:hover{background:linear-gradient(180deg,#1b5271,#103a4f);border-color:var(--navy);
  box-shadow:0 2px 6px -1px rgba(12,46,63,.3)}
 /* The one button that ends something. Plum rather than red: it is the palette's colour for
    a problem, and a dialog that turns red reads as an alarm somebody bolted on. */
-button.primary.danger{background:linear-gradient(180deg,#633553,var(--bad));border-color:var(--bad);
+button.primary.danger,.btn.primary.danger{background:linear-gradient(180deg,#633553,var(--bad));border-color:var(--bad);
  box-shadow:0 1px 2px rgba(81,42,68,.26)}
-button.primary.danger:hover{background:linear-gradient(180deg,#713d60,#46243b);border-color:var(--bad)}
-button.quiet{background:transparent;border-color:transparent;color:var(--accent-ink);
+button.primary.danger:hover,.btn.primary.danger:hover{background:linear-gradient(180deg,#713d60,#46243b);border-color:var(--bad)}
+button.quiet,.btn.quiet{background:transparent;border-color:transparent;color:var(--accent-ink);
  padding:.4rem .55rem;box-shadow:none}
-button.quiet:hover{color:var(--navy);background:var(--accent-soft);border-color:transparent}
-button.ghost{background:transparent;color:var(--ink-2);box-shadow:none}
-button.ghost:hover{background:var(--surface-2);color:var(--navy)}
-button.small{padding:.32rem .6rem;font-size:var(--t-xs)}
+button.quiet:hover,.btn.quiet:hover{color:var(--navy);background:var(--accent-soft);border-color:transparent}
+button.ghost,.btn.ghost{background:transparent;color:var(--ink-2);box-shadow:none}
+button.ghost:hover,.btn.ghost:hover{background:var(--surface-2);color:var(--navy)}
+button.small,.btn.small{padding:.32rem .6rem;font-size:var(--t-xs)}
 button:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
 button:disabled:hover{background:var(--surface);border-color:var(--line-strong)}
 input,textarea,select{font:var(--t-body) var(--sans);background:var(--surface);color:var(--ink);
@@ -377,24 +403,22 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 }
 
 /* ---------------------------------------------------- shorter than a desk */
-/* The same argument, about the other dimension, which nobody had made. A laptop is wide
-   enough to keep the board a grid and short enough that every panel in it becomes a
-   peephole: measured on the Setup page at a 600px viewport, "Getting set up" showed 35%
-   of its own content - three steps of eleven, in the panel somebody's first day is spent
-   in - and the other eleven panels were no better.
+/* There is no rule here any more, and that is the point.
 
-   Six rows of a fixed grid is a good layout for a monitor and a bad one for a laptop, and
-   the honest fallback is the one already written above: the cards take their own height
-   and the page scrolls like a page. 760px is the viewport a 1366x768 laptop leaves after
-   the browser's own chrome, rounded up so that machine lands inside the rule rather than
-   on its edge. */
-@media (max-height:760px){
- html,body{overflow:auto}
- .wrap{overflow:visible}
- .board{display:block!important}
- .board>.card{margin-bottom:var(--s3)}
- .card .body{max-height:none}
-}
+   P136 added one: below 760px of viewport the board became a single column and the page
+   scrolled, because at a laptop's height every panel in a six-row grid was a peephole -
+   "Getting set up" measured at 35% of its own content, three steps of eleven. That fixed
+   the symptom at one size.
+
+   P142 fixed the cause at every size: the board's rows are as tall as what is in them, so
+   a short screen simply shows fewer of them and scrolls, exactly as a tall one does with
+   more content. Measured with the old block applied and removed, the answer was identical -
+   the same two panels scrolled either way, and those two are streams.
+
+   It also made a claim it should not have: height decided the *column count*, and how many
+   columns fit is a question about width. A 1366x600 laptop is a wide screen and keeps its
+   three. The width rule above is the one that was always about columns. */
+
 @media (max-width:640px){
  .wrap{padding-left:16px;padding-right:16px}
  .top-in{padding-left:16px;padding-right:16px}

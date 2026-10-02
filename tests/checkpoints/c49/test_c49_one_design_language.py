@@ -78,10 +78,22 @@ def page_style(page: str) -> str:
 
 
 def rule(selector: str) -> str:
-    """One rule out of the sheet, by its exact selector."""
-    found = re.search(re.escape(selector) + r"\{([^}]*)\}", CSS)
-    assert found, f"{selector} is not in the stylesheet"
-    return found.group(1)
+    """One rule out of the sheet, by a selector it is written under.
+
+    A rule may serve more than one selector - `button.quiet,.btn.quiet` is one rule for a
+    button and for an anchor that looks like one - so this finds the selector wherever it
+    appears in a selector list and then takes the block that follows.
+
+    Keyed to `selector + "{"`, this asked whether a component was written *alone*, which is
+    a fact about punctuation rather than about the design, and it failed the day a rule
+    gained a second selector. Splitting the whole sheet on braces instead does not work
+    either: `@media` nests, so every rule after the first one is mis-segmented.
+    """
+    at = re.compile(r"(?:^|[,}])\s*" + re.escape(selector) + r"\s*(?=[,{])", re.M)
+    for found in at.finditer(CSS):
+        brace = CSS.index("{", found.end())
+        return CSS[brace + 1 : CSS.index("}", brace)]
+    raise AssertionError(f"{selector} is not in the stylesheet")
 
 
 # -------------------------------------------------- the pages nobody looked at

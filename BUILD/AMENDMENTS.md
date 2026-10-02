@@ -2620,3 +2620,45 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The public surface gains four diagnostic codes - SCOPE.NO_REQUEST_LIST, UNKNOWN_APPENDIX, APPENDIX_REGISTRY_INVALID and APPENDIX_CARRIES_FORWARD - and they are in the blueprint's ERRCODES table beside the rest of the SCOPE family. A code is a published contract: a caller may key on it, so adding one is a surface change and is recorded here before the snapshot accepts it. Nothing was removed and nothing was renamed; UNKNOWN_CRITERIA keeps its meaning and loses the four problems it was standing in for.
 
 - check added: python -m uv run python tools/surfaces.py --check
+
+## 2026-10-02 - P142 The board takes the shape of what is in it
+
+**Why:** Measured all three board pages at a desk viewport. Seven of twenty panels hide content behind an inner scrollbar - Live activity at 6.1x, What is wired at 4.4x, Run trace at 3.6x, Engagements at 3.2x - while eight of twenty sit under 70 percent full, on the same screens. The fixed six-row grid hands every panel the same share of the viewport whatever is in it, so the board is wrong in both directions at once.
+
+- phase added: P142 The board takes the shape of what is in it (The shape of the screen, gate: auto)
+- exit criterion: No panel on any board page hides content behind an inner scrollbar except the ones that hold an unbounded stream, and those say so
+- exit criterion: The counts that say what needs a person stay visible while the page is scrolled
+- exit criterion: The short-viewport fallback P136 added still applies and is not a second layout
+
+## 2026-10-02 - P142 The board takes the shape of what is in it
+
+**Why:** opened with no tasks
+
+- task added: every board's rows are as tall as what is in them, and the page scrolls instead of the panels
+- task added: the chrome is sticky, so the counts that say what needs a person stay in view
+- task added: only a panel whose content has no end is capped, and it is marked a stream in the markup with the reason
+- task added: the run panel is titled with the run rather than with the word detail
+- task added: the height breakpoint P136 added is removed, having been superseded rather than kept beside the fix
+
+## 2026-10-02 - P143 A link that survives being pasted
+
+**Why:** Setup answers to #profile= and #files= in its URL and links to #profile= and #settings=. So one destination is built and nothing reaches it, and one link is handed out that the page ignores on arrival - paste it or reload and nothing opens. The comment over the router says it exists 'so the person who owns the missing judgements can be sent straight to them', which is the half that works.
+
+- phase added: P143 A link that survives being pasted (The shape of the screen, gate: auto)
+- exit criterion: Every hash the page links to is one the router handles, and every hash the router handles is one the page links to
+- exit criterion: A deep link opens the same thing on arrival as its control opens on click
+
+## 2026-10-02 - P143 A link that survives being pasted
+
+**Why:** opened with no tasks
+
+- task added: one table holds the deep links, and the router reads it rather than repeating the prefixes
+- task added: the files and settings controls are anchors, so they can be pasted as well as pressed
+- task added: the theme pairs .btn with button in every modifier, so an anchor that is a control looks like one
+
+## 2026-10-02 - C78 The shape of the screen
+
+**Why:** Two phases from one review of the dashboard: the board measured against what is in it, and the links it hands out measured against the ones it answers to. Both were found by looking at the product rather than at its code, and both are about a screen saying what is true of itself.
+
+- checkpoint added: C78 after P143, covering P142, P143
+- proves: A panel is as tall as what it holds and no more, nothing is hidden behind a scrollbar a reader has to discover, and every deep link the Setup page prints opens the thing it names.

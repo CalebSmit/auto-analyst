@@ -68,9 +68,16 @@ def test_a_week_of_outcomes_says_it_is_a_week() -> None:
 
 def test_a_panel_cut_by_the_fold_shows_it() -> None:
     """Drawn by the browser at whichever edge has something past it: the white pair scrolls
-    with the content and covers the shadows at an edge with nothing behind it."""
-    body = re.search(r"\.card \.body\{([^}]*)\}", CSS)
-    assert body, "the panel body's rule is gone"
+    with the content and covers the shadows at an edge with nothing behind it.
+
+    On the stream rule since P142. Every panel used to scroll, so every panel needed to say
+    whether it was cut; now a panel is as tall as what it holds and only a stream - an event
+    log, a hundred and eighteen nodes - is capped. The shadow means more than it did: it
+    used to appear because the grid was short, and now it appears because there is genuinely
+    more to read.
+    """
+    body = re.search(r"\.card\.stream>\.body\{([^}]*)\}", CSS)
+    assert body, "the stream rule is gone, so nothing says when a panel is cut"
     rule = body.group(1)
     assert rule.count("radial-gradient") == 2, "no shadow at the cut edge"
     assert rule.count("no-repeat local") == 2, "nothing covers it when there is nothing to cut"

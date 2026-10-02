@@ -34,6 +34,9 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from admin.page import PAGE as SETUP
+from ops.console.app import PAGE as ACTIVITY
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -41,49 +44,62 @@ def theme() -> str:
     return (ROOT / "ui" / "theme.py").read_text(encoding="utf-8")
 
 
-# ---------------------------------------------------------- the short-viewport fallback
+# ------------------------------------------------- the laptop, and what superseded the fix
 
 
-def test_a_short_viewport_falls_back_the_same_way_a_narrow_one_does() -> None:
-    """The same five declarations, because it is the same decision. Two fallbacks that
-    drifted apart would be two layouts to reason about instead of one."""
+def test_a_short_viewport_is_handled_by_the_board_rather_than_by_a_rule_of_its_own() -> None:
+    """This phase measured the problem and fixed it at one size; P142 fixed the cause.
+
+    What P136 found is still true and is what matters: at a laptop's height every panel in a
+    fixed six-row grid was a peephole - "Getting set up" showing 35% of its own content. The
+    fix then was a `max-height:760px` block that turned the board into one column.
+
+    P142 made the board's rows as tall as what is in them at *every* size, so a short screen
+    shows fewer rows and scrolls exactly as a tall one does with more content. Measured with
+    the old block applied and removed, the answer was identical - the same two panels
+    scrolled either way, and both are streams. The block also made a claim it should not
+    have: it let height decide the *column count*, and how many columns fit is a question
+    about width. A 1366x600 laptop is a wide screen and keeps its three columns.
+
+    So the assertion is the opposite of the original: there is no height breakpoint, because
+    there is nothing left for one to do.
+    """
     css = theme()
-    short = re.search(r"@media \(max-height:760px\)\{(.*?)\n\}", css, re.S)
-    assert short, "there is no short-viewport rule at all"
-    narrow = re.search(r"@media \(max-width:1100px\)\{(.*?)\n\}", css, re.S)
-    assert narrow, "the rule this one was derived from is gone"
-
-    def declarations(block: str) -> set[str]:
-        return {line.strip() for line in block.strip().splitlines() if line.strip()}
-
-    missing = declarations(short.group(1)) - declarations(narrow.group(1))
-    assert not missing, f"the short rule says something the narrow one does not: {missing}"
-
-    # The five that make a grid into a page. Named, because a fallback that keeps any one
-    # of them is a fallback that still hides something.
-    for needed in (
-        "html,body{overflow:auto}",
-        ".wrap{overflow:visible}",
-        ".board{display:block!important}",
-        ".card .body{max-height:none}",
-    ):
-        assert needed in short.group(1), f"the short fallback does not {needed}"
+    assert "@media (max-height" not in css, "a height breakpoint is back; the board should fit"
+    assert "@media (max-width:1100px)" in css, "the rule that is about columns is gone"
 
 
-def test_the_breakpoint_is_where_a_work_laptop_lands() -> None:
-    """768 minus the browser's chrome is around 630, so 760 puts that machine inside the
-    rule with room rather than on its edge. Asserted so that moving it is a decision."""
+def test_the_board_gives_a_panel_the_height_of_what_is_in_it() -> None:
+    """The cause, where it now lives. No row is a fraction of the viewport, so no panel is
+    sized by anything except its content."""
     css = theme()
-    assert "@media (max-height:760px)" in css
-    assert "1366x768" in css, "the machine the number was chosen for is not written down"
+    assert ".board{display:grid;gap:var(--s3);align-content:start}" in css
+    assert ".board{flex:1;min-height:0;display:grid" not in css, "the rows fill the screen again"
+    for page, where in ((SETUP, "Setup"), (ACTIVITY, "Activity")):
+        rows = re.search(r"grid-template-rows:([^;]*);", page)
+        assert rows, f"{where} names no rows"
+        assert "fr" not in rows.group(1), f"{where} sizes a row as a share of the screen"
 
 
-def test_the_desk_layout_is_untouched() -> None:
-    """Everything above is a fallback. The board at desk size is still one screen, which
-    is the design and not an accident of it."""
+def test_only_a_stream_scrolls_inside_itself() -> None:
+    """The one thing a panel may still hide behind, and it has to say so. A stream is a
+    panel whose content has no end - an event log, a map of a hundred and eighteen nodes -
+    and capping those is why the page does not become a mile long."""
     css = theme()
-    assert ".board{flex:1;min-height:0;display:grid" in css
-    assert ".card .body{flex:1;min-height:0;overflow:auto" in css
+    assert ".card .body{flex:1;min-height:0;padding:" in css, "the default body rule changed"
+    body = re.search(r"\.card \.body\{([^}]*)\}", css)
+    assert body and "overflow" not in body.group(1), "every panel scrolls again"
+    assert ".card.stream>.body{max-height:26rem;overflow:auto" in css
+
+    for page, where in ((ACTIVITY, "Activity"), (SETUP, "Setup")):
+        assert 'class="card stream"' in page, f"{where} marks no panel as a stream"
+
+
+def test_what_the_phase_measured_is_written_down() -> None:
+    """The number is the argument. Without it the next person reads a layout decision with
+    no reason attached and is free to undo it on taste."""
+    css = theme()
+    assert "35%" in css or "seventy per cent" in css, "the measurement is gone from the CSS"
 
 
 # ------------------------------------------------------------- a finished step is a line
