@@ -2662,3 +2662,46 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C78 after P143, covering P142, P143
 - proves: A panel is as tall as what it holds and no more, nothing is hidden behind a scrollbar a reader has to discover, and every deep link the Setup page prints opens the thing it names.
+
+## 2026-10-02 - P144 The colour a thing is read in
+
+**Why:** Measured every text colour against the surface behind it on the live consoles. Five fail the 4.5:1 floor the theme states for itself - the 'needs a person' count at 2.63:1 in gold, and four set in --ink-4, the token the theme says is 'for a placeholder, a disabled control or a node no run reached; nothing a person has to read is set in it'. Three of the four are a locator, an Excel formula and the list of checks that did not run.
+
+- phase added: P144 The colour a thing is read in (Legible, gate: auto)
+- exit criterion: No text a person reads is set in a token below the floor, measured rather than asserted
+- exit criterion: The count that says what needs a person is legible on the surface it sits on
+- exit criterion: Every remaining use of the decorative grey is one of the purposes the theme names, with a reason beside it
+
+## 2026-10-02 - P144 The colour a thing is read in
+
+**Why:** opened with no tasks
+
+- task added: the count that says what needs a person uses the gold made for text, not the accent
+- task added: a locator, a formula, the checks that did not run and an unmeasured figure are all above the floor
+- task added: a field's qualifier and the map's keyboard hints are above it too, both found by the sweep
+- task added: the hand-listed check over four selectors becomes a sweep of every use, with the theme's own exceptions named
+
+## 2026-10-02 - P145 The things you can only see by their edge
+
+**Why:** Three things on the consoles are identified by a shape rather than by a word, and all three are measured below the bar a non-text indicator has to clear. A control's edge is 1.54:1, so a button or a field on a white panel is told from the panel by a line at half the contrast it needs. The focus ring is 2.40:1 on the chrome the four navigation tabs live in, so the one surface a keyboard reaches first is the one place the ring cannot be seen. And the map tells six run states apart by fill alone at far zoom, where two of them - never got to, and not used here - measure 1.01:1 against each other: the same colour, for the two states that mean opposite things about whether anything is wrong.
+
+- phase added: P145 The things you can only see by their edge (Legible, gate: auto)
+- exit criterion: A control's own boundary clears 3:1 against every surface the theme puts it on, measured rather than asserted
+- exit criterion: The focus ring clears 3:1 on the dark chrome as well as on paper, so a keyboard reaches the navigation visibly
+- exit criterion: No two states the map distinguishes by fill alone are the same colour, and the test derives the pairs rather than listing them
+
+## 2026-10-02 - P145 The things you can only see by their edge
+
+**Why:** The tasks, named so each one points at the measurement that found it rather than at the colour it changes.
+
+- task added: a control's edge token is darkened to clear 3:1 on all four surfaces, and the sheet says that is what it is for
+- task added: the one decorative use of that token - the rule under a band label on the map - moves to the plain hairline, so the look does not follow the control
+- task added: the focus ring gains a twin for dark ground and the navy chrome uses it
+- task added: the two map states that are the same colour are separated, and the legend's own swatches are the thing measured
+
+## 2026-10-02 - C79 What the sheet says about itself
+
+**Why:** Two phases of one design review close here: P144 put every word above the 4.5:1 this theme sets for text, P145 put every shape above the 3:1 a non-text indicator gets. Both wrote their measurements into the sheet's own prose, which is the one part of a stylesheet nothing checks - so the checkpoint reads the numbers back out of the comments and recomputes them from the tokens. It also asks the question neither phase's scope could reach: there are three focus rings in this product, one in the theme's chrome rule, one on the chip and one in the map's own stylesheet, and P145 only ever measured the first.
+
+- checkpoint added: C79 after P145, covering P144, P145
+- proves: Every colour in the three consoles and the map comes from a token and every token clears the floor for what it is used as - 4.5:1 for a word, 3:1 for a shape - including the numbers the stylesheet states about itself in prose.

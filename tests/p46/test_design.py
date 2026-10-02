@@ -134,8 +134,14 @@ def test_the_stylesheet_takes_its_own_values_from_the_scales() -> None:
 
 def test_the_keyboard_can_see_where_it_is() -> None:
     """One ring for the whole tool, and only for the keyboard - a mouse click should not
-    leave an outline behind it."""
-    assert ":focus-visible{outline:2px solid var(--accent)" in CSS
+    leave an outline behind it.
+
+    It names a token rather than a colour: P145 found the ring at 2.40:1 on the navy chrome,
+    which is where a keyboard arrives first, so the ground decides the colour and the rule
+    stays one rule. What this test is for is that there is still exactly one of them - what
+    colour it comes out is measured in `tests/p145`, against each ground it lands on.
+    """
+    assert ":focus-visible{outline:2px solid var(--ring)" in CSS
     assert ":focus{outline" not in CSS, "a focus ring on every click is noise"
 
 

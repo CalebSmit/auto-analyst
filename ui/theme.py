@@ -88,10 +88,17 @@ CSS = r"""
  --surface-2:#f7f6f1;
  --surface-sunken:#f1f0ea;
  /* Hairlines are navy at low opacity rather than grey: they sit under the palette
-    instead of beside it, which is most of why a rule reads as drawn and not as left over. */
+    instead of beside it, which is most of why a rule reads as drawn and not as left over.
+    The first two separate content and are decoration, which is why they may be this faint.
+    `--line-strong` is not decoration: it is the edge of a control, and on a white panel a
+    white button has nothing else to say it is one. So it is measured the way the ink is,
+    against the 3:1 a non-text indicator needs rather than the 4.5:1 a word does, and it
+    clears it on all four surfaces - 3.13 on white, 3.06, 3.02 and 3.03 on the others. At
+    .22 it was 1.54 and the control with the most consequence in a row, the one that
+    changes state, was the one marked only by a line nobody could see. */
  --line:rgba(12,46,63,.14);
  --line-soft:rgba(12,46,63,.08);
- --line-strong:rgba(12,46,63,.22);
+ --line-strong:rgba(12,46,63,.51);
 
  /* Ink. Four weights, each one measured against the paper it sits on: body text at
     12:1, secondary at 7:1, quiet at 4.6:1 - the last is the floor, not a preference. */
@@ -135,8 +142,12 @@ a{color:var(--link);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
 b,strong{font-weight:600}
 .mono{font-family:var(--mono);font-size:.86em;letter-spacing:-.01em}
-/* One focus ring for the whole tool, and only for the keyboard. */
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--radius-xs)}
+/* One focus ring for the whole tool, and only for the keyboard. It is named rather than
+   written in, because the ground it lands on is not all one colour: the accent measures
+   4.33 to 4.94 on the four papers and 2.40 on the chrome, and the chrome is where a
+   keyboard arrives first. A dark surface redefines `--ring` for itself in one line. */
+:root{--ring:var(--accent)}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:var(--radius-xs)}
 *{scrollbar-width:thin;scrollbar-color:rgba(12,46,63,.22) transparent}
 *::-webkit-scrollbar{width:9px;height:9px}
 *::-webkit-scrollbar-thumb{background:rgba(12,46,63,.18);border-radius:99px;border:3px solid transparent;background-clip:padding-box}
@@ -148,6 +159,7 @@ b,strong{font-weight:600}
    on an answer - and the page scrolls now. A number you have to scroll back up to read
    is a number nobody reads. */
 .top{flex:none;background:linear-gradient(180deg,#123b50 0%,var(--navy) 62%);
+ --ring:var(--brand-p3);
  color:var(--brand-s5);position:sticky;top:0;z-index:30;
  box-shadow:0 1px 0 rgba(12,46,63,.16),0 6px 18px -12px rgba(12,46,63,.5)}
 /* The gold is a hairline, not a band: the guidelines allow it sparingly, and at one
@@ -272,7 +284,10 @@ b,strong{font-weight:600}
 .of-n{color:var(--ink-3);font-weight:400;font-size:var(--t-xs);margin-left:.35rem;
  font-variant-numeric:tabular-nums}
 .r .sub{color:var(--ink-3);font-size:var(--t-xs);white-space:nowrap}
-.r .sub.mono{font-size:.74rem;letter-spacing:0;color:var(--ink-4)}
+/* The id line under a row: an engagement, a scope and a run id, which is read and
+   copied. It was set in the decorative grey at 2.86:1 - under the floor this sheet
+   states for itself, and in the token it says nothing a person has to read uses. */
+.r .sub.mono{font-size:.74rem;letter-spacing:0;color:var(--ink-3)}
 .r .d{display:block;color:var(--ink-3);font-size:var(--t-xs);margin-top:.15rem;
  white-space:normal;line-height:1.45}
 .r.head{padding-bottom:.4rem;border-bottom:1px solid var(--line)}
@@ -479,7 +494,9 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
    reading "EXCEL MODEL TEMPLATE - OPTIONAL, AND NOT THE AI MODEL" is a label nobody
    finishes. Not scoped to `label`, because a section heading takes a qualifier the same
    way and the activity console was writing this out by hand to get it. */
-.aside{text-transform:none;letter-spacing:0;color:var(--ink-4);font-weight:400}
+/* A qualifier beside a label - "optional, and not the AI model". It changes what the
+   field means, so it is read, and it was set in the decorative grey at 2.86:1. */
+.aside{text-transform:none;letter-spacing:0;color:var(--ink-3);font-weight:400}
 
 /* ---------------------------------------------------------------- review panel */
 .excerpt{font-family:var(--mono);font-size:var(--t-sm);line-height:1.6;white-space:pre-wrap;
@@ -543,6 +560,22 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
    fact to go and act on somewhere else. Styled to look pressable without becoming a
    button in a header that has no room for one: the gold is the same gold the count
    already used, and the dotted underline is the only thing added. */
+/* Two classes the pages used to spell as inline colours, moved here so the colour of a
+   thing is decided in one place and can be measured.
+
+   `--gold` is the brand's accent and is not a text colour: at 2.63:1 on white it was
+   the least readable thing on the Activity console, carrying the most important line
+   on it. `--warn` is `--gold-ink`, the darkened gold made for exactly this, at 5.4:1.
+
+   `.quiet-note` is for a line that sits beside something and is still read - where a
+   step failed, the formula behind a finding, the checks that did not run. Those were
+   in `--ink-4`, which this sheet reserves for a placeholder, a disabled control and a
+   node no run reached. */
+.wants-a-person{color:var(--warn)}
+.quiet-note{color:var(--ink-3)}
+/* A figure nobody has measured yet, where a figure would be. Quieter than a real
+   one and still legible, because it is the answer rather than a stand-in for one. */
+.not-measured{color:var(--ink-3)}
 .chip{color:var(--gold);cursor:pointer;border-bottom:1px dotted currentColor;
  padding-bottom:1px;transition:color .15s var(--ease)}
 .chip:hover,.chip:focus-visible{color:var(--navy);border-bottom-style:solid}
@@ -676,10 +709,14 @@ SHELL = """<script>
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"'`]/g,
   c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));
+/* An absent figure says so in words, and the words are read. They were set in `--ink-4`,
+   which this sheet keeps for a placeholder - and at 13.8px in the column where a figure
+   goes, "not yet" is not a placeholder, it is the answer: measured at 2.86:1, under the
+   floor, on the panel whose whole job is to say what has not been measured. */
 const pct = v => (v === null || v === undefined)
-  ? '<span style="color:var(--ink-4)">not yet</span>' : (v * 100).toFixed(1) + '%';
+  ? '<span class="not-measured">not yet</span>' : (v * 100).toFixed(1) + '%';
 const num = (v, dash = 'not yet') => (v === null || v === undefined)
-  ? '<span style="color:var(--ink-4)">' + dash + '</span>' : esc(v);
+  ? '<span class="not-measured">' + dash + '</span>' : esc(v);
 const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
 /* `data-` attributes from an object, escaped: how a value reaches a handler. */
 const data = o => Object.entries(o || {}).map(([k, v]) => ` data-${k}="${esc(v)}"`).join('');

@@ -4217,6 +4217,60 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P144",
+      "title": "The colour a thing is read in",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Put every piece of text a person has to read above the contrast floor this theme sets for itself, and replace the hand-listed check that missed them with a sweep of every use.",
+      "builds": [],
+      "tasks": [
+        "the count that says what needs a person uses the gold made for text, not the accent",
+        "a locator, a formula, the checks that did not run and an unmeasured figure are all above the floor",
+        "a field's qualifier and the map's keyboard hints are above it too, both found by the sweep",
+        "the hand-listed check over four selectors becomes a sweep of every use, with the theme's own exceptions named"
+      ],
+      "exit": [
+        "No text a person reads is set in a token below the floor, measured rather than asserted",
+        "The count that says what needs a person is legible on the surface it sits on",
+        "Every remaining use of the decorative grey is one of the purposes the theme names, with a reason beside it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p144 -q",
+        "python -m uv run pytest tests/p45 tests/p46 tests/p47 tests/checkpoints/c49 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p144"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P145",
+      "title": "The things you can only see by their edge",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Bring every cue that is a shape rather than a word up to the 3:1 a non-text indicator needs, and say in the sheet what that floor is, so the next colour is measured against it instead of chosen.",
+      "builds": [],
+      "tasks": [
+        "a control's edge token is darkened to clear 3:1 on all four surfaces, and the sheet says that is what it is for",
+        "the one decorative use of that token - the rule under a band label on the map - moves to the plain hairline, so the look does not follow the control",
+        "the focus ring gains a twin for dark ground and the navy chrome uses it",
+        "the two map states that are the same colour are separated, and the legend's own swatches are the thing measured"
+      ],
+      "exit": [
+        "A control's own boundary clears 3:1 against every surface the theme puts it on, measured rather than asserted",
+        "The focus ring clears 3:1 on the dark chrome as well as on paper, so a keyboard reaches the navigation visibly",
+        "No two states the map distinguishes by fill alone are the same colour, and the test derives the pairs rather than listing them"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p145 -q",
+        "python -m uv run pytest tests/p46 tests/p47 tests/p144 tests/checkpoints/c49 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p145"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5076,6 +5130,17 @@
       "proves": "A panel is as tall as what it holds and no more, nothing is hidden behind a scrollbar a reader has to discover, and every deep link the Setup page prints opens the thing it names.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c78 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C79",
+      "title": "What the sheet says about itself",
+      "after": "P145",
+      "status": "done",
+      "proves": "Every colour in the three consoles and the map comes from a token and every token clears the floor for what it is used as - 4.5:1 for a word, 3:1 for a shape - including the numbers the stylesheet states about itself in prose.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c79 -q"
       ],
       "closed": "2026-10-02"
     }

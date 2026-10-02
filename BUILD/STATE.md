@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **143 of 143 phases closed**
-- Last green checkpoint: **C78**
+- **145 of 145 phases closed**
+- Last green checkpoint: **C79**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -162,4 +162,6 @@
 - **P141** The fourth site, and the borrowed code (2026-10-02)
 - **P142** The board takes the shape of what is in it (2026-10-02)
 - **P143** A link that survives being pasted (2026-10-02)
+- **P144** The colour a thing is read in (2026-10-02)
+- **P145** The things you can only see by their edge (2026-10-02)
 

@@ -185,7 +185,10 @@ MAP_STYLE = """
 #dmap .map-legend button i.mn::before{width:2px;border-radius:var(--radius-xs) 0 0 var(--radius-xs)}
 #dmap .map-legend button[aria-pressed="false"]{color:var(--ink-4);text-decoration:line-through}
 #dmap .map-legend button[aria-pressed="false"] i.mn{opacity:.35}
-#dmap .plate .keys{font-size:var(--t-label);color:var(--ink-4);letter-spacing:.01em}
+/* The only place the map's keys are written down - P138 widened this line so somebody
+   could find the two it had never mentioned. A list of shortcuts nobody can read is
+   the same as not having written it. */
+#dmap .plate .keys{font-size:var(--t-label);color:var(--ink-3);letter-spacing:.01em}
 #dmap .plate .hidden-note:empty{display:none}
 #dmap.hide-passed .mn.passed,#dmap.hide-failed .mn.failed,#dmap.hide-active .mn.active,
 #dmap.hide-used .mn.used,#dmap.hide-notreached .mn.notreached,#dmap.hide-notreached .mn.pending,
@@ -226,8 +229,15 @@ MAP_STYLE = """
 #dmap.far .mn.passed{--wash:var(--good)}
 #dmap.far .mn.active{--wash:var(--accent)}
 #dmap.far .mn.failed{--wash:var(--bad)}
+/* Every state that means something happened fills solid at this zoom, because the labels
+   are gone and the fill is the whole of what the drawing says. `blocked` was the one left
+   out, so it kept the pale wash it wears up close - and measured 1.01:1 against
+   `notreached`, the state that means the opposite. The two that read as nothing should be
+   the two that *are* nothing. It takes the gold made for carrying text rather than the
+   accent gold, because at this size the fill carries a white label. */
+#dmap.far .mn.blocked{--wash:var(--warn)}
 #dmap.far .mn.used .nm,#dmap.far .mn.passed .nm,#dmap.far .mn.active .nm,
-#dmap.far .mn.failed .nm{color:var(--surface)}
+#dmap.far .mn.failed .nm,#dmap.far .mn.blocked .nm{color:var(--surface)}
 #dmap.far .mn::before{display:none}
 #dmap.far .mn .ord{min-width:2.4rem;height:2.4rem;font-size:var(--t-title);top:-1.1rem;right:-.9rem}
 
@@ -262,13 +272,19 @@ MAP_STYLE = """
    so they are legible at any zoom and are never panned out of the frame. */
 #dmap .rail{position:absolute;left:0;top:0;bottom:0;width:15rem;pointer-events:none;z-index:1;
  overflow:hidden}
+/* The band headings that organise a hundred and eighteen nodes. `--ink-3` measured 4.47:1
+   on the map's own paper - three hundredths under the floor, and on the hardest text in the
+   sheet to read: the smallest size there is, in capitals, with wide tracking. A heading
+   should not be at the edge of legible, so this is the secondary ink at about 7:1. */
 #dmap .band-t{position:absolute;left:var(--s5);max-width:12.5rem;font-size:var(--t-label);
- letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);pointer-events:none;
+ letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);pointer-events:none;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
  font-weight:600;transform:translateY(-1.25rem)}
 #dmap .band-t.priv{color:var(--bad)}
+/* The one decorative use of the control edge, and so the one that does not follow it: this
+   is a rule under a label, not the boundary of anything you can press. */
 #dmap .band-t::before{content:"";position:absolute;left:0;right:-.6rem;bottom:-.35rem;
- height:1px;background:linear-gradient(90deg,var(--line-strong),transparent)}
+ height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 #dmap .band-t.priv::before{background:linear-gradient(90deg,
  color-mix(in srgb,var(--bad) 55%,transparent),transparent)}
 /* A column names a region, not a line across one; giving it the band label's type made

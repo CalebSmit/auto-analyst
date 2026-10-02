@@ -1281,7 +1281,7 @@ function paintRuns() {
       <div class="grp-head">
        <b>${esc(rs[0].client || id)}</b>
        <span class="sub">${esc(rs[0].scope_path || '')}</span>
-       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="questions waiting for an answer on this engagement">${open}</span> ${open === 1 ? 'question' : 'questions'}` : ''}${attention ? ` &middot; <b style="color:var(--gold)">${needAPerson(attention)}</b>` : ''} &middot; ${esc(ago(last))}</span>
+       <span class="sub">${plural(rs.length, 'run', 'runs')}${open ? ` &middot; <span class="count" title="questions waiting for an answer on this engagement">${open}</span> ${open === 1 ? 'question' : 'questions'}` : ''}${attention ? ` &middot; <b class="wants-a-person">${needAPerson(attention)}</b>` : ''} &middot; ${esc(ago(last))}</span>
       </div>
       <div class="grp-runs">${rs.map(runRow).join('')}</div>
      </div>`;
@@ -1537,7 +1537,7 @@ async function paint(trace) {
   const failed = Object.entries(trace.diagnostics || {});
   $('diag').innerHTML = failed.length ? failed.map(([node, d]) => `<div class="d-row">
      <span class="code">${esc(node)} &mdash; ${esc(d.code || d.type || 'failed')}</span>
-     <span class="msg">${esc(d.message || '')}${d.step_id ? ' <span style="color:var(--ink-4)">at step ' + esc(d.step_id) + '</span>' : ''}</span>
+     <span class="msg">${esc(d.message || '')}${d.step_id ? ' <span class="quiet-note">at step ' + esc(d.step_id) + '</span>' : ''}</span>
     </div>`).join('') : '';
 }
 
@@ -1620,11 +1620,11 @@ async function auditFile(id, name, boxId) {
     if (!rows.length) continue;
     found += rows.length;
     html += `<div style="margin-top:.35rem"><span class="pill ${tone}">${esc(heading)}</span></div>`;
-    html += rows.map(f => `<div style="margin:.2rem 0 0 .2rem"><b>${esc(f.sheet)}!${esc(f.cell)}</b> ${esc(f.says)}<br><span style="color:var(--ink-4)">${esc(f.check)}: ${esc(f.formula)}</span></div>`).join('');
+    html += rows.map(f => `<div style="margin:.2rem 0 0 .2rem"><b>${esc(f.sheet)}!${esc(f.cell)}</b> ${esc(f.says)}<br><span class="quiet-note">${esc(f.check)}: ${esc(f.formula)}</span></div>`).join('');
   }
   if (!found) html += '<div style="margin-top:.35rem"><span class="pill good">Nothing found</span></div>';
   if ((a.skipped || []).length) {
-    html += `<div style="margin-top:.35rem;color:var(--ink-4)">Did not run: ` + a.skipped.map(esc).join(' ') + `</div>`;
+    html += `<div class="quiet-note" style="margin-top:.35rem">Did not run: ` + a.skipped.map(esc).join(' ') + `</div>`;
   }
   box.innerHTML = html;
 }

@@ -1817,3 +1817,68 @@ called its handler and appended the modal; only the fade never advanced. **Modal
 cannot be verified in this environment.** What can: the DOM (is the element there, what are
 its rect and computed position), the console, the network, and `getAnimations()` - and
 calling `el.getAnimations().forEach(a => a.finish())` first makes opacity readable.
+
+## B-108 Three things identified by a shape, all under the bar for one
+status: fixed (P145)
+2026-10-02, measured in the browser against the surface actually behind each one. WCAG holds
+a non-text indicator to 3:1 rather than the 4.5:1 a word gets, and all three missed it:
+
+| what | measured | where it matters |
+|---|---|---|
+| a button's and a field's border | **1.54:1** | a white button on a white panel has no other edge |
+| the focus ring, on the navy chrome | **2.40:1** | the four navigation tabs - where a keyboard arrives first |
+| "never got to" against "not used here" | **1.01:1** | the map's far view, which says everything with fill |
+
+**The first is the one with consequence.** In an engagement's row six controls sit together:
+five open a panel and are plain text, and the sixth - Pause, the one that changes state - is
+marked out by a box. That box was the faintest thing in the row. `--line-strong` went .22 to
+.51, which clears 3:1 on all four papers (3.13, 3.06, 3.02, 3.03). The look did not get
+heavier, because `--line` and `--line-soft` carry the card edges and row rules and those are
+separating content, which the standard exempts and which is most of why this product looks
+the way it does. One decorative use of the strong one - a rule under a band label on the map
+- moved to the plain hairline so it would not follow the control.
+
+**The ring is now a token, not a colour.** `--ring` defaults to the accent and `.top`
+redeclares it to `--brand-p3`, which is 5.22 and 6.24 against the two ends of the chrome's
+gradient. One rule, one ring, and the ground picks the colour.
+
+**The map was missing a rule rather than mistuned.** At far zoom the labels go and every
+state that means *something happened* fills solid - passed green, running blue, failed plum.
+`blocked` was left out of that list, so it kept the pale wash it wears up close and landed
+1.01:1 from `notreached`. Those two mean opposite things: "the run stopped before it got
+here" and "this recipe does not include this part". It fills `--warn` now. Two things fell
+out of the same change: the touched node's white label was 1.56:1 on its own fill and is now
+3.15 (large text, 3:1 bar), and the stopped node is visible on the drawing at all - which is
+the one thing a person opens the map of a failed run to find.
+
+**Two mistakes of my own, both the kind this repo is about.** The first test of "are these
+two the same colour" used a contrast ratio, and went red on blue against gold, which measure
+1.08:1 and are plainly different - a ratio answers "can you read this on that", not "are
+these the same". It uses CIE76 now, bar of 10. And `far_wash` returned the token rather than
+the token composited onto its ground, so `touched` - the one translucent fill - read as solid
+navy at 17:1 and two tests passed without ever looking at the thing they name. Found by the
+revert harness, which is what it is for.
+
+## B-109 The run trace tells passed from failed by hue alone
+status: open
+2026-10-02, found while measuring B-108 and deliberately left out of it. The inline run trace
+draws all 118 nodes and fills the ones this run touched. Measured against the white panel:
+
+    node (untouched)   1.00:1 fill   2.86:1 text
+    node passed        1.11:1 fill   5.58:1 text
+    node active        1.12:1 fill   6.08:1 text
+    node failed        1.13:1 fill  10.55:1 text
+
+The three states are within 0.02 of each other and of the paper. What separates them is hue -
+a pale mint, a pale blue, a pale pink - and the colour of the name inside. The panel's own
+prose says so out loud: *"Mint passed, plum failed."* Green against pink at the same
+luminance is the pair that red-green colour blindness loses, and this is the panel that says
+which part of the system broke.
+
+Not folded into P145 because it is a different fix with a different cost: P145 moved tokens
+and added a missing rule, and this one changes how the trace reads. The map's own version of
+the same node already carries a left mark in the state's colour plus a border (`--good-line`,
+`--bad`), and the inline one has `border-width:0` - so the shape that would fix it already
+exists ten lines away in the sheet it shares. Worth measuring the map's version against the
+same bar before copying it.
+

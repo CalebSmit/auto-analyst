@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**143 of 143 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**145 of 145 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -343,4 +343,12 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P142** The board takes the shape of what is in it | auto | No panel on any board page hides content behind an inner scrollbar except the ones that hold an unbounded stream, and those say so | 2026-10-02 |
 | [x] | **P143** A link that survives being pasted | auto | Every hash the page links to is one the router handles, and every hash the router handles is one the page links to | 2026-10-02 |
 | [x] | **C78 - The shape of the screen** | integration | A panel is as tall as what it holds and no more, nothing is hidden behind a scrollbar a reader has to discover, and every deep link the Setup page prints opens the thing it names. | 2026-10-02 |
+
+## Legible
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P144** The colour a thing is read in | auto | No text a person reads is set in a token below the floor, measured rather than asserted | 2026-10-02 |
+| [x] | **P145** The things you can only see by their edge | auto | A control's own boundary clears 3:1 against every surface the theme puts it on, measured rather than asserted | 2026-10-02 |
+| [x] | **C79 - What the sheet says about itself** | integration | Every colour in the three consoles and the map comes from a token and every token clears the floor for what it is used as - 4.5:1 for a word, 3:1 for a shape - including the numbers the stylesheet states about itself in prose. | 2026-10-02 |
 
