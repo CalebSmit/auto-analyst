@@ -2588,3 +2588,47 @@ The function is gone, and the P158 test asks `read_document` instead. Doing so m
 something the helper could not have: a line carrying no figure **breaks the run of lines that
 do**, so the row above a misread is lost as well. One letter costs two rows, which is a
 stronger reason for the check than the one the phase was written on.
+
+## B-130 Nothing checked the cash, and footing has nothing to say about it
+status: fixed (P160)
+2026-10-03. Three tie-outs matter to a reviewer and this build had two. `footings_in` re-adds
+a column; `two_sides` compares the two halves of a balance sheet; the cash roll-forward -
+beginning plus the net change against the stated ending - had nothing producing it.
+
+Measured on page 59 of the public filing, which the reader already parses into five tables
+and ninety-eight rows. All three columns reconcile exactly, and each year's ending is the
+next year's beginning:
+
+| column | beginning | net change | ending stated |
+|---|---|---|---|
+| FY2025 | 172,881 | (75,781) | **97,100** |
+| FY2024 | 333,111 | (160,230) | **172,881** |
+| FY2023 | 391,975 | (58,864) | **333,111** |
+
+**The argument got stronger when C89 asked it from the outside.** The phase was written on
+the claim that a cash flow statement's subtotals all foot and merely fail to cover the ending
+cash, because the ending is stated rather than summed. That is wrong: **footing finds no
+totals on that page at all.** `is_a_total` reads what the statement calls a row, and not one
+line on a cash flow statement begins with the word total - they are `Net cash provided by
+operating activities` and `Net decrease in cash, cash equivalents and restricted cash`. So
+every figure on that statement was uncovered by construction, which is the state P99 found
+the whole build in, and this is the only arithmetic there is over it.
+
+**The same measurement says which check not to write.** The obvious fourth one is that the
+ending cash equals the balance sheet's cash line, and here it does not: page 56 says **95,635**
+where page 59 says **97,100**, because the cash flow line reads *cash, cash equivalents and
+restricted cash*. The difference of 1,465 is the restricted cash, both statements are correct,
+and a check comparing them would open every engagement by reporting a discrepancy on a
+document with nothing wrong with it. Not made, and the figures are written into
+`CashRollForward` so the next person to think of it finds the measurement rather than the idea.
+
+It speaks about one page in a hundred and eight, which is the calibration.
+
+Two of my own, both from the harness. A `len(stated) < 2` guard on the column chain changed
+no answer in any case, because with one column the pairing below it runs no times - the state
+P151 removed `COLUMN_SHARE` in, so it is gone. And C89's first draft pooled every table on a
+page into one list, which collides the ordinals footing depends on and made `Total current
+assets` come back with a part whose value was `None`. The three checks are given **different
+groupings on purpose** - a footing's run is a block's, and a balance sheet's two sides are in
+different blocks because the reader starts a new one at every heading - and the test says so
+now rather than flattening them.

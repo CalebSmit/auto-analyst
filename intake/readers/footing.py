@@ -30,7 +30,15 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
-__all__ = ["Footing", "FootingReport", "footings_in", "is_a_total"]
+__all__ = [
+    "CashRollForward",
+    "Footing",
+    "FootingReport",
+    "cash_roll_forward",
+    "footings_in",
+    "is_a_total",
+    "rolls_on",
+]
 
 LINES = "the lines above it"
 SUBTOTALS = "the subtotals above it"
@@ -327,3 +335,136 @@ def two_sides(rows: Sequence[Any]) -> TwoSides:
         elif label.startswith(BOTH_SIDES) and EQUITY in label and other is None:
             other = value
     return TwoSides(assets=assets, liabilities_and_equity=other)
+
+# ------------------------------------------- and the third tie-out, which is about cash
+
+
+BEGINS = ("at the beginning", "beginning of")
+ENDS = ("at the end", "end of period", "end of year", "end of the")
+CHANGES = ("net increase", "net decrease", "net change")
+"""The three lines a cash flow statement states, by the words it states them in.
+
+Matched on a phrase rather than a prefix, because every one of these sits at the end of a
+long label: `Cash, cash equivalents and restricted cash at the beginning of the period`. The
+label is also the reason the balance-sheet comparison is not made - see `CashRollForward`.
+"""
+
+
+@dataclass(frozen=True)
+class CashRollForward:
+    """Whether a statement's cash rolls forward: beginning plus the change is the ending.
+
+    The third tie-out a reviewer makes, after footing and after the two sides of the balance
+    sheet, and the one that catches a transposed figure in the middle of a cash flow
+    statement - where every subtotal can foot perfectly and the statement still not work,
+    because the ending cash is stated rather than derived.
+
+    Pure arithmetic over three figures the statement prints itself. Nothing is inferred and
+    nothing is compared across statements.
+
+    **Why it does not reach for the balance sheet.** The obvious fourth check is that this
+    ending cash equals the balance sheet's cash line, and on the filing this build measures
+    against it would be **wrong**: the balance sheet says 95,635 and the cash flow statement
+    says 97,100, because the cash flow line reads *cash, cash equivalents **and restricted
+    cash***. The difference is the restricted cash, the statement is correct, and a check
+    comparing the two would report a discrepancy of 1,465 on a document with nothing wrong
+    with it. A check whose findings are mostly not findings teaches a reader to skip the
+    section it is in, so that one is not made - and this comment is here so that the next
+    person to think of it finds the figures rather than the idea.
+    """
+
+    began: float | None = None
+    changed: float | None = None
+    ended: float | None = None
+
+    @property
+    def stated(self) -> bool:
+        """All three are on the statement. Two of them is a statement this says nothing
+        about, which is most statements - an income statement states none."""
+        return None not in (self.began, self.changed, self.ended)
+
+    @property
+    def rolls_forward(self) -> bool | None:
+        """`None` where the statement does not state all three, which is not a failure and
+        must not read as one."""
+        if not self.stated:
+            return None
+        assert self.began is not None and self.changed is not None and self.ended is not None
+        gap = abs(self.began + self.changed - self.ended)
+        return gap <= max(CENT, abs(self.ended) * RELATIVE)
+
+    @property
+    def out_by(self) -> float | None:
+        if not self.stated or self.rolls_forward:
+            return None
+        assert self.began is not None and self.changed is not None and self.ended is not None
+        return self.began + self.changed - self.ended
+
+    def as_line(self) -> str:
+        if not self.stated:
+            return ""
+        if self.rolls_forward:
+            return f"the cash rolls forward to {self.ended:,.2f}"
+        assert self.began is not None and self.changed is not None
+        return (
+            f"the cash does not roll forward: {self.began:,.2f} and {self.changed:,.2f} "
+            f"make {self.began + self.changed:,.2f} against {self.ended:,.2f} stated, "
+            f"out by {self.out_by:,.2f}"
+        )
+
+
+def cash_roll_forward(rows: Sequence[Any]) -> CashRollForward:
+    """The beginning, the change and the ending, by the words the statement uses.
+
+    The **first** of each is taken. A cash flow statement states its cash line twice on some
+    filings - once in the roll-forward and once in a reconciliation of restricted cash
+    beneath it - and the second is a different figure for a different purpose.
+    """
+    began: float | None = None
+    changed: float | None = None
+    ended: float | None = None
+    for row in rows:
+        value = getattr(row, "value", None)
+        if value is None:
+            continue
+        label = (getattr(row, "label", "") or "").strip().lower()
+        # Anywhere in the label rather than at the front of it. Every one of these sits at
+        # the *end* of a long one - `Cash, cash equivalents and restricted cash at the
+        # beginning of the period` - so a prefix match finds none of them.
+        if began is None and any(phrase in label for phrase in BEGINS):
+            began = value
+        elif ended is None and any(phrase in label for phrase in ENDS):
+            ended = value
+        elif changed is None and any(phrase in label for phrase in CHANGES):
+            changed = value
+    return CashRollForward(began=began, changed=changed, ended=ended)
+
+
+def rolls_on(columns: Sequence[CashRollForward]) -> tuple[str, ...]:
+    """Where one column's beginning is not the column before's ending.
+
+    A comparative statement prints three years side by side and each year's closing cash is
+    the next year's opening - so the columns are a chain, and a chain is checkable without
+    knowing which column is which year. Said as sentences rather than as a verdict, because
+    a statement whose columns are not years (a segment note, a currency split) would report
+    a difference that means nothing, and the order of the columns is the page's rather than
+    this reader's.
+
+    Empty where fewer than two columns state a roll-forward, which is the honest answer and
+    not a pass. That falls out of the pairing rather than being guarded for: with one column
+    there is no pair, so the loop below runs no times. An `if len(stated) < 2: return ()`
+    was here and a revert harness showed it changing no answer in any case - the state this
+    build removes a check in rather than keeping it as reassurance, because a line that
+    never runs is a line nobody can be sure about.
+    """
+    stated = [c for c in columns if c.stated]
+    out: list[str] = []
+    for older, newer in zip(stated[1:], stated[:-1], strict=False):
+        assert older.ended is not None and newer.began is not None
+        gap = abs(older.ended - newer.began)
+        if gap > max(CENT, abs(newer.began) * RELATIVE):
+            out.append(
+                f"one column opens at {newer.began:,.2f} where the one beside it closes "
+                f"at {older.ended:,.2f}, a difference of {older.ended - newer.began:,.2f}"
+            )
+    return tuple(out)

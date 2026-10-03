@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**159 of 159 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**160 of 160 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -255,6 +255,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P158** A figure that is nearly a figure | auto | The misread the engine really made is named, with the line it is on, and the printed figure is not | 2026-10-03 |
 | [x] | **P159** The formats that reached nothing | auto | An .ods trial balance is read as a workbook, with its blocks at the locators a figure would cite | 2026-10-03 |
 | [x] | **C88 - Everything a client can send** | integration | Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired. | 2026-10-03 |
+| [x] | **P160** The cash a statement rolls forward | auto | The filing's three columns each reconcile, and the check names the amount when one does not | 2026-10-03 |
+| [x] | **C89 - The three tie-outs, together** | integration | The three arithmetic checks over a statement agree about the one document all three were measured on, each speaks only where its own figures are stated, and every one of them re-adds when its inputs are added again independently. | 2026-10-03 |
 
 ## A run that finishes
 

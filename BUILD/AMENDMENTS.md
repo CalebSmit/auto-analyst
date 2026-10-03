@@ -2983,3 +2983,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C88 after P159, covering P158, P159
 - proves: Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired.
+
+## 2026-10-03 - P160 The cash a statement rolls forward
+
+**Why:** The third tie-out an analyst makes has nothing producing it. Footing proves a column adds; two_sides proves the balance sheet balances; nothing checks the cash roll-forward, which is the one a reviewer does next and the one that catches a transposed figure in the middle of a cash flow statement. Measured on page 59 of the public filing, which the reader already parses into 5 tables and 98 rows: the three columns each state a beginning, a net change and an ending, and all three reconcile exactly - 172,881 less 75,781 is 97,100, and each year's ending is the next year's beginning. So the inputs exist and the arithmetic holds, which is the state a check should be written in. The same measurement also says which check NOT to write: the balance sheet's cash is 95,635 where the cash flow statement's is 97,100, because the cash flow line reads 'cash, cash equivalents and restricted cash'. A cross-statement check comparing those two would report a false discrepancy on this very filing, and a check whose findings are mostly not findings teaches a reader to skip the section it is in.
+
+- phase added: P160 The cash a statement rolls forward (Reading what a client actually sends, gate: auto)
+- exit criterion: The filing's three columns each reconcile, and the check names the amount when one does not
+- exit criterion: A statement that states no cash roll-forward produces no finding, over all 108 pages
+- exit criterion: Nothing compares the cash flow statement's cash to the balance sheet's
+
+## 2026-10-03 - C89 The three tie-outs, together
+
+**Why:** P160 is the third of three tie-outs that now live in one module and are built the same way - footing re-adds a column, two_sides compares the two halves of a balance sheet, cash_roll_forward re-adds a beginning and a change against a stated ending. Each was added by a different phase and each was measured on the same document, and what no phase can ask is whether the three together say one consistent thing about a statement: a page can foot everywhere, balance, and still not roll its cash forward, and a person needs all three answers at once rather than whichever the last phase happened to wire.
+
+- checkpoint added: C89 after P160, covering P160
+- proves: The three arithmetic checks over a statement agree about the one document all three were measured on, each speaks only where its own figures are stated, and every one of them re-adds when its inputs are added again independently.

@@ -29,7 +29,15 @@ from guards.untrusted import UntrustedBoundary, Wrapped
 from intake.fingerprint import READ, mime_of
 from intake.readers.classify import Classification, Evidence, audited_evidence, classify
 from intake.readers.documents import NotText, ParsedDocument, read_document
-from intake.readers.footing import FootingReport, TwoSides, footings_in, two_sides
+from intake.readers.footing import (
+    CashRollForward,
+    FootingReport,
+    TwoSides,
+    cash_roll_forward,
+    footings_in,
+    rolls_on,
+    two_sides,
+)
 from intake.readers.misread import Misread, misreads_in
 from intake.readers.periods import PeriodDetection, detect_periods
 from intake.readers.tabular import Conversion, as_workbook, converts
@@ -73,6 +81,25 @@ class ReadReport:
     on a real filing the assets total and the line that totals the other side are in
     different blocks, because the reader starts a new one at every heading. Empty for a
     document that states no balance sheet, which is most of them."""
+    cash: tuple[tuple[str, CashRollForward], ...] = ()
+    """Where a statement rolls its cash forward, whether the arithmetic holds.
+
+    The third tie-out, beside `balances`. Footing proves a column adds and the two sides
+    prove the balance sheet balances; this catches a transposed figure in the middle of a
+    cash flow statement, where every subtotal can foot and the statement still not work,
+    because the closing cash is *stated* rather than derived.
+
+    Per statement, like `balances`, and empty for a document that rolls no cash forward -
+    which is most of them."""
+
+    cash_chain: tuple[str, ...] = ()
+    """Where one column opens at a figure the column beside it does not close at.
+
+    A comparative statement prints its years side by side, so each year's closing cash is
+    the next year's opening and the columns are a chain. Sentences rather than a verdict,
+    because a statement whose columns are not years would report a difference that means
+    nothing."""
+
     conversion: Conversion | None = None
     """What had to be decided to read a file that was not already a workbook - the
     delimiter, the encoding, the decimal point, and any cell that could have been two
@@ -138,6 +165,22 @@ def _folders_of(path: str, filename: str) -> list[str]:
     if parts and parts[-1] == PurePosixPath(filename.replace("\\", "/")).name:
         parts = parts[:-1]
     return [part for part in parts if part not in ("", ".", "/")]
+
+
+def _cash_of(
+    statements: dict[str, list[Any]],
+) -> tuple[tuple[tuple[str, CashRollForward], ...], tuple[str, ...]]:
+    """Which statements roll cash forward, and where the chain across them breaks.
+
+    Built the same way as `_two_sides_of` and for the same reason: one statement is one
+    column read down, across whatever blocks the reader split it into.
+    """
+    found = tuple(
+        (where, rolled)
+        for where, rows in statements.items()
+        if (rolled := cash_roll_forward(rows)).stated
+    )
+    return found, rolls_on([rolled for _, rolled in found])
 
 
 def _two_sides_of(statements: dict[str, list[Any]]) -> tuple[tuple[str, TwoSides], ...]:
@@ -235,6 +278,11 @@ def read_source(
             report.balances += _two_sides_of(
                 {locator: list(rows) for locator, rows in table.blocks.items()}
             )
+            found, chain = _cash_of(
+                {locator: list(rows) for locator, rows in table.blocks.items()}
+            )
+            report.cash += found
+            report.cash_chain += chain
     else:
         try:
             parsed: ParsedDocument = read_document(data, row.filename)
@@ -295,6 +343,18 @@ def read_source(
             page.number: max((len(t.columns) for t in page.tables), default=0)
             for page in parsed.pages
         }
+        report.cash, report.cash_chain = _cash_of(
+            {
+                f"p{page.number}/c{n}": [
+                    row
+                    for table in page.tables
+                    if n < len(table.columns)
+                    for row in table.columns[n].rows
+                ]
+                for page in parsed.pages
+                for n in range(widest[page.number])
+            }
+        )
         report.balances = _two_sides_of(
             {
                 f"p{page.number} column {n + 1}": [
@@ -403,6 +463,16 @@ def read_source(
                     for where, sides in report.balances
                     if not sides.balances
                 )
+                # The third tie-out, said the same way and for the same reason: a statement
+                # whose cash does not roll forward is a thing nobody should have to open a
+                # record to find out, and a transposed figure in the middle of a cash flow
+                # statement shows up here and in nothing else.
+                + "".join(
+                    f"; {where}: {rolled.as_line()}"
+                    for where, rolled in report.cash
+                    if not rolled.rolls_forward
+                )
+                + "".join(f"; {said}" for said in report.cash_chain)
                 # A token that is shaped like a figure but for one letter, which is a row
                 # that silently is not there: the reader drops the line, label and all, and
                 # the only other symptom is a total out by an amount nobody can account for.
@@ -451,6 +521,18 @@ def read_source(
                 "period_ends": list(report.periods.period_ends),
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
+                "cash": [
+                    {
+                        "where": where,
+                        "began": rolled.began,
+                        "changed": rolled.changed,
+                        "ended": rolled.ended,
+                        "rolls_forward": rolled.rolls_forward,
+                        "out_by": rolled.out_by,
+                    }
+                    for where, rolled in report.cash
+                ],
+                "cash_chain": list(report.cash_chain),
                 # The token and the line, so a person can find the row; `reads_as` is a
                 # string here as it is everywhere, so nothing reading this payload can
                 # mistake it for the figure.

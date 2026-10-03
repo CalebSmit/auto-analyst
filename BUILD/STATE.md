@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **159 of 159 phases closed**
-- Last green checkpoint: **C88**
+- **160 of 160 phases closed**
+- Last green checkpoint: **C89**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -178,4 +178,5 @@
 - **P157** A case that reads the file it is about (2026-10-03)
 - **P158** A figure that is nearly a figure (2026-10-03)
 - **P159** The formats that reached nothing (2026-10-03)
+- **P160** The cash a statement rolls forward (2026-10-03)
 

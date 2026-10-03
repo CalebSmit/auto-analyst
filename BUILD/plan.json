@@ -4633,6 +4633,31 @@
       ],
       "notes": "",
       "closed": "2026-10-03"
+    },
+    {
+      "id": "P160",
+      "title": "The cash a statement rolls forward",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Re-add the cash roll-forward the way footing re-adds a total: beginning plus the net change equals the ending, within one column, from figures the statement states itself. And the roll-forward across columns, where one year's beginning is the year before's ending. Nothing inferred and nothing compared across statements, because the one cross-statement comparison available here is wrong for a reason a reader has to know about.",
+      "builds": [],
+      "tasks": [
+        "Re-add beginning plus net change against the stated ending, per column",
+        "Check each column's beginning against the prior column's ending",
+        "Say nothing on a statement that does not state the three figures, as two_sides says nothing about an income statement",
+        "Record why the balance-sheet comparison is not made, with the figures that show it"
+      ],
+      "exit": [
+        "The filing's three columns each reconcile, and the check names the amount when one does not",
+        "A statement that states no cash roll-forward produces no finding, over all 108 pages",
+        "Nothing compares the cash flow statement's cash to the balance sheet's"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p160 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
     }
   ],
   "checkpoints": [
@@ -5602,6 +5627,17 @@
       "proves": "Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c88 -q"
+      ],
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "C89",
+      "title": "The three tie-outs, together",
+      "after": "P160",
+      "status": "done",
+      "proves": "The three arithmetic checks over a statement agree about the one document all three were measured on, each speaks only where its own figures are stated, and every one of them re-adds when its inputs are added again independently.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c89 -q"
       ],
       "closed": "2026-10-03"
     }
