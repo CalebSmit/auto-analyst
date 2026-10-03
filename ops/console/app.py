@@ -952,7 +952,7 @@ PAGE = (
  grid-template-areas:"runs detail inbox" "runs detail alerts" "trace trace feed"}}
 </style>
 {OPS_SHELL}
-<div class="wrap">
+<main class="wrap">
  <div id="offline"></div>
  <div class="page-head">
   <h1>Activity</h1>
@@ -963,7 +963,7 @@ PAGE = (
  <div class="board">
   <!-- A stream: one row per run, for as long as the firm keeps running them. -->
   <section class="card stream" style="grid-area:runs">
-   <header><h2>Runs<span class="of" id="n-runs"></span></h2>
+   <header><h2>Runs <span class="of" id="n-runs"></span></h2>
     <p class="why">Grouped by engagement, newest first, because a repeat client is one
      job with several runs. Pick one to see what it did, step by step, as it happened.</p>
     <div class="filter">
@@ -992,7 +992,7 @@ PAGE = (
 
   <!-- A stream: one per question a run has stopped on, and nothing bounds how many. -->
   <section class="card stream" style="grid-area:inbox">
-   <header><h2>Waiting on a person<span class="of" id="n-inbox"></span></h2>
+   <header><h2>Waiting on a person <span class="of" id="n-inbox"></span></h2>
     <p class="why">What the system was not sure enough about to decide alone. Open one to read the source first, then the proposal.</p></header>
    <div class="body"><div id="inbox"><div class="skel"></div></div></div>
   </section>
@@ -1021,7 +1021,7 @@ PAGE = (
 
   <!-- A stream: one per run gone quiet or review past its SLA. -->
   <section class="card stream" style="grid-area:alerts">
-   <header><h2>Alerts<span class="of" id="n-alerts"></span></h2>
+   <header><h2>Alerts <span class="of" id="n-alerts"></span></h2>
     <p class="why">Runs that have gone quiet, reviews past their SLA, guards repeating.</p></header>
    <div class="body"><div id="alerts"><div class="skel"></div></div></div>
   </section>
@@ -1033,7 +1033,7 @@ PAGE = (
    <div class="body"><div id="feed"></div></div>
   </section>
  </div>
-</div>
+</main>
 <div id="toast"></div>
 {MAP_HTML}
 {SHELL}
@@ -1205,7 +1205,7 @@ function runRow(r) {
       ${r.state_reason && r.state !== 'delivered' ? `<span class="why-line" title="${esc(r.state_reason)}">${esc(r.state_reason)}</span>` : ''}
      </span>
      <span style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
-      <span class="pill ${STATE_TONE[r.state] ?? ''}" title="${esc(STATE_SAYS[r.state] || '')}"><i class="dot"></i>${esc(r.state)}</span>
+      <span class="pill ${STATE_TONE[r.state] ?? ''}" title="${esc(STATE_SAYS[r.state] || '')}"><i class="dot" aria-hidden="true"></i>${esc(r.state)}</span>
       <span class="sub">${esc(ago(r.last_ts || r.started_at))}${r.open_review_items ? ` &middot; <span class="count" title="open review items">${r.open_review_items}</span>` : ''}</span>
       ${r.queue && r.queue.waiting_on ? `<span class="sub">#${r.queue.position} behind ${esc(r.queue.waiting_on)}</span>` : ''}
      </span>
@@ -1659,7 +1659,7 @@ async function open_(id) {
   $('detail-why').textContent = (run.engagement_id || '') + (run.engagement_id ? ' · ' : '') + id;
   $('card').innerHTML =
     `<div class="r" style="border:0;padding:0 0 .4rem">
-      <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot"></i>${esc(run.state)}</span>
+      <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot" aria-hidden="true"></i>${esc(run.state)}</span>
        ${scorecardPill(c, run.state)}</span>
       <span id="run-actions"></span></div>
      ${run.state_reason ? `<p class="note" style="margin:.1rem 0 .2rem">${esc(STATE_SAYS[run.state] ? STATE_SAYS[run.state] + '.' : '')}</p>

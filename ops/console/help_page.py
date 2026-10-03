@@ -28,7 +28,7 @@ MEANINGS: tuple[tuple[str, str, str], ...] = (
 )
 
 COLOUR_ROWS = ("\n    ").join(
-    f'<div class="r"><span class="pill {kind}"><i class="dot"></i>{name}</span>'
+    f'<div class="r"><span class="pill {kind}"><i class="dot" aria-hidden="true"></i>{name}</span>'
     f'<span class="lbl">{says}</span></div>'
     for kind, name, says in MEANINGS
 )
@@ -79,7 +79,7 @@ PAGE = (
 .gl .r{{display:block}}
 </style>
 {shell("Help", "/help")}
-<div class="wrap">
+<main class="wrap">
  <div class="page-head">
   <h1>Help</h1>
   <p>What you do, in order, and what the words on the other pages mean. The system does the
@@ -145,7 +145,7 @@ PAGE = (
    </div>
   </section>
  </div>
-</div>
+</main>
 <div id="toast"></div>
 """
     + SHELL

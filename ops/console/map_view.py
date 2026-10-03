@@ -946,7 +946,7 @@ async function pickNode(id) {
             <span class="lbl"><b>${MAP_SEQ[nodeId] ? esc(MAP_SEQ[nodeId]) + '. ' : ''}${esc(named[nodeId] || nodeId)}</b><span class="sub" style="display:block">${esc(nodeId)}${
               (MAP_EVENTS[nodeId] || []).length ? ' &middot; ' + esc(String(MAP_EVENTS[nodeId][0].ts).slice(11, 19)) : ''}${
               mapTook(MAP_EVENTS[nodeId] || []) ? ' &middot; ' + esc(mapTook(MAP_EVENTS[nodeId])) : ''}</span></span>
-            <span class="pill ${state === 'passed' ? 'good' : state === 'failed' ? 'bad' : state === 'active' ? 'accent' : ''}"><i class="dot"></i>${esc(state)}</span>
+            <span class="pill ${state === 'passed' ? 'good' : state === 'failed' ? 'bad' : state === 'active' ? 'accent' : ''}"><i class="dot" aria-hidden="true"></i>${esc(state)}</span>
            </div>`).join('')
       : (MAP_UNREAD
          ? `<div class="empty"><b>Could not read this run</b>The design is drawn, but what
@@ -960,7 +960,7 @@ async function pickNode(id) {
          That is a difference between the system and its blueprint, not a gap in the drawing.</p>`
         + stray.map(([nodeId, state]) => `<div class="r">
             <span class="lbl"><b class="mono">${MAP_SEQ[nodeId] ? esc(MAP_SEQ[nodeId]) + '. ' : ''}${esc(nodeId)}</b></span>
-            <span class="pill ${state === 'failed' ? 'bad' : ''}"><i class="dot"></i>${esc(state)}</span>
+            <span class="pill ${state === 'failed' ? 'bad' : ''}"><i class="dot" aria-hidden="true"></i>${esc(state)}</span>
            </div>`).join('');
     }
     return;
@@ -978,7 +978,7 @@ async function pickNode(id) {
       node.group ? ' &middot; part of ' + esc(node.group) : ''}</p>
     <div class="r" style="border:0;padding:0 0 .6rem"><span class="pill ${
       state === 'passed' ? 'good' : state === 'failed' ? 'bad' : state === 'active' ? 'accent' : ''
-    }"><i class="dot"></i>${esc(says[state] || state)}</span></div>
+    }"><i class="dot" aria-hidden="true"></i>${esc(says[state] || state)}</span></div>
     ${node.plain ? `<p class="note" style="margin-top:0">${esc(node.plain)}</p>` : ''}
     ${events.length ? `<p class="idline" style="margin:.4rem 0 0">${plural(events.length, 'event', 'events')}
       &middot; ${esc(String(events[0].ts).slice(11, 19))}${events.length > 1
@@ -1062,7 +1062,7 @@ function mapVerdict() {
   return `<h3>${esc(STATE_SAYS[detail.state] || detail.state || 'this run')}</h3>
     <p class="idline">${esc(detail.engagement_id || '')} &middot; ${esc(MAP_RUN)}</p>
     <div class="r" style="border:0;padding:0 0 .5rem"><span class="pill ${
-      STATE_TONE[detail.state] ?? ''}"><i class="dot"></i>${esc(detail.state || '')}</span></div>
+      STATE_TONE[detail.state] ?? ''}"><i class="dot" aria-hidden="true"></i>${esc(detail.state || '')}</span></div>
     ${where ? `<p class="note" style="margin-top:0">It stopped at
       <b><a href="#" data-act="mapPick" data-node="${esc(stopped[0])}">${esc(where)}</a></b>${
         why ? `. <span class="mono">${esc(why.code || '')}</span> ${esc(why.message || why.detail || '')}` : '.'}</p>` : ''}

@@ -2804,3 +2804,27 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C82 after P149, covering P149
 - proves: Every panel on the three boards is bounded by a number this build chose - one cap shared by all of them, or a list whose length the build fixes - so how tall a page gets is never a function of how long the firm has been using it.
+
+## 2026-10-02 - P150 What the page says to a reader who cannot see it
+
+**Why:** Two things the consoles do not say to a reader who cannot see them. There is no main landmark on any of the four pages: the shell emits a nav inside the chrome and every page then opens a plain div.wrap, so a screen reader has a navigation region to jump to and nothing to jump from it to, and a skip link would have no target to point at. And four panel headings run a word straight into a number - the count beside the title is a span inside the h2, so the accessible name of the Runs panel is 'Runs3' and a reader hears 'Runs three'. The same shape is on Engagements, Waiting on a person and Alerts. Measured by reading the accessible name of every heading and every landmark on the three boards and the help page rather than by reading the markup: one nav, seven headers, zero mains, and one heading in four whose name has a digit welded to a word.
+
+- phase added: P150 What the page says to a reader who cannot see it (Legible, gate: auto)
+- exit criterion: Every page has exactly one main landmark and the board is inside it
+- exit criterion: No heading's accessible name runs a word into a number, swept rather than listed
+- exit criterion: A mark that is pure decoration is not read out, and a mark that carries meaning is
+
+## 2026-10-02 - P150 What the page says to a reader who cannot see it
+
+**Why:** The tasks.
+
+- task added: the four pages' content wrapper becomes the main landmark
+- task added: a count beside a heading is separated from it, so the name reads as a heading and a number
+- task added: the marks that are pure decoration are hidden from a reader and the ones that carry meaning are not
+
+## 2026-10-02 - C83 The same shape, unseen
+
+**Why:** P150 found that no page in this product had a main landmark - a navigation region to jump to and nothing to jump from it to - and that four panel headings welded their title to their count, so the Runs panel's accessible name was Runs3. What the checkpoint asks that the phase could not is whether the four pages are one product to a reader who cannot see them: one way in, one heading at the top, levels that descend without gaps, and every control carrying a name. Four files, one shell, and nothing until now asking whether they agree about any of it. It also holds the thing a browser sweep found and no test did - that every control has a name - which was true of the afternoon it was measured and of nothing else. Two cautions it carries, both learned by getting them wrong here: textContent is not an accessible name, because a browser inserts whitespace at a block boundary and textContent does not, and the first sweep of this reported three defects that were not there; and a test that matches a label of up to three characters examines none of the four buttons whose label is an HTML entity.
+
+- checkpoint added: C83 after P150, covering P150
+- proves: A reader who cannot see these pages meets the same structure on each of the four - one main, one nav, one top-level heading and no gap in the levels - and every control they land on has something to be called.

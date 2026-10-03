@@ -58,7 +58,7 @@ body.all-done #checklist .bar{{display:none}}
 #checklist details{{margin-top:var(--s2)}}
 </style>
 {shell("Setup", "/admin")}
-<div class="wrap">
+<main class="wrap">
  <div id="offline"></div>
  <div class="page-head">
   <h1>Setup</h1>
@@ -78,7 +78,7 @@ body.all-done #checklist .bar{{display:none}}
 
   <!-- A stream: one per piece of client work on the roster, which only grows. -->
   <section class="card stream" style="grid-area:eng">
-   <header><h2>Engagements<span class="of" id="n-roster"></span></h2>
+   <header><h2>Engagements <span class="of" id="n-roster"></span></h2>
     <p class="why">One per piece of client work. The practice group you give it decides
      which skills it gets, which methodology it carries and which model it builds into.</p></header>
    <div class="body"><div id="roster"><div class="skel"></div></div></div>
@@ -153,7 +153,7 @@ body.all-done #checklist .bar{{display:none}}
    </div>
   </section>
  </div>
-</div>
+</main>
 
 <div class="modal" id="add-card" style="display:none">
  <section class="card">
@@ -529,7 +529,7 @@ async function refresh() {{
   ME = await get('/api/admin/whoami').catch(() => null);
   $('chrome-right').innerHTML =
     (CONFIGURED ? esc(SETUP.environment) + ' &middot; configuration v' + esc(SETUP.version)
-           : '<span class="pill warn"><i class="dot"></i>not set up</span>') +
+           : '<span class="pill warn"><i class="dot" aria-hidden="true"></i>not set up</span>') +
     (ME ? ' &middot; <span title="Every change is recorded against this name. It is who the '
         + 'system resolved you as, not something typed here.">acting as <b>'
         + esc(ME.name) + '</b></span>' : '');
@@ -556,7 +556,7 @@ function roster() {{
       <span class="sub" style="white-space:normal">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>
       ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}
       ${{r.is_repeat && !r.prior_model ? `<span class="why-line"><a href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="A repeat client's work starts from last year's workbook. Until this is set there is nothing to roll forward from.">last year&rsquo;s model: not set</a></span>` : ''}}</span>
-     <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot"></i>${{esc(r.state)}}</span>
+     <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot" aria-hidden="true"></i>${{esc(r.state)}}</span>
      <span class="acts">
       <a class="btn quiet" href="#files=${{esc(r.engagement_id)}}" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</a>
       <a class="btn quiet" href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" title="Budget, review level and how long files are held before a run">settings</a>
@@ -596,7 +596,7 @@ async function preflight() {{
      JavaScript until tests/p140. */
   $('pre').innerHTML =
     `<div class="r lede">
-      <span class="lbl"><span class="pill ${{p.passed ? 'good' : 'bad'}}"><i class="dot"></i>${{
+      <span class="lbl"><span class="pill ${{p.passed ? 'good' : 'bad'}}"><i class="dot" aria-hidden="true"></i>${{
         p.passed
           ? (warnings.length ? 'Nothing blocks a run' : 'All clear')
           : plural(blocking.length, 'blocker', 'blockers')}}</span></span>
@@ -675,11 +675,11 @@ async function seams() {{
       <span class="lbl">AI model<span class="d">${{esc(ai.adapter)}} &mdash; ${{esc(ai.means)}}${{
         ai.reaches_a_model ? '. Skills ask for low, mid or high: ' + esc(Object.values(ai.tiers).join(', ')) : ''}}</span></span>
       <button class="ghost" data-act="testModel">Test</button>
-      <span class="pill ${{ai.reaches_a_model ? 'good' : ''}}"><i class="dot"></i>${{ai.reaches_a_model ? 'live' : 'no spend'}}</span>
+      <span class="pill ${{ai.reaches_a_model ? 'good' : ''}}"><i class="dot" aria-hidden="true"></i>${{ai.reaches_a_model ? 'live' : 'no spend'}}</span>
      </div>` : '')
     + r.seams.map(s => `<div class="r">
      <span class="lbl">${{esc(s.name)}}<span class="d">${{esc(s.detail)}}</span></span>
-     <span class="pill ${{s.ready ? 'good' : (s.needs_installing ? 'warn' : 'bad')}}"><i class="dot"></i>${{
+     <span class="pill ${{s.ready ? 'good' : (s.needs_installing ? 'warn' : 'bad')}}"><i class="dot" aria-hidden="true"></i>${{
        s.ready ? 'wired' : (s.needs_installing ? 'not installed' : 'not wired')}}</span>
     </div>`).join('');
 }}
@@ -703,11 +703,11 @@ async function testConnection(service) {{
   box.innerHTML =
     `<div class="r lede"><span class="lbl">${{r.connected ? 'Connected' : 'Not connected'}}
       <span class="d">${{esc(r.proves)}}</span></span>
-     <span class="pill ${{r.connected ? 'good' : 'bad'}}"><i class="dot"></i>${{
+     <span class="pill ${{r.connected ? 'good' : 'bad'}}"><i class="dot" aria-hidden="true"></i>${{
        r.connected ? 'reached ' + esc(r.service) : 'did not'}}</span></div>`
     + r.steps.map(s => `<div class="r">
        <span class="lbl">${{esc(s.label)}}<span class="d">${{esc(s.detail)}}</span></span>
-       <span class="pill ${{pill(s.status)}}"><i class="dot"></i>${{esc(s.status)}}</span>
+       <span class="pill ${{pill(s.status)}}"><i class="dot" aria-hidden="true"></i>${{esc(s.status)}}</span>
       </div>`).join('')
     + (r.connected && !r.in_use
         ? `<div class="note tight">${{service === 'model'
@@ -759,11 +759,11 @@ async function updateFromShareFile() {{
     `<div class="r lede"><span class="lbl">${{c.copied}} copied, ${{c.skipped}} already there,
       ${{c.resent}} re-sent${{c.failed ? ', ' + c.failed + ' failed' : ''}}
       <span class="d">${{esc(r.means)}}</span></span>
-     <span class="pill ${{r.complete ? 'good' : 'bad'}}"><i class="dot"></i>${{
+     <span class="pill ${{r.complete ? 'good' : 'bad'}}"><i class="dot" aria-hidden="true"></i>${{
        r.complete ? 'all of it' : 'partly'}}</span></div>`
     + r.moves.filter(m => m.outcome !== 'skipped').map(m => `<div class="r">
        <span class="lbl">${{esc(m.path)}}${{m.detail ? '<span class="d">' + esc(m.detail) + '</span>' : ''}}</span>
-       <span class="pill ${{pill(m.outcome)}}"><i class="dot"></i>${{esc(m.outcome)}}</span>
+       <span class="pill ${{pill(m.outcome)}}"><i class="dot" aria-hidden="true"></i>${{esc(m.outcome)}}</span>
       </div>`).join('')
     + (c.skipped && !c.copied && !c.resent && !c.failed
         ? `<div class="note tight">Everything was already in Box. Nothing needed doing,
@@ -829,7 +829,7 @@ async function reportPanel() {{
            value="${{esc(SOURCES[a.appendix] || '')}}">
          <button data-act="previewAppendix" data-appendix="${{esc(a.appendix)}}">Preview</button>
          <button data-act="updateAppendix" data-appendix="${{esc(a.appendix)}}">Update</button>`
-        : '<span class="pill bad"><i class="dot"></i>no anchor</span>'}}</span>
+        : '<span class="pill bad"><i class="dot" aria-hidden="true"></i>no anchor</span>'}}</span>
       </div>`).join('')
     + `<div class="note tight">Appendices G, H and I are not listed because nothing
        updates them. They carry forward in the copy of last year's report, which is why
@@ -859,12 +859,12 @@ async function updateAppendix(id, dry) {{
     `<div class="r lede"><span class="lbl">Appendix ${{esc(r.letter)}}:
       ${{r.replaced_blocks}} block(s) out, ${{r.arriving_blocks}} in
       <span class="d">${{r.dry_run ? 'Nothing was written.' : 'Written to ' + esc(r.written_to)}}</span></span>
-     <span class="pill ${{r.complete ? 'good' : 'bad'}}"><i class="dot"></i>${{
+     <span class="pill ${{r.complete ? 'good' : 'bad'}}"><i class="dot" aria-hidden="true"></i>${{
        r.complete ? (r.dry_run ? 'would work' : 'done') : 'something was left behind'}}</span></div>`
     + (r.left_behind.length
         ? r.left_behind.map(w => `<div class="r"><span class="lbl">Not carried
             <span class="d">${{esc(w)}}</span></span>
-            <span class="pill bad"><i class="dot"></i>by hand</span></div>`).join('')
+            <span class="pill bad"><i class="dot" aria-hidden="true"></i>by hand</span></div>`).join('')
         : '')
     + ((r.styles.length || r.numbering.length || r.images.length)
         ? `<div class="note tight">Brought across with the text:
@@ -895,7 +895,7 @@ async function runTracker(id, dry) {{
       <span class="d">${{r.files_seen}} file(s) read. ${{r.inferred}} matched by reading the
        document rather than by its number &mdash; worth a glance.${{
         r.dry_run ? ' Nothing was written.' : ' Written to ' + esc(r.tracker) + '.'}}</span></span>
-     <span class="pill ${{r.essential_outstanding.length ? 'warn' : 'good'}}"><i class="dot"></i>${{
+     <span class="pill ${{r.essential_outstanding.length ? 'warn' : 'good'}}"><i class="dot" aria-hidden="true"></i>${{
        r.essential_outstanding.length ? r.essential_outstanding.length + ' essential owed' : 'nothing essential owed'}}</span></div>`
     + (r.is_a_starting_point
         ? `<div class="note tight">This list is a starting point, not the firm's own.
@@ -909,7 +909,7 @@ async function runTracker(id, dry) {{
     + (r.unmatched_files.length
         ? `<div class="r"><span class="lbl">${{r.unmatched_files.length}} file(s) answered nothing
             <span class="d">${{r.unmatched_files.map(esc).join('<br>')}}</span></span>
-           <span class="pill warn"><i class="dot"></i>look at these</span></div>`
+           <span class="pill warn"><i class="dot" aria-hidden="true"></i>look at these</span></div>`
         : '');
 }}
 

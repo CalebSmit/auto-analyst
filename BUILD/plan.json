@@ -4379,6 +4379,32 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P150",
+      "title": "What the page says to a reader who cannot see it",
+      "block": "Legible",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Give every page the landmark a reader navigates by, and make a heading that carries a count read as a heading with a count rather than as one word.",
+      "builds": [],
+      "tasks": [
+        "the four pages' content wrapper becomes the main landmark",
+        "a count beside a heading is separated from it, so the name reads as a heading and a number",
+        "the marks that are pure decoration are hidden from a reader and the ones that carry meaning are not"
+      ],
+      "exit": [
+        "Every page has exactly one main landmark and the board is inside it",
+        "No heading's accessible name runs a word into a number, swept rather than listed",
+        "A mark that is pure decoration is not read out, and a mark that carries meaning is"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p150 -q",
+        "python -m uv run pytest tests/p45 tests/p46 tests/p81 tests/p142 tests/p149 -q",
+        "python -m uv run ruff check ui/ ops/ admin/ tests/p150"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5282,6 +5308,17 @@
       "proves": "Every panel on the three boards is bounded by a number this build chose - one cap shared by all of them, or a list whose length the build fixes - so how tall a page gets is never a function of how long the firm has been using it.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c82 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C83",
+      "title": "The same shape, unseen",
+      "after": "P150",
+      "status": "done",
+      "proves": "A reader who cannot see these pages meets the same structure on each of the four - one main, one nav, one top-level heading and no gap in the levels - and every control they land on has something to be called.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c83 -q"
       ],
       "closed": "2026-10-02"
     }

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**149 of 149 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**150 of 150 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -358,4 +358,6 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C81 - A number in a sentence** | integration | Every number a reader is shown in prose, on the consoles and in the guide, is derived from the thing it counts or is recorded as a claim that cannot drift, and there is one table of number words that production and tests both stand on. | 2026-10-02 |
 | [x] | **P149** The panels whose length is not ours | auto | Every panel whose rows are one per thing the firm has is capped, and the rule says which those are rather than listing them | 2026-10-02 |
 | [x] | **C82 - A page the firm cannot stretch** | integration | Every panel on the three boards is bounded by a number this build chose - one cap shared by all of them, or a list whose length the build fixes - so how tall a page gets is never a function of how long the firm has been using it. | 2026-10-02 |
+| [x] | **P150** What the page says to a reader who cannot see it | auto | Every page has exactly one main landmark and the board is inside it | 2026-10-02 |
+| [x] | **C83 - The same shape, unseen** | integration | A reader who cannot see these pages meets the same structure on each of the four - one main, one nav, one top-level heading and no gap in the levels - and every control they land on has something to be called. | 2026-10-02 |
 

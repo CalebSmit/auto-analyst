@@ -2096,3 +2096,47 @@ to be capped - there are two reasons to cap and only one is about the firm. And 
 required a reason in the markup beside every stream, which the seven new ones did not have;
 writing them was better than weakening the test.
 
+## B-118 What the consoles did not say to a reader who cannot see them
+status: fixed (P150)
+2026-10-02. Two things, both verified before being believed.
+
+**No `main` landmark on any of the four pages.** The shell emits a `nav` inside the chrome
+and every page then opened a plain `div.wrap`, so a screen reader had a navigation region to
+jump to and nothing to jump *from* it to; a skip link would have had no target. Measured
+across the three boards and the help page: one `nav`, seven `header`s, **zero** `main`s. The
+wrapper is the `main` now - it already had the layout on it, so wrapping it in a second
+element would have meant two boxes where the sheet expects one.
+
+**A panel heading welded its title to its count.** `<h2>Runs<span class="of">3</span>` with
+the span at `display:inline`, so no browser inserts anything between them: the accessible
+name was `Runs3`, heard as *"Runs three"*. Same on Engagements, Waiting on a person and
+Alerts. A literal space fixes it, and a test asserts the span is still inline - because if it
+ever becomes a block the browser supplies its own separator and the space is doing nothing.
+
+**Three of my four findings here were measurement artefacts.** The first sweep used
+`textContent` as a proxy for an accessible name and reported the Setup progress block as
+*"2 steps leftNext: Connect the AI model 9 of 11done"*. It is not: the `b` inside it computes
+to `display:block`, and so does `.of.done`, and a browser inserts whitespace at a block
+boundary while `textContent` does not. **Only the heading count is genuinely inline.** The
+instrument has to be the thing the name is computed from, which here meant reading `display`
+before believing the string.
+
+**And two of my own tests were vacuous until the revert harness said so.** The first sweep
+for a welded heading looked for a letter beside a digit in the served markup - but the count
+is written in by script, so the markup only ever holds an empty span, and the sweep passed on
+the welded page. It tests the *shape* now: a word, then an element opening, with nothing
+between. And C83's symbol-only-control test matched a label of up to three characters, while
+the markup says `&minus;` - seven. It examined none of the four buttons it was written for.
+It unescapes first now and asserts it examined at least four.
+
+## B-119 The frontend sweeps that now come back clean
+status: measured, nothing to fix
+2026-10-02. After P142-P150, these are measured and hold a test. Recorded so the next person
+does not re-derive them: text contrast against the 4.5:1 floor, non-text contrast against
+3:1, control boundaries and focus rings on every ground they land on, panel sizing at a
+firm's worth of data as well as at three runs, target size against WCAG 2.5.8 including the
+spacing exception, accessible names on every control, duplicate ids, dangling `aria-*` and
+`for` references, controls nested inside controls, unlabelled fields, images with no alt,
+text truncation, landmark and heading structure, numbers written in prose, and every colour
+coming from a token so a sweep over tokens is a sweep over the product.
+

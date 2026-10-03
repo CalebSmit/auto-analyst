@@ -108,8 +108,13 @@ def test_the_colour_key_is_built_from_the_list_rather_than_typed_beside_it() -> 
     one produce the same string - which is the whole difficulty with checking this class of
     thing.
     """
+    # The pill's tone and its word, with whatever the dot carries between them - P150 gave
+    # it `aria-hidden`, and this test is about the row coming from the list rather than
+    # about the attributes on a mark that is drawn in CSS.
     for kind, name, _ in MEANINGS:
-        assert f'<span class="pill {kind}"><i class="dot"></i>{name}</span>' in HELP
+        assert re.search(
+            rf'<span class="pill {kind}"><i class="dot"[^>]*></i>{re.escape(name)}</span>', HELP
+        ), f"the {name!r} row is not built from the list"
     written = (ROOT / "ops" / "console" / "help_page.py").read_text(encoding="utf-8")
     assert "for kind, name, says in MEANINGS" in written, "the rows are not generated"
     typed = re.findall(r'<div class="r"><span class="pill (?:good|warn|bad|accent)\b', written)

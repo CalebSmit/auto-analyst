@@ -39,7 +39,7 @@ PAGE = f"""<!doctype html>
  grid-template-areas:"head head head" "funnel failures stuck" "outcomes skills trends"}}
 </style>
 {shell("Analytics", "/analytics")}
-<div class="wrap">
+<main class="wrap">
  <div id="offline"></div>
  <div class="page-head">
   <h1>Analytics</h1>
@@ -106,7 +106,7 @@ PAGE = f"""<!doctype html>
    <div class="body"><div id="trends"><div class="skel"></div></div></div>
   </section>
  </div>
-</div>
+</main>
 <div id="toast"></div>
 {SHELL}
 <script>
@@ -256,7 +256,7 @@ function stuck(s) {{
            person" on one page and "Needs attention" on the next has to work out that they
            are the same condition, and on this panel they are: every line under it is work
            that has stopped and is waiting on somebody. -->
-      <span class="pill ${{total || flagged.length ? 'warn' : 'good'}}"><i class="dot"></i>${{total || flagged.length ? 'Needs a person' : 'Nothing is stuck'}}</span>
+      <span class="pill ${{total || flagged.length ? 'warn' : 'good'}}"><i class="dot" aria-hidden="true"></i>${{total || flagged.length ? 'Needs a person' : 'Nothing is stuck'}}</span>
      </span></div>` +
     lines.map(([k, v, why]) => `<div class="r">
       <span class="lbl">${{k}}<span class="d">${{why}}</span></span>
