@@ -66,6 +66,19 @@ BY_EXTENSION: dict[str, str] = {
     # layer, which is what a scanned PDF page is, so each is read the same way. Declared
     # here rather than left to `mimetypes` for the reason the whole table exists - the same
     # bytes must get the same type on every host.
+    # A client on LibreOffice sends this instead of an .xlsx. Read, through the same
+    # conversion seam a .csv goes through.
+    ".ods": "application/vnd.oasis.opendocument.spreadsheet",
+    # Excel's binary workbook. Routed so it can be refused by name: a reader for it exists
+    # and there is no real one of these on this machine to measure a reader against, and a
+    # half-working parser for a binary format produces plausible partial figures.
+    ".xlsb": "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+    # What arrives when somebody saves the email instead of the attachment. Read as the
+    # message it is, and its attachments named, because that is what has to be asked for.
+    ".eml": "message/rfc822",
+    # Outlook's own format, which is an OLE2 compound file. Refused like the .xlsb and for
+    # the same reason.
+    ".msg": "application/vnd.ms-outlook",
     ".png": "image/png",
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
@@ -95,6 +108,8 @@ SPREADSHEET = {
     "application/vnd.ms-excel.sheet.macroEnabled.12",
     "application/vnd.ms-excel",
     "text/csv",
+    "application/vnd.oasis.opendocument.spreadsheet",
+    "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
 }
 DOCUMENT = {
     "application/pdf",
@@ -103,20 +118,41 @@ DOCUMENT = {
     "application/rtf",
     "text/plain",
     "text/markdown",
+    "message/rfc822",
+    "application/vnd.ms-outlook",
     *IMAGE,
 }
 
-# Of the document types above, the ones a reader actually reads. `.doc` is routed and
-# refused on purpose: it is an OLE2 compound file, and the reader that met one decoded it as
-# UTF-8 and stored the bytes 0 to 255 as lines of a document. Being routed is what gets a
-# person the diagnostic that says to save it as a .docx; being read is a different claim and
-# this build does not make it.
+# Of everything routed above, the ones a reader actually reads - **both kinds**, because the
+# distinction is the same one on either side. Three formats are routed and refused on
+# purpose:
+#
+# * `.doc`, an OLE2 compound file, which the reader that met one decoded as UTF-8 and stored
+#   as the bytes 0 to 255;
+# * `.xlsb`, Excel's binary workbook;
+# * `.msg`, Outlook's, which is also OLE2.
+#
+# Each has a reader somewhere in the world, none has a real example on this machine to
+# measure one against, and a half-working parser for a binary format produces plausible
+# *partial* content - the failure this repository is most careful about.
+#
+# Being routed is what gets a person the diagnostic saying to save it as something that is
+# read; being read is a different claim and this build does not make it. This set held only
+# document types until P159, which made a spreadsheet format nobody reads indistinguishable
+# from one that is read - so an `.xlsb` was told it "cannot be opened as a workbook", which
+# is true and is the wrong thing to do about it, because nothing is wrong with the file.
 READ = {
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel.sheet.macroEnabled.12",
+    "application/vnd.ms-excel",
+    "text/csv",
+    "application/vnd.oasis.opendocument.spreadsheet",
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/rtf",
     "text/plain",
     "text/markdown",
+    "message/rfc822",
     # Read in the sense this set means: a reader takes it and produces a page. What comes
     # back is only as good as the engine configured, and with none it is an empty page
     # reported as scanned - which is the same answer a scanned PDF gets, and is not the same

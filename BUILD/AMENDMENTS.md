@@ -2958,3 +2958,28 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C87 after P157, covering P156, P157
 - proves: A document that cannot be opened ends the run with the file named rather than a library exception, a format that is routed and not read still says to save it as something else, and the rehearsal reports any case whose own file no reader ever looked at.
+
+## 2026-10-03 - P158 A figure that is nearly a figure
+
+**Why:** A letter standing in for a digit makes a row vanish, label and all, and nothing says why. Measured on page 56 of the public filing read by a real engine: the printed 5,000 came back as 5,0o0 - a zero read as the letter o - at 0.938 confidence, which is too high for any score to flag and is exactly the failure this build says it most cares about. Put through the production reader, a line carrying such a token yields no figure and an empty label: Inventories l27,496 gives ('', []) and the whole row disappears. The safe direction, in that nothing wrong is stored, and silent - a scanned statement quietly loses rows and a person is told only that some total did not foot. The research names the family: 0/O, 1/l/I, 5/S, 8/B, 2/Z.
+
+- phase added: P158 A figure that is nearly a figure (Reading what a client actually sends, gate: auto)
+- exit criterion: The misread the engine really made is named, with the line it is on, and the printed figure is not
+- exit criterion: Over the whole filing's text layer the check reports nothing, so a finding means something
+- exit criterion: Nothing is substituted or corrected anywhere on the path
+
+## 2026-10-03 - P159 The formats that reached nothing
+
+**Why:** Four formats a client sends reach kind=other, which routes nowhere and says nothing. An .ods is what a client on LibreOffice sends instead of an .xlsx and this build has a conversion seam for exactly that case - tabular.py already turns a .csv and an .xls into a workbook at the door, so an .ods belongs there and odfpy is pure Python with no system dependency. An .eml is what arrives when somebody saves the email rather than the attachment, and the standard library parses one completely. An .xlsb and a .msg are both binary formats whose readers exist and which I have no real example of on this machine, which is the .doc situation: a half-working parser for a binary format produces plausible partial content, so they are routed, named and refused with the thing to do. Today all four produce silence - the file is listed and nothing reads it, says why, or tells anybody what to do.
+
+- phase added: P159 The formats that reached nothing (Reading what a client actually sends, gate: auto)
+- exit criterion: An .ods trial balance is read as a workbook, with its blocks at the locators a figure would cite
+- exit criterion: An .eml names the attachments it carries, so a person knows what to ask for
+- exit criterion: An .xlsb and a .msg are each refused with what they are and what to do, not decoded
+
+## 2026-10-03 - C88 Everything a client can send
+
+**Why:** P158 and P159 both widen what the reader will take from a client, and widening intake is the one direction that can make a figure worse rather than better - a format newly read is a new way for a wrong number to arrive carrying a real locator. P158 names a token that is almost a figure, and P159 adds two formats and two refusals, which means two more paths into the parse store and one more set that has to agree with the readers behind it. Neither phase is placed to ask whether the whole of intake still says one thing about one file.
+
+- checkpoint added: C88 after P159, covering P158, P159
+- proves: Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired.

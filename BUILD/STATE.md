@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **157 of 157 phases closed**
-- Last green checkpoint: **C87**
+- **159 of 159 phases closed**
+- Last green checkpoint: **C88**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -176,4 +176,6 @@
 - **P155** A scan is a layout too (2026-10-03)
 - **P156** A file that will not open (2026-10-03)
 - **P157** A case that reads the file it is about (2026-10-03)
+- **P158** A figure that is nearly a figure (2026-10-03)
+- **P159** The formats that reached nothing (2026-10-03)
 

@@ -69,14 +69,17 @@ class Conversion:
 
 def converts(filename: str) -> bool:
     """Whether this file needs converting before the workbook reader sees it."""
-    return filename.lower().endswith((".csv", ".tsv", ".xls"))
+    return filename.lower().endswith((".csv", ".tsv", ".xls", ".ods"))
 
 
 def as_workbook(data: bytes, filename: str) -> Conversion:
     """The file as a workbook. Raises the way openpyxl does when it cannot be read, so the
     caller's one diagnostic covers every spreadsheet that will not open."""
-    if filename.lower().endswith(".xls"):
+    name = filename.lower()
+    if name.endswith(".xls"):
         return _from_xls(data)
+    if name.endswith(".ods"):
+        return _from_ods(data)
     return _from_separated(data, filename)
 
 
@@ -255,6 +258,81 @@ def _from_xls(data: bytes) -> Conversion:
     out = io.BytesIO()
     book.save(out)
     return Conversion(workbook=out.getvalue())
+
+
+def _from_ods(data: bytes) -> Conversion:
+    """An OpenDocument spreadsheet copied cell for cell into a workbook openpyxl can read.
+
+    What a client on LibreOffice sends instead of an `.xlsx`, and until now it reached
+    `kind="other"` - routed nowhere, read by nothing, and nothing said so. It belongs on this
+    seam rather than in a reader of its own for the reason the `.csv` does: everything above
+    the conversion goes on reading a workbook, including the `Sheet!A1` locator a figure will
+    cite for as long as the figure exists.
+
+    `odfpy` is pure Python and pulls in `defusedxml`, which is the right dependency to gain
+    on a path that opens a client's file: an ODS is a zip of XML, and XML from outside is
+    where entity-expansion attacks live.
+
+    **A cell carries its type and its text separately**, and the type is what to read. The
+    text is a *display* string - LibreOffice writes `1,234.5` or `1.234,5` there depending on
+    the locale the file was saved in, and parsing that back would reinvent the ambiguity the
+    separated-values path above exists to resolve. `office:value` is the number itself, in a
+    fixed format, always with a period. So there is no convention work here and nothing to
+    report as ambiguous: a number in an ODS is a number and was never text.
+    """
+    import io as _io
+
+    from odf.opendocument import load
+    from odf.table import Table, TableCell, TableRow
+    from openpyxl import Workbook
+
+    document = load(_io.BytesIO(data))
+    book = Workbook()
+    book.remove(book.active)
+    for table in document.getElementsByType(Table):
+        sheet = book.create_sheet(_sheet_name(str(table.getAttribute("name") or "Sheet")))
+        for row in table.getElementsByType(TableRow):
+            cells: list[object] = []
+            for cell in row.getElementsByType(TableCell):
+                # A cell may say it stands for several columns - that is how an ODS writes a
+                # run of empty ones - and dropping the repeat would shift every figure on the
+                # row to the left, which is exactly the class of error this build is about.
+                repeat = cell.getAttribute("numbercolumnsrepeated")
+                for _ in range(max(1, int(repeat) if repeat and repeat.isdigit() else 1)):
+                    cells.append(_ods_value(cell))
+            while cells and cells[-1] is None:
+                cells.pop()
+            sheet.append(cells)
+    if not book.worksheets:
+        raise ValueError("the spreadsheet holds no sheets")
+    out = io.BytesIO()
+    book.save(out)
+    return Conversion(workbook=out.getvalue())
+
+
+def _ods_value(cell: object) -> object:
+    """One ODS cell, by the type it declares rather than by the text it displays.
+
+    `office:value-type` says what it is and `office:value` carries the number, so a float
+    arrives as a float and a date keeps its own string. Reading the displayed text instead
+    would make `1.234` four hundred times too small or too large depending on where the file
+    was saved, which is undetectable afterwards because both are plausible figures.
+    """
+    kind = str(cell.getAttribute("valuetype") or "")  # type: ignore[attr-defined]
+    if kind in ("float", "percentage", "currency"):
+        raw = cell.getAttribute("value")  # type: ignore[attr-defined]
+        try:
+            return float(str(raw))
+        except (TypeError, ValueError):
+            return str(cell).strip() or None
+    if kind == "boolean":
+        return str(cell.getAttribute("booleanvalue") or "")  # type: ignore[attr-defined]
+    if kind == "date":
+        return str(cell.getAttribute("datevalue") or "")  # type: ignore[attr-defined]
+    if kind == "time":
+        return str(cell.getAttribute("timevalue") or "")  # type: ignore[attr-defined]
+    text = str(cell).strip()
+    return text or None
 
 
 def _xls_value(cell: object, book: object) -> object:

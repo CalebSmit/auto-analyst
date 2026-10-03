@@ -2476,3 +2476,115 @@ a filename will bind is answerable from the name and the conventions, so the nex
 is checked before it is ever run. It also found that two cases - `partial` and
 `changed-after` - existed only as string literals in the middle of the sweep, because they
 need the clock; they are named in `INLINE_CASES` now, so something can list them.
+
+## B-127 A letter standing in for a digit made a row vanish, and nothing said why
+status: fixed (P158)
+2026-10-03. Measured on page 56 of the public filing read by a real engine: the printed
+**5,000** came back as **`5,0o0`** - a zero read as the letter o - **at 0.938 confidence**.
+Too high for any score to flag, which is this build's own stated thesis about OCR.
+
+The usual answer to a misread here is arithmetic, and it is a good one: a total that stops
+adding up is what finds a figure read *wrongly*. This misread produces no figure at all, and
+what happens next is why it needs its own check. Through the reader:
+
+    Inventories l27,496   ->  label '', values []
+
+The whole row goes, label and all. That is the safe direction - nothing wrong is stored - and
+it is **silent**: the statement quietly loses a row, the total above it stops footing, and the
+only thing a person is told is that some total is out by an amount nobody can account for. The
+amount it is out by *is* the row that went missing.
+
+So a token shaped like a figure but for its letters is named, with the line it sits on,
+through the same report a footing reaches a person by. **It reports and never repairs**:
+substituting the digit would be this code guessing at a client's figure and producing a
+plausible number, carrying a real locator, that the document does not print. `reads_as` is
+offered because it is the first thing anybody wants to see, and it is a **string**, never a
+float, so nothing downstream can total it.
+
+**Calibrated against text nobody misread**, over all 108 pages - 58,606 tokens - where it
+reports nothing. Three decisions came out of that measurement rather than out of taste:
+
+* the **two-digit floor** stays: without it the rule reported `1B` and `9B` on four pages,
+  which are billions written the way people write them;
+* **`D` for zero** went: a real confusion on a photocopy, and it reported `21D` twice -
+  *"contribution under Section 10(b) and 21D of the Securities Exchange Act"* - in a filing
+  belonging to a company called 3D Systems. Two findings out of three that are not findings
+  is the ratio this repo takes a check out over (B-086, the Oxford comma);
+* a **one-letter rule** went, and for the opposite reason. It was in on the reasoning that a
+  token with two letters is a word rather than a near miss; measured, it changed **no answer
+  at all** on either input, which is the state P151 removed `COLUMN_SHARE` in. It was also
+  wrong about what it excluded - `1O,5O0` is two digits misread in one figure, an ordinary
+  photocopy, and it was skipping that in silence. What actually keeps a word out is the digit
+  floor, which the test for the one-letter rule had been passing on the whole time.
+
+## B-128 Four formats a client sends reached nothing at all
+status: fixed (P159)
+2026-10-03. `.ods`, `.xlsb`, `.eml` and `.msg` were `kind="other"`, which routes nowhere. The
+file was listed in the manifest and then nothing read it, nothing said why, and nobody was
+told what to do - the worst of the four possible answers, because it looks like success.
+
+**An `.ods` is read**, through the conversion seam `tabular.py` already had: a `.csv` and an
+`.xls` are turned into a workbook at the door so everything above goes on reading a workbook,
+including the `Sheet!A1` locator a figure cites for as long as the figure exists. `odfpy` is
+pure Python and brings `defusedxml`, which is the right dependency to gain on a path that
+opens a client's file - an ODS is a zip of XML and XML from outside is where entity expansion
+lives.
+
+The care is in the cells, and it is the same care the CSV path needed for the same reason. An
+ODS carries a cell's **type and value** separately from the text it displays, and the type is
+what to read: LibreOffice writes `1.234,5` or `1,234.5` into the display depending on the
+locale the file was saved in, and parsing that back would reinvent an ambiguity whose two
+answers are both plausible figures. So there is nothing to report as ambiguous here - a number
+in an ODS is a number and was never text. A repeated empty cell is also expanded, because an
+ODS writes a run of them as one cell with a count, and dropping the count shifts every figure
+on the row to the left.
+
+**An `.eml` is read** as the message it is, so an instruction in an email meets the same
+Untrusted Content Boundary as an instruction in a letter - and **its attachments are named,
+not extracted**. Extracting one would make a file out of a file, and every guarantee
+downstream rests on a `source_id` that is the hash of something a person put in a folder: a
+figure citing a row inside an attachment that exists only inside another document has a
+locator nobody can open. Naming them is the sentence somebody can act on.
+
+**An `.xlsb` and a `.msg` are refused by name.** Both binary, both with readers in the world,
+and no real example of either on this machine to measure one against - the `.doc` decision
+again, because a half-working parser for a binary format produces plausible *partial*
+content. A `.msg` is also OLE2, so leaving it to `looks_like` would have called it a Word
+document, which is the wrong advice entirely.
+
+One thing had to change shape for that to be sayable. `READ` held only *document* types, so a
+spreadsheet format nobody reads was indistinguishable from one that is read: an `.xlsb` passed
+every check and was then handed to openpyxl, which said it **"cannot be opened as a
+workbook"** - perfectly true, and the wrong thing to do about it, because nothing is wrong
+with the file. `READ` covers both kinds now, and C85's routing check was asking two separate
+membership questions where it needed one equality.
+
+Two of my own near misses, both caught by the harness. The refusal first read `row.mime`,
+which is right in production and `application/octet-stream` for any caller that does not fill
+it in - so a perfectly readable `.ods` was refused; it goes through `mime_of(row.filename)`
+now, which is the same function the fingerprinter used and therefore a stronger way to have
+the same answer than a copied value. And a `.ods` added to the rehearsal's readable set
+without a case behind it was caught by `tests/p157`, which is the test B-126 put there.
+
+## B-129 A function nothing had called since P151, kept alive by a test
+status: fixed (P158)
+2026-10-03. `_split_figures` in `intake/readers/documents.py` turned a line into its label
+and its figures. P151 moved that work into `_tables_from_lines`, inline, and left the
+function behind - so there were two implementations of what a row is, one of them dead.
+
+Found by a revert harness. Breaking the function to repair a misread into a figure left the
+test green, which can only mean the test was not on the path. A grep then showed
+`_split_figures` appearing exactly three times in the repo: its own definition, and twice in
+the P158 test I had just written - so **the test was the only thing keeping it in the tree**,
+which is this repo's named defect with a test propping it up.
+
+The reachability scans do not catch this one: `tests/p71` fails on a *public* function nothing
+calls, and a leading underscore puts this outside it. Worth noting rather than fixing, because
+widening that scan to private functions would fire on every helper a module calls only from
+one place, and a scan whose findings are mostly not findings is the thing B-086 was taken out
+over.
+
+The function is gone, and the P158 test asks `read_document` instead. Doing so measured
+something the helper could not have: a line carrying no figure **breaks the run of lines that
+do**, so the row above a misread is lost as well. One letter costs two rows, which is a
+stronger reason for the check than the one the phase was written on.

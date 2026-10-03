@@ -4584,6 +4584,55 @@
       ],
       "notes": "",
       "closed": "2026-10-03"
+    },
+    {
+      "id": "P158",
+      "title": "A figure that is nearly a figure",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Name a token that is almost a figure, and report it where the figure would have been. Report and never repair: substituting a digit for a letter would be a tool guessing at a client's number, which is the most dangerous thing this repository could contain. A row that vanished becomes a row a person is shown with the reason beside it.",
+      "builds": [],
+      "tasks": [
+        "A deterministic check over the lines a reader produced, naming tokens that are figure-shaped but for one letter from the confusion family",
+        "Calibrate it against the whole filing's text layer first, so it does not fire on prose",
+        "Report it through the reader's own report, so it reaches a person the way a footing does"
+      ],
+      "exit": [
+        "The misread the engine really made is named, with the line it is on, and the printed figure is not",
+        "Over the whole filing's text layer the check reports nothing, so a finding means something",
+        "Nothing is substituted or corrected anywhere on the path"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p158 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "P159",
+      "title": "The formats that reached nothing",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Give each of the four an answer. Two are read - an .ods through the conversion seam that already exists, an .eml as the message it is, naming the attachments it carries because that is what somebody has to be sent instead. Two are refused by name with what to do, which is what being routed is for.",
+      "builds": [],
+      "tasks": [
+        "Convert an .ods to a workbook at the boundary, through the same seam a .csv goes through",
+        "Read an .eml as its message text, and name every attachment it carries in the diagnostic",
+        "Route .xlsb and .msg so each is refused by name with what to do about it",
+        "Keep an .ods out of the zip refusal in looks_like, which catches it on its first bytes"
+      ],
+      "exit": [
+        "An .ods trial balance is read as a workbook, with its blocks at the locators a figure would cite",
+        "An .eml names the attachments it carries, so a person knows what to ask for",
+        "An .xlsb and a .msg are each refused with what they are and what to do, not decoded"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p159 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
     }
   ],
   "checkpoints": [
@@ -5542,6 +5591,17 @@
       "proves": "A document that cannot be opened ends the run with the file named rather than a library exception, a format that is routed and not read still says to save it as something else, and the rehearsal reports any case whose own file no reader ever looked at.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c87 -q"
+      ],
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "C88",
+      "title": "Everything a client can send",
+      "after": "P159",
+      "status": "done",
+      "proves": "Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c88 -q"
       ],
       "closed": "2026-10-03"
     }

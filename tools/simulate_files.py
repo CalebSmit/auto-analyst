@@ -221,6 +221,60 @@ def c_screenshot(f: Path) -> None:
     (f / "Balance sheet screenshot.png").write_bytes(ONE_PIXEL_PNG)
 
 
+def c_ods(f: Path) -> None:
+    """The trial balance as an OpenDocument spreadsheet, which is what a client on
+    LibreOffice sends. Read through the same conversion seam a `.csv` goes through."""
+    from odf.opendocument import OpenDocumentSpreadsheet
+    from odf.table import Table, TableCell, TableRow
+    from odf.text import P
+
+    xlsx(f / "Case Income Statement FY2025.xlsx", {"IS": IS_ROWS})
+    xlsx(f / "Case Balance Sheet FY2025.xlsx", {"BS": BS_ROWS})
+
+    document = OpenDocumentSpreadsheet()
+    table = Table(name="TB")
+    for row in TB_ROWS:
+        line = TableRow()
+        for value in row:
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                cell = TableCell(valuetype="float", value=float(value))
+                # The display text is deliberately a different convention from the value, so
+                # that a reader going by the text rather than by the type is caught here too.
+                cell.addElement(P(text="1.234,5"))
+            else:
+                cell = TableCell(valuetype="string")
+                cell.addElement(P(text="" if value is None else str(value)))
+            line.addElement(cell)
+        table.addElement(line)
+    document.spreadsheet.addElement(table)
+    f.mkdir(parents=True, exist_ok=True)
+    document.save(str(f / "TB_FY25.ods"))
+
+
+def c_email(f: Path) -> None:
+    """Somebody saved the email instead of the attachment, which happens constantly.
+
+    The message is read and the attachment is **named**, because naming it is what somebody
+    can act on - this build reads a file a person saved, not a file inside a file.
+    """
+    import email.message
+
+    normal_set(f)
+    message = email.message.EmailMessage()
+    message["From"] = "controller@client.example"
+    message["To"] = "analyst@chartwell.example"
+    message["Subject"] = "FY2025 trial balance"
+    message["Date"] = "Mon, 5 Jan 2026 09:14:00 -0500"
+    message.set_content("The TB is attached - let me know if you need anything else.")
+    message.add_attachment(
+        b"not a workbook",
+        maintype="application",
+        subtype="vnd.ms-excel",
+        filename="TB_FY25.xlsx",
+    )
+    (f / "Balance sheet note.eml").write_bytes(message.as_bytes())
+
+
 def c_half_sent(f: Path) -> None:
     """A PDF whose upload stopped, which is what a client sending one over a phone produces.
 
@@ -411,6 +465,8 @@ CASES = {
     "pdf": c_pdf,
     "screenshot": c_screenshot,
     "half-sent": c_half_sent,
+    "ods": c_ods,
+    "email": c_email,
     "formulas-only": c_formulas_only,
     "merged-and-chart": c_merged_and_chart,
     "huge-tb": c_huge_tb,
@@ -463,6 +519,8 @@ EVERY_FILE_IS_READABLE = {
     "parens-and-dashes",
     "dates-as-headers",
     "changed-after",
+    "ods",
+    "email",
 }
 
 
@@ -491,6 +549,8 @@ ONE_FILE_IS_UNREADABLE = {
 # looked at, not only that it finished**.
 MUST_BE_READ = {
     "pdf": "TB_FY25.pdf",
+    "ods": "TB_FY25.ods",
+    "email": "Balance sheet note.eml",
     "screenshot": "Balance sheet screenshot.png",
     "csv": "TB.csv",
 }

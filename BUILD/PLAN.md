@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**157 of 157 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**159 of 159 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -252,6 +252,9 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P156** A file that will not open | auto | A truncated PDF, a corrupt .docx and a truncated image each produce INTAKE.UNREADABLE_FILE naming the file, and none of them escapes as a library exception | 2026-10-03 |
 | [x] | **P157** A case that reads the file it is about | auto | The pdf case reads a PDF and the screenshot case reads an image, and both are findings if they do not | 2026-10-03 |
 | [x] | **C87 - What a run says it did with a file** | integration | A document that cannot be opened ends the run with the file named rather than a library exception, a format that is routed and not read still says to save it as something else, and the rehearsal reports any case whose own file no reader ever looked at. | 2026-10-03 |
+| [x] | **P158** A figure that is nearly a figure | auto | The misread the engine really made is named, with the line it is on, and the printed figure is not | 2026-10-03 |
+| [x] | **P159** The formats that reached nothing | auto | An .ods trial balance is read as a workbook, with its blocks at the locators a figure would cite | 2026-10-03 |
+| [x] | **C88 - Everything a client can send** | integration | Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired. | 2026-10-03 |
 
 ## A run that finishes
 

@@ -260,6 +260,19 @@ def read_document(data: bytes, filename: str) -> ParsedDocument:
     # failed to be text; it is a page with no text layer, and there is a port for that.
     if name.endswith(IMAGES):
         return _read_image(data, filename)
+    if name.endswith(".eml"):
+        return _read_email(data, filename)
+    if name.endswith((".msg", ".xlsb")):
+        # Routed so they can be refused by name, which is what routing is for. Both are
+        # binary and both have readers in the world; neither has a real example on this
+        # machine to measure one against, and a half-working parser for a binary format
+        # produces plausible partial content - the failure this repository is most careful
+        # about. `.msg` is also an OLE2 file, so `looks_like` would name it a Word document,
+        # which is the wrong advice entirely.
+        raise NotText(
+            "an Outlook message (.msg)" if name.endswith(".msg")
+            else "an Excel binary workbook (.xlsb)"
+        )
     # Everything left is read as text, and so everything left has to *be* text. This branch
     # used to take anything: an RTF arrived as one line of `{\rtf1\ansi\ansicpg1252...`, and
     # a `.doc` arrived as replacement characters and a dump of the bytes 0 to 255 - both
@@ -538,21 +551,6 @@ def _table_from_laid_out(page: int, index: int, laid_out: LaidOutTable) -> Table
     )
 
 
-def _split_figures(text: str) -> tuple[str, list[float | None]]:
-    """A line's label and every money-shaped figure on it, left to right.
-
-    The label is what comes before the first figure, which is the whole difference from
-    the version that took what came before the last one.
-    """
-    found = list(_FIGURES.finditer(text))
-    if not found:
-        return "", []
-    label = text[: found[0].start()].strip(" .…	")
-    if not label:
-        return "", []
-    return label, [_number(m.group(0)) for m in found]
-
-
 def _headings_for(line: str, width: int) -> tuple[str, ...]:
     """The column headings, when the line above the figures names as many as there are.
 
@@ -689,6 +687,66 @@ def _read_rtf(data: bytes, filename: str) -> ParsedDocument:
     # whole module being excused from type checking.
     words: str = rtf_to_text(markup)  # type: ignore[no-untyped-call]
     return _read_text(words.encode("utf-8"), filename)
+
+
+def _read_email(data: bytes, filename: str) -> ParsedDocument:
+    """A saved email: its message, and the names of what it carries.
+
+    What arrives when somebody saves the email instead of the attachment, which happens
+    constantly - and until now it reached `kind="other"`, so the trial balance inside it was
+    not read and nothing said there was one.
+
+    **The attachments are named and not extracted.** Extracting one would make a file out of
+    a file, and every guarantee downstream is built on a `source_id` that is the hash of
+    something a person put in a folder: a figure citing `p3/t1/r7` of an attachment that
+    exists only inside another document has a locator nobody can open. Naming them is the
+    answer somebody can act on - *this email carries TB_FY25.xlsx, send me that* - and it is
+    the request list's job from there.
+
+    The body is read as the text it is, so an instruction in an email is covered by the same
+    Untrusted Content Boundary as an instruction in a letter.
+    """
+    import email
+    from email import policy
+
+    message = email.message_from_bytes(data, policy=policy.default)
+    lines: list[str] = []
+    for header in ("Date", "From", "To", "Subject"):
+        said = message.get(header)
+        if said:
+            lines.append(f"{header}: {said}")
+
+    attachments: list[str] = []
+    bodies: list[str] = []
+    for part in message.walk():
+        if part.is_multipart():
+            continue
+        name = part.get_filename()
+        if name or part.get_content_disposition() == "attachment":
+            attachments.append(str(name or "an unnamed attachment"))
+            continue
+        if part.get_content_type() == "text/plain":
+            try:
+                bodies.append(str(part.get_content()))
+            except (LookupError, UnicodeDecodeError):  # pragma: no cover - a broken charset
+                continue
+
+    for body in bodies:
+        lines.extend(line.strip() for line in body.splitlines() if line.strip())
+    if attachments:
+        # On the page rather than only in a payload, because this is the sentence a person
+        # acts on, and it is the whole reason an email is worth reading at all.
+        lines.append(
+            "This email carries "
+            + ", ".join(attachments)
+            + " - the figures are in there, and this build reads a file a person saves, "
+            "not a file inside a file. Save the attachment and send that."
+        )
+
+    doc = ParsedDocument(filename=filename, kind="email", pages=[Page(number=1)])
+    doc.pages[0].lines.extend(Line(line) for line in lines)
+    doc.pages[0].tables.extend(_tables_from_lines(1, doc.pages[0].lines))
+    return doc
 
 
 def _decode_text(data: bytes) -> tuple[str, str]:

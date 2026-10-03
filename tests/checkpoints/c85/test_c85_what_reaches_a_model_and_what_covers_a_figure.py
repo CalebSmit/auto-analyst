@@ -200,22 +200,50 @@ def test_every_format_the_table_routes_is_either_read_or_refused() -> None:
         kind = kind_of(mime)
         assert kind in ("spreadsheet", "document"), f"{extension} routes to {kind!r}"
         if kind == "spreadsheet":
-            # Read by openpyxl directly, or converted to something openpyxl reads.
-            assert converts(f"x{extension}") or mime in SPREADSHEET
+            # Two claims, and conflating them is what let an `.xlsb` through. There has to be
+            # a way to read it - openpyxl directly, or a converter - and `READ` has to agree
+            # with whether there is. Asserted as an equality rather than as two separate
+            # membership checks, because `mime in SPREADSHEET` was satisfied by the routing
+            # alone, so a format with no reader at all passed and was then handed to openpyxl
+            # to be told it "cannot be opened as a workbook".
+            openpyxl_opens = mime in {
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/vnd.ms-excel.sheet.macroEnabled.12",
+            }
+            assert (mime in READ) == (
+                openpyxl_opens or converts(f"x{extension}")
+            ), f"{extension}: READ and the readers disagree"
         else:
             assert mime in DOCUMENT
 
 
-def test_a_document_format_that_is_not_read_is_refused_rather_than_decoded() -> None:
-    """The one in the table that is routed and not read. It has to be refused by the reader,
-    not quietly decoded, or routing it is how the garbage gets in."""
-    not_read = {mime for mime in DOCUMENT if mime not in READ}
-    assert not_read == {"application/msword"}, not_read
-    assert mime_of("letter.doc") in not_read
+def test_every_format_routed_and_not_read_is_refused_rather_than_decoded() -> None:
+    """The ones in the table that are routed and not read. Each has to be refused by the
+    reader, not quietly decoded, or routing it is how the garbage gets in.
 
-    ole2 = bytes.fromhex("d0cf11e0a1b11ae1") + b"\x00" * 64
-    with pytest.raises(NotText):
-        read_document(ole2, "letter.doc")
+    Three of them now, and named rather than counted so that a fourth arriving without a
+    refusal fails here. All three are binary formats with readers somewhere in the world and
+    no real example on this machine to measure one against: a half-working parser produces
+    plausible *partial* content, which is the failure this repository is most careful about.
+    """
+    not_read = {mime for mime in DOCUMENT | SPREADSHEET if mime not in READ}
+    assert not_read == {
+        "application/msword",
+        "application/vnd.ms-outlook",
+        "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+    }, not_read
+
+    for name in ("letter.doc", "FY2025.msg", "TB 2025.xlsb"):
+        assert mime_of(name) in not_read, name
+
+    # And each is refused by the reader rather than decoded. The `.xlsb` is routed as a
+    # spreadsheet, so its refusal is the boundary's rather than `read_document`'s - that one
+    # is said in `tests/p159`, which is where that branch lives.
+    ole2 = bytes.fromhex("d0cf11e0a1b11ae1") + bytes(64)
+    for name in ("letter.doc", "FY2025.msg"):
+        with pytest.raises(NotText) as refused:
+            read_document(ole2, name)
+        assert refused.value.looks_like, name
 
 
 def test_the_readers_agree_about_what_a_figure_is(filing) -> None:

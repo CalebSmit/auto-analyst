@@ -26,9 +26,11 @@ from pathlib import PurePosixPath
 from typing import Any
 
 from guards.untrusted import UntrustedBoundary, Wrapped
+from intake.fingerprint import READ, mime_of
 from intake.readers.classify import Classification, Evidence, audited_evidence, classify
 from intake.readers.documents import NotText, ParsedDocument, read_document
 from intake.readers.footing import FootingReport, TwoSides, footings_in, two_sides
+from intake.readers.misread import Misread, misreads_in
 from intake.readers.periods import PeriodDetection, detect_periods
 from intake.readers.tabular import Conversion, as_workbook, converts
 from intake.readers.workbook import (
@@ -89,6 +91,17 @@ class ReadReport:
     shown to a person unless a total it feeds was re-added from its rows, and until P99
     nothing set that. Kept per block because a block is a column of one statement, and a
     statement footing in 2023 says nothing about the same statement in 2022."""
+
+    misreads: tuple[Misread, ...] = ()
+    """Tokens that are shaped like a figure but for one letter, and the lines they sit on.
+
+    The other half of what a footing catches. A footing finds a figure read *wrongly*,
+    because the total stops adding up; this finds a figure read as something that is not a
+    number at all, which produces no figure and no row - the line is dropped, label and all,
+    and the only symptom is a total out by an amount nobody can account for. That amount is
+    the row that went missing.
+
+    Empty for a workbook, whose cells have types."""
 
     @property
     def covered_rows(self) -> int:
@@ -164,6 +177,26 @@ def read_source(
     whose columns are cells and were never in doubt."""
 
     if row.kind == "spreadsheet":
+        if mime_of(row.filename) not in READ:
+            # Said here rather than left to openpyxl, which would report that an `.xlsb`
+            # "cannot be opened as a workbook" - perfectly true, and the wrong thing to do
+            # about it, because nothing is wrong with the file.
+            #
+            # From the filename through the same function the fingerprinter used, rather
+            # than from `row.mime`. The manifest's answer and the reader's have to be the
+            # same answer, and one function is a stronger way to have that than one copied
+            # value: a row whose mime was never filled in - which is every row some callers
+            # build - would otherwise see a perfectly readable `.ods` refused.
+            raise DiagnosticError(
+                diagnose(
+                    FORMAT_NOT_READ,
+                    f"{row.filename} is a format this build does not read "
+                    f"({row.mime}). Open it and save it as an .xlsx or a CSV, and send "
+                    f"that.",
+                    locator=row.filename,
+                    found=f"{len(data)} bytes",
+                )
+            )
         try:
             # A CSV and an .xls are spreadsheets this build accepts and openpyxl cannot
             # open. Converted here, once, so everything below reads a workbook - including
@@ -247,6 +280,12 @@ def read_source(
         headers = parsed.headers()
         first_rows = parsed.first_rows()
         report.hidden_text = parsed.hidden_text()
+        # Over every line the reader produced, scanned or not. On a scan a near-miss is a
+        # misread; in a text layer the document really does print it, which is a worse fact
+        # about the file rather than a reason not to say so.
+        report.misreads = misreads_in(
+            [line for page in parsed.pages for line in page.lines]
+        )
         text_for_model.append(parsed.as_text())
         # One statement is a page read down one column, across whatever blocks the reader
         # split it into - it starts a new one at every heading, and a balance sheet has
@@ -364,6 +403,19 @@ def read_source(
                     for where, sides in report.balances
                     if not sides.balances
                 )
+                # A token that is shaped like a figure but for one letter, which is a row
+                # that silently is not there: the reader drops the line, label and all, and
+                # the only other symptom is a total out by an amount nobody can account for.
+                # Named rather than counted, like the totals above, and never corrected -
+                # what it would read as is offered as a question, not as a value.
+                + (
+                    "; not a number: "
+                    + "; ".join(m.as_line() for m in report.misreads[:3])
+                    + (f" (and {len(report.misreads) - 3} more)"
+                       if len(report.misreads) > 3 else "")
+                    if report.misreads
+                    else ""
+                )
                 + (
                     f"; read as {report.conversion.encoding}"
                     f" split on {report.conversion.delimiter!r}"
@@ -399,6 +451,18 @@ def read_source(
                 "period_ends": list(report.periods.period_ends),
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
+                # The token and the line, so a person can find the row; `reads_as` is a
+                # string here as it is everywhere, so nothing reading this payload can
+                # mistake it for the figure.
+                "misreads": [
+                    {
+                        "token": m.token,
+                        "reads_as": m.reads_as,
+                        "line": m.line[:200],
+                        "ocr": m.ocr,
+                    }
+                    for m in report.misreads
+                ],
                 "balances": [
                     {
                         "statement": where,

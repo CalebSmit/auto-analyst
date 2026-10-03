@@ -42,6 +42,14 @@ dependencies = [
     # font table, the stylesheet and the generator behind, and keeps the dollar sign, the
     # accent and the em dash.
     "striprtf>=0.0.33",
+    # An OpenDocument spreadsheet is what a client on LibreOffice sends instead of an
+    # .xlsx, and it reached kind="other" - routed nowhere, read by nothing. Pure Python,
+    # no system dependency, and it brings defusedxml with it, which is the right thing to
+    # gain on a path that opens a client file: an ODS is a zip of XML, and XML from
+    # outside is where entity expansion lives. Read for the cell's declared type rather
+    # than its display text, because LibreOffice writes the display in the locale the
+    # file was saved in and both readings of `1.234,5` are plausible figures.
+    "odfpy>=1.4.1",
 ]
 
 [dependency-groups]
