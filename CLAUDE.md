@@ -247,6 +247,32 @@ answer differently on a train and a test that needed it would fail for a reason 
 about the code. What it cannot see is written in its own docstring, because a measurement
 whose limits are not recorded gets quoted as though it had none.
 
+**Which column is which year.** The reader was throwing the answer away. A statement prints
+`December 31, 2025` over one column and `2024` over the other, and `_headings` in
+[`intake/readers/layout.py`](intake/readers/layout.py) places those by where they sit - but it
+was handed *the last band above the figures*, and on a real statement that is always `ASSETS`
+or `Current assets:` or `Cash flows from investing activities:`, never the dates. By the
+second block of a balance sheet the header is five bands up. So 70 of 119 tables over two
+filings came out unnamed, the period detector reported `0 of 5 tables name their columns`, and
+**every comparative statement escalated to a person on every filing** for want of a band two
+bands further up. The years are read from the nearest band above that dates *every* column,
+and a bare year is required because the wider rule reads a date out of prose - `at December
+31, 2025, and 2024.` crosses three columns, and no share-of-words threshold separates that
+sentence from a real header. Nothing that named its columns changed; the figures did not move.
+
+**And a table that lost a column must not settle.** `_columns` establishes a column only from
+money-shaped figures, so a column of small or nil amounts falls one short of `COLUMN_NEEDS` and
+is never built - and every figure to its right then sits at a column index belonging to another
+year. The investing block of 3D's cash flow statement holds `(16,121)`, a dash, `96` and
+`(3,000)` in its 2024 column, and `96` is four figures short of needing a comma. So the column
+is dropped, three figures are lost, and 2023's land where 2024's belong - which the filer says
+in its own words, because `ProceedsFromDivestitureOfBusinesses` is **96** over 2024 and **194**
+over 2023 and the reader put the 194 at column two. That is B-030 in a cash flow statement.
+Non-consecutive years are what catch it: a two-column table dated 2025 and 2023 under a header
+reading `2025 2024 2023` says a column between them was never built. Two tables over 232 pages.
+It is **reported, not repaired** - rebuilding the column is a guess, and saying its indices
+cannot be trusted is a fact.
+
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not
 tell them from dead code:

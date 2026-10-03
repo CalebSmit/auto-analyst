@@ -175,15 +175,29 @@ def test_a_column_nobody_named_is_escalated_rather_than_guessed(filing) -> None:
 
 
 def test_the_escalation_fires_where_the_columns_are_unnamed(filing) -> None:
-    """Narrowed from what it was. It used to fire on every comparative page, which is
-    every audited page, so nothing ever reached a model; now it asks whether the columns
-    can be told apart."""
+    """Narrowed three times now. It used to fire on every comparative page, which is every
+    audited page, so nothing ever reached a model; P85 made it ask whether the columns can
+    be told apart; and P163 reads the years from where a statement actually prints them -
+    several bands above the figures, behind `ASSETS` and `Current assets:` - so the
+    statements themselves no longer stop on it.
+
+    Page 34 still does, and should: its columns are headed over six lines ending `2024 $
+    %`, and the only band above that puts a word at every column is a sentence - `at
+    December 31, 2025, and 2024.` - which the year read refuses. So this is the page the
+    escalation is for now, and the statements are the pages it is not.
+    """
     for number in COMPARATIVE[:2]:
         page = next(p for p in filing.pages if p.number == number)
         found = detect_periods(page.text, tables=page.tables)
-        columns = [a for a in found.ambiguous if a.startswith("columns:")]
-        assert columns, f"page {number} has unnamed columns and did not escalate"
-        assert "no header row names them" in columns[0]
+        assert all(all(t.headings) for t in page.tables), f"page {number} names its columns"
+        assert not [a for a in found.ambiguous if a.startswith("columns:")], found.ambiguous
+
+    page = next(p for p in filing.pages if p.number == 34)
+    found = detect_periods(page.text, tables=page.tables)
+    columns = [a for a in found.ambiguous if a.startswith("columns:")]
+    assert columns, "page 34 has unnamed columns and did not escalate"
+    assert "no header row names them" in columns[0]
+    assert "p34/t" in columns[0]
 
 
 def test_the_escalation_says_which_table_to_look_at(filing) -> None:

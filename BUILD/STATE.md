@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **162 of 162 phases closed**
-- Last green checkpoint: **C90**
+- **163 of 163 phases closed**
+- Last green checkpoint: **C91**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -181,4 +181,5 @@
 - **P160** The cash a statement rolls forward (2026-10-03)
 - **P161** Checked against the filer's own numbers (2026-10-03)
 - **P162** A figure not in the statement's unit (2026-10-03)
+- **P163** Which column is which year (2026-10-03)
 

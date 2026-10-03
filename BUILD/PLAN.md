@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**162 of 162 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**163 of 163 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -260,6 +260,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P161** Checked against the filer's own numbers | auto | The tool reports, for the filing already in fixtures, that every figure matches a fact at its own column's date | 2026-10-03 |
 | [x] | **P162** A figure not in the statement's unit | auto | A share count and a per-share amount keep their own value, and a dollar figure is unchanged | 2026-10-03 |
 | [x] | **C90 - Accuracy, measured and acted on** | integration | Every figure the readers extract off three real filings is a figure the filer reported at that column's own date, no row that was currency stopped being currency, and a row whose label declares another unit reaches a figure at its own scale rather than the statement's. | 2026-10-03 |
+| [x] | **P163** Which column is which year | auto | A comparative statement in a PDF names its columns, and the period detector settles on it instead of reporting that no header row names them | 2026-10-03 |
+| [x] | **C91 - The page and the declaration agree** | integration | On every statement the accuracy harness checks, the year the page prints above each column is the year a person declared that column to be, the detector settles on those dates without being told, the 194 figures the harness measured have not moved, and the table that lost a column is on a page the harness never covered. | 2026-10-03 |
 
 ## A run that finishes
 

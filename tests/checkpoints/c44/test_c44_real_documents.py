@@ -76,13 +76,14 @@ def test_the_real_filing_is_read_as_columns() -> None:
     ]
     assert values == [95635.0, 171324.0], values
 
-    # This page's header is split over several lines, so its columns are unnamed and the
-    # run still stops - correctly, and now saying which tables it stopped on.
-    escalated = [
-        a for a in detect_periods(page.text, tables=page.tables).ambiguous
-        if a.startswith("columns:")
-    ]
-    assert escalated and "p56/t" in escalated[0]
+    # This page's header is split over several lines, and until P163 that left its columns
+    # unnamed and stopped the run on every block of it. The years `2025 2024` are three
+    # bands above the first figure row, behind `ASSETS` and `Current assets:`; they are read
+    # from there now, so every block says which column is which year and the run goes on.
+    assert all(t.headings == ("2025", "2024") for t in page.tables)
+    found = detect_periods(page.text, tables=page.tables)
+    assert not [a for a in found.ambiguous if a.startswith("columns:")], found.ambiguous
+    assert found.settled is True
 
 
 def test_the_widened_rule_still_forbids_what_it_always_forbade() -> None:

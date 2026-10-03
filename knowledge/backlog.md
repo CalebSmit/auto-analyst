@@ -2756,3 +2756,487 @@ readers' *rows*, which hold the cell value as the file wrote it, and the fix is 
 so breaking the **call site** in the figure assembly left all of them green - a unit rule with
 tests on the rule and none on the wire, which is this repository's most repeated defect wearing
 a new hat.
+
+## B-133 The years printed above a statement's columns were thrown away
+status: fixed (P163)
+2026-10-03. `layout._tables` kept `heading_band = last_plain_band` - the most recent band
+with no figure in it - and handed that to `_headings` when a run of figure rows began. On a
+real statement the date header is **never** the last plain band: `ASSETS`,
+`Current assets:`, `Non-current liabilities:` and `Cash flows from investing activities:`
+always sit between the header and the first figure row, and overwrote it. By the second
+block of a balance sheet the header is five bands up.
+
+`_headings` was already positional and already places the dates correctly when handed the
+right band - its own docstring predicted that the `(in thousands)` prefix would be three to
+four hundred points away and lose, and it is. **And the consumer was already wired:**
+`periods.py` collects the tables that carry more than one column and name none of them, and
+that cue is why `settled` was False on *every* real statement - `0 of 3 tables name their
+columns` on 3D's balance sheet, `0 of 5` on ResMed's. So a comparative statement escalated
+to a person on every filing, forever, for want of a band two bands further up.
+
+The detector was right about everything else, which is what made this worth finding: scale
+1,000, currency USD, fiscal year end month 12 and **6** (ResMed's June year end), and both
+period ends exactly. It reports those ends **sorted ascending**, while a statement prints the
+current year first - so anything that mapped them positionally would date every column a year
+wrong.
+
+**Measured over 232 pages, 119 multi-column tables: 48 named today, 118 under the new read -
+70 gained, 0 changed, 0 lost.** Per filing: 3D 72 tables and 815 rows unchanged with named
+going 27 -> 45; ResMed 70 tables, 960 rows, 59 named. The figures do not move - this writes
+column headings and touches neither the columns nor the rows - and
+`tools/check_against_filer.py` still reports the same 194 right and 0 out of the wrong column.
+
+**The wider rule was refused on measurement, not on taste.** "The nearest band above whose
+words could name the columns" gains the same 70 and four of them come out of a sentence:
+`The following table sets forth the Company's operating working capital at December 31, 2025,
+and 2024.` crosses all three columns and offers `December`, `2025,` and `2024.`. Nothing
+separates that from a header either - over all 118 candidate bands the share of a band's
+words sitting at a column is **0.38** for that sentence and **0.50** for the legitimate
+header `(in thousands) 2025 2024`, so no cut keeps the one and refuses the other. A threshold
+that does not separate is one this repo has removed twice already (B-086, and P151's
+`COLUMN_SHARE`). A bare year is not prose, and the punctuation on `2025,` is the whole of the
+distinction.
+
+## B-134 A column the page prints and the table never built, so figures land a year out
+status: fixed (P163) - detected and reported; the column is still not read
+2026-10-03. `_columns` establishes a column only from **money-shaped** figures
+(`_ESTABLISHES`: comma-grouped, or a parenthesised decimal), and keeps a right-edge cluster
+only when at least `COLUMN_NEEDS = 3` of them are in it. A column whose figures are mostly
+small or nil falls short, is never built, and **every figure to its right then sits at a
+column index belonging to another year**. That is B-030, this repository's worst extraction
+defect, reached by a new route.
+
+**3D Systems page 59, the investing block.** Its 2024 column holds `(16,121)`, a dash, `96`
+and `(3,000)`. `96` is four figures short of needing a comma and a dash is nil, so two
+figures establish the column where three are needed. The table is built with two columns
+instead of three, three figures are lost, and 2023's land where 2024's belong.
+
+**The filer says so, in its own words.** `ProceedsFromDivestitureOfBusinesses` is **96** over
+2024 and **194** over 2023. The page prints `Proceeds from sale of assets and businesses, net
+of cash sold 122,681 96 194`; the reader dropped the 96 and put the 194 at column index 2.
+The same concept, in the same table, read off by a year - with both years in the feed to
+prove it. Three more land the same way: `-27,183` is
+`PaymentsToAcquirePropertyPlantAndEquipment` over 2023, `180,925` is
+`ProceedsFromSaleAndMaturityOfAvailableForSaleSecurities`, `-29,152` is
+`PaymentsToAcquireBusinessesNetOfCashAcquired`.
+
+Found twice over, independently and from opposite ends: by checking the figures against the
+filer's XBRL at each column's date, and by noticing that the table's dated years are **not
+consecutive**. The second is what became the guard, because it needs no XBRL: a two-column
+table dated 2025 and 2023 under a header reading `2025 2024 2023` says a column between them
+was never built. Two tables over 232 pages - p59/t4 and p104/t1 - which is the honest
+frequency and exactly the frequency that matters, because rare and silent is the combination
+nothing catches.
+
+**Why the balance sheets never exposed it:** every table on those pages carries the
+statement's full column count. It took a cash flow statement, where a section is nearly all
+nil and small amounts.
+
+**And this is why naming the columns is dangerous alone.** Naming them is what lets the rest
+of the page settle, so a table that dropped a column would now settle **on a wrong date**.
+The same read does both, and the gap keeps the page escalating.
+
+**Reported, not repaired.** Rebuilding the missing column is a guess; saying its indices
+cannot be trusted is a fact. Reading the column is left open: the honest fix is to let a
+cluster beside an established column, at the statement's own column spacing, count the things
+that may *fill* a column rather than only the things that may establish one - and that needs
+its own calibration, because `_ESTABLISHES` and `_FILLS` are deliberately different and the
+reason is written where they are defined.
+
+## B-135 The restater reads a figure's scale and ignores its unit
+status: proposed - **live today**, and it is B-132 one stage later
+2026-10-03. P162 stopped the statement's dollar scale being applied to a share count, by
+giving such a figure `unit: "shares"` and `scale: 1`. `harness/restate.py` then divides it
+anyway. The word `unit` does not appear in that file: `restated(figures, to_scale)` reads
+`scale` alone, and `workers/driver.py` calls it over every figure bound to the model.
+
+    135,361,000 shares at scale 1, into a template declaring thousands  ->  135,361
+
+And the figure comes back as `{**figure, "value": after, "scale": to_scale}`, so it now says
+`unit: shares` and `scale: 1000` together - a share count claiming to be in thousands.
+
+**The refusal for this already exists and the division is what stops it firing.**
+`deliver/builder.py:247` refuses a figure whose scale is not the template's, with the right
+sentence - *"restating is arithmetic and does not happen in the writer"*. A shares figure
+left at its own scale would hit that refusal and reach a person. Moving it silently is what
+makes the guard unreachable.
+
+The general shape, which matters more than the instance: **`unit` is read by two lines in
+the whole repository and both ask only "is it currency?"** (`deliver/builder.py`,
+`tools/normalize.py`), while six lines across three modules multiply a figure by its scale -
+`deliver/workpaper.py:178`, `harness/procedures/ebitda_normalization.py:246`, `:366`, `:428`
+and `harness/restate.py:89-90`. So the fix is not a patch to the restater. It is **one place
+that turns a figure into a number, and it asks the unit** - the same argument as "no second
+answer", applied to arithmetic. Note also that `units.py:10` and B-132 say "three places"
+and name three line numbers; there are six lines, which is the count that matters when the
+fix has to reach all of them.
+
+## B-136 Nothing asserts a sign, so a wholly flipped column foots perfectly
+status: proposed - the highest-value missing check found this session
+2026-10-03. All three tie-outs were run against correct input and against the same input
+wholly negated, and **all three pass both ways**:
+
+* `footings_in`: rows -12,000 and -3,000 under a total of -15,000 reports *"all 1 total(s)
+  re-add"*; so does +12,000, +3,000, +15,000.
+* `two_sides`: -521,728 against -521,728 reports *"the two sides agree at -521,728.00"*.
+* `cash_roll_forward`: 100,000 / -4,365 / 95,635 flipped rolls forward to -95,635.00.
+
+**A cash flow investing or financing section is all-negative**, so a column read with every
+sign inverted foots exactly. And arithmetic cover is precisely what stops a person looking:
+`review/router.py:172` sends a figure to review when `not item.arithmetic_cover`. So the
+acceptance rule the analyst gave - *a figure is proved by arithmetic, or it is seen* - is
+satisfied here by a proof that proves nothing, and the figure is neither.
+
+What would catch it is a statement about the table rather than about its arithmetic:
+`Total assets` is not negative, and a row labelled `Net cash **used** in investing
+activities` is not positive. Nothing anywhere looks. Related: `tools/statement_checks.py:161`
+takes `abs(amount)` for a CONTRA line and, unlike the MINUS and PLUS branches, does not
+increment `negative_fixed` - so a contra account read with the wrong sign ties perfectly and
+is not mentioned in `_sign_note`.
+
+## B-137 A footing certifies a total across two unrelated statements, and certifies a row with no label
+status: proposed - a false proof, which is worse than a missing one
+2026-10-03. Two ways `footings_in` grants arithmetic cover to figures it has not proved.
+Both matter for the same reason as B-136: cover is what stops a person looking.
+
+**It walks through a blank row.** `normalize_workbook` makes one block per *numeric column*,
+so an income statement and a balance sheet stacked on one sheet with a blank row between
+them become one block, and `footings_in` skips rows whose value is `None` and carries
+`standing` straight across. Measured: `Total assets 8,000` was reported as re-adding *"the
+subtotals and the lines above it"* from the **income statement's** `Total expenses 3,000`
+plus `Cash 5,000`. `covered_rows` 4 of 5, `did_not_foot` empty. Nothing on the balance sheet
+adds to 8,000. `tools/formula_audit.py` already has a `total_crosses_a_blank_row` check, so
+the reviewer tool knows a blank row ends a block and the reader does not.
+
+**It certifies a row that has no label.** Merging `A2:A4` over the label column gives rows
+`{label: "", value: 60000}` and `{label: "", value: 18400}`; `Total officer comp 318,400`
+re-adds over all three and nothing is flagged. Two figures bound for an input workbook with
+no idea which line they are, holding a certificate. `ws.merged_cells` is available and
+openpyxl is already read in non-read-only mode; an empty label on a row carrying a value is
+also a one-line refusal.
+
+## B-138 A spreadsheet with two decimal conventions reads a figure a thousand times out, silently
+status: proposed
+2026-10-03. `intake/readers/tabular.py::_convention` takes the **first** regex class that
+matches anywhere in the file and applies it to every cell, including the cells that
+contradict it. The `ambiguous` reporting path is behind `if not decimal:`, so a file that
+settles on a convention reports nothing at all.
+
+    1.234,56 then 402,000   ->  402.0        (should be 402,000)
+    1,234.56 then 1.234,56  ->  1.23456      (should be 1,234.56)
+
+Both silent: `ambiguous` empty, no finding, and no total over them to break. The module
+already has the sentence for this - *"the file is telling two stories"* - and applies it only
+to the grouped-only branch. If `_US` and `_EU` both match anywhere, the file decides nothing;
+and a cell that does not parse under the settled convention belongs in `ambiguous` rather
+than being reinterpreted. Same family, a different reader: `documents._number("1.234,56")`
+returns **1.23456** and has none of this machinery, so a European figure in a `.txt` or a
+Word table is wrong by a thousand with nothing to say so.
+
+## B-139 The reachability walk lets dead code vouch, and one allowlist reason is false
+status: proposed - the scan, not the allowlist
+2026-10-03. `tests/p82`'s `vouched_for()` applies its fixpoint **only to package
+`__init__.py` files**. Every import made by any other module counts as evidence that the
+imported module is reached, whether or not the importing module is itself reachable. The
+docstring explains at length why an `__init__` has to earn the right to vouch - `report/`, a
+whole package, passed that way once - and then exempts every other module from the same test.
+
+Running p82's own collectors with the fixpoint over *every* module reports **18** unreachable
+modules where p82 reports 11. The seven it hides, each imported only by dead code:
+`governance.adapt`, `governance.drop`, `governance.registry`, `governance.sandbox`,
+`governance.shadow`, `orchestrate.manifest`, `privacy.unmask`.
+
+The worst is `governance/registry.py`, whose own docstring opens *"The Skill Registry: the
+only way a skill becomes live, and the single writer to the tree... This is the one edge from
+governance back into the live system."* Nothing can reach it, so no candidate skill can be
+published. And the allowlist's stated reason for `governance.chain` is **false**: it says
+production reaches the chain's steps by hand, and five of the nine - adapt, drop, registry,
+sandbox, shadow - are invoked by nothing. `privacy/unmask.py` is the inversion these scans
+exist to prevent: B-043 already records in words that it is unreached, and the scan does not
+see it.
+
+**Two excuses rest on a premise the build invalidated at P101.** `privacy.verify` and
+`deliver.workpaper` are both excused on *"no run has reached release at all"*; all four
+recipes have a `release` step and `valuation-input-prep` ends at one. B-077 records this and
+carries no `status:` line; the same stale sentence is also in `workers/driver.py`'s docstring
+and in a comment beside it. p82's decay tests check the module, the item id and the item's
+status - **not whether the reason is still true**, which is the thing that went stale.
+
+Also unscanned by either walk, and found by hand: a method of a live class that nothing calls
+(`AdminConsole.edit_watch`, whose only reference in the repo is its own `def`, while
+`add_watch` refuses with *"watch exists; edit it instead"*), a dataclass field written and
+never read (`Line.confidence`, whose docstring claims *"it reaches a person through the review
+surface"*; `RegisteredTemplate.binding_layer`; `LLMResponse.request_id`, fetched off the SDK
+response and dropped), and an HTTP route no page reaches - ten of those, including
+`POST /api/admin/report/start`, which is the first half of a shipped feature and has no button.
+
+## B-140 A scan that read nothing is not reported as a scan
+status: proposed
+2026-10-03. `ParsedDocument.scanned_pages()` exists, is documented as the honest answer to
+"was there a text layer", and is called by **nothing but `tests/p17`**. `ReadReport` has no
+field for it and the `intake.read` event payload does not carry it. So with no OCR adapter
+`Trial balance.png` records `0 block(s) written; trial_balance (0.83)` - confident, no review
+item, and indistinguishable from a readable file that happened to hold no figures. On a
+machine doing real work that is the default state of most inbound PDFs, and CLAUDE.md's rule
+is that a page yielding nothing is reported rather than filled in.
+
+Same class, same path: `Line.ocr` is wired through to the misreads payload, and
+`ops.source_parse.Row` has **no `ocr` field** - so a figure OCR'd off a scan is stored
+identically to one lifted from a text layer, which is exactly what the acceptance rule turns
+on. And there is no outcome code for *readable, and yielded no figures*: a source that
+produced zero blocks is checked nowhere downstream.
+
+## B-141 A non-negotiable with no test
+status: proposed
+2026-10-03. CLAUDE.md lists eleven non-negotiables and says *"each one is an invariant with a
+test behind it."* Ten have one. **"No Excel, COM, VBA or Power Query anywhere" has none.**
+Nothing in `tests/` looks for `win32com`, `xlwings`, `comtypes`, `pythoncom`,
+`Excel.Application`, `keep_vba`, VBA or Power Query, in any file type; `tests/p28` covers
+cloud SDKs, not Excel automation; none of the 25 architecture invariants is about it. The
+rule exists as one sentence in one docstring, `tools/write_template.py:14`.
+
+This is the shape P120 was written to eliminate - *"guards that were checked by looking for a
+word"* - except there is not even a word being looked for, which is why P120's audit did not
+find it. (The list also has eleven items and CLAUDE.md calls it ten.)
+
+## B-142 Counts and commands in the documentation that no longer hold
+status: proposed
+2026-10-03. Found by checking every command line, number and named path in the documentation
+against the code. The ones a reader would act on:
+
+* **`docs/USING.md:369`** - the sentence that teaches the `python -m uv run` rule now states
+  the opposite: *"A bare `python -m uv run python tools/serve.py` works only in a shell where
+  the virtualenv is already activated"*. It was written correctly and a later commit pasted
+  the prefix onto every `python tools/` in the file, including the negative example.
+  `tests/p58` cannot see it, because p58 enforces exactly the thing that broke it.
+* **"Eight checks in three severities"** - `tools/formula_audit.CHECKS` has **9**
+  (`total_crosses_a_blank_row` was there from the start). Said in three places: `CLAUDE.md:160`,
+  `tools/formula_audit.py:10`, `knowledge/backlog.md:1209`. `tests/p125` asserts every
+  finding's check is *in* `CHECKS` and never how many there are.
+* **"Fourteen checks over the live configuration"** in `docs/USING.md` - `admin.preflight.CHECKS`
+  has 15. This is P148's defect surviving in the guide: `tests/p148` derives the *page's*
+  sentence from `len(CHECKS)` and reads `admin/page.py`, never `docs/USING.md`.
+* **"two of the skills the shipped recipes name have no mechanical half"** - there are five
+  (`ddr-tagging`, `qc-tieout`, `gpc-scrub`, `cost-of-capital`, `dcf-build`). In `README.md`
+  and `docs/USING.md`.
+* **Four bare commands** that fail outside an activated shell, on pages no test covers:
+  `README.md:13-14`, `HANDOFF.md:111`, `knowledge/README.md:8,11`. README.md is the first
+  file a clone opens and both of its "Start here" lines are wrong.
+* **`HANDOFF.md` section 2a** - *"Nothing executes yet"* and *"Neither surface has
+  authentication"*. `harness/runner.py:74` implements the step runner and P34, P35 and P36
+  all closed on 2026-09-07/18. `serve.py --check` prints the opposite.
+* **`MORNING.md`** - says *"62 of 62 phases closed, every checkpoint green through C35"* and
+  is self-marked for deletion once read. It is now a trap for a session that reads it as
+  current state.
+* **`python -m uv run python -m evals`** is documented bare and exits 2: it needs a skill
+  name, `--all` or `--coverage`. `tests/p58`'s regex only matches `tools/*.py`, so `-m evals`
+  is invisible to it.
+* **Nothing holds CLAUDE.md's own command lines to parsing.** `tests/p128` holds every slash
+  command to a subcommand that parses and a flag something takes; `tests/p58` holds CLAUDE.md
+  only to the prefix and to `--help` exiting cleanly. The standard exists and is not applied
+  to the file an agent reads first. (Checked by hand: every flag in CLAUDE.md parses today.)
+
+Two pieces of prose overstate the test they name. `tests/p74` is described as walking the
+imports to prove nothing on the OCR path can reach a model; it reads the **top-level imports
+of `ports/ocr/*.py` only**, is not transitive, and its sibling still hardcodes
+`("none.py", "tesseract.py")` without `rapidocr.py` - the real coverage is `tests/p75` and
+`tests/p120`, which glob the directory. And `tests/p73`'s `SHIPPED` is hand-written and omits
+`orchestrate`, `report` and `tools`, which is the staleness its own sibling's docstring
+forbids in those words. No defect hides in the three today; the list is the problem.
+
+## B-143 A figure read off a page skips tie-out, and two declared operations have no producer
+status: proposed
+2026-10-03. From an audit of all 34 registered schemas against 114,184 real figure envelopes
+out of `runs/`.
+
+* **`engagement_profile.checkpoint_policy.review_floors` is consumed and cannot be produced.**
+  `review/policy.py` refuses a policy that lowers a floor and returns the tighter of skill and
+  policy, on every routed item. Nothing writes the field: the profile skeleton in
+  `admin/console.py` does not contain it and the page renders the keys the profile has. So
+  *"an admin may raise a review requirement, never lower one"* is half-built - the refusal
+  exists, the raise is unreachable - and the console's own help text promises it.
+* **`figure.derivation.op = "annualize"` is dispatched live by `guards/tieout.py` and written
+  by nothing**, and its arithmetic is wrong: `sum(values) * 12 / len(values)` over operands
+  flattened across locators, so the divisor is the row count rather than the period count.
+  Two half-year rows stated 1200 recompute to 7200. Its one test uses three rows of 100
+  against 1200 and so passes. `restate_scale` is the same shape and contradicts
+  `harness/restate.py`, which restates the value and leaves the rows alone; its only test
+  asserts the key is in the table.
+* **`guards/tieout.py` has `if not derivation: continue  # read off the page`** - a fail-open
+  branch for a shape `figure.schema.json` forbids, which does not even increment the checked
+  count. Today `tools/normalize.py` manufactures a one-row `sum` to satisfy the contract. The
+  day `derivation` becomes optional, a figure read straight off a page skips tie-out silently.
+* **`workpaper@1.0.0` is validated only by tests.** Both `check` call sites are test files;
+  `deliver/workpaper.py` writes the contract id as a label. A body carrying
+  `concluded_value: 4200000` and five missing required fields draws seven violations from the
+  registry and is refused by nothing on the release path. It is the one artifact that leaves
+  the system unrefused, and `additionalProperties: false` is set on it and never runs.
+* **The interim period is one missing capability wearing four empty contract fields**:
+  `period.type` in {YTD, Q, LTM}, `period.start`, and `op: "annualize"`. All unproduced; every
+  one of 114,184 real figures is `FY`. `intake/readers/periods.py` already *meets* one - it
+  names `2024 Feb YTD` on a real client tab and escalates rather than typing it - so this is
+  not hypothetical, and a valuation date mid-year makes a stub period routine.
+* **`period.fiscal_year_end_month` is established by the reader and thrown away.** The consumer
+  reads the person-entered profile instead, so a document whose stated year end disagrees with
+  the profile cannot be detected - B-030's shape, one axis over.
+* `destinations[].adapter` enumerates `box_mcp` and `box_client_credentials`; the port factory's
+  keys are `local_folder` and `box`, so no enum member matches a factory key - and nothing reads
+  the field as a routing decision anyway.
+
+## B-144 `documents._number` returns a positive for an unbalanced parenthesis
+status: proposed - one line, and it turns a sign flip into a dropped figure
+2026-10-03. `_number("12,000)")` and `_number("(12,000")` both return **+12,000**, because
+the negative test is `startswith("(") and endswith(")")` and `strip("()")` then discards the
+orphan. It is the root cause under two sign flips: a figure printed `(12,000 )` - a space
+before the paren, which several accounting packages emit - is matched by `_FIGURES` as
+`(12,000` and read as **+12,000**, and `tabular._number` handles the same input correctly, so
+the two readers disagree. Reachable from three callers, including the laid-out cell, because
+`_FILLS` admits `(12,000` as a legitimate cell. Measured over both filings: 10 open-paren-only
+and 80 close-paren-only words, **0 reaching a table cell** - so no live wrong figure, and no
+gate between the glyph and the figure either. Refusing instead of guessing makes it a dropped
+figure, which the footing check then catches.
+
+Same reader, adjacent: a trailing minus (`12,000-`, how Sage, SAP and QuickBooks write a
+credit) and a unicode minus (U+2212, what Word autoformat emits) each read as **positive** in
+the line reader and make the coordinate reader return **no table at all**, because neither
+`_ESTABLISHES` nor `_FILLS` nor `_NIL` admits them. And `documents.py:449,483` strip
+`" .â€¦\t"` - mojibake: the bytes are space, `.`, U+00E2, U+20AC, U+00A6, tab, so the intended
+ellipsis **U+2026 is not in the set** and three characters of ordinary European text are. The
+same expression decides whether a line has a label at all.
+
+## B-145 The repeat-client tracker deletes last year's items and keeps honouring a vanished one
+status: proposed - small, and not blocked on the analyst
+2026-10-03. `AdminConsole.dd_tracker` takes its items from the shipped
+`intake/request_lists/valuation-non-esop.yaml` - 46 items, `origin: "starting point"` - and
+nothing reads last year's list. `read_tracker` carries forward only the three person-owned
+columns, keyed by ref, and only from the tracker in the same folder; `write_tracker` iterates
+the shipped list's rows. Reproduced with a prior-year tracker holding A.1, A.14, E.7 and F.9:
+**three of four refs vanished** along with the analyst's notes, and `Tracker.not_applicable`
+reads all held refs, so **F.9 is still treated as Not Applicable with no row to show or unset
+it**.
+
+This matters because `BUILD/OPEN.md` frames the request-list gap as a *missing-data* problem
+waiting on the analyst. It is also a code problem, and the data is not missing for a repeat
+client: it is in last year's workbook, which is where it always is. Two more things in the same
+area are not blocked on anybody either - **neither rehearsal ever runs a repeat engagement in
+the focus division, and neither runs version 1's own recipe** (`simulate_firm` watches
+`monthly-refresh`; its only `repeat` client is in the parked ESOP division), and **there is no
+prior-year fixture of any kind**, where the smallest honest one is twenty lines of openpyxl.
+`prior_model` is also stored as a *sibling* of `engagement["profile"]` and the driver puts only
+the profile on a run, so the path a person sets at Setup is read by nothing but a screen.
+
+## B-146 Nothing bounds anything on the intake path
+status: proposed
+2026-10-03. There is no size cap, page cap, row cap or inflated-size cap anywhere in
+`intake/`. The de facto bounds are library-internal and accidental. Measured, per file:
+
+* a PDF with 100,000 tiny text objects on **one page**: 48.8 s and 1,344 MB, writing 9,091
+  rows of noise to the parse store; 20,000 objects is 8.8 s and 334 MB, so it scales linearly;
+* an `.xlsx` with one real cell at row 1,048,576: 16.4 s and 621 MB for two figures, because
+  `normalize_workbook` does `list(ws.iter_rows(...))`. **This one is not adversarial** - a
+  stray keystroke at the bottom of a client workbook does it, and it is the likeliest of these
+  to appear in real work;
+* an `.xlsx` whose `sharedStrings.xml` inflates from ~1 MB to 200 MB: 473 MB, read without
+  comment. This is the real zip-bomb vector, because shared strings is a member openpyxl must
+  parse. Scaled up it ends in `MemoryError`, which `except Exception` turns into
+  `UNREADABLE_FILE`, so it fails closed - after taking the memory.
+
+What *is* bounded is bounded well and should not be re-examined: a naive zip bomb (300 MB of
+zeros named `.xlsx`) is refused in 0.28 s **without inflating**, a declared `<dimension>` of a
+million rows is correctly ignored, and an RTF nested 500,000 deep is 0.69 s.
+
+Separately, four refusals send a person to do the wrong thing. A **password-protected
+`.xlsx`** is reported as *"cannot be opened as a workbook (BadZipFile: File is not a zip
+file)"* plus *"ask the client for a readable copy"*, when the right sentence is that the file
+is protected - and `documents.looks_like` already holds the OLE2 signature, it is simply not
+consulted on the spreadsheet branch. That asymmetry costs the other lying extensions too: a
+PDF named `.xlsx` gets BadZipFile where the same PDF named `.txt` gets *"Notes.txt is a PDF
+under another name"*, and a TSV named `.xls` - extremely common from legacy systems - gets
+xlrd's *"Expected BOF record"* for a perfectly readable file. A **UTF-16 CSV** (Excel's "Save
+as Unicode Text") is refused only by coincidence: `_decode` checks the UTF-8 BOM and nothing
+else, so `FF FE` falls through to cp1252, the grid builds out of NUL-interleaved text, and what
+stops it three layers later is openpyxl's `IllegalCharacterError`. And a CSV with lone-`\r`
+endings is refused with *"do you need to open the file with newline=''?"* - advice to a
+programmer, in a diagnostic written for an analyst.
+
+## B-147 Tests that assert nothing, and the scanner that would have caught all of them
+status: proposed
+2026-10-03. An AST sweep of all 778 test files, then line coverage over the 135 files
+holding a candidate, to prove which assertion bodies execute **zero** times. Confirmed, in
+the order a fix should take them:
+
+* **`tests/checkpoints/c65:214-217`** - a parametrized test that checks nothing in any of
+  its three cases. `plan.targets` is `()` for all three parameters, so `all(...)` over an
+  empty sequence is True and the loop body never runs. Three green tests, zero assertions
+  evaluated, and the test cannot tell *"the planner never guessed a folder"* from *"the
+  planner planned nothing at all"*. The right folder is the one shape **not** in the
+  parametrize. The planner itself is correct; only the test is empty.
+* **`tests/p19/test_skill.py:405`** - a live `or True`, and the precedence is the trap:
+  `all(...) or True`. This is the **only** place that checks every disagreement carries
+  `review_required`, which is what P19's sign-off in STATE.md claims - *"nothing material
+  auto-accepted"*. `disagreed` holds 17 entries, so the predicate really is computed over 17
+  items and thrown away. **Whether the claim holds is unknown**, and removing three words
+  answers it.
+* **`tests/checkpoints/c08:202`** - a second live `or True`, on the config-change-log
+  ordering. And **`:184`** - `... or replayed.nodes`, a bare dict as the last disjunct, which
+  any non-empty dict satisfies; the lines above it already prove it is non-empty. These three
+  are the complete census: an extended scan for a truthy constant or a non-empty literal
+  container as a disjunct finds exactly two in 778 test files, and none in production.
+* **Six tests over three empty allowlists** (`tests/p71:141,146`, `tests/p73:137,142`,
+  `tests/checkpoints/c42:41,48`). All three allowlists are `{}`, so the loop bodies execute
+  zero times. **CLAUDE.md non-negotiable 7 states this as enforced** - *"an entry without a
+  reason fails as loudly as the defect"* - and the twelve-word rule has never once been
+  evaluated. Proved both ways: injecting a reasonless entry does fail, so the rule works and
+  is simply never reached. The empty allowlist is deliberate and good; the dormant rule is
+  the defect. The fix is to lift the check into a helper and test the helper against a
+  fixture allowlist, so it is proved on every run rather than on the day somebody adds an
+  excuse.
+* **`tests/regression/test_serve.py:322-324`** - green and empty on exactly the machines
+  that matter. It does not pass `AA_NO_ENV_FILE=1`, so the subprocess reads `.env`, which
+  sets `AA_OCR_ADAPTER=rapidocr`; the OCR seam then reports installed, `missing` is `[]`, and
+  the two assertions about what a NOT INSTALLED line must say never run. CLAUDE.md tells a
+  person to configure that adapter, so the test is live only on a clean clone.
+* **`tests/p62:58,68`** - two regex loops that match nothing against 99 live rows of
+  `BUILD/OPEN.md`. Correct today; the extractor is never exercised against a row known to
+  contain the pattern, so rephrasing a row to *"close phase P28"* would retire the guard
+  silently. The same file gets this right next door, proving `SETTLED_BY` both ways.
+
+**And four shapes that are claimed and not checked**: `tests/p74:170-189` walks
+`(ROOT/"ports"/"ocr").rglob("*.py")` and asserts `not offenders`, so **renaming the
+directory leaves it green with nothing examined** - and that is the test CLAUDE.md names as
+the guarantee behind *"OCR is local, and that is not a preference"*. `tests/p97:109` and
+`tests/p99:247` have the same gap. One line each fixes it, and `tests/p73` already shows how:
+`assert len(found) > 20`.
+
+**The recommendation that outlasts the individual fixes.** No scanner exists for this class -
+P160 found its `or True` by reading, and the two surviving ones sat in the repo for a month.
+An AST check in `tests/p07` would be about twenty lines: a truthy-literal disjunct in an
+`assert`, an `assert` on a tuple, a self-comparison outside a declared determinism check, and
+the highest-yield rule - **an assert-only loop, or an `all()`/`not any()` over a computed
+iterable, with no non-emptiness guard in the same function**. That last rule alone would have
+flagged six of the findings above on the day each was written.
+
+## B-148 The skip census, and the four nobody has counted
+status: proposed - and B-101's own number has drifted
+2026-10-03. 108 skip declaration sites in `tests/`. Four groups, and only one is a problem.
+
+* **82 are the checkpoint stubs** - `@pytest.mark.skip(reason="written at the end of PNN")`
+  over a `raise NotImplementedError`, each beside a real sibling test that is written and
+  green (all 90 checkpoint directories were verified to have real coverage). **B-101 says 69.
+  It is 82**, and B-101's own text says *"a backlog item that quietly stops being true about
+  its own size is the same defect it is describing"* - it has drifted by 13 since C85.
+* **Four have expired and are outside that group**, and two of them are gate refusals:
+  `tests/p01:256` needs **two** phases open at once to run, and this build closes one phase at
+  a time, so *the gate's refusal to close a phase out of order is untested* and the window
+  never opens. `tests/p01:277` needs a checkpoint with an open covered phase, so *the gate's
+  refusal to run a checkpoint early is untested*. Both are structurally dead rather than
+  waiting on anything. `tests/checkpoints/c27:78` and `:93` skip because the identifier
+  register has been filled, so the **empty-register refusal is untested on any working
+  machine** - and `interview.py scan` refusing an empty register is a privacy guard. All four
+  want the same fix, and the repo already records the discipline for it: drive them against a
+  temp copy, with a synthetic `plan.json` holding two open phases and a temp `knowledge/`
+  with an empty register.
+* 6 are opt-in (`--ocr`, `--container`, `--postgres`), each counted and printed in the
+  session summary, and the container one fails rather than skipping if the flag is given with
+  no runtime. 16 are environment-conditional and most now run here. Neither group is a
+  finding.

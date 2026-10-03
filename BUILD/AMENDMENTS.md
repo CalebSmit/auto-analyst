@@ -3030,3 +3030,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C90 after P162, covering P161, P162
 - proves: Every figure the readers extract off three real filings is a figure the filer reported at that column's own date, no row that was currency stopped being currency, and a row whose label declares another unit reaches a figure at its own scale rather than the statement's.
+
+## 2026-10-03 - P163 Which column is which year
+
+**Why:** The accuracy harness reads rows and stops there. Two measurements over 232 pages of real filings found the next thing: the years printed above a statement's columns are read correctly by a positional matcher that is handed the wrong band, so 70 of 119 tables come out unnamed and every comparative statement escalates for want of it; and a column whose figures are mostly small or nil fails the money-shaped test, gets dropped, and shifts every figure to its right into the wrong year - confirmed against the filer's own XBRL on 3D Systems p59.
+
+- phase added: P163 Which column is which year (Reading what a client actually sends, gate: auto)
+- exit criterion: A comparative statement in a PDF names its columns, and the period detector settles on it instead of reporting that no header row names them
+- exit criterion: No table that names its columns today changes what it says, over every multi-column table on both filings
+- exit criterion: The table that dropped a column is reported as having dropped one, and does not settle - proved on 3D Systems p59, where the filer's XBRL says the figures at column 2 are 2023's
+- exit criterion: A sentence that happens to cross the columns dates nothing - proved on the two pages where the wider rule read a date out of prose
+
+## 2026-10-03 - C91 The page and the declaration agree
+
+**Why:** P163 changed what two readers say about every comparative statement, and the only thing that can check it is a phase that read the same columns from different evidence: P161 declared each column's date by hand, P163 reads the year off the page, and if they disagree one of them is wrong.
+
+- checkpoint added: C91 after P163, covering P163
+- proves: On every statement the accuracy harness checks, the year the page prints above each column is the year a person declared that column to be, the detector settles on those dates without being told, the 194 figures the harness measured have not moved, and the table that lost a column is on a page the harness never covered.

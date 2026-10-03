@@ -201,24 +201,33 @@ def _tables(page: int, words: list[Word]) -> list[LaidOutTable]:
 
     heading_band: list[Word] = []
     last_plain_band: list[Word] = []
+    # Every plain band above the current run, not only the newest. The newest is almost
+    # never the one carrying the dates: a statement prints `ASSETS` and `Current assets:`
+    # between its header and its first figure row, and those overwrote it. Measured over
+    # 232 pages of two filings, that cost 70 of 119 tables their column names.
+    above: list[list[Word]] = []
+    bands_above: list[list[Word]] = []
 
     def flush() -> None:
-        nonlocal heading_band
-        built = _table(page, run, heading_band)
+        nonlocal heading_band, bands_above
+        built = _table(page, run, heading_band, bands_above)
         if built is not None:
             tables.append(built)
         run.clear()
         heading_band = []
+        bands_above = []
 
     for band in _bands(words):
         if any(_carries_a_figure(word["text"]) for word in band):
             if not run:
                 heading_band = last_plain_band
+                bands_above = list(above)
             run.append(band)
         else:
             flush()
             if " ".join(word["text"] for word in band).strip():
                 last_plain_band = band
+                above.append(band)
     flush()
     return tables
 
@@ -307,7 +316,12 @@ def _columns(run: list[list[Word]]) -> tuple[float, ...]:
     )
 
 
-def _table(page: int, run: list[list[Word]], heading_band: list[Word]) -> LaidOutTable | None:
+def _table(
+    page: int,
+    run: list[list[Word]],
+    heading_band: list[Word],
+    bands_above: list[list[Word]] | None = None,
+) -> LaidOutTable | None:
     if len(run) < 2:
         return None
     columns = _columns(run)
@@ -319,7 +333,10 @@ def _table(page: int, run: list[list[Word]], heading_band: list[Word]) -> LaidOu
     return LaidOutTable(
         page=page,
         heading_line=" ".join(word["text"] for word in heading_band),
-        headings=_headings(heading_band, columns),
+        # The band immediately above first, because it is the one a person would read as
+        # this table's header. Only where that band names nothing does the search go
+        # further up the page for the years - which is where a statement's dates are.
+        headings=_headings(heading_band, columns) or _dated(bands_above or [], columns),
         rows=rows,
         columns=columns,
     )
@@ -359,6 +376,64 @@ def _names_a_column(text: str) -> bool:
     # `(a)` and the matcher called that column `(a)`, which tells a reader exactly as much
     # as `$` did and reads as though somebody decided it.
     return sum(1 for c in stripped if c.isalnum()) >= 2
+
+
+# A bare year, and the whole of the word. `2025,` and `2024.` are words out of a sentence
+# and deliberately are not years: the punctuation is the tell that this is prose.
+_YEAR = re.compile(r"^(?:19|20)\d{2}$")
+
+
+def _dated(bands_above: list[list[Word]], columns: tuple[float, ...]) -> tuple[str, ...]:
+    """The year printed over each column, from the nearest band above that dates them all.
+
+    Only reached when the band immediately above the table named nothing, which on a real
+    statement is almost always - the header is two or three bands up, behind `ASSETS` and
+    `Current assets:`.
+
+    **Why years and not whatever a band happens to say there.** The wider rule - the
+    nearest band above whose words *could* name the columns - gains the same 70 headings
+    and four of them come out of a sentence: `The following table sets forth the Company's
+    operating working capital at December 31, 2025, and 2024.` crosses all three columns
+    and offers `December`, `2025,` and `2024.`. Nothing separates that from a header,
+    either: measured over all 118 candidates, the share of a band's words sitting at a
+    column is 0.38 for that sentence and **0.50** for the legitimate header
+    `(in thousands) 2025 2024`, so no cut keeps the one and refuses the other. A bare year
+    is not prose, and that is the whole of the distinction.
+    """
+    for band in reversed(bands_above):
+        found = _years(band, columns)
+        if found:
+            return found
+    return ()
+
+
+def _years(band: list[Word], columns: tuple[float, ...]) -> tuple[str, ...]:
+    """A year for every column, by nearest right edge, or nothing at all.
+
+    All-or-nothing the way `_headings` is, and for the same reason `_headings_for` refuses
+    a partial match: a table where one column is dated and another is not has not been
+    dated, and half a header reads as though somebody decided it.
+
+    **Distinct**, which is the second half of the refusal. A band of four-digit numbers
+    that is really a row of data - `Short-term lease cost 157 347 494` reads as a plain
+    band, because none of those figures is money-shaped - cannot date three columns 2025,
+    2025, 2025. Two columns headed the same year is a hazard `detect_periods` already
+    reports, and this path will not manufacture one.
+    """
+    if not band or len(columns) < 2:
+        return ()
+    found: list[str] = []
+    for position, column in enumerate(columns):
+        reach = min(abs(column - other) for n, other in enumerate(columns) if n != position) / 2
+        near = [
+            word
+            for word in band
+            if _YEAR.match(word["text"]) and abs(word["x1"] - column) <= reach
+        ]
+        if not near:
+            return ()
+        found.append(min(near, key=lambda word: abs(word["x1"] - column))["text"])
+    return () if len(set(found)) != len(found) else tuple(found)
 
 
 def _row(band: list[Word], columns: tuple[float, ...]) -> LaidOutRow:

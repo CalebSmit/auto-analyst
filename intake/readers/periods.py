@@ -122,6 +122,21 @@ def _spacing(gaps: list[int]) -> str | None:
 _BARE_YEAR = re.compile(r"(?<![\w,./-])(?:19|20)\d{2}(?![\w,./-])")
 
 
+def _skips_a_year(headings: tuple[str, ...]) -> bool:
+    """Is this table dated with a year missing out of the middle?
+
+    Every column has to be headed by a bare year for the question to mean anything - a
+    partly dated table is reported by the naming cue instead, and a table headed
+    `Products Services Total` is not dated at all. Consecutive in either direction,
+    because a statement prints the current year first and a maturity schedule counts up.
+    """
+    if len(headings) < 2 or not all(_BARE_YEAR.fullmatch(h.strip()) for h in headings):
+        return False
+    years = [int(h.strip()) for h in headings]
+    steps = {years[n + 1] - years[n] for n in range(len(years) - 1)}
+    return steps not in ({1}, {-1})
+
+
 def headings_in(line: str) -> tuple[str, ...]:
     """The period headings on one line, left to right, as they were written.
 
@@ -429,6 +444,34 @@ def detect_periods(text: str, tables: Sequence[Any] = ()) -> PeriodDetection:
             )
         elif any(len(t.columns) > 1 for t in tables):
             cues.setdefault("columns", []).append("every column is named by a header row")
+        # Dated columns should carry consecutive years, and a gap says the table is
+        # missing one the page prints. `_columns` establishes a column only from
+        # money-shaped figures, so a column of small or nil amounts falls one short of
+        # `COLUMN_NEEDS` and is never built - and every figure to its right then sits at
+        # a column index belonging to another year. On the cash flow statement of the
+        # filing in fixtures/public the investing block holds `(16,121)`, a dash, `96` and
+        # `(3,000)` in its 2024 column: `96` is four figures short of needing a comma, so
+        # two figures establish the column where three are needed, the column is dropped,
+        # three figures are lost and 2023's land where 2024's belong. The filer's own XBRL
+        # says so - -27,183 is PaymentsToAcquirePropertyPlantAndEquipment over 2023.
+        #
+        # This has to be asked here rather than left to the naming cue above, because the
+        # naming is what makes the rest of this settle: a table that dropped a column is
+        # named, so it would settle, and it would settle on a wrong date. Reported and not
+        # repaired - rebuilding the missing column is a guess, and saying the indices
+        # cannot be trusted is a fact.
+        gapped = [t for t in tables if _skips_a_year(t.headings)]
+        if gapped:
+            where = ", ".join(t.locator for t in gapped[:3])
+            cues.setdefault("columns", []).append(
+                f"{len(gapped)} table(s) are dated with a year missing"
+            )
+            ambiguous.append(
+                f"columns: {len(gapped)} table(s) name years with a gap in them - {where}"
+                + (", and others" if len(gapped) > 3 else "")
+                + ", so a column this page prints was not built, and the columns that were "
+                "cannot be trusted to be the ones they are indexed as"
+            )
     else:
         widths = [len(_TRAILING_FIGURES.findall(line)) for line in text.splitlines()]
         tabular = [w for w in widths if w]

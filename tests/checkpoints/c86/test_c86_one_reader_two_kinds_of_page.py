@@ -110,12 +110,22 @@ def test_the_whole_filing_still_reads_as_it_was_measured(filing) -> None:
     )
     assert rows == 815, f"rows carrying a value moved to {rows}"
     assert tables == 72, f"tables moved to {tables}"
-    # Twenty-seven, and P151's prose says twenty-eight. Measured both ways with P155's two
-    # changes undone and with them in place: 72 tables, 815 rows and 27 named, identically.
-    # So the number in that docstring was off by one before this phase existed rather than
-    # moved by it, and it is corrected there. Asserted here because an unasserted count in
-    # a docstring is how the first one came to be wrong.
-    assert named == 27, f"tables whose every column is named moved to {named}"
+    # Twenty-seven until P163, and forty-five after it - this assertion is the one that
+    # noticed, which is what it is for.
+    #
+    # P163 found that the band carrying a statement's dates was being thrown away: the
+    # heading band was the *last* plain band before the figures, and `ASSETS` and
+    # `Current assets:` always sit between the dates and the first row. So the years are
+    # read from the nearest band above that dates every column, and eighteen more of this
+    # filing's tables now say which column is which year. Tables and rows are deliberately
+    # unchanged beside it: that phase writes column headings and touches neither the
+    # columns nor the rows, and `tools/check_against_filer.py` still reports the same 194.
+    #
+    # Forty-eight here and forty-five in `tests/p163`, and both are right: this count takes
+    # every table, and three single-column ones (p72, p85, p100) were named by the line
+    # reader's heading line before this phase and still are. P163's count is over the
+    # multi-column tables only, because one column is nothing to tell apart.
+    assert named == 48, f"tables whose every column is named moved to {named}"
 
 
 def test_every_footing_in_the_filing_re_adds_when_added_again(filing) -> None:
