@@ -33,7 +33,8 @@ points of x=482 and x=549 and the 220,000 inside that label sits at x=234.
 
 **What it cost elsewhere: nothing, and it gained.** Over the whole 108-page filing the rows
 carrying a value went from 674 to 815, and the tables whose every column is named from 21 to
-28. The table count fell from 88 to 72 because a statement no longer breaks into four tables
+27 - this said 28 until C86 asserted it and measured 27, which P155 did not move.
+The table count fell from 88 to 72 because a statement no longer breaks into four tables
 at the rows that lost their figures.
 """
 

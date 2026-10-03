@@ -173,7 +173,13 @@ def test_an_unreadable_file_stops_rather_than_proceeding_with_a_null_id(
 def test_kinds() -> None:
     assert kind_of("application/pdf") == "document"
     assert kind_of("text/csv") == "spreadsheet"
-    assert kind_of("image/png") == "other"
+    # An image was `other` and reached no reader at all, which is most of what arrives
+    # after a phone call - a screenshot of a trial balance, a photograph of a page. It is a
+    # page with no text layer, which is what a scanned PDF page is, so it is a document and
+    # goes to the same reader (P155).
+    assert kind_of("image/png") == "document"
+    assert kind_of("image/tiff") == "document"
+    assert kind_of("application/zip") == "other", "and something with no reader still is"
 
 
 def test_nothing_is_read_before_it_is_bound() -> None:

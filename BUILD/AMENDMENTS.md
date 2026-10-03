@@ -2918,3 +2918,43 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** The reader needed a code of its own for a file that is whole and in a format this build does not read, because what a person should do about it differs from UNREADABLE_FILE: save it as something that is read, rather than ask the client to send it again.
 
 - task added: Record INTAKE.FORMAT_NOT_READ in BUILD/surfaces.json
+
+## 2026-10-02 - P155 A scan is a layout too
+
+**Why:** A real scanned balance sheet, with a real engine configured, yields zero rows and zero figures. Measured: page 56 of the public filing, rendered to an image and wrapped in a PDF with no text layer, read with AA_OCR_ADAPTER=rapidocr - 122 OCR lines, 0 tables, 0 rows, 0 footings, where the text layer of the same page gives 61 rows and a balance sheet that states both sides. The engine reads 295 of 296 figures correctly and every one is discarded, because the port returns a fragment per cell and the row builder expects a text line carrying its label and all its figures. CLAUDE.md records that every PDF this firm's clients send is a scan, so this is the main inbound path extracting nothing.
+
+- phase added: P155 A scan is a layout too (Reading what a client actually sends, gate: auto)
+- exit criterion: A scanned copy of the filing's page 56 yields the same two columns, the same Total assets of 521,728 and a balance sheet that states both sides
+- exit criterion: The text-layer path is unchanged: the whole-filing counts P151 measured still hold
+- exit criterion: A page an engine read with no boxes still reads through the line reader rather than raising
+
+## 2026-10-03 - C86 One reader, two kinds of page
+
+**Why:** P155 changed the one thing every figure in the system depends on - what a row is - and changed it for both kinds of page at once. The text-layer path is the one with a hundred and eight pages of evidence behind it and the one with nothing new asking about it, so the question worth a checkpoint is whether the page that was always read is still read the same way now that a scan comes through the same reader.
+
+- checkpoint added: C86 after P155, covering P155
+- proves: A scanned page and the same page's text layer produce the same rows, the same figures and the same arithmetic cover, the whole filing's measured counts still hold, and every figure that re-adds does so when its rows are added again independently.
+
+## 2026-10-03 - P156 A file that will not open
+
+**Why:** A document that cannot be opened crashes the reader with whatever the library raised, where a workbook that cannot be opened gets a named diagnostic. Measured: a truncated PDF gives PdfStreamError, a corrupt .docx gives BadZipFile, a truncated PNG gives UnidentifiedImageError - all out of read_document, and intake/readers/__init__.py catches only NotText on that branch, where the spreadsheet branch catches everything and raises INTAKE.UNREADABLE_FILE naming the file. Clients send truncated files constantly: a phone photo that stopped uploading, a PDF saved from a browser that was still printing. What a person needs is the file's name and the fact that it cannot be read; what they get is a traceback about a stream.
+
+- phase added: P156 A file that will not open (Reading what a client actually sends, gate: auto)
+- exit criterion: A truncated PDF, a corrupt .docx and a truncated image each produce INTAKE.UNREADABLE_FILE naming the file, and none of them escapes as a library exception
+- exit criterion: A file in a format this build routes but does not read still produces FORMAT_NOT_READ, because the thing to do about it is different
+- exit criterion: The rehearsal ends a run on the record for a truncated file rather than failing the worker
+
+## 2026-10-03 - P157 A case that reads the file it is about
+
+**Why:** The rehearsal case called 'pdf' has never read a PDF. Measured by printing every intake.read event per case: the pdf case reads three files and all three are .xlsx, because its Statements.pdf carries no document-type token, so the binder holds it and it reaches no reader. The case has existed since the rehearsal was written and has been green throughout. It is the same defect as B-121 - a case judged by whether its run reached an ending, where the ending was reached without the file in question being looked at - and the same defect as the half-sent case I added in P156, which read as a pass until its file was renamed to one the conventions claim.
+
+- phase added: P157 A case that reads the file it is about (Reading what a client actually sends, gate: auto)
+- exit criterion: The pdf case reads a PDF and the screenshot case reads an image, and both are findings if they do not
+- exit criterion: Renaming either file back to one no convention claims makes the rehearsal report it
+
+## 2026-10-03 - C87 What a run says it did with a file
+
+**Why:** P156 and P157 are two halves of one question about the same surface - what a run says it did with a file - and neither phase can ask the other's half. P156 made a document that will not open name itself; P157 made the rehearsal able to tell a file it read from a file it held, which is the only reason P156's own evidence was trustworthy, because its first rehearsal case read as a pass while testing nothing.
+
+- checkpoint added: C87 after P157, covering P156, P157
+- proves: A document that cannot be opened ends the run with the file named rather than a library exception, a format that is routed and not read still says to save it as something else, and the rehearsal reports any case whose own file no reader ever looked at.

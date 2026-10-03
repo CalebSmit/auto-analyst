@@ -56,7 +56,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-__all__ = ["LaidOutRow", "LaidOutTable", "lay_out"]
+__all__ = ["LaidOutRow", "LaidOutTable", "lay_out", "lay_out_words"]
 
 # What pdfplumber hands back for a word: its text and where it is.
 Word = dict[str, Any]
@@ -84,6 +84,9 @@ ROW_OVERLAP = 3.0
 # How far a figure's right edge can be from a column's and still be in it. The same figure
 # column measured 549 and 552 on two pages of one document, because a trailing `)` on a
 # negative sits outside the digits.
+MARKS = ("$", "£", "€")
+"""The currency marks a statement prints in front of a column rather than in a label."""
+
 COLUMN_BAND = 4.0
 
 # A column has to run down the table. Two figures that happen to end at the same x are a
@@ -164,11 +167,32 @@ def lay_out(data: bytes) -> dict[int, list[LaidOutTable]] | None:
     try:
         with pdfplumber.open(io.BytesIO(data)) as doc:
             return {
-                number: _tables(number, page.extract_words(x_tolerance=WORD_GAP))
+                number: lay_out_words(number, page.extract_words(x_tolerance=WORD_GAP))
                 for number, page in enumerate(doc.pages, start=1)
             }
     except Exception:  # noqa: BLE001 - pdfminer raises a zoo, all meaning "not readable"
         return None
+
+
+def lay_out_words(page: int, words: list[Word]) -> list[LaidOutTable]:
+    """The tables on one page, from its words and where each one sits.
+
+    The whole of this module below `lay_out` is geometry and knows nothing about PDFs, which
+    is what makes this the seam worth having: a word is a piece of text with four edges,
+    whether `pdfplumber` lifted it out of a text layer or an engine recognised it on a scan.
+
+    **Public because a scan needs it.** With an engine configured, a scanned balance sheet
+    used to give 122 fragments, 0 tables and 0 rows - every figure read correctly and all of
+    them thrown away - because the only thing a scan could reach was the line reader, and an
+    engine returns a cell at a time rather than a line carrying its label and its figures.
+    Both paths come through here now, so a scan and a text layer go on agreeing about what a
+    row is for the same reason they agree about anything: there is one implementation of it.
+
+    The tolerances this uses are absolute points, calibrated on a real page, so a caller
+    handing over an engine's boxes has to convert them first. That belongs to the adapter,
+    which is the only thing that knows what it rendered at.
+    """
+    return _tables(page, words)
 
 
 def _tables(page: int, words: list[Word]) -> list[LaidOutTable]:
@@ -187,7 +211,7 @@ def _tables(page: int, words: list[Word]) -> list[LaidOutTable]:
         heading_band = []
 
     for band in _bands(words):
-        if any(_is_figure(word["text"]) for word in band):
+        if any(_carries_a_figure(word["text"]) for word in band):
             if not run:
                 heading_band = last_plain_band
             run.append(band)
@@ -200,8 +224,33 @@ def _tables(page: int, words: list[Word]) -> list[LaidOutTable]:
 
 
 def _is_figure(text: str) -> bool:
-    """Money-shaped: enough to say a column is here."""
+    """Money-shaped, and the whole of this word: enough to say a column is *here*.
+
+    Strict on purpose, because a column's position is this word's right edge. A phrase that
+    merely contains a figure has a right edge belonging to its last word, and taking that
+    for a column position would put a column wherever a sentence happened to end.
+    """
     return bool(_ESTABLISHES.match(text)) and any(c.isdigit() for c in text)
+
+
+def _carries_a_figure(text: str) -> bool:
+    """Is there a figure anywhere in this word: enough to say a table is here.
+
+    Two questions, and conflating them cost the balance sheet's equity section. A text layer
+    hands over one word at a time, so `220,000` arrives alone and the two questions have the
+    same answer. An engine hands over a *phrase*: page 56 came back with
+    `Common stock, $0.001 par value, authorized 220,000 shares; shares issued 145,581 and`
+    as a single fragment, which is not money-shaped, so the band read as prose, the table
+    never started over it, and the two figures printed on that row - 146 and 136 - were
+    taken for the names of the next table's columns instead.
+
+    That is the row this reader is most careful about. Before P151 read coordinates at all,
+    it stored **220,000** here, the authorized share count, as the common stock balance, and
+    it passed provenance and footing both. Reaching for the figure inside the phrase is what
+    lets the row exist; its *position* still comes only from a word that is entirely a
+    figure, so nothing about where a column sits is loosened.
+    """
+    return any(_is_figure(piece) for piece in text.split())
 
 
 def _fills_a_cell(text: str) -> bool:
@@ -329,17 +378,38 @@ def _row(band: list[Word], columns: tuple[float, ...]) -> LaidOutRow:
     # space belongs to that column or to nothing; it is never label.
     edge = columns[0] - COLUMN_BAND
     label_words = [
-        word["text"]
+        word
         for index, word in enumerate(band)
         if index not in taken and word["x1"] < edge
     ]
-    # A currency mark printed at the left of a figure column belongs to the figure, not to
-    # the label it follows: a statement writes `$` on its first row and its total row and
-    # nowhere else, so leaving it on made two different labels of `Total assets`.
-    while label_words and label_words[-1] in ("$", "£", "€"):
-        label_words.pop()
+    # A currency mark standing at the right-hand end belongs to the figure it is in front of,
+    # never to the label it follows: a statement writes `$` on its first row and its total
+    # row and nowhere else, so leaving it on made two different labels of `Total assets`.
+    #
+    # Said by **where it sits** rather than by where it is in the list, and two attempts at
+    # the latter are why. Taking it off the end of the list only worked while the words
+    # arrived in reading order, and an OCR engine returns fragments in its own detection
+    # order - page 56 came back with the mark first, so `Total assets` became
+    # `$ Total assets`, matched nothing, and a real balance sheet stopped stating its two
+    # sides. Sorting the list by position to fix that was worse: a band spans a label that
+    # wraps over two lines, and sorting by `x0` interleaves the two lines into nonsense.
+    # And dropping the mark wherever it appeared was wrong too, because pdfplumber splits
+    # `$0.001` into two words at this tolerance, which cost `Common stock` its par value.
+    #
+    # Position says all of it plainly: a lone mark to the right of every other label word
+    # is the one in front of the column, and a mark anywhere else is part of the label.
+    rightmost = max(
+        (word["x1"] for word in label_words if word["text"].strip() not in MARKS),
+        default=None,
+    )
+    text = [
+        word["text"]
+        for word in label_words
+        if word["text"].strip() not in MARKS
+        or (rightmost is not None and word["x1"] < rightmost)
+    ]
     return LaidOutRow(
         text=" ".join(word["text"] for word in band),
-        label=" ".join(label_words).strip(),
+        label=" ".join(text).strip(),
         cells=tuple(cells),
     )

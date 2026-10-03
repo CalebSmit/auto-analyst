@@ -239,7 +239,17 @@ is a scan and they send a lot of them, so with the default (`none`) most of the 
 reads as nothing — correctly, because a page that yields nothing is reported rather than
 filled in, but it reads as nothing all the same. `rapidocr` is a wheel and needs no
 administrator; `tesseract` needs its executable on PATH. `serve.py --check` says which of
-them is actually working, by trying it.
+them is actually working, by trying it. A screenshot, a photograph of a page or a `.tiff`
+goes down the same path: it is a page with no text layer, which is what a scan is.
+
+**Setting it now actually buys the figures.** Until P155 it bought the *text* and nothing
+else. The port returned lines, an engine returns a cell at a time — `Total assets`, then
+`521,728`, then `608,846` — and the row builder wanted a line carrying a label and all of
+its figures, so a scanned balance sheet came out as 122 fragments, **no tables and no rows**,
+with 295 of its 296 figures read correctly and every one discarded. A row is a band of the
+page and a column is a band too; the engine's boxes come through the port now and both kinds
+of page go through the one reader in `intake/readers/layout.py`. The same page scanned and
+from its text layer now gives the same 61 rows, the same totals and the same balance sheet.
 
 `readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
 need updating when a seam is filled - and it is the honest answer to "does this work yet".

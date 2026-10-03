@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:c6f46b0bf1b741145f11cbee7504588c235089f3264b3633a24cae9c6a3aabfc",
+  "source_digest": "sha256:37ae2a54234280e20f448b4e4a7b4b53ad811076684f2bb44911112d5f338a7b",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -238,13 +238,13 @@
       "id": "doc_reader",
       "runtime": "step",
       "label": "Document Reader",
-      "plain": "Pulls text and tables out of PDFs, Word files and scans.",
+      "plain": "Pulls text and tables out of PDFs, Word files, scans and screenshots.",
       "group": "intake",
       "exec": "code",
       "now": true,
       "desc": "Deterministic extraction to structured JSON, attaching <code>source_id</code> plus a locator (page, table, row) to every emitted item.",
-      "impl": "pypdf / python-docx, with an OCR path for scanned pages. No model involved: extraction is mechanical work, and a model here would cost more, add latency and introduce paraphrase risk on figures that must be verbatim.",
-      "full": "The locator is the part that matters. “Page 14, table 2, row 7” is what lets a reviewer check a number in two seconds instead of two minutes.",
+      "impl": "pypdf / python-docx / striprtf, and an OCR path for anything with no text layer &mdash; a scanned page, or an image sent on its own. No model involved: extraction is mechanical work, and a model here would cost more, add latency and introduce paraphrase risk on figures that must be verbatim.",
+      "full": "The locator is the part that matters. “Page 14, table 2, row 7” is what lets a reviewer check a number in two seconds instead of two minutes. <b>A row is a band of the page and a column is a band too</b>, and that is read off coordinates for both kinds of page by one implementation: pdfplumber’s words where there is a text layer, the engine’s own boxes where there is not. It has to be one, because the two were separate and disagreed &mdash; the line-based reader wanted a line carrying a label and all of its figures, an engine returns a cell at a time, and a scanned balance sheet therefore produced 122 fragments and <i>no rows at all</i> with every figure on it read correctly.",
       "x": 1013,
       "y": 500
     },

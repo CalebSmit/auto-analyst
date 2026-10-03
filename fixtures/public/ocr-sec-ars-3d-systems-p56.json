@@ -1,0 +1,1228 @@
+{
+ "source": "fixtures/public/sec-ars-3d-systems-2025.pdf",
+ "page": 56,
+ "what": "What rapidocr-onnxruntime read off page 56 of this filing - the consolidated balance sheet - rendered to a PNG at the scale below. Captured so a test can replay a real engine's output, including its boxes, without the engine being installed: it is a wheel with an ONNX runtime in it and is deliberately not a project dependency.",
+ "engine": "rapidocr-onnxruntime",
+ "render_scale": 4.166667,
+ "image_size": [
+  2475,
+  3226
+ ],
+ "page_size_points": [
+  594.0,
+  774.0
+ ],
+ "box": "x0, top, x1, bottom, in pixels of the rendered image",
+ "fragments": [
+  {
+   "text": "3DSYSTEMSCORPORATION",
+   "box": [
+    945.85,
+    94.31,
+    1529.15,
+    131.71
+   ],
+   "confidence": 0.9953
+  },
+  {
+   "text": "Consolidated Balance Sheets",
+   "box": [
+    981.3,
+    141.46,
+    1493.7,
+    183.74
+   ],
+   "confidence": 0.978
+  },
+  {
+   "text": "December 31,",
+   "box": [
+    1790.19,
+    217.89,
+    1994.82,
+    256.91
+   ],
+   "confidence": 0.9973
+  },
+  {
+   "text": "December 31,",
+   "box": [
+    2068.95,
+    214.63,
+    2276.81,
+    260.16
+   ],
+   "confidence": 0.9929
+  },
+  {
+   "text": "(in thousands, except par value)",
+   "box": [
+    177.25,
+    252.03,
+    623.58,
+    294.31
+   ],
+   "confidence": 0.9698
+  },
+  {
+   "text": "2025",
+   "box": [
+    1853.03,
+    255.28,
+    1930.37,
+    291.06
+   ],
+   "confidence": 0.9998
+  },
+  {
+   "text": "2024",
+   "box": [
+    2135.01,
+    255.28,
+    2210.74,
+    291.06
+   ],
+   "confidence": 0.9998
+  },
+  {
+   "text": "ASSETS",
+   "box": [
+    174.02,
+    305.69,
+    341.6,
+    349.59
+   ],
+   "confidence": 0.9955
+  },
+  {
+   "text": "Current assets:",
+   "box": [
+    178.86,
+    364.23,
+    456.01,
+    408.13
+   ],
+   "confidence": 0.9863
+  },
+  {
+   "text": "Cash and cash equivalents",
+   "box": [
+    219.14,
+    426.01,
+    660.64,
+    468.29
+   ],
+   "confidence": 0.9865
+  },
+  {
+   "text": "$",
+   "box": [
+    1764.4,
+    421.14,
+    1796.63,
+    468.29
+   ],
+   "confidence": 0.9866
+  },
+  {
+   "text": "95,635",
+   "box": [
+    1885.25,
+    421.14,
+    2015.77,
+    471.54
+   ],
+   "confidence": 0.9989
+  },
+  {
+   "text": "$",
+   "box": [
+    2048.0,
+    426.01,
+    2077.0,
+    465.04
+   ],
+   "confidence": 0.9886
+  },
+  {
+   "text": "171,324",
+   "box": [
+    2151.12,
+    422.76,
+    2294.53,
+    468.29
+   ],
+   "confidence": 0.9985
+  },
+  {
+   "text": "Accounts receivable, net of reserves \u2014 $3,608 and $2,433",
+   "box": [
+    215.92,
+    479.67,
+    1197.22,
+    528.45
+   ],
+   "confidence": 0.9799
+  },
+  {
+   "text": "83,806",
+   "box": [
+    1886.87,
+    479.67,
+    2014.16,
+    530.08
+   ],
+   "confidence": 0.9975
+  },
+  {
+   "text": "101,471",
+   "box": [
+    2151.12,
+    481.3,
+    2291.31,
+    526.83
+   ],
+   "confidence": 0.9997
+  },
+  {
+   "text": "Inventories",
+   "box": [
+    215.92,
+    544.71,
+    407.67,
+    583.74
+   ],
+   "confidence": 0.9992
+  },
+  {
+   "text": "127,496",
+   "box": [
+    1870.75,
+    541.46,
+    2012.55,
+    586.99
+   ],
+   "confidence": 0.9995
+  },
+  {
+   "text": "118,530",
+   "box": [
+    2149.51,
+    541.46,
+    2294.53,
+    586.99
+   ],
+   "confidence": 0.9975
+  },
+  {
+   "text": "Prepaid expenses and other current assets",
+   "box": [
+    217.53,
+    601.62,
+    915.23,
+    648.78
+   ],
+   "confidence": 0.9976
+  },
+  {
+   "text": "39,770",
+   "box": [
+    1888.48,
+    600.0,
+    2014.16,
+    645.53
+   ],
+   "confidence": 0.9947
+  },
+  {
+   "text": "34,329",
+   "box": [
+    2170.46,
+    601.62,
+    2292.92,
+    647.15
+   ],
+   "confidence": 0.998
+  },
+  {
+   "text": "Assets held for sale",
+   "box": [
+    217.53,
+    661.79,
+    547.85,
+    705.69
+   ],
+   "confidence": 0.9954
+  },
+  {
+   "text": "3,176",
+   "box": [
+    2188.18,
+    660.16,
+    2296.14,
+    707.31
+   ],
+   "confidence": 0.999
+  },
+  {
+   "text": "Total current assets",
+   "box": [
+    177.25,
+    718.7,
+    509.18,
+    767.48
+   ],
+   "confidence": 0.999
+  },
+  {
+   "text": "346,707",
+   "box": [
+    1867.53,
+    720.32,
+    2014.16,
+    765.85
+   ],
+   "confidence": 0.9984
+  },
+  {
+   "text": "428,830",
+   "box": [
+    2147.9,
+    720.32,
+    2294.53,
+    765.85
+   ],
+   "confidence": 0.9973
+  },
+  {
+   "text": "Property and equipment, net",
+   "box": [
+    180.47,
+    782.11,
+    657.42,
+    826.01
+   ],
+   "confidence": 0.9997
+  },
+  {
+   "text": "49,249",
+   "box": [
+    1885.25,
+    778.86,
+    2010.94,
+    824.39
+   ],
+   "confidence": 0.9986
+  },
+  {
+   "text": "51,044",
+   "box": [
+    2167.24,
+    777.23,
+    2296.14,
+    827.64
+   ],
+   "confidence": 0.9998
+  },
+  {
+   "text": "Intangible assets, net",
+   "box": [
+    182.08,
+    840.65,
+    533.35,
+    884.55
+   ],
+   "confidence": 0.998
+  },
+  {
+   "text": "16,614",
+   "box": [
+    1888.48,
+    839.02,
+    2014.16,
+    884.55
+   ],
+   "confidence": 0.9985
+  },
+  {
+   "text": "18,020",
+   "box": [
+    2168.85,
+    837.39,
+    2296.14,
+    887.8
+   ],
+   "confidence": 0.9986
+  },
+  {
+   "text": "Goodwill",
+   "box": [
+    180.47,
+    897.56,
+    341.6,
+    943.08
+   ],
+   "confidence": 0.9997
+  },
+  {
+   "text": "15,575",
+   "box": [
+    1888.48,
+    895.93,
+    2012.55,
+    946.34
+   ],
+   "confidence": 0.9994
+  },
+  {
+   "text": "14,879",
+   "box": [
+    2168.85,
+    892.68,
+    2296.14,
+    947.96
+   ],
+   "confidence": 0.9995
+  },
+  {
+   "text": "Operating lease right-of-use assets",
+   "box": [
+    183.69,
+    960.97,
+    758.94,
+    1003.25
+   ],
+   "confidence": 0.989
+  },
+  {
+   "text": "45,364",
+   "box": [
+    1886.87,
+    954.47,
+    2015.77,
+    1004.87
+   ],
+   "confidence": 0.9995
+  },
+  {
+   "text": "50,715",
+   "box": [
+    2170.46,
+    957.72,
+    2292.92,
+    1003.25
+   ],
+   "confidence": 0.9987
+  },
+  {
+   "text": "Finance lease right-of-use assets",
+   "box": [
+    180.47,
+    1019.51,
+    723.49,
+    1061.78
+   ],
+   "confidence": 0.9919
+  },
+  {
+   "text": "7,774",
+   "box": [
+    1906.2,
+    1014.63,
+    2014.16,
+    1065.04
+   ],
+   "confidence": 0.9968
+  },
+  {
+   "text": "8,726",
+   "box": [
+    2186.57,
+    1014.63,
+    2296.14,
+    1065.04
+   ],
+   "confidence": 0.9987
+  },
+  {
+   "text": "Long-term deferred income tax assets",
+   "box": [
+    177.25,
+    1076.42,
+    816.94,
+    1123.57
+   ],
+   "confidence": 0.9783
+  },
+  {
+   "text": "2,787",
+   "box": [
+    1907.81,
+    1076.42,
+    2014.16,
+    1123.57
+   ],
+   "confidence": 0.9984
+  },
+  {
+   "text": "2,063",
+   "box": [
+    2188.18,
+    1076.42,
+    2292.92,
+    1123.57
+   ],
+   "confidence": 0.9983
+  },
+  {
+   "text": "Other assets",
+   "box": [
+    174.02,
+    1133.33,
+    391.55,
+    1183.73
+   ],
+   "confidence": 0.9995
+  },
+  {
+   "text": "37,658",
+   "box": [
+    1886.87,
+    1136.58,
+    2014.16,
+    1182.11
+   ],
+   "confidence": 0.9989
+  },
+  {
+   "text": "34,569",
+   "box": [
+    2167.24,
+    1133.33,
+    2294.53,
+    1183.73
+   ],
+   "confidence": 0.9987
+  },
+  {
+   "text": "Total assets",
+   "box": [
+    177.25,
+    1196.74,
+    393.16,
+    1240.64
+   ],
+   "confidence": 0.9993
+  },
+  {
+   "text": "$",
+   "box": [
+    1757.96,
+    1191.86,
+    1799.85,
+    1240.64
+   ],
+   "confidence": 0.9547
+  },
+  {
+   "text": "521,728",
+   "box": [
+    1867.53,
+    1193.49,
+    2015.77,
+    1239.02
+   ],
+   "confidence": 0.9993
+  },
+  {
+   "text": "$",
+   "box": [
+    2043.16,
+    1195.12,
+    2077.0,
+    1239.02
+   ],
+   "confidence": 0.997
+  },
+  {
+   "text": "608,846",
+   "box": [
+    2149.51,
+    1195.12,
+    2294.53,
+    1240.64
+   ],
+   "confidence": 0.9964
+  },
+  {
+   "text": "LIABILITIES,REDEEMABLENON-CONTROLLINGINTERESTANDEQUITY",
+   "box": [
+    177.25,
+    1255.28,
+    1683.84,
+    1297.55
+   ],
+   "confidence": 0.9829
+  },
+  {
+   "text": "Current liabilities:",
+   "box": [
+    180.47,
+    1315.44,
+    517.24,
+    1357.72
+   ],
+   "confidence": 0.9881
+  },
+  {
+   "text": "Current portion of long-term debt, net of deferred financing costs",
+   "box": [
+    217.53,
+    1375.6,
+    1308.4,
+    1417.88
+   ],
+   "confidence": 0.9931
+  },
+  {
+   "text": "$",
+   "box": [
+    1761.18,
+    1370.72,
+    1799.85,
+    1421.13
+   ],
+   "confidence": 0.9643
+  },
+  {
+   "text": "3,944",
+   "box": [
+    1906.2,
+    1372.35,
+    2014.16,
+    1419.51
+   ],
+   "confidence": 0.998
+  },
+  {
+   "text": "Current operating lease liabilities",
+   "box": [
+    220.75,
+    1435.77,
+    776.66,
+    1478.04
+   ],
+   "confidence": 0.9675
+  },
+  {
+   "text": "11,583",
+   "box": [
+    1890.09,
+    1432.51,
+    2012.55,
+    1478.04
+   ],
+   "confidence": 0.9985
+  },
+  {
+   "text": "9,514",
+   "box": [
+    2184.96,
+    1427.64,
+    2296.14,
+    1482.92
+   ],
+   "confidence": 0.9996
+  },
+  {
+   "text": "Accounts payable",
+   "box": [
+    217.53,
+    1492.68,
+    520.46,
+    1541.46
+   ],
+   "confidence": 0.9766
+  },
+  {
+   "text": "41,017",
+   "box": [
+    1886.87,
+    1492.68,
+    2012.55,
+    1538.2
+   ],
+   "confidence": 0.9997
+  },
+  {
+   "text": "41,833",
+   "box": [
+    2168.85,
+    1492.68,
+    2292.92,
+    1538.2
+   ],
+   "confidence": 0.9993
+  },
+  {
+   "text": "Accrued and other liabilities",
+   "box": [
+    217.53,
+    1552.84,
+    696.09,
+    1595.11
+   ],
+   "confidence": 0.9889
+  },
+  {
+   "text": "46,656",
+   "box": [
+    1888.48,
+    1551.21,
+    2012.55,
+    1596.74
+   ],
+   "confidence": 0.9984
+  },
+  {
+   "text": "45,488",
+   "box": [
+    2168.85,
+    1551.21,
+    2292.92,
+    1596.74
+   ],
+   "confidence": 0.9993
+  },
+  {
+   "text": "Customer deposits and deferred revenue",
+   "box": [
+    217.53,
+    1611.37,
+    894.29,
+    1658.53
+   ],
+   "confidence": 0.9994
+  },
+  {
+   "text": "17,423",
+   "box": [
+    1888.48,
+    1611.37,
+    2012.55,
+    1656.9
+   ],
+   "confidence": 0.9991
+  },
+  {
+   "text": "32,010",
+   "box": [
+    2170.46,
+    1611.37,
+    2294.53,
+    1656.9
+   ],
+   "confidence": 0.9973
+  },
+  {
+   "text": "Liabilities held for sale",
+   "box": [
+    215.92,
+    1671.54,
+    607.47,
+    1713.81
+   ],
+   "confidence": 0.9927
+  },
+  {
+   "text": "10,251",
+   "box": [
+    2168.85,
+    1668.28,
+    2292.92,
+    1718.69
+   ],
+   "confidence": 0.9995
+  },
+  {
+   "text": "Total current liabilities",
+   "box": [
+    177.25,
+    1728.45,
+    565.58,
+    1775.6
+   ],
+   "confidence": 0.9921
+  },
+  {
+   "text": "120,623",
+   "box": [
+    1867.53,
+    1728.45,
+    2014.16,
+    1778.85
+   ],
+   "confidence": 0.9994
+  },
+  {
+   "text": "139,096",
+   "box": [
+    2149.51,
+    1726.82,
+    2296.14,
+    1777.23
+   ],
+   "confidence": 0.9985
+  },
+  {
+   "text": "Long-term debt, net of deferred financing costs",
+   "box": [
+    178.86,
+    1791.86,
+    971.63,
+    1834.14
+   ],
+   "confidence": 0.9882
+  },
+  {
+   "text": "86,394",
+   "box": [
+    1886.87,
+    1786.98,
+    2014.16,
+    1837.39
+   ],
+   "confidence": 0.9996
+  },
+  {
+   "text": "211,995",
+   "box": [
+    2149.51,
+    1788.61,
+    2292.92,
+    1834.14
+   ],
+   "confidence": 0.9997
+  },
+  {
+   "text": "Long-term operating lease liabilities",
+   "box": [
+    177.25,
+    1847.15,
+    789.55,
+    1894.3
+   ],
+   "confidence": 0.9953
+  },
+  {
+   "text": "45,420",
+   "box": [
+    1886.87,
+    1845.52,
+    2014.16,
+    1895.93
+   ],
+   "confidence": 0.9566
+  },
+  {
+   "text": "52,527",
+   "box": [
+    2168.85,
+    1845.52,
+    2296.14,
+    1895.93
+   ],
+   "confidence": 0.9995
+  },
+  {
+   "text": "Long-term deferred income tax liabilities",
+   "box": [
+    175.63,
+    1908.93,
+    871.73,
+    1956.09
+   ],
+   "confidence": 0.9828
+  },
+  {
+   "text": "2,740",
+   "box": [
+    1906.2,
+    1907.31,
+    2014.16,
+    1954.46
+   ],
+   "confidence": 0.9971
+  },
+  {
+   "text": "2,076",
+   "box": [
+    2186.57,
+    1905.68,
+    2296.14,
+    1957.71
+   ],
+   "confidence": 0.9991
+  },
+  {
+   "text": "Other liabilities",
+   "box": [
+    177.25,
+    1967.47,
+    444.73,
+    2011.37
+   ],
+   "confidence": 0.9813
+  },
+  {
+   "text": "24,000",
+   "box": [
+    1886.87,
+    1967.47,
+    2014.16,
+    2013.0
+   ],
+   "confidence": 0.9988
+  },
+  {
+   "text": "25,001",
+   "box": [
+    2167.24,
+    1965.84,
+    2294.53,
+    2016.25
+   ],
+   "confidence": 0.9994
+  },
+  {
+   "text": "Total liabilities",
+   "box": [
+    177.25,
+    2027.63,
+    452.78,
+    2071.53
+   ],
+   "confidence": 0.9888
+  },
+  {
+   "text": "279,177",
+   "box": [
+    1865.92,
+    2026.01,
+    2014.16,
+    2071.53
+   ],
+   "confidence": 0.9982
+  },
+  {
+   "text": "430,695",
+   "box": [
+    2147.9,
+    2027.63,
+    2294.53,
+    2071.53
+   ],
+   "confidence": 0.9843
+  },
+  {
+   "text": "Commitments and contingencies (Note 20)",
+   "box": [
+    177.25,
+    2086.17,
+    899.12,
+    2133.32
+   ],
+   "confidence": 0.9998
+  },
+  {
+   "text": "Redeemable non-controlling interest",
+   "box": [
+    175.63,
+    2143.08,
+    794.38,
+    2193.48
+   ],
+   "confidence": 0.9983
+  },
+  {
+   "text": "2,193",
+   "box": [
+    1902.98,
+    2136.57,
+    2015.77,
+    2198.36
+   ],
+   "confidence": 0.9991
+  },
+  {
+   "text": "1,958",
+   "box": [
+    2189.79,
+    2144.7,
+    2294.53,
+    2191.86
+   ],
+   "confidence": 0.9996
+  },
+  {
+   "text": "Stockholders\u2019 equity:",
+   "box": [
+    177.25,
+    2204.87,
+    541.41,
+    2252.02
+   ],
+   "confidence": 0.9721
+  },
+  {
+   "text": "Preferred stock, 5,0o0 shares authorized; no par value; no shares issued and outstanding as",
+   "box": [
+    215.92,
+    2263.4,
+    1730.57,
+    2313.81
+   ],
+   "confidence": 0.9845
+  },
+  {
+   "text": "of December31,2025 and 2024",
+   "box": [
+    219.14,
+    2312.18,
+    757.32,
+    2349.58
+   ],
+   "confidence": 0.9575
+  },
+  {
+   "text": "Common stock, $0.001 par value, authorized 220,000 shares; shares issued 145,581 and",
+   "box": [
+    215.92,
+    2360.96,
+    1688.67,
+    2409.74
+   ],
+   "confidence": 0.9933
+  },
+  {
+   "text": "146",
+   "box": [
+    1936.82,
+    2383.73,
+    2015.77,
+    2432.51
+   ],
+   "confidence": 0.9999
+  },
+  {
+   "text": "136",
+   "box": [
+    2222.02,
+    2385.35,
+    2296.14,
+    2429.26
+   ],
+   "confidence": 0.9998
+  },
+  {
+   "text": "135,510 as of December 31, 2025 and 2024,respectively",
+   "box": [
+    217.53,
+    2406.49,
+    1166.6,
+    2452.02
+   ],
+   "confidence": 0.9667
+  },
+  {
+   "text": "Additional paid-in capital",
+   "box": [
+    219.14,
+    2465.03,
+    649.37,
+    2508.93
+   ],
+   "confidence": 0.9618
+  },
+  {
+   "text": "1,620,399",
+   "box": [
+    1833.69,
+    2458.52,
+    2014.16,
+    2512.18
+   ],
+   "confidence": 0.9993
+  },
+  {
+   "text": "1,593,366",
+   "box": [
+    2118.9,
+    2465.03,
+    2292.92,
+    2508.93
+   ],
+   "confidence": 0.9979
+  },
+  {
+   "text": "Accumulated deficit",
+   "box": [
+    219.14,
+    2525.19,
+    562.35,
+    2567.47
+   ],
+   "confidence": 0.9974
+  },
+  {
+   "text": "(1,332,360)",
+   "box": [
+    1820.8,
+    2520.31,
+    2025.44,
+    2573.97
+   ],
+   "confidence": 0.999
+  },
+  {
+   "text": "(1,362,243)",
+   "box": [
+    2102.78,
+    2523.56,
+    2305.81,
+    2573.97
+   ],
+   "confidence": 0.9996
+  },
+  {
+   "text": "Accumulatedother comprehensiveloss",
+   "box": [
+    219.14,
+    2585.35,
+    878.17,
+    2627.63
+   ],
+   "confidence": 0.9885
+  },
+  {
+   "text": "(47,827)",
+   "box": [
+    1873.97,
+    2582.1,
+    2027.05,
+    2632.51
+   ],
+   "confidence": 0.9994
+  },
+  {
+   "text": "(55,066)",
+   "box": [
+    2155.96,
+    2585.35,
+    2305.81,
+    2630.88
+   ],
+   "confidence": 0.9987
+  },
+  {
+   "text": "Total stockholders\u2019 equity",
+   "box": [
+    177.25,
+    2640.64,
+    646.14,
+    2692.67
+   ],
+   "confidence": 0.9681
+  },
+  {
+   "text": "240,358",
+   "box": [
+    1867.53,
+    2642.26,
+    2014.16,
+    2687.79
+   ],
+   "confidence": 0.9986
+  },
+  {
+   "text": "176,193",
+   "box": [
+    2151.12,
+    2642.26,
+    2294.53,
+    2687.79
+   ],
+   "confidence": 0.9993
+  },
+  {
+   "text": "Total liabilities, redeemable non-controlling interest and stockholders\u2019 equity",
+   "box": [
+    175.63,
+    2700.8,
+    1553.32,
+    2751.21
+   ],
+   "confidence": 0.9794
+  },
+  {
+   "text": "$",
+   "box": [
+    1759.57,
+    2699.17,
+    1798.24,
+    2747.95
+   ],
+   "confidence": 0.9382
+  },
+  {
+   "text": "521,728",
+   "box": [
+    1867.53,
+    2702.43,
+    2015.77,
+    2747.95
+   ],
+   "confidence": 0.9986
+  },
+  {
+   "text": "$",
+   "box": [
+    2044.78,
+    2702.43,
+    2077.0,
+    2744.7
+   ],
+   "confidence": 0.997
+  },
+  {
+   "text": "608,846",
+   "box": [
+    2149.51,
+    2702.43,
+    2297.75,
+    2746.33
+   ],
+   "confidence": 0.9971
+  },
+  {
+   "text": "See accompanying notes to consolidated financial statements.",
+   "box": [
+    720.26,
+    2965.84,
+    1751.51,
+    3016.24
+   ],
+   "confidence": 0.983
+  },
+  {
+   "text": "F-7",
+   "box": [
+    1200.44,
+    3118.68,
+    1274.56,
+    3169.09
+   ],
+   "confidence": 0.9986
+  }
+ ]
+}

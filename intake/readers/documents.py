@@ -25,8 +25,9 @@ from __future__ import annotations
 import io
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
-from intake.readers.layout import LaidOutTable, lay_out
+from intake.readers.layout import LaidOutTable, lay_out, lay_out_words
 from ops.source_parse import Row
 
 __all__ = [
@@ -202,6 +203,16 @@ class NotText(Exception):
         self.looks_like = looks_like
 
 
+IMAGES = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp")
+"""The extensions that go to the OCR port rather than to a decoder.
+
+Spelled here as well as in `intake/fingerprint.py`, because the two answer different
+questions - that table says what a file *is* for the manifest, this says which reader takes
+it - and importing the one into the other would drag a database session into a module that
+reads bytes. `tests/p155` holds the two to naming the same formats, which is the cheaper
+half of the trade and the half that catches a format added to one and forgotten in the other.
+"""
+
 # What a file's first bytes say it is, whatever its name says. A `.doc` renamed `.txt` is
 # still an OLE2 compound file, and a reader that trusted the extension would decode it.
 SIGNATURES: tuple[tuple[bytes, str], ...] = (
@@ -244,6 +255,11 @@ def read_document(data: bytes, filename: str) -> ParsedDocument:
         return _read_docx(data, filename)
     if name.endswith(".rtf"):
         return _read_rtf(data, filename)
+    # Before `looks_like`, which would refuse every one of these on its first bytes - a PNG
+    # signature is exactly what that function exists to catch. An image is not a file that
+    # failed to be text; it is a page with no text layer, and there is a port for that.
+    if name.endswith(IMAGES):
+        return _read_image(data, filename)
     # Everything left is read as text, and so everything left has to *be* text. This branch
     # used to take anything: an RTF arrived as one line of `{\rtf1\ansi\ansicpg1252...`, and
     # a `.doc` arrived as replacement characters and a dump of the bytes 0 to 255 - both
@@ -275,18 +291,25 @@ def _read_pdf(data: bytes, filename: str) -> ParsedDocument:
         doc.pages.append(parsed)
 
     scanned = {page.number for page in doc.pages if page.scanned}
-    _ocr_the_scanned_pages(doc, data)
+    # Which pages were scanned is settled before OCR runs, because OCR fills the lines in
+    # and the question would otherwise answer itself wrongly.
+    recognised = _ocr_the_scanned_pages(doc, data)
 
-    # Where the words are, if they can be had. A page with a text layer gets its rows and
-    # columns from the page; a page that had none and was OCR'd has no coordinates to read
-    # - the engine gave lines - so it keeps the path it always had. Which of the two it was
-    # is settled before OCR runs, because OCR fills the lines in and the question would
-    # otherwise answer itself wrongly.
+    # Where the words are, if they can be had. A page with a text layer is laid out from the
+    # page; a page that had none is laid out from the boxes the engine returned, through the
+    # same reader. Only a page nobody could give coordinates for falls back to reading its
+    # lines - and that is a real case, not a formality: an engine offering no geometry, and
+    # a PDF whose every line is one drawn string with no column structure at all.
     laid_out = lay_out(data)
     for parsed in doc.pages:
-        page_layout = None if laid_out is None else laid_out.get(parsed.number)
-        if page_layout and parsed.number not in scanned:
-            parsed.tables.extend(_tables_from_layout(parsed.number, page_layout))
+        from_text_layer = None if laid_out is None else laid_out.get(parsed.number)
+        words = recognised.get(parsed.number)
+        if parsed.number not in scanned and from_text_layer:
+            parsed.tables.extend(_tables_from_layout(parsed.number, from_text_layer))
+        elif words:
+            parsed.tables.extend(
+                _tables_from_layout(parsed.number, lay_out_words(parsed.number, words))
+            )
         else:
             parsed.tables.extend(
                 _tables_from_lines(
@@ -296,29 +319,68 @@ def _read_pdf(data: bytes, filename: str) -> ParsedDocument:
     return doc
 
 
-def _ocr_the_scanned_pages(doc: ParsedDocument, data: bytes) -> None:
-    """Fill in the pages pypdf found nothing on, if an engine is configured.
+def _read_image(data: bytes, filename: str) -> ParsedDocument:
+    """A screenshot, a photograph of a page, an image somebody pasted into an email.
 
-    Tables are built afterwards rather than before, so an OCR'd page reaches
-    `_tables_from_lines` exactly as a page with a text layer does - which is the point:
-    from here on a scan and a text layer travel the same road, and no locator, guard or
+    The clients send these constantly and until now they reached no reader at all - routed
+    nowhere, so the figures on them were keyed by hand with nothing recording where they came
+    from.
+
+    An image is a one-page document with no text layer, which is exactly what a scanned PDF
+    page is. So it is built as one empty page and handed to the same OCR seam, and from there
+    it travels the road a scan travels: boxes, then bands, then rows, then tables, then the
+    locators a figure cites.
+
+    Nothing is invented where no engine is configured. The page stays empty, `Page.scanned`
+    stays true, and that is what the manifest carries - the same honest answer a scanned PDF
+    gets, rather than a blank the pipeline filled in.
+    """
+    doc = ParsedDocument(filename=filename, kind="image", pages=[Page(number=1)])
+    recognised = _ocr_the_scanned_pages(doc, data, kind="image")
+    for parsed in doc.pages:
+        words = recognised.get(parsed.number)
+        if words:
+            parsed.tables.extend(
+                _tables_from_layout(parsed.number, lay_out_words(parsed.number, words))
+            )
+        else:
+            parsed.tables.extend(_tables_from_lines(parsed.number, parsed.lines))
+    return doc
+
+
+def _ocr_the_scanned_pages(
+    doc: ParsedDocument, data: bytes, kind: str = "pdf"
+) -> dict[int, list[dict[str, Any]]]:
+    """Fill in the pages that had no text layer, if an engine is configured.
+
+    Returns the words and their boxes for each page it read, so the caller can lay the page
+    out the way it lays out a text layer. Tables are built afterwards rather than here: from
+    this point a scan and a text layer travel the same road, and no locator, guard or
     citation downstream needs to know which it was.
 
+    **The boxes are the whole of it.** Before they were carried, this appended the engine's
+    text and nothing else, and some engines return a *cell* at a time - `Total assets`, then
+    `521,728`, then `608,846`. The line reader wants a line carrying a label and all of its
+    figures, so a scanned balance sheet came out as 122 lines, 0 tables and 0 rows, with
+    every figure read correctly and all of them discarded.
+
     Nothing is invented. With no engine the port raises, the pages stay empty, and
-    `Page.scanned` goes on being true - which is what the manifest has always carried and
-    is the honest answer. An engine that fails mid-document leaves the pages it did not
-    reach in exactly that state.
+    `Page.scanned` goes on being true - which is what the manifest has always carried and is
+    the honest answer. An engine that fails mid-document leaves the pages it did not reach in
+    exactly that state, and a page whose geometry nobody could give is returned without
+    words rather than with a guess at them.
     """
     if not any(page.scanned for page in doc.pages):
-        return
+        return {}
     from ports import get_ocr  # noqa: PLC0415 - deferred: reading a text PDF must not need it
     from ports.ocr import OCRUnavailable  # noqa: PLC0415
 
     try:
-        read = get_ocr().read(data, kind="pdf")
+        read = get_ocr().read(data, kind=kind)
     except OCRUnavailable:
-        return
+        return {}
 
+    words: dict[int, list[dict[str, Any]]] = {}
     by_number = {page.number: page for page in read}
     for page in doc.pages:
         if not page.scanned:
@@ -331,6 +393,10 @@ def _ocr_the_scanned_pages(doc: ParsedDocument, data: bytes) -> None:
                 page.lines.append(
                     Line(line.text.strip(), ocr=True, confidence=line.confidence)
                 )
+        laid_out = found.laid_out()
+        if laid_out:
+            words[page.number] = laid_out
+    return words
 
 
 def _tables_from_lines(page: int, lines: list[Line]) -> list[Table]:

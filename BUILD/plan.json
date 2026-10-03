@@ -4512,6 +4512,78 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P155",
+      "title": "A scan is a layout too",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "An engine returns a box with every fragment it reads, and a row is a band of the page - which is what P151 already built for a text layer. Carry the geometry through the OCR port and send a scanned page down the same band reader, so a scan and a text layer go on travelling the same road and no locator, guard or citation has to know which it was.",
+      "builds": [],
+      "tasks": [
+        "Give OCRLine a box, in page points, and say on OCRPage whether that unit is exact or estimated",
+        "Have the rapidocr and tesseract adapters divide their boxes by the render scale they chose, so the layout tolerances keep the meaning P151 calibrated",
+        "Make layout.py's word-level table reader public and call it from both paths, so there is one implementation of what a row is",
+        "Build the tables of a scanned page from its boxes, falling back to the line reader when an engine offers no geometry"
+      ],
+      "exit": [
+        "A scanned copy of the filing's page 56 yields the same two columns, the same Total assets of 521,728 and a balance sheet that states both sides",
+        "The text-layer path is unchanged: the whole-filing counts P151 measured still hold",
+        "A page an engine read with no boxes still reads through the line reader rather than raising"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p155 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "P156",
+      "title": "A file that will not open",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Say the same thing about a document that cannot be opened as about a workbook that cannot be opened - the file, named, and the fact that it is unreadable - rather than letting a library's exception out of the reader. One branch already does this and the other does not, which is one implementation short rather than a missing feature.",
+      "builds": [],
+      "tasks": [
+        "Catch what a document reader raises at the boundary and diagnose it as UNREADABLE_FILE, as the workbook branch already does",
+        "Keep NotText separate: a format this build does not read is a different answer from a file that will not open",
+        "Add a truncated document to the file rehearsal, so the ending is on the record rather than in a traceback"
+      ],
+      "exit": [
+        "A truncated PDF, a corrupt .docx and a truncated image each produce INTAKE.UNREADABLE_FILE naming the file, and none of them escapes as a library exception",
+        "A file in a format this build routes but does not read still produces FORMAT_NOT_READ, because the thing to do about it is different",
+        "The rehearsal ends a run on the record for a truncated file rather than failing the worker"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p156 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "P157",
+      "title": "A case that reads the file it is about",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Say which file each case is about, and fail the case if no reader ever saw it. A case whose point is that a non-workbook format reaches a reader has to assert that it did, because the run ends either way and a held file is indistinguishable from a read one in everything the rehearsal looked at.",
+      "builds": [],
+      "tasks": [
+        "Name the pdf case's trial balance as a PDF the conventions claim, so the case reads a PDF",
+        "Add MUST_BE_READ, naming the file each such case exists for, and make a case a finding when no intake.read event names it",
+        "Say in the finding what the run did record, so a person is not sent to read the events by hand"
+      ],
+      "exit": [
+        "The pdf case reads a PDF and the screenshot case reads an image, and both are findings if they do not",
+        "Renaming either file back to one no convention claims makes the rehearsal report it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p157 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
     }
   ],
   "checkpoints": [
@@ -5450,6 +5522,28 @@
         "python -m uv run pytest tests/checkpoints/c85 -q"
       ],
       "closed": "2026-10-02"
+    },
+    {
+      "id": "C86",
+      "title": "One reader, two kinds of page",
+      "after": "P155",
+      "status": "done",
+      "proves": "A scanned page and the same page's text layer produce the same rows, the same figures and the same arithmetic cover, the whole filing's measured counts still hold, and every figure that re-adds does so when its rows are added again independently.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c86 -q"
+      ],
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "C87",
+      "title": "What a run says it did with a file",
+      "after": "P157",
+      "status": "done",
+      "proves": "A document that cannot be opened ends the run with the file named rather than a library exception, a format that is routed and not read still says to save it as something else, and the rehearsal reports any case whose own file no reader ever looked at.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c87 -q"
+      ],
+      "closed": "2026-10-03"
     }
   ]
 }

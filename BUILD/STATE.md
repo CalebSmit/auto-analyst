@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-10-02.*
+*Last written 2026-10-03.*
 
 ## Where the build is
 
-- **154 of 154 phases closed**
-- Last green checkpoint: **C85**
+- **157 of 157 phases closed**
+- Last green checkpoint: **C87**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -173,4 +173,7 @@
 - **P152** The workbook that was not a zip file (2026-10-02)
 - **P153** A file that is not text is not text (2026-10-02)
 - **P154** What a statement's grand total is a total of (2026-10-02)
+- **P155** A scan is a layout too (2026-10-03)
+- **P156** A file that will not open (2026-10-03)
+- **P157** A case that reads the file it is about (2026-10-03)
 

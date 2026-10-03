@@ -20,6 +20,7 @@ client. It stops at the model door unless `AA_LLM_ADAPTER` reaches one.
 
 from __future__ import annotations
 
+import io
 import os
 import shutil
 import subprocess
@@ -123,9 +124,125 @@ def c_csv(f: Path) -> None:
     xlsx(f / "BS.xlsx", {"BS": BS_ROWS})
 
 
+LF = b"\n"
+
+ONE_PIXEL_PNG = bytes.fromhex(
+    # The smallest valid PNG: signature, header, one grey pixel, end. Built from its bytes
+    # so nothing between here and the file can resolve an escape, and so this needs no
+    # imaging library in the rehearsal.
+    "89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b55"
+    "0000000a4944415408d76360000000020001e221bc330000000049454e44ae426082"
+)
+
+
+def pdf(path: Path, lines: list[str]) -> None:
+    """A one-page PDF with text on it, written by hand.
+
+    By hand because the alternative is a dependency this tool does not have, and because
+    what it replaced was four plausible-looking lines of PDF-ish bytes that **pypdf refused
+    to open** - `PdfReadError` - which nobody had noticed, because the file was never read.
+    A fixture that cannot be opened is not a simpler fixture; it is a different test.
+    """
+    body = "" .join(
+        f"BT 0 0 0 rg /F1 10 Tf 72 {760 - n * 16} Td ({line}) Tj ET" + chr(10)
+        for n, line in enumerate(lines)
+    )
+    stream = body.encode("latin-1", errors="replace")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R "
+        b"/Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Length " + str(len(stream)).encode() + b" >>" + LF + b"stream" + LF
+        + stream + LF + b"endstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = io.BytesIO()
+    out.write(b"%PDF-1.4" + LF)
+    offsets = []
+    for n, obj in enumerate(objects, start=1):
+        offsets.append(out.tell())
+        out.write(f"{n} 0 obj".encode() + LF + obj + LF + b"endobj" + LF)
+    xref = out.tell()
+    out.write(f"xref{chr(10)}0 {len(objects) + 1}{chr(10)}".encode())
+    out.write(b"0000000000 65535 f " + LF)
+    for off in offsets:
+        out.write(f"{off:010d} 00000 n ".encode() + LF)
+    out.write(
+        f"trailer{chr(10)}<< /Size {len(objects) + 1} /Root 1 0 R >>{chr(10)}"
+        f"startxref{chr(10)}{xref}{chr(10)}%%EOF{chr(10)}".encode()
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(out.getvalue())
+
+
 def c_pdf(f: Path) -> None:
+    """The trial balance as a PDF, beside workbooks for the two statements.
+
+    Which is how it arrives: a client prints the TB out of their system and sends the
+    print-out. Two things were wrong with this case and each hid the other. Its file was
+    called `Statements.pdf`, and a name carrying no document-type token is held by the
+    binder rather than bound - so **no reader ever saw it**, three runs on three workbooks,
+    green every time. And the bytes were not a PDF either: pypdf raises `PdfReadError` on
+    them, which nobody had met because nothing opened the file.
+
+    So it is named for what it is, and it has a trial balance printed on it, which is what
+    makes reading it mean something.
+    """
+    xlsx(f / "Case Income Statement FY2025.xlsx", {"IS": IS_ROWS})
+    xlsx(f / "Case Balance Sheet FY2025.xlsx", {"BS": BS_ROWS})
+    pdf(
+        f / "TB_FY25.pdf",
+        [
+            "Case Co - Trial Balance FY2025",
+            "($ in thousands)",
+            "Officer salary      240,000",
+            "Officer bonus        60,000",
+            "Auto allowance       18,400",
+            "Health premium       12,600",
+            "Total officer comp  331,000",
+        ],
+    )
+
+
+def c_screenshot(f: Path) -> None:
+    """A PNG of a statement beside the workbooks, which is how half of it arrives.
+
+    A real PNG, written byte by byte rather than with an imaging library, because the point
+    is the route: a screenshot used to be `kind="other"` and reached no reader at all, and
+    what this case asks is whether it reaches one now and ends a run on the record.
+
+    What the engine makes of it is a different question and not this file's to answer -
+    with the default adapter the honest result is an empty page reported as a scan, which
+    is why this case is **not** in `EVERY_FILE_IS_READABLE`: the file is fine, the page is
+    blank, and that is not a refusal.
+    """
     normal_set(f)
-    (f / "Statements.pdf").write_bytes(b"%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF")
+    (f / "Balance sheet screenshot.png").write_bytes(ONE_PIXEL_PNG)
+
+
+def c_half_sent(f: Path) -> None:
+    """A PDF whose upload stopped, which is what a client sending one over a phone produces.
+
+    The workbooks beside it are fine, so what this case asks is whether the run reaches an
+    ending on the record saying which file could not be read - rather than the worker failing
+    with whatever the library raised. Before P156 the document branch let `PdfStreamError`
+    out of the reader; the workbook branch beside it had named its file since it was written.
+
+    Deliberately not in `EVERY_FILE_IS_READABLE`: one file here is genuinely unreadable, and
+    an `UNREADABLE_FILE` naming it is the right answer rather than a finding.
+    """
+    normal_set(f)
+    # `TB_FY25.pdf` rather than `Statements.pdf`, and the difference is the whole case.
+    #
+    # A file whose name carries no document-type token is **held** rather than bound, so it
+    # reaches no reader at all - which is a different thing from being read and found
+    # broken. Named `Statements.pdf` this case ended `quarantined` with the fix and
+    # `quarantined` without it, and the events said `intake.read` succeeded: the PDF was
+    # never in the intake set. The `pdf` case above has the same name, so **no case in this
+    # rehearsal has ever actually read a PDF** - recorded in the backlog rather than fixed
+    # here, because changing what that case binds is a change to what it tests.
+    (f / "TB_FY25.pdf").write_bytes(b"%PDF-1.4\n1 0 obj<<>>endobj\n")
 
 
 def c_formulas_only(f: Path) -> None:
@@ -292,6 +409,8 @@ CASES = {
     "not-a-workbook": c_not_a_workbook,
     "csv": c_csv,
     "pdf": c_pdf,
+    "screenshot": c_screenshot,
+    "half-sent": c_half_sent,
     "formulas-only": c_formulas_only,
     "merged-and-chart": c_merged_and_chart,
     "huge-tb": c_huge_tb,
@@ -308,6 +427,13 @@ CASES = {
     "only-tb": c_only_tb,
     "many-sheets": c_many_sheets,
 }
+
+# The two cases built in the body of the sweep rather than by a function in `CASES`, because
+# each needs the clock: `partial` writes a file and holds it open while the sweep looks, and
+# `changed-after` rewrites one after it has settled. Named here all the same - until this
+# existed their names were string literals in the middle of a function, which is a case no
+# check could find and no reader could list.
+INLINE_CASES = ("partial", "changed-after")
 
 # What each case is expected to do. "run" means a run launched and ended somewhere on the
 # record; "none" means no run is right - an incomplete set waits, an empty folder is
@@ -338,6 +464,40 @@ EVERY_FILE_IS_READABLE = {
     "dates-as-headers",
     "changed-after",
 }
+
+
+# The inverse of the set above, and it exists for the same reason. `half-sent` was added
+# with a deliberately truncated PDF in it, and the rehearsal said `quarantined` with the fix
+# and `quarantined` without it - because a quarantined run has reached an ending, and nothing
+# asked whether the ending named the file. That is B-121 over again: **a rehearsal that
+# accepts any ending accepts the wrong one**, and a case that cannot fail is worse than no
+# case, because it reads as cover.
+#
+# So a case with one broken file in it says which file, and the refusal has to name it.
+ONE_FILE_IS_UNREADABLE = {
+    "half-sent": "TB_FY25.pdf",
+}
+
+# The file each case exists for, which a reader has to have actually looked at.
+#
+# A case whose point is that a non-workbook format reaches a reader cannot be judged by
+# whether its run ended, because the run ends either way: a held file and a read one are
+# indistinguishable in everything this rehearsal looked at. Measured by printing every
+# `intake.read` event per case - the `pdf` case read three files and all three were `.xlsx`.
+#
+# Twice now. B-121 was a CSV refused while the case passed, and the `half-sent` case added
+# in P156 read as a pass until its file was renamed to one the conventions claim. The
+# pattern is the same each time and so is the lesson: **a rehearsal has to say what it
+# looked at, not only that it finished**.
+MUST_BE_READ = {
+    "pdf": "TB_FY25.pdf",
+    "screenshot": "Balance sheet screenshot.png",
+    "csv": "TB.csv",
+}
+"""Deliberately not `half-sent`: that case is about a file that **cannot** be read, so it
+halts before any `intake.read` is emitted for it. `ONE_FILE_IS_UNREADABLE` above is the
+check that case needs, and the two are the two halves of one question - was this file
+looked at, and what was said about it."""
 
 
 def register(api: Any, out: Any, name: str, who: str) -> str:
@@ -438,7 +598,9 @@ def main() -> int:
             land(inbox / "Clients" / "Battery" / name)
         # a file still being written when the sweep sees it
         partial = inbox / "Clients" / "Battery" / "partial"
-        eids["partial"] = register(api, out, "partial", str(me.get("name")))
+        eids[INLINE_CASES[0]] = register(
+            api, out, INLINE_CASES[0], str(me.get("name"))
+        )
         partial.mkdir(parents=True, exist_ok=True)
         xlsx(partial / "IS.xlsx", {"IS": IS_ROWS})
         xlsx(partial / "BS.xlsx", {"BS": BS_ROWS})
@@ -449,7 +611,9 @@ def main() -> int:
         xlsx(partial / "TB real.xlsx", {"TB": TB_ROWS})
         # a file changed after it settled
         changed = inbox / "Clients" / "Battery" / "changed-after"
-        eids["changed-after"] = register(api, out, "changed-after", str(me.get("name")))
+        eids[INLINE_CASES[1]] = register(
+            api, out, INLINE_CASES[1], str(me.get("name"))
+        )
         normal_set(changed)
         time.sleep(9)
         rows2: Rows = [r[:] for r in TB_ROWS]
@@ -490,6 +654,42 @@ def main() -> int:
                         out.finding(
                             f"{name}: every file in this case is valid and one was refused "
                             f"- {str(unread[0].get('message'))[:140]}"
+                        )
+                about = MUST_BE_READ.get(name)
+                if about is not None:
+                    reads = [
+                        str(e.get("message"))
+                        for e in ev or []
+                        if str(e.get("type")) == "intake.read"
+                    ]
+                    if not any(about in read for read in reads):
+                        out.finding(
+                            f"{name}: this case is about {about} and no reader saw it "
+                            f"- the run ended {r['state']} on "
+                            + (
+                                ", ".join(read.split(":")[0] for read in reads)
+                                if reads
+                                else "nothing at all"
+                            )
+                            + ". A file whose name carries no document type is held rather "
+                            "than bound, and a held file is not a read one."
+                        )
+                wanted = ONE_FILE_IS_UNREADABLE.get(name)
+                if wanted is not None:
+                    named = [
+                        e for e in ev or []
+                        if "UNREADABLE_FILE" in str(e.get("message"))
+                        and wanted in str(e.get("message"))
+                    ]
+                    if not named:
+                        # What did happen, not only what did not. A finding that says a
+                        # thing is missing sends somebody to read the events by hand; the
+                        # types are the first question they would ask.
+                        out.finding(
+                            f"{name}: {wanted} cannot be read and nothing said so by name "
+                            f"- the run ended {r['state']}, which is not the same as being "
+                            f"told which file to ask for again. What it did record: "
+                            + ", ".join(sorted({str(e["type"]) for e in ev or []}))
                         )
             for i in inbox_items:
                 if any(i["run_id"] == r["run_id"] for r in runs_):

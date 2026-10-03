@@ -220,6 +220,26 @@ def read_source(
                     found=f"{len(data)} bytes",
                 )
             ) from not_text
+        except Exception as broken:  # noqa: BLE001 - every reader's library raises its own
+            # A file that will not open, as against a format nobody reads. The workbook
+            # branch above has said this since it was written; this branch let whatever the
+            # library raised out of the reader, so the three cases measured - a truncated
+            # PDF (`PdfStreamError: Stream has ended unexpectedly`), a corrupt `.docx`
+            # (`BadZipFile`) and a truncated image (`UnidentifiedImageError`) - reached a
+            # person as a traceback about a stream rather than as the name of their file.
+            #
+            # Clients send these constantly: a phone photograph that stopped uploading, a
+            # PDF saved from a browser that was still printing. What somebody needs is which
+            # file and the fact that it cannot be read, which is a thing they can act on.
+            raise DiagnosticError(
+                diagnose(
+                    UNREADABLE_FILE,
+                    f"{row.filename} cannot be read "
+                    f"({broken.__class__.__name__}: {str(broken)[:100]})",
+                    locator=row.filename,
+                    found=f"{len(data)} bytes",
+                )
+            ) from broken
         read_tables = [t for page in parsed.pages for t in page.tables]
         for locator, rows in parsed.blocks().items():
             report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)

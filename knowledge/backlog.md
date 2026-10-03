@@ -2179,7 +2179,8 @@ geometry at all, and coordinates there would find columns that are coincidences.
 whether a run resolves into two or more columns.
 
 **What it cost elsewhere: nothing, and it gained.** Over the whole filing, rows carrying a
-value went 674 to 815 and tables whose every column is named went 21 to 28. The table count
+value went 674 to 815 and tables whose every column is named went 21 to 27 (recorded here
+as 28 until C86 asserted the count and measured 27; P155 did not move it). The table count
 fell 88 to 72, because a statement no longer breaks into four tables at the rows that lost
 their figures.
 
@@ -2316,3 +2317,162 @@ holds a `Total assets ...` line and no page states a single side - so those two 
 `tests/p154` on statements written for them, and C85's docstrings say what the filing can and
 cannot see. A checkpoint that reads as though it covered more than it does is the same defect
 as a test that asserts nothing.
+
+## B-124 A scanned statement read as nothing, with every figure on it read correctly
+status: fixed (P155)
+2026-10-03. CLAUDE.md has said since P24 that **every PDF this firm's clients send is a
+scan**, and `AA_OCR_ADAPTER` has existed to answer that since P74. Measured with the engine
+configured, on page 56 of the public filing - the consolidated balance sheet - rendered to an
+image and wrapped in a PDF with no text layer:
+
+| | text layer | the same page scanned |
+|---|---|---|
+| lines | 61 rows | 122 fragments |
+| tables | 3 | **0** |
+| figures with a locator | 61 | **0** |
+| footings that re-add | 10 | **0** |
+| states both sides | yes | no |
+
+**The engine was not the weak part.** Over pages 55 to 63 `rapidocr` read **295 of 296**
+printed figures and invented none. All of it was thrown away. The OCR port returned text and
+nothing else, and an engine returns a **cell** at a time - `Total assets`, then `521,728`,
+then `608,846`, as three fragments - while the reader's line-based row builder wants one line
+carrying a label and all of its figures. Nothing between the two reassembled them, so the
+main inbound path for this firm extracted nothing at all.
+
+Tesseract escaped it by grouping into lines itself, which is exactly the "second row-builder"
+the port's own docstring warned against - and is why the two engines disagreed about what a
+row is while nothing could tell. `rapidocr` is the one that matters: it is a wheel with its
+models bundled, so it is the one a managed laptop can install without asking anybody.
+
+**A row is a band of the page and a column is a band too**, which is what P151 built for a
+text layer. Everything in `intake/readers/layout.py` below `lay_out` is geometry and knows
+nothing about PDFs, so `lay_out_words` is public now and both paths come through it. A scan
+and a text layer agree about what a row is for the reason they agree about anything: there is
+one implementation of it.
+
+**The unit is the adapter's job**, because only the adapter knows what it rendered at. The
+tolerances are absolute points calibrated on a real page; an engine measures in pixels of
+whatever it was handed. Page 56 is 594 by 774 points and was rendered to 2475 by 3226 pixels,
+so unconverted boxes would be grouped at a seventh of the intended tolerance and find
+nothing. Divided by the render scale the adapter chose, the figure columns land at 482.6-486.5
+and 549.9-553.4 - the two columns P151 measured at x=482 and x=549. An image states no page
+size at all, so there the page is scaled by what its own text measures against `TEXT_HEIGHT`
+and the page says `geometry="estimated"` rather than letting a guess read as a measurement.
+
+**Two more defects had to go, and neither was the one planned for.**
+
+The engine returns `$` as its own fragment, and in its own detection order it came *first* -
+so the label was `$ Total assets`, the exact match in `two_sides` failed, and the balance
+sheet stopped stating its two sides. The rule is positional now ("a lone mark to the right of
+every other label word"), after two wrong attempts that the harness caught: taking it off the
+end of the *list* only ever worked on words already in reading order, and sorting the list by
+position was worse, because a band spans a label that wraps over two lines and sorting by `x0`
+interleaves them into nonsense. Dropping the mark wherever it appeared was wrong too -
+pdfplumber splits `$0.001` into two words at this tolerance, so `Common stock, $0.001 par
+value` lost its par value and the row stopped being findable. **It was hiding four real
+totals on the text layer**: `is_a_total` asks whether a label *begins* with the word total, so
+`$ Total property and equipment, net` was not one. Page 75 in both years and page 104's two,
+all four re-adding exactly, now covered - 69 over plain lines where there were 65.
+
+And `_is_figure` was asked of a whole word to decide whether a band belongs to a table, which
+is right for a text layer and wrong for a fragment. `Common stock, $0.001 par value,
+authorized 220,000 shares; shares issued 145,581 and` is not money-shaped, so that band read
+as prose, the table never started over it, and the two figures printed on the row - 146 and
+136 - were taken for the *names* of the next table's columns. That is the row this reader is
+most careful about: before P151 read coordinates it stored **220,000**, the authorized share
+count, as the common stock balance, and it passed provenance and footing both. Where a table
+*is* and where its columns *are* are two questions now: the first may reach inside a word, the
+second may not, because three phrases ending level would put a column wherever sentences stop.
+The filing cannot show that second half - `COLUMN_NEEDS` wants three figures sharing an edge
+and one phrase cannot make a column alone - so it is held by a page written for it rather than
+left as a rule nobody can check.
+
+**The result.** The same page scanned and from its text layer gives the same 3 tables, the
+same 61 rows, the same figures, the same 10 footings, and `Total assets` of 521,728 against
+521,728. Letter for letter the labels are identical; 4 of the 61 lose a space inside a
+fragment, which is a difference in spacing rather than in the statement.
+
+**A screenshot is a document now too.** `.png`, `.jpg`, `.tiff`, `.bmp` and `.webp` were
+`kind="other"` and reached no reader at all, which is most of what arrives after a phone call.
+An image is a page with no text layer - the same thing a scanned PDF page is - so it is one
+page handed to the same seam, and `looks_like` had to be ordered after the image branch or
+every screenshot is refused as the very thing it is. With no engine it is an empty page
+reported as scanned, which is the reader's standing promise rather than a new rule.
+
+**The engine is replayed, not run.** `rapidocr-onnxruntime` is deliberately not in
+`pyproject.toml` - it would put an ONNX runtime into every clone and every container that
+never reads a scan - so a test needing it would fail on a clean one. What it read off page 56,
+boxes and all, is in `fixtures/public/ocr-sec-ars-3d-systems-p56.json` in the engine's own
+unit, which makes the conversion proved rather than assumed. Twelve breaks, twelve reds; three
+of them passed on broken code first. One was a test that could not fail - removing `.png` from
+the declared table left it green because this host's `mimetypes` happens to know PNG, and does
+not know `.webp`, which is the measurement showing the table is load-bearing.
+
+## B-125 A document that would not open was a traceback about a stream
+status: fixed (P156)
+2026-10-03. Two branches of one function, and only one had been written to answer the
+question. `intake/readers/__init__.py` catches everything the workbook reader can raise and
+raises `INTAKE.UNREADABLE_FILE` naming the file - *"a zero-byte file, a text file with the
+wrong extension, a workbook still being written, an encrypted one. None is a pass that
+failed; each is a file that cannot be read, named, so the person replaces it."* The document
+branch caught only `NotText`. Measured:
+
+| what was sent | what came out |
+|---|---|
+| a truncated PDF | `PdfStreamError: Stream has ended unexpectedly` |
+| a corrupt `.docx` | `BadZipFile: File is not a zip file` |
+| a truncated PNG | `UnidentifiedImageError: cannot identify image file` |
+
+None names the file. **And it was worse than a confusing message**: run through the real
+server, the run was left in `running` with `worker.failed - attempt 1 raised PdfStreamError`,
+holding the client's lock - which is the exact thing `_halt`'s own comment says it exists to
+prevent. With the fix the same case ends `halted`, with the file named, and no findings.
+
+Clients send these constantly: a phone photograph that stopped uploading, a PDF saved from a
+browser that was still printing, a `.docx` copied off a share mid-write. P155 made the third
+row possible by routing images at all.
+
+**The two answers stay apart, because the thing to do differs.** A format this build routes
+and does not read is `FORMAT_NOT_READ` and means *save it as something else*; a file that
+will not open is `UNREADABLE_FILE` and means *send it again*. Collapsing them would tell half
+the people the wrong thing, which is worse than a traceback - a traceback at least looks like
+a problem. Both end with the file arriving again, so that phrase is not what separates them;
+what separates them is what somebody does first, and only one mentions saving it.
+
+A truncated image with **no** engine configured stays an empty page reported as a scan,
+because nothing opened it and nothing can therefore find it broken. It is only a refusal on a
+machine that has an engine, which is the machine doing real work.
+
+## B-126 The rehearsal case called `pdf` had never read a PDF
+status: fixed (P157)
+2026-10-03. Measured by printing every `intake.read` event per case: the `pdf` case reads
+three files and **all three are `.xlsx`**. Its document was called `Statements.pdf`, and a
+name carrying no document-type token is *held* by the binder rather than bound - so it reached
+no reader at all. Three runs on three workbooks, green since the rehearsal was written.
+
+Two things were wrong and each hid the other. The bytes were not a PDF either: pypdf raises
+`PdfReadError` on them. Nobody had met that error because nothing ever opened the file. A
+fixture that cannot be opened is not a simpler fixture; it is a different test, and here it
+was a test that proved the opposite of what the case was named for.
+
+**Three times now, the same shape.** B-121 was a CSV refused while the case passed, because a
+halted run has reached an ending and nothing asked whether the refusal was right. The
+`half-sent` case added in P156 read as a pass until its file was renamed - it ended
+`quarantined` with the fix and `quarantined` without it, and the events showed `intake.read`
+had succeeded, on the workbooks beside the file the case was about. And this. Each time the
+rehearsal judged a case by whether its run finished, and each time the file the case was
+*about* was never looked at - which is invisible in an ending, because the other files in the
+folder are fine and the run ends on them.
+
+So `MUST_BE_READ` names the file each such case exists for and makes the case a finding when
+no `intake.read` event names it, `ONE_FILE_IS_UNREADABLE` is its other half for a case whose
+file is meant to be refused, and each finding says what the run *did* read rather than
+sending somebody to the events by hand. The `pdf` case now carries a trial balance printed on
+a real PDF, and reading it yields the three rows.
+
+`tests/p157` holds the same claims **statically**, which is both faster and stricter: whether
+a filename will bind is answerable from the name and the conventions, so the next case added
+is checked before it is ever run. It also found that two cases - `partial` and
+`changed-after` - existed only as string literals in the middle of the sweep, because they
+need the clock; they are named in `INLINE_CASES` now, so something can list them.

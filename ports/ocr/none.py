@@ -21,10 +21,15 @@ class NoOCR:
         return "NoOCR()"
 
     def read(self, data: bytes, *, kind: str = "pdf") -> tuple[OCRPage, ...]:
+        # An image and a scanned PDF page are not the same loss, and a person reading this
+        # should not have to work out which they have: a scan of a report still has its
+        # other pages, and an image has nothing else in it at all.
+        lost = "an image has no text layer to fall back on" if kind == "image" else (
+            "the page stays reported as scanned rather than read as empty"
+        )
         raise OCRUnavailable(
             f"no OCR engine is configured, so a scanned {kind} cannot be read here. "
-            "Install one and set AA_OCR_ADAPTER, or leave this and the page stays "
-            "reported as scanned rather than read as empty."
+            f"Install one and set AA_OCR_ADAPTER - {lost}."
         )
 
 

@@ -96,11 +96,50 @@ def test_it_refuses_by_name_rather_than_failing_to_import() -> None:
 def test_the_refusal_names_whichever_wheel_is_the_missing_one() -> None:
     """Half-installed is the state a person actually lands in, because the two wheels are
     installed by one command that can partly fail. A refusal that named the other one would
-    send them to reinstall what they already have."""
+    send them to reinstall what they already have.
+
+    By the name they install it under, not the name Python imports it as: `pip install
+    rapidocr_onnxruntime` is not the line that works, and this refusal is read by somebody
+    about to type it.
+    """
     engine = ports.get_ocr("rapidocr")
     with _NotInstalled("rapidocr_onnxruntime"), pytest.raises(OCRUnavailable) as refused:
         engine.read(b"%PDF-1.4", kind="pdf")
-    assert "rapidocr_onnxruntime is not installed" in str(refused.value)
+    said = str(refused.value)
+    assert "rapidocr-onnxruntime is not installed" in said
+    assert "pip install rapidocr-onnxruntime" in said
+    assert "pypdfium2 is not installed" not in said, "it is installed; do not send them back"
+
+
+def test_the_refusal_names_every_wheel_that_is_missing_at_once() -> None:
+    """Both, in one message. Naming the first one found sends a person to install it and
+    come back for the next, and on a managed laptop that is two trips to somebody else."""
+    engine = ports.get_ocr("rapidocr")
+    with _NotInstalled("pypdfium2", "rapidocr_onnxruntime"), pytest.raises(
+        OCRUnavailable
+    ) as refused:
+        engine.read(b"%PDF-1.4", kind="pdf")
+    said = str(refused.value)
+    assert "pypdfium2" in said and "rapidocr-onnxruntime" in said
+    assert said.count("pip install") == 1, "one line to type, not two"
+
+
+def test_an_image_asks_for_the_engine_and_not_the_renderer() -> None:
+    """A screenshot needs nothing rendered, so a machine with the engine and no `pypdfium2`
+    reads one. Asking for the renderer here would refuse a file it can read perfectly well.
+
+    Both are hidden and the refusal read, rather than hiding only the renderer: with the
+    engine present the call would reach it, and what an engine makes of these bytes is a
+    question about the engine. What this asks is which wheels the path insists on.
+    """
+    engine = ports.get_ocr("rapidocr")
+    with _NotInstalled("pypdfium2", "rapidocr_onnxruntime"), pytest.raises(
+        OCRUnavailable
+    ) as refused:
+        engine.read(b"", kind="image")
+    said = str(refused.value)
+    assert "rapidocr-onnxruntime is not installed" in said
+    assert "pypdfium2 is not installed" not in said, "an image renders nothing"
 
 
 def _a_scanned_page(saying: str) -> bytes:

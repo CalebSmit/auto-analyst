@@ -28,6 +28,7 @@ from ports.storage import StoragePort
 
 __all__ = [
     "BY_EXTENSION",
+    "IMAGE",
     "READ",
     "Fingerprinter",
     "IntakeRecord",
@@ -60,7 +61,34 @@ BY_EXTENSION: dict[str, str] = {
     ".rtf": "application/rtf",
     ".txt": "text/plain",
     ".md": "text/markdown",
+    # The ones a client sends most and this build read least. A screenshot of a trial
+    # balance, a photograph of a page, a scan saved as a TIFF: each is a page with no text
+    # layer, which is what a scanned PDF page is, so each is read the same way. Declared
+    # here rather than left to `mimetypes` for the reason the whole table exists - the same
+    # bytes must get the same type on every host.
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".tif": "image/tiff",
+    ".tiff": "image/tiff",
+    ".bmp": "image/bmp",
+    ".webp": "image/webp",
 }
+
+IMAGE = {
+    "image/png",
+    "image/jpeg",
+    "image/tiff",
+    "image/bmp",
+    "image/webp",
+}
+"""A page with no text layer at all.
+
+Its own set, and also in `DOCUMENT`, because the two say different things. Being a document
+is how it reaches a reader; being an image is why that reader hands it to the OCR port
+rather than decoding it - and `looks_like` would otherwise refuse the very first bytes of
+every one of them, since a PNG signature is exactly what it is built to catch.
+"""
 
 SPREADSHEET = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -75,6 +103,7 @@ DOCUMENT = {
     "application/rtf",
     "text/plain",
     "text/markdown",
+    *IMAGE,
 }
 
 # Of the document types above, the ones a reader actually reads. `.doc` is routed and
@@ -88,6 +117,11 @@ READ = {
     "application/rtf",
     "text/plain",
     "text/markdown",
+    # Read in the sense this set means: a reader takes it and produces a page. What comes
+    # back is only as good as the engine configured, and with none it is an empty page
+    # reported as scanned - which is the same answer a scanned PDF gets, and is not the same
+    # thing as a format nobody tries.
+    *IMAGE,
 }
 
 

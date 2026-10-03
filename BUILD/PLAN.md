@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**154 of 154 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**157 of 157 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -247,6 +247,11 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C59 - What arithmetic is allowed to stand in for** | integration | That a total re-adding is recorded as evidence about the rows under it and nothing else: the acceptance rule still refuses an extracted figure that no arithmetic covers, a statement that does not foot still says so by name and amount, and reading a folder still costs no model, no engine and no network. | 2026-09-22 |
 | [x] | **P100** The hundredth phase, and the comparison that broke on it | auto | Every comparison of two phase or checkpoint ids in the gate orders them by number | 2026-09-22 |
 | [x] | **C60 - The gate's own arithmetic** | integration | That the gate orders phases and checkpoints by number wherever it compares two, that its four safety nets - coverage, closing in order, what is owed, and a red checkpoint blocking the next phase - all still fire at three digits, and that the tests which check the gate do not carry the same assumption. | 2026-09-22 |
+| [x] | **P155** A scan is a layout too | auto | A scanned copy of the filing's page 56 yields the same two columns, the same Total assets of 521,728 and a balance sheet that states both sides | 2026-10-03 |
+| [x] | **C86 - One reader, two kinds of page** | integration | A scanned page and the same page's text layer produce the same rows, the same figures and the same arithmetic cover, the whole filing's measured counts still hold, and every figure that re-adds does so when its rows are added again independently. | 2026-10-03 |
+| [x] | **P156** A file that will not open | auto | A truncated PDF, a corrupt .docx and a truncated image each produce INTAKE.UNREADABLE_FILE naming the file, and none of them escapes as a library exception | 2026-10-03 |
+| [x] | **P157** A case that reads the file it is about | auto | The pdf case reads a PDF and the screenshot case reads an image, and both are findings if they do not | 2026-10-03 |
+| [x] | **C87 - What a run says it did with a file** | integration | A document that cannot be opened ends the run with the file named rather than a library exception, a format that is routed and not read still says to save it as something else, and the rehearsal reports any case whose own file no reader ever looked at. | 2026-10-03 |
 
 ## A run that finishes
 

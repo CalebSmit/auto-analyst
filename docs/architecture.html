@@ -673,10 +673,10 @@ const NODES = [
  impl:'Pure Python. Returns a manifest row. Unreadable file stops the run rather than proceeding with a null id — a figure that cites nothing is worse than a figure that never existed.',
  full:'Provenance is attached at the moment of arrival so it can never be reconstructed downstream from memory. Every guard later in the map depends on this id being real and stable.'},
 
-{id:'doc_reader',runtime:'step',label:'Document Reader',plain:'Pulls text and tables out of PDFs, Word files and scans.',group:'intake',exec:'code',now:true,
+{id:'doc_reader',runtime:'step',label:'Document Reader',plain:'Pulls text and tables out of PDFs, Word files, scans and screenshots.',group:'intake',exec:'code',now:true,
  desc:'Deterministic extraction to structured JSON, attaching <code>source_id</code> plus a locator (page, table, row) to every emitted item.',
- impl:'pypdf / python-docx, with an OCR path for scanned pages. No model involved: extraction is mechanical work, and a model here would cost more, add latency and introduce paraphrase risk on figures that must be verbatim.',
- full:'The locator is the part that matters. “Page 14, table 2, row 7” is what lets a reviewer check a number in two seconds instead of two minutes.'},
+ impl:'pypdf / python-docx / striprtf, and an OCR path for anything with no text layer &mdash; a scanned page, or an image sent on its own. No model involved: extraction is mechanical work, and a model here would cost more, add latency and introduce paraphrase risk on figures that must be verbatim.',
+ full:'The locator is the part that matters. “Page 14, table 2, row 7” is what lets a reviewer check a number in two seconds instead of two minutes. <b>A row is a band of the page and a column is a band too</b>, and that is read off coordinates for both kinds of page by one implementation: pdfplumber’s words where there is a text layer, the engine’s own boxes where there is not. It has to be one, because the two were separate and disagreed &mdash; the line-based reader wanted a line carrying a label and all of its figures, an engine returns a cell at a time, and a scanned balance sheet therefore produced 122 fragments and <i>no rows at all</i> with every figure on it read correctly.'},
 
 {id:'workbook_reader',runtime:'step',label:'Workbook Reader',plain:'Finds the sheets that matter in a messy workbook — and says what it skipped.',group:'intake',exec:'hybrid',tier:'mid',
  desc:'Reads sheet names and header rows structurally, a model selects which sheets are relevant, then deterministic code normalizes only those to a 2-D table. Reports selected <b>and skipped</b> sheets with reasons.',
@@ -2288,7 +2288,7 @@ const STACK_ROWS = [
  {layer:'State', pick:'Postgres', why:'Runs, steps, events, review items, decisions, mask vault. One store, so “what happened on Tuesday” is one query. SQLite is viable for a single-machine phase 1.'},
  {layer:'Queue', pick:'Redis + RQ', why:'Phase 2 needs only a bounded worker pool behind the Job Queue Port \u2014 enough to run several engagements at once, since the Engagement Lock already serialises within one. Redis lands in phase 3 when runs outlive a single process.'},
  {layer:'Spreadsheets', pick:'pandas · openpyxl', why:'Normalization and template writing. openpyxl preserves formulas and named ranges, which the template depends on.'},
- {layer:'Documents', pick:'pypdf · python-docx', why:'Deterministic extraction. OCR added only for scanned inputs.'},
+ {layer:'Documents', pick:'pypdf · pdfplumber · python-docx', why:'Deterministic extraction, with the layout read off coordinates. OCR for anything carrying no text layer, scan or screenshot alike, through the same reader.'},
  {layer:'Packaging', pick:'Docker', why:'One image, any host. The portability requirement in its most concrete form.'},
  {layer:'Observability', pick:'OpenTelemetry + JSON logs', why:'The event bus is the product-level story; this is the infrastructure-level one underneath it.'},
  {layer:'Testing', pick:'pytest + golden files', why:'The deterministic tools are exactly the kind of code golden-file tests are for. Guards get adversarial fixtures — a masker that no-ops, a total that does not tie.'}

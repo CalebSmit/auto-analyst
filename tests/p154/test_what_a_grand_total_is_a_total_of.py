@@ -132,9 +132,17 @@ def test_the_pure_shapes_still_work_and_still_say_which_they_were() -> None:
 
 
 def test_nothing_that_did_not_foot_is_made_to_foot(filing) -> None:
-    """The measurement that makes the change safe. Over the whole filing the totals that
-    foot over plain lines are the same sixty-five as before, and the only ones added are
-    the mixed shape this phase is about."""
+    """The measurement that makes the change safe: nothing is made to foot that did not.
+
+    Sixty-five of these footed over plain lines when this phase was written, and the mixed
+    shape it added accounts for four more. **P155 took the plain count to sixty-nine**, and
+    it is worth saying why rather than moving a number: a statement prints `$` in front of
+    the first figure of a column, the reader kept that mark on the label when other words
+    followed it in the band, and `is_a_total` asks whether a label *begins* with the word
+    total. So `$ Total property and equipment, net` was not a total, and four real ones were
+    invisible - the property and equipment schedule on page 75 in both years, and page 104's
+    two. All four re-add exactly, and `test_the_four_p155_uncovered` adds them up here.
+    """
     shapes: dict[str, int] = {}
     for page in filing.pages:
         for table in page.tables:
@@ -142,9 +150,40 @@ def test_nothing_that_did_not_foot_is_made_to_foot(filing) -> None:
                 for found in footings_in(column.rows).footings:
                     if found.covered:
                         shapes[found.how] = shapes.get(found.how, 0) + 1
-    assert shapes.get(LINES) == 65, f"the plain footings moved: {shapes}"
+    assert shapes.get(LINES) == 69, f"the plain footings moved: {shapes}"
     assert shapes.get(MIXED) == 4, f"the mixed footings are {shapes.get(MIXED)}"
-    assert sum(shapes.values()) == 69
+    assert sum(shapes.values()) == 73
+
+
+def test_the_four_p155_uncovered(filing) -> None:
+    """The four a stray currency mark was hiding, each with its own arithmetic.
+
+    Counted in the test above and added up here, because a count that goes up is the one
+    direction that matters - a total that re-adds is what lets a figure past a person
+    unseen, so four new ones are four claims, not a number.
+    """
+    want = {
+        (75, "Total property and equipment, net", 49_249.0): (210_959.0, -161_710.0),
+        (75, "Total property and equipment, net", 51_044.0): (208_078.0, -157_034.0),
+        (104, "Total", 8_242.0): (1_401.0, 5_598.0, 1_243.0),
+        (104, "Total", 8_450.0): (1_034.0, 5_855.0, 1_561.0),
+    }
+    found: dict[tuple[int, str, float], tuple[float, ...]] = {}
+    for page in filing.pages:
+        if page.number not in (75, 104):
+            continue
+        for table in page.tables:
+            for column in table.columns:
+                by_ordinal = {row.ordinal: row for row in column.rows}
+                for footing in footings_in(column.rows).footings:
+                    key = (page.number, footing.label.strip(), footing.value)
+                    if footing.covered and key in want:
+                        found[key] = tuple(
+                            by_ordinal[o].value or 0.0 for o in footing.ordinals
+                        )
+    assert found == want, f"missing {sorted(set(want) - set(found))}"
+    for (_, label, value), parts in want.items():
+        assert sum(parts) == pytest.approx(value), label
 
 
 def test_a_figure_carried_down_is_not_a_sum_of_itself() -> None:
