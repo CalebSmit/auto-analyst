@@ -2999,3 +2999,34 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C89 after P160, covering P160
 - proves: The three arithmetic checks over a statement agree about the one document all three were measured on, each speaks only where its own figures are stated, and every one of them re-adds when its inputs are added again independently.
+
+## 2026-10-03 - P161 Checked against the filer's own numbers
+
+**Why:** Accuracy has never had an answer in this build, only evidence. A total that re-adds and a balance sheet that balances prove arithmetic, and arithmetic is satisfied by eight wrong rows that add correctly - so the question 'is every figure right' has been unanswerable, and every claim about it rests on one document that one person read. The SEC publishes the filer's own numbers as structured data: every figure on these statements is tagged in XBRL and served from data.sec.gov, so Assets at 2025-12-31 is 521,728,000, which is the 521,728 on page 56 times the thousand the statement states. That is ground truth from the same regulator for the same filing, and it needs no label-to-concept mapping: the question is whether every figure the reader produced is a figure the filer reported, at the date that column is as of. Measured by hand already - 61 of 61 on the balance sheet, every one tagged at its own column's date, none at another, none nowhere - and that measurement exists in a scratch file nobody will run again.
+
+- phase added: P161 Checked against the filer's own numbers (Reading what a client actually sends, gate: auto)
+- exit criterion: The tool reports, for the filing already in fixtures, that every figure matches a fact at its own column's date
+- exit criterion: It runs on a second filer's PDF and on the regulator's workbook, and says what it found on each
+- exit criterion: A figure the reader gets wrong is reported, proved by giving the tool a figure that is wrong
+
+## 2026-10-03 - P162 A figure not in the statement's unit
+
+**Why:** A figure whose unit the statement declares separately carries the statement's dollar scale, and three places multiply by it. Found by tools/check_against_filer.py on EDGAR's own workbook: 'Common stock, shares, issued (in shares)' is 135,361,000 in the cell while every dollar figure on the sheet is in thousands, and 'Common stock, par value (in dollars per share)' is 0.001. The scale is per file - SourceFile.scale, applied to every row of it - and ebitda_normalization.py:366, deliver/workpaper.py:178 and harness/restate.py:89 each multiply a figure by its scale. So a share count becomes 135 billion and a par value of /usr/bin/bash.001 becomes .00, both of which are plausible numbers that nothing downstream can catch. The statement says so itself: ResMed's reads '(In US$ and in thousands, except share and per share data)', and EDGAR's rows carry '(in shares)' and '(in dollars per share)' in the label. It does not bite on a PDF, where a typesetter keeps the share count inside the label and the only figures in the column are dollars - it bites on a workbook, and a client's workbook looks far more like a workbook than like typesetting.
+
+- phase added: P162 A figure not in the statement's unit (Reading what a client actually sends, gate: auto)
+- exit criterion: A share count and a per-share amount keep their own value, and a dollar figure is unchanged
+- exit criterion: Over the three public filings no row that was currency stops being currency
+- exit criterion: The check that found this reports no row as right-at-another-scale once it is fixed
+
+## 2026-10-03 - P162 A figure not in the statement's unit
+
+**Why:** The third exit criterion was wrong when I wrote it. It said the accuracy check should report no row as right-at-another-scale once the fix landed, and it still reports two - correctly. tools/check_against_filer.py reads the readers' rows, which hold the cell value as the file wrote it, and the fix is at the figure that is built from those rows: a share count in a cell is 135,361,000 whatever the statement's scale is, and what changed is that the figure now carries scale 1 rather than the file's 1,000. So the two reports are true statements about the rows and are the thing that found the defect; expecting them to disappear confused the row with the figure.
+
+- task added: Correct the third exit criterion: the check goes on reporting those two rows, and what changed is the figure built from them
+
+## 2026-10-03 - C90 Accuracy, measured and acted on
+
+**Why:** P161 built the only thing in this build that can answer whether a figure is right, and P162 is the first defect it found. The two are one claim seen from both ends: the measurement is only worth having if it catches a real error, and the fix is only trustworthy if the measurement that found it still passes afterwards. What neither phase can ask is whether the three public filings still read the same way now that a row's own label can override the file's scale - 2,373 rows, of which 53 changed what scale applies to them.
+
+- checkpoint added: C90 after P162, covering P161, P162
+- proves: Every figure the readers extract off three real filings is a figure the filer reported at that column's own date, no row that was currency stopped being currency, and a row whose label declares another unit reaches a figure at its own scale rather than the statement's.

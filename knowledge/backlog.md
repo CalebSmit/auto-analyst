@@ -2632,3 +2632,127 @@ assets` come back with a part whose value was `None`. The three checks are given
 groupings on purpose** - a footing's run is a block's, and a balance sheet's two sides are in
 different blocks because the reader starts a new one at every heading - and the test says so
 now rather than flattening them.
+
+## B-131 Accuracy had no answer in this build, only evidence
+status: fixed (P161)
+2026-10-03. A total that re-adds and a balance sheet that balances prove **arithmetic**, and
+arithmetic is satisfied by eight wrong rows that add correctly - `guards/tieout.py` says it of
+its own half: *"Tie-out proves arithmetic, not selection."* So "is every figure right" had
+never been answerable, and every claim about extraction rested on one document that had been
+read until it read correctly.
+
+**The SEC publishes the filer's own numbers as structured data.** Every figure on these
+statements is tagged in XBRL and served from `data.sec.gov`, so `Assets` at 2025-12-31 is
+521,728,000 - which is the 521,728 on page 56 times the thousand the statement says it is in.
+Ground truth, from the same regulator, for the same filing.
+
+**No label-to-concept mapping is needed**, which is the part that would have made this hard.
+`Accounts receivable, net of reserves` could be `AccountsReceivableNetCurrent` or a filer's
+own tag, and guessing would make the comparison an opinion. The question is not which concept
+a row is - it is whether every figure the reader produced is one the filer reported **at the
+date that column is as of**. A figure out of the wrong column is still a figure the filer
+reported, and that is B-030, this repository's worst extraction defect; matching by date is
+the only thing that sees it. Proved by declaring the columns backwards, which turns 61 right
+figures into 55+ reported as out of the wrong column, and by reversing the layout reader's
+columns - B-030 itself - which makes the check fail.
+
+**What it says, over three filings and two filers:**
+
+| | |
+|---|---|
+| right, at the column's own date and the statement's scale | **194** |
+| right, but only at another scale | 2 |
+| **reported at a different date - out of the wrong column** | **0** |
+| not in this feed, so not checkable | 3 |
+
+The number worth having is ResMed's, because the reader had never been run on that document:
+**70 of 70 at the right date**, both columns balance, eight footings re-add. The 3D Systems
+filing was read until it read correctly, which is how it should be and is why its score says
+less.
+
+Three documents were added with their provenance: a second ARS PDF from a different filer
+(fiscal year ending 30 June, 124 pages), **EDGAR's own `Financial_Report.xlsx`** - a workbook
+of real statements laid out by the regulator rather than by openpyxl - and the trimmed XBRL
+facts for each.
+
+**It is offline.** The facts are committed under `fixtures/public/filer-facts/`, trimmed to
+the dates each filing's statements are as of, because a tool that needed `data.sec.gov` would
+answer differently on a train and a test that needed it would fail for a reason that is not
+about the code. `--fetch` is the one networked path.
+
+**What it cannot see** is in its own docstring, because a measurement whose limits are not
+written down gets quoted as though it had none: `companyfacts` serves the *dimensionless*
+facts, so a figure tagged only against a segment or a share class is absent and is a figure
+this cannot speak about rather than one the reader got wrong. It compares figures and not
+words, so a label read wrongly is invisible. A right figure in the wrong row would pass.
+
+Two of my own, both caught by the harness. The summary closed with *"every figure matched a
+figure the filer reported at its own column's date"* while five had matched nothing, which is
+the kind of sentence that gets quoted. And the first draft had three answers where there are
+four, so the defect below was reported as *"no fact in this feed"* - a limitation of the data,
+reading as nobody's fault.
+
+## B-132 A figure not in the statement's unit carried the statement's scale
+status: fixed (P162)
+2026-10-03. Found by `tools/check_against_filer.py` on EDGAR's own workbook, where a figure
+matched the filer exactly and **only without the scale**:
+
+    Common stock, shares, issued (in shares)        135,361,000   in the cell
+    Common stock, par value (in dollars per share)        0.001    in the cell
+    ... and every dollar figure on the same sheet in thousands
+
+The scale is per *file* - `SourceFile.scale`, applied to every row of it - and
+`harness/procedures/ebitda_normalization.py:366`, `deliver/workpaper.py:178` and
+`harness/restate.py:89` each multiply a figure by its scale. So the share count is reported as
+**135 billion** and the par value as **$1.00**. Both are plausible numbers, which is exactly
+why nothing downstream catches either: the total still foots, the balance sheet still
+balances, and the figure cites a locator that resolves.
+
+**The statement says so itself.** ResMed's balance sheet is headed *(In US$ and in thousands,
+**except share and per share data**)*, and EDGAR writes the exception into each row's label.
+Reading that is not guessing - it is what `two_sides` does with the two labels a balance sheet
+writes and what `is_a_total` does with the word *total*.
+
+**The contract was built for this and had never been exercised.** `figure.schema.json` has
+carried `"unit": {"enum": [..., "shares"]}` since P02, allows a scale of 1, and *forbids* a
+currency code on anything that is not currency. The producer only ever wrote `"currency"`.
+
+**Calibrated over 2,373 rows** - every row carrying a figure on 108 pages of one filing, 124
+of another and every readable sheet of the workbook. 53 rows declare a unit, over 22 distinct
+labels, and every one of them is genuinely not in the statement's unit. The rule stops at a
+parenthetical, and the two looser rules are not merely weaker but **harmful in the other
+direction**:
+
+* adding `par value` and `shares issued` takes `Common stock, $0.001 par value, authorized
+  220,000 shares; shares issued 145,581 and`, whose figure is **146** - a real $146 thousand
+  - and declares it not currency, so the scale stops applying to a figure that needs it;
+* matching any mention of a share also costs `Taxes paid related to net-share settlement of
+  equity awards` (-1,025) and `Treasury stock, at cost, 46,798,043 shares at June 30, 2026`
+  (-2,778,591), both ordinary dollar amounts.
+
+The end-anchor came off for the same reason it went on - measurement. It missed four, and all
+four were real: `Beginning balance (in shares) at Dec. 31, 2023` declares its unit and then
+qualifies it with a date, and that is a share count of 133,619,000. Relaxing it over the same
+2,373 rows added exactly those four and nothing else.
+
+**It does not bite on a PDF**, which is why one document could not have found it: a typesetter
+keeps the share count inside the label and every figure in the column is a dollar amount. All
+53 declared rows are on the workbook - and a client's workbook looks far more like a workbook
+than like typesetting.
+
+**Rows that disagree keep the file's scale and say so**, on the trail. Summing a share count
+with a dollar amount is meaningless at any scale, so there is no right answer to pick; what
+there is is a fact somebody needs, and the figure stays as the file said so a disagreement
+cannot quietly change one.
+
+The known limit is recorded rather than left to be discovered: a row that is a share count and
+says so only in words is missed. `Entity Common Stock, Shares Outstanding` at 136,412,866 is
+the one such row in three filings, on a cover page rather than a statement.
+
+My third exit criterion was wrong and `gate amend` carries the correction: I expected the
+check to stop reporting those two rows, and it correctly goes on reporting them. It reads the
+readers' *rows*, which hold the cell value as the file wrote it, and the fix is at the
+**figure** built from them. And the harness found that every test called `_unit_of` directly,
+so breaking the **call site** in the figure assembly left all of them green - a unit rule with
+tests on the rule and none on the wire, which is this repository's most repeated defect wearing
+a new hat.

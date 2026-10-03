@@ -4658,6 +4658,58 @@
       ],
       "notes": "",
       "closed": "2026-10-03"
+    },
+    {
+      "id": "P161",
+      "title": "Checked against the filer's own numbers",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Make accuracy measurable rather than asserted, over more than one document. A tool that reads a filing, reads the filer's XBRL, and reports two directions: a figure the reader produced that the filer never reported, and the date each column's figures actually belong to. Plus the documents to run it on - a second real PDF from a different filer, and a workbook the regulator generated rather than one openpyxl wrote.",
+      "builds": [],
+      "tasks": [
+        "A tool that compares what the readers extract against the filer's XBRL facts, by date and by value",
+        "Say which of the three answers each figure got: tagged at this column's date, tagged at another, tagged nowhere",
+        "Add a second ARS PDF from a different filer, with its provenance recorded",
+        "Add EDGAR's own Financial_Report.xlsx, which is a workbook of real statements laid out by nobody here",
+        "Be honest about what the comparison cannot see: companyfacts serves dimensionless facts, so a figure tagged only against a segment is absent from it and is not a reader error"
+      ],
+      "exit": [
+        "The tool reports, for the filing already in fixtures, that every figure matches a fact at its own column's date",
+        "It runs on a second filer's PDF and on the regulator's workbook, and says what it found on each",
+        "A figure the reader gets wrong is reported, proved by giving the tool a figure that is wrong"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p161 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "P162",
+      "title": "A figure not in the statement's unit",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Read the unit the label declares, and do not apply the statement's scale to a row that is not in the statement's unit. Reading what a label says is not guessing - it is what two_sides does with the two labels a balance sheet writes - and leaving the scale on is not caution, it is a figure wrong by a factor of a thousand.",
+      "builds": [],
+      "tasks": [
+        "Carry the unit a row's own label declares, defaulting to the statement's own",
+        "Let the scale apply only where the unit is the statement's",
+        "Calibrate against every row of three real filings, so a row with no declared unit is unchanged",
+        "Say it where a person reads the rest of it",
+        "Correct the third exit criterion: the check goes on reporting those two rows, and what changed is the figure built from them"
+      ],
+      "exit": [
+        "A share count and a per-share amount keep their own value, and a dollar figure is unchanged",
+        "Over the three public filings no row that was currency stops being currency",
+        "The check that found this reports no row as right-at-another-scale once it is fixed"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p162 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
     }
   ],
   "checkpoints": [
@@ -5638,6 +5690,17 @@
       "proves": "The three arithmetic checks over a statement agree about the one document all three were measured on, each speaks only where its own figures are stated, and every one of them re-adds when its inputs are added again independently.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c89 -q"
+      ],
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "C90",
+      "title": "Accuracy, measured and acted on",
+      "after": "P162",
+      "status": "done",
+      "proves": "Every figure the readers extract off three real filings is a figure the filer reported at that column's own date, no row that was currency stopped being currency, and a row whose label declares another unit reaches a figure at its own scale rather than the statement's.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c90 -q"
       ],
       "closed": "2026-10-03"
     }

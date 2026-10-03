@@ -159,10 +159,18 @@ def timing_normalizer(
                     f"{first_sid[:19]}... has no settled scale; the period detector flagged it "
                     f"and it should have escalated before this tool ran"
                 )
+            # A statement states one scale for itself and then prints rows that are not in
+            # it. The filing says so - *in thousands, except share and per share data* - and
+            # a workbook writes the exception into each row's label. The file's scale is
+            # applied to every row of it, and three places downstream multiply a figure by
+            # its scale, so a share count of 135,361,000 on a statement in thousands was
+            # reported as 135 billion and a par value of $0.001 as $1.00. Both plausible,
+            # which is why nothing caught either.
+            unit, scale, why = _unit_of(hits, int(meta["scale"]))
             figure: dict[str, Any] = {
                 "value": value,
-                "unit": "currency",
-                "scale": int(meta["scale"]),
+                "unit": unit,
+                "scale": scale,
                 "period": {"type": period["type"], "end": period["end"]},
                 "source_id": first_sid,
                 "locator": locators[0],
@@ -173,7 +181,10 @@ def timing_normalizer(
                 "produced_by": PRODUCED_BY,
                 "model_pin": model_pin,
             }
-            if meta.get("currency"):
+            # `figure.schema.json` **forbids** a currency code on anything that is not a
+            # currency amount, which is the contract having been built for this since P02
+            # and never exercised.
+            if meta.get("currency") and unit == "currency":
                 figure["currency"] = str(meta["currency"])
             values.append(figure)
             trail.append(
@@ -182,6 +193,7 @@ def timing_normalizer(
                     "period_label": period_label,
                     "op": "sum",
                     "of": locators,
+                    **({"unit_declared_by_the_row": why} if why else {}),
                     "rows": [
                         {"locator": loc, "label": r["label"], "value": float(r["value"])}
                         for _, r, loc in hits
@@ -241,6 +253,40 @@ def timing_normalizer(
 
 
 # ------------------------------------------------------------------ periods
+
+
+
+def _unit_of(
+    hits: Sequence[tuple[Any, Mapping[str, Any], str]], file_scale: int
+) -> tuple[str, int, str]:
+    """The unit and scale for a figure, from the rows that summed into it.
+
+    A row whose own label declares its unit - `(in shares)`, `(in dollars per share)` - is
+    not in the statement's unit, and the statement's scale must not be applied to it.
+    Everything else keeps the file's scale, which is what the label saying nothing means.
+
+    **Rows that disagree keep the file's scale and say so.** Summing a share count with a
+    dollar amount is meaningless whichever scale is used, so there is no right answer to
+    pick - what there is is a fact somebody needs, and this returns it as the third value
+    rather than choosing. The figure stays as the file said, which is the behaviour that
+    was there before, so a disagreement cannot quietly change a figure.
+    """
+    from intake.readers.units import declared_unit  # noqa: PLC0415
+
+    declared = [(r.get("label", ""), declared_unit(str(r.get("label", "")))) for _, r, _ in hits]
+    said = {d.unit for _, d in declared if d is not None}
+    if not said:
+        return "currency", file_scale, ""
+    if len(said) > 1 or len(said) == 1 and any(d is None for _, d in declared):
+        names = sorted({str(label)[:40] for label, d in declared if d is not None})
+        return (
+            "currency",
+            file_scale,
+            f"rows disagree about their unit, so the file's scale of {file_scale:,} stands: "
+            + "; ".join(names[:3]),
+        )
+    only = next(d for _, d in declared if d is not None)
+    return only.unit, only.scale, f"{only.said} - the file's scale of {file_scale:,} does not apply"
 
 
 def _check_periods(periods: list[dict[str, Any]]) -> None:

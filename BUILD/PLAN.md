@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**160 of 160 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**162 of 162 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -257,6 +257,9 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C88 - Everything a client can send** | integration | Every format the routing table lists is read or refused by name, no reader lets a library exception out, every figure that reaches the parse store carries a locator that resolves, and a token that is not a number is reported rather than dropped or repaired. | 2026-10-03 |
 | [x] | **P160** The cash a statement rolls forward | auto | The filing's three columns each reconcile, and the check names the amount when one does not | 2026-10-03 |
 | [x] | **C89 - The three tie-outs, together** | integration | The three arithmetic checks over a statement agree about the one document all three were measured on, each speaks only where its own figures are stated, and every one of them re-adds when its inputs are added again independently. | 2026-10-03 |
+| [x] | **P161** Checked against the filer's own numbers | auto | The tool reports, for the filing already in fixtures, that every figure matches a fact at its own column's date | 2026-10-03 |
+| [x] | **P162** A figure not in the statement's unit | auto | A share count and a per-share amount keep their own value, and a dollar figure is unchanged | 2026-10-03 |
+| [x] | **C90 - Accuracy, measured and acted on** | integration | Every figure the readers extract off three real filings is a figure the filer reported at that column's own date, no row that was currency stopped being currency, and a row whose label declares another unit reaches a figure at its own scale rather than the statement's. | 2026-10-03 |
 
 ## A run that finishes
 

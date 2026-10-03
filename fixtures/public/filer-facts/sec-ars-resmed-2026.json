@@ -1,0 +1,2303 @@
+{
+ "what": "The filer's own figures, as tagged in XBRL and served by the SEC, trimmed to the dates this filing's statements are as of. Ground truth for tools/check_against_filer.py.",
+ "source": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000943819.json",
+ "entity": "ResMed Inc.",
+ "cik": "0000943819",
+ "accession": "0000943819-26-000084",
+ "retrieved": "2026-10-03",
+ "note": "The ARS for fiscal 2026, year ending 30 June. The balance sheet on page 79 is as of 2026-06-30 and 2025-06-30.",
+ "units_seen": [
+  "USD",
+  "USD/shares",
+  "pure",
+  "segment",
+  "shares"
+ ],
+ "caveat": "companyfacts serves the dimensionless facts. A figure tagged only against a segment, a product or a class is in the filing's own XBRL and not here, so a figure absent from this file is not necessarily a reader error - it is a figure this comparison cannot speak about.",
+ "at_date": {
+  "2024-06-30": {
+   "-251529000.0": [
+    "us-gaap:AccumulatedOtherComprehensiveIncomeLossNetOfTax|USD"
+   ],
+   "0.0": [
+    "us-gaap:AccruedIncomeTaxesNoncurrent|USD",
+    "us-gaap:IncomeTaxesReceivable|USD",
+    "us-gaap:PreferredStockSharesIssued|shares",
+    "us-gaap:PreferredStockSharesOutstanding|shares",
+    "us-gaap:PreferredStockValue|USD",
+    "us-gaap:RestructuringReserve|USD"
+   ],
+   "0.004": [
+    "us-gaap:CommonStockParOrStatedValuePerShare|USD/shares"
+   ],
+   "0.01": [
+    "us-gaap:PreferredStockParOrStatedValuePerShare|USD/shares"
+   ],
+   "0.035": [
+    "us-gaap:OperatingLeaseWeightedAverageDiscountRatePercent|pure"
+   ],
+   "100000.0": [
+    "us-gaap:DeferredFinanceCostsCurrentNet|USD"
+   ],
+   "1023088000.0": [
+    "us-gaap:PurchaseObligation|USD"
+   ],
+   "107517000.0": [
+    "us-gaap:AccruedIncomeTaxesCurrent|USD"
+   ],
+   "107623000.0": [
+    "us-gaap:PrepaidTaxes|USD"
+   ],
+   "1097696000.0": [
+    "us-gaap:LiabilitiesNoncurrent|USD"
+   ],
+   "113067000.0": [
+    "us-gaap:PurchaseObligationDueInSecondYear|USD"
+   ],
+   "11538000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseCompensationAndBenefitsShareBasedCompensationCost|USD"
+   ],
+   "12100000.0": [
+    "us-gaap:StockRepurchaseProgramRemainingNumberOfSharesAuthorizedToBeRepurchased|shares"
+   ],
+   "124230000.0": [
+    "us-gaap:DeferredTaxAssetsLiabilitiesNet|USD"
+   ],
+   "125411000.0": [
+    "us-gaap:DeferredTaxAssetsInProcessResearchAndDevelopment|USD"
+   ],
+   "1274992000.0": [
+    "us-gaap:PropertyPlantAndEquipmentGross|USD"
+   ],
+   "136.06": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisableWeightedAverageExercisePrice|USD/shares"
+   ],
+   "137343000.0": [
+    "us-gaap:ContractWithCustomerLiabilityNoncurrent|USD"
+   ],
+   "141444000.0": [
+    "us-gaap:OperatingLeaseLiabilityNoncurrent|USD"
+   ],
+   "141829000.0": [
+    "us-gaap:OtherAssetsCurrent|USD"
+   ],
+   "142400000.0": [
+    "us-gaap:EmployeeServiceShareBasedCompensationNonvestedAwardsTotalCompensationCostNotYetRecognized|USD"
+   ],
+   "146.52": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestOutstandingWeightedAverageExercisePrice|USD/shares"
+   ],
+   "146.9": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingWeightedAverageExercisePrice|USD/shares"
+   ],
+   "146901045.0": [
+    "us-gaap:CommonStockSharesOutstanding|shares"
+   ],
+   "151121000.0": [
+    "us-gaap:OperatingLeaseRightOfUseAsset|USD"
+   ],
+   "152554000.0": [
+    "us-gaap:ContractWithCustomerLiabilityCurrent|USD"
+   ],
+   "15602000.0": [
+    "us-gaap:DeferredTaxAssetsInventory|USD"
+   ],
+   "166722000.0": [
+    "us-gaap:OperatingLeaseLiability|USD"
+   ],
+   "1675000.0": [
+    "us-gaap:PurchaseObligationDueInFifthYear|USD"
+   ],
+   "1773267000.0": [
+    "us-gaap:TreasuryStockCommonValue|USD"
+   ],
+   "180012000.0": [
+    "us-gaap:OtherAssetsCurrent|USD"
+   ],
+   "18599000.0": [
+    "us-gaap:OtherAccruedLiabilitiesCurrent|USD"
+   ],
+   "189565112.0": [
+    "us-gaap:CommonStockSharesIssued|shares"
+   ],
+   "1896604000.0": [
+    "us-gaap:AdditionalPaidInCapitalCommonStock|USD"
+   ],
+   "19089000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearFive|USD"
+   ],
+   "192398000.0": [
+    "us-gaap:DeferredTaxLiabilitiesGoodwillAndIntangibleAssets|USD"
+   ],
+   "197933000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDue|USD"
+   ],
+   "2000000.0": [
+    "us-gaap:PreferredStockSharesAuthorized|shares"
+   ],
+   "2008351000.0": [
+    "us-gaap:Liabilities|USD"
+   ],
+   "203569000.0": [
+    "us-gaap:DeferredIncomeTaxesAndOtherAssetsNoncurrent|USD"
+   ],
+   "20454000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearFour|USD"
+   ],
+   "21132000.0": [
+    "us-gaap:AllowanceForDoubtfulAccountsReceivableCurrent|USD"
+   ],
+   "223098000.0": [
+    "us-gaap:DeferredTaxLiabilities|USD"
+   ],
+   "223862000.0": [
+    "us-gaap:EmployeeRelatedLiabilitiesCurrent|USD"
+   ],
+   "22570000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearThree|USD"
+   ],
+   "23455000.0": [
+    "us-gaap:DeferredTaxAssetsOperatingLossCarryforwards|USD"
+   ],
+   "2357719000.0": [
+    "us-gaap:AssetsCurrent|USD"
+   ],
+   "237728000.0": [
+    "us-gaap:AccountsPayableCurrent|USD"
+   ],
+   "238361000.0": [
+    "us-gaap:CashAndCashEquivalentsAtCarryingValue|USD",
+    "us-gaap:CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|USD"
+   ],
+   "24125000.0": [
+    "us-gaap:PurchaseObligationDueInThirdYear|USD"
+   ],
+   "2432000.0": [
+    "us-gaap:DerivativeAssets|USD"
+   ],
+   "25278000.0": [
+    "us-gaap:OperatingLeaseLiabilityCurrent|USD"
+   ],
+   "26247000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearTwo|USD"
+   ],
+   "2687000.0": [
+    "us-gaap:DeferredFinanceCostsNoncurrentNet|USD"
+   ],
+   "27016000.0": [
+    "us-gaap:TaxesPayableCurrent|USD"
+   ],
+   "2713000.0": [
+    "us-gaap:InventoryWorkInProcessNetOfReserves|USD"
+   ],
+   "27143000.0": [
+    "us-gaap:AccruedProfessionalFeesCurrent|USD"
+   ],
+   "28030000.0": [
+    "us-gaap:DeferredTaxAssetsDeferredIncome|USD"
+   ],
+   "284001000.0": [
+    "us-gaap:OtherAssetsNoncurrent|USD"
+   ],
+   "2842055000.0": [
+    "us-gaap:Goodwill|USD"
+   ],
+   "30767000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths|USD"
+   ],
+   "31211000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityUndiscountedExcessAmount|USD"
+   ],
+   "347328000.0": [
+    "us-gaap:DeferredTaxAssetsNet|USD"
+   ],
+   "350000000.0": [
+    "us-gaap:CommonStockSharesAuthorized|shares"
+   ],
+   "35080000.0": [
+    "us-gaap:PurchaseObligationDueAfterFifthYear|USD"
+   ],
+   "35134000.0": [
+    "us-gaap:ProductWarrantyAccrualClassifiedCurrent|USD"
+   ],
+   "35336000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseCompensationAndBenefits|USD"
+   ],
+   "355570000.0": [
+    "us-gaap:InventoryRawMaterialsNetOfReserves|USD"
+   ],
+   "3566000.0": [
+    "us-gaap:DeferredTaxAssetsStateTaxes|USD"
+   ],
+   "356712000.0": [
+    "us-gaap:DeferredTaxAssetsGross|USD"
+   ],
+   "35800000.0": [
+    "us-gaap:LossContingencyEstimateOfPossibleLoss|USD"
+   ],
+   "36538000.0": [
+    "us-gaap:DerivativeLiabilities|USD"
+   ],
+   "3709000.0": [
+    "us-gaap:PurchaseObligationDueInFourthYear|USD"
+   ],
+   "377678000.0": [
+    "us-gaap:AccruedLiabilitiesCurrent|USD"
+   ],
+   "38183000.0": [
+    "us-gaap:ContractWithCustomerAssetNetCurrent|USD"
+   ],
+   "39800000.0": [
+    "us-gaap:SharebasedCompensationArrangementBySharebasedPaymentAwardOptionsExercisableIntrinsicValue1|USD"
+   ],
+   "4100000000.0": [
+    "us-gaap:UndistributedEarningsOfForeignSubsidiaries|USD"
+   ],
+   "42257000.0": [
+    "us-gaap:OtherLiabilitiesNoncurrent|USD"
+   ],
+   "42664067.0": [
+    "us-gaap:TreasuryStockCommonShares|shares"
+   ],
+   "42700000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestExercisableAggregateIntrinsicValue|USD"
+   ],
+   "42900000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingIntrinsicValue|USD"
+   ],
+   "43492000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearFive|USD"
+   ],
+   "4514675000.0": [
+    "us-gaap:AssetsNoncurrent|USD"
+   ],
+   "459833000.0": [
+    "us-gaap:PrepaidExpenseAndOtherAssetsCurrent|USD"
+   ],
+   "463967000.0": [
+    "us-gaap:InventoryFinishedGoodsNetOfReserves|USD"
+   ],
+   "4654000.0": [
+    "us-gaap:DerivativeLiabilitiesCurrent|USD"
+   ],
+   "485904000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsNet|USD"
+   ],
+   "4864043000.0": [
+    "us-gaap:StockholdersEquity|USD"
+   ],
+   "49431000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearFour|USD"
+   ],
+   "4991647000.0": [
+    "us-gaap:RetainedEarningsAccumulatedDeficit|USD"
+   ],
+   "5340000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsAllowanceForDoubtfulAccounts|USD"
+   ],
+   "548025000.0": [
+    "us-gaap:NoncurrentAssets|USD",
+    "us-gaap:PropertyPlantAndEquipmentNet|USD"
+   ],
+   "5538000.0": [
+    "us-gaap:DeferredTaxAssetsOther|USD"
+   ],
+   "5587000.0": [
+    "us-gaap:DeferredTaxAssetsCapitalLossCarryforwards|USD"
+   ],
+   "56324000.0": [
+    "us-gaap:DeferredTaxAssetsDerivativeInstruments|USD"
+   ],
+   "58023000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearThree|USD"
+   ],
+   "588000.0": [
+    "us-gaap:CommonStockValueOutstanding|USD"
+   ],
+   "6023000.0": [
+    "us-gaap:AccruedMarketingCostsCurrent|USD"
+   ],
+   "6112000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsWarrantyReserves|USD"
+   ],
+   "633000.0": [
+    "us-gaap:ShareBasedCompensationSharesAuthorizedUnderStockOptionPlansExercisePriceRangeNumberOfExercisableOptions|shares"
+   ],
+   "65462000.0": [
+    "us-gaap:EquityMethodInvestments|USD"
+   ],
+   "6872394000.0": [
+    "us-gaap:Assets|USD",
+    "us-gaap:LiabilitiesAndStockholdersEquity|USD"
+   ],
+   "697313000.0": [
+    "us-gaap:LongTermDebt|USD"
+   ],
+   "700000000.0": [
+    "us-gaap:DebtInstrumentCarryingAmount|USD"
+   ],
+   "707213000.0": [
+    "us-gaap:DebtLongtermAndShorttermCombinedAmount|USD"
+   ],
+   "726967000.0": [
+    "us-gaap:AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment|USD"
+   ],
+   "73739000.0": [
+    "us-gaap:EquitySecuritiesWithoutReadilyDeterminableFairValueAmount|USD"
+   ],
+   "76847000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearTwo|USD"
+   ],
+   "778000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestOutstandingNumber|shares"
+   ],
+   "7857000.0": [
+    "us-gaap:DeferredTaxLiabilitiesPropertyPlantAndEquipment|USD"
+   ],
+   "786000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingNumber|shares"
+   ],
+   "78806000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueAfterYearFive|USD"
+   ],
+   "79339000.0": [
+    "us-gaap:DeferredIncomeTaxesAndOtherTaxLiabilitiesNoncurrent|USD"
+   ],
+   "800000.0": [
+    "us-gaap:LossContingencyAccrualAtCarryingValue|USD"
+   ],
+   "81975000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseNextTwelveMonths|USD"
+   ],
+   "822250000.0": [
+    "us-gaap:InventoryNet|USD"
+   ],
+   "837275000.0": [
+    "us-gaap:AccountsReceivableNetCurrent|USD"
+   ],
+   "845432000.0": [
+    "us-gaap:PurchaseObligationDueInNextTwelveMonths|USD"
+   ],
+   "910655000.0": [
+    "us-gaap:LiabilitiesCurrent|USD"
+   ],
+   "9206000.0": [
+    "us-gaap:InterestPayableCurrent|USD"
+   ],
+   "9271000.0": [
+    "us-gaap:DeferredTaxAssetsTaxCreditCarryforwards|USD"
+   ],
+   "9384000.0": [
+    "us-gaap:DeferredTaxAssetsValuationAllowance|USD"
+   ],
+   "9900000.0": [
+    "us-gaap:ShortTermBorrowings|USD"
+   ]
+  },
+  "2025-06-30": {
+   "-74699000.0": [
+    "us-gaap:AccumulatedOtherComprehensiveIncomeLossNetOfTax|USD"
+   ],
+   "0.0": [
+    "us-gaap:AccruedIncomeTaxesNoncurrent|USD",
+    "us-gaap:AssetsOfDisposalGroupIncludingDiscontinuedOperation|USD",
+    "us-gaap:DeferredTaxAssetsPropertyPlantAndEquipment|USD",
+    "us-gaap:LiabilitiesOfDisposalGroupIncludingDiscontinuedOperationCurrent|USD",
+    "us-gaap:PreferredStockSharesIssued|shares",
+    "us-gaap:PreferredStockSharesOutstanding|shares",
+    "us-gaap:PreferredStockValue|USD"
+   ],
+   "0.004": [
+    "us-gaap:CommonStockParOrStatedValuePerShare|USD/shares"
+   ],
+   "0.01": [
+    "us-gaap:PreferredStockParOrStatedValuePerShare|USD/shares"
+   ],
+   "0.037": [
+    "us-gaap:OperatingLeaseWeightedAverageDiscountRatePercent|pure"
+   ],
+   "100000.0": [
+    "us-gaap:DeferredFinanceCostsCurrentNet|USD"
+   ],
+   "1000000.0": [
+    "us-gaap:LossContingencyAccrualAtCarryingValue|USD"
+   ],
+   "1019120000.0": [
+    "us-gaap:LiabilitiesCurrent|USD"
+   ],
+   "10800000.0": [
+    "us-gaap:StockRepurchaseProgramRemainingNumberOfSharesAuthorizedToBeRepurchased|shares"
+   ],
+   "1187412000.0": [
+    "us-gaap:LiabilitiesNoncurrent|USD"
+   ],
+   "1209450000.0": [
+    "us-gaap:CashAndCashEquivalentsAtCarryingValue|USD",
+    "us-gaap:CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|USD"
+   ],
+   "1256098000.0": [
+    "us-gaap:PropertyPlantAndEquipmentGross|USD"
+   ],
+   "12752000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseCompensationAndBenefitsShareBasedCompensationCost|USD"
+   ],
+   "12919000.0": [
+    "us-gaap:OtherAccruedLiabilitiesCurrent|USD"
+   ],
+   "132043000.0": [
+    "us-gaap:DeferredTaxAssetsInProcessResearchAndDevelopment|USD"
+   ],
+   "132274000.0": [
+    "us-gaap:AccruedIncomeTaxesCurrent|USD"
+   ],
+   "132824000.0": [
+    "us-gaap:DerivativeLiabilities|USD"
+   ],
+   "1385000.0": [
+    "us-gaap:PurchaseObligationDueAfterFifthYear|USD"
+   ],
+   "141520000.0": [
+    "us-gaap:OtherLiabilitiesNoncurrent|USD"
+   ],
+   "14408000.0": [
+    "us-gaap:DeferredTaxAssetsOperatingLossCarryforwards|USD"
+   ],
+   "146385350.0": [
+    "us-gaap:CommonStockSharesOutstanding|shares"
+   ],
+   "153015000.0": [
+    "us-gaap:OperatingLeaseLiabilityNoncurrent|USD"
+   ],
+   "156803000.0": [
+    "us-gaap:ContractWithCustomerLiabilityNoncurrent|USD"
+   ],
+   "1577000.0": [
+    "us-gaap:DeferredTaxAssetsTaxCreditCarryforwards|USD"
+   ],
+   "1608000.0": [
+    "us-gaap:DeferredFinanceCostsNoncurrentNet|USD"
+   ],
+   "163800000.0": [
+    "us-gaap:EmployeeServiceShareBasedCompensationNonvestedAwardsTotalCompensationCostNotYetRecognized|USD"
+   ],
+   "164498000.0": [
+    "us-gaap:OtherAssetsCurrent|USD"
+   ],
+   "165034000.0": [
+    "us-gaap:PrepaidTaxes|USD"
+   ],
+   "166030000.0": [
+    "us-gaap:ContractWithCustomerLiabilityCurrent|USD"
+   ],
+   "167497000.0": [
+    "us-gaap:OperatingLeaseRightOfUseAsset|USD"
+   ],
+   "169.87": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisableWeightedAverageExercisePrice|USD/shares"
+   ],
+   "175.35": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestOutstandingWeightedAverageExercisePrice|USD/shares"
+   ],
+   "175.61": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingWeightedAverageExercisePrice|USD/shares"
+   ],
+   "175437000.0": [
+    "us-gaap:DeferredTaxAssetsLiabilitiesNet|USD"
+   ],
+   "183521000.0": [
+    "us-gaap:OperatingLeaseLiability|USD"
+   ],
+   "18527000.0": [
+    "us-gaap:DeferredTaxAssetsOther|USD"
+   ],
+   "185839000.0": [
+    "us-gaap:OtherAssetsNoncurrent|USD"
+   ],
+   "190311097.0": [
+    "us-gaap:CommonStockSharesIssued|shares"
+   ],
+   "19056000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearFive|USD"
+   ],
+   "196698000.0": [
+    "us-gaap:DeferredTaxLiabilitiesGoodwillAndIntangibleAssets|USD"
+   ],
+   "2000000.0": [
+    "us-gaap:PreferredStockSharesAuthorized|shares"
+   ],
+   "2033599000.0": [
+    "us-gaap:AdditionalPaidInCapitalCommonStock|USD"
+   ],
+   "20523000.0": [
+    "us-gaap:DeferredTaxAssetsInventory|USD"
+   ],
+   "2073292000.0": [
+    "us-gaap:TreasuryStockCommonValue|USD"
+   ],
+   "2154000.0": [
+    "us-gaap:PurchaseObligationDueInFifthYear|USD"
+   ],
+   "216318000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDue|USD"
+   ],
+   "219839000.0": [
+    "us-gaap:DeferredTaxLiabilities|USD"
+   ],
+   "2206532000.0": [
+    "us-gaap:Liabilities|USD"
+   ],
+   "22424000.0": [
+    "us-gaap:AllowanceForDoubtfulAccountsReceivableCurrent|USD"
+   ],
+   "22566000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearFour|USD"
+   ],
+   "2339000.0": [
+    "us-gaap:PurchaseObligationDueInFourthYear|USD"
+   ],
+   "235450000.0": [
+    "us-gaap:EmployeeRelatedLiabilitiesCurrent|USD"
+   ],
+   "24367000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearThree|USD"
+   ],
+   "253119000.0": [
+    "us-gaap:DeferredIncomeTaxesAndOtherAssetsNoncurrent|USD"
+   ],
+   "2550000.0": [
+    "us-gaap:InventoryWorkInProcessNetOfReserves|USD"
+   ],
+   "26090000.0": [
+    "us-gaap:PurchaseObligationDueInSecondYear|USD"
+   ],
+   "2695000.0": [
+    "us-gaap:DerivativeLiabilitiesCurrent|USD"
+   ],
+   "27454000.0": [
+    "us-gaap:DeferredTaxAssetsCapitalLossCarryforwards|USD"
+   ],
+   "278157000.0": [
+    "us-gaap:AccountsPayableCurrent|USD"
+   ],
+   "2883000.0": [
+    "us-gaap:DeferredTaxAssetsStateTaxes|USD"
+   ],
+   "30072000.0": [
+    "us-gaap:DeferredTaxAssetsValuationAllowance|USD"
+   ],
+   "30216000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearTwo|USD"
+   ],
+   "3046680000.0": [
+    "us-gaap:Goodwill|USD"
+   ],
+   "30506000.0": [
+    "us-gaap:OperatingLeaseLiabilityCurrent|USD"
+   ],
+   "31289000.0": [
+    "us-gaap:DeferredTaxAssetsDeferredIncome|USD"
+   ],
+   "32797000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityUndiscountedExcessAmount|USD"
+   ],
+   "34000000.0": [
+    "us-gaap:LossContingencyEstimateOfPossibleLoss|USD"
+   ],
+   "34100000.0": [
+    "us-gaap:LossContingencyEstimateOfPossibleLoss|USD"
+   ],
+   "350000000.0": [
+    "us-gaap:CommonStockSharesAuthorized|shares"
+   ],
+   "3505605000.0": [
+    "us-gaap:AssetsCurrent|USD"
+   ],
+   "35584000.0": [
+    "us-gaap:TaxesPayableCurrent|USD"
+   ],
+   "36501000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths|USD"
+   ],
+   "367284000.0": [
+    "us-gaap:InventoryRawMaterialsNetOfReserves|USD"
+   ],
+   "36800000.0": [
+    "us-gaap:SharebasedCompensationArrangementBySharebasedPaymentAwardOptionsExercisableIntrinsicValue1|USD"
+   ],
+   "37189000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseCompensationAndBenefits|USD"
+   ],
+   "37230000.0": [
+    "us-gaap:ProductWarrantyAccrualClassifiedCurrent|USD"
+   ],
+   "395276000.0": [
+    "us-gaap:DeferredTaxAssetsNet|USD"
+   ],
+   "402253000.0": [
+    "us-gaap:AccruedLiabilitiesCurrent|USD"
+   ],
+   "40297000.0": [
+    "us-gaap:AccruedProfessionalFeesCurrent|USD"
+   ],
+   "415000.0": [
+    "us-gaap:ShareBasedCompensationSharesAuthorizedUnderStockOptionPlansExercisePriceRangeNumberOfExercisableOptions|shares"
+   ],
+   "42500000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestExercisableAggregateIntrinsicValue|USD"
+   ],
+   "425348000.0": [
+    "us-gaap:DeferredTaxAssetsGross|USD"
+   ],
+   "42800000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingIntrinsicValue|USD"
+   ],
+   "428952000.0": [
+    "us-gaap:PrepaidExpenseAndOtherAssetsCurrent|USD"
+   ],
+   "43925747.0": [
+    "us-gaap:TreasuryStockCommonShares|shares"
+   ],
+   "4430000.0": [
+    "us-gaap:PurchaseObligationDueInThirdYear|USD"
+   ],
+   "45795000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearFive|USD"
+   ],
+   "464861000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsNet|USD"
+   ],
+   "4650000.0": [
+    "us-gaap:DeferredTaxLiabilitiesPropertyPlantAndEquipment|USD"
+   ],
+   "4668786000.0": [
+    "us-gaap:AssetsNoncurrent|USD"
+   ],
+   "4700000000.0": [
+    "us-gaap:UndistributedEarningsOfForeignSubsidiaries|USD"
+   ],
+   "4942000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsAllowanceForDoubtfulAccounts|USD"
+   ],
+   "50983000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearFour|USD"
+   ],
+   "51175000.0": [
+    "us-gaap:ContractWithCustomerAssetNetCurrent|USD"
+   ],
+   "512000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestOutstandingNumber|shares"
+   ],
+   "517000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingNumber|shares"
+   ],
+   "550790000.0": [
+    "us-gaap:NoncurrentAssets|USD",
+    "us-gaap:PropertyPlantAndEquipmentNet|USD"
+   ],
+   "557877000.0": [
+    "us-gaap:InventoryFinishedGoodsNetOfReserves|USD"
+   ],
+   "57248000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearThree|USD"
+   ],
+   "5967859000.0": [
+    "us-gaap:StockholdersEquity|USD"
+   ],
+   "5997000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsWarrantyReserves|USD"
+   ],
+   "6081490000.0": [
+    "us-gaap:RetainedEarningsAccumulatedDeficit|USD"
+   ],
+   "63642000.0": [
+    "us-gaap:EquitySecuritiesWithoutReadilyDeterminableFairValueAmount|USD"
+   ],
+   "658392000.0": [
+    "us-gaap:LongTermDebt|USD"
+   ],
+   "65853000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearTwo|USD"
+   ],
+   "660000000.0": [
+    "us-gaap:DebtInstrumentCarryingAmount|USD"
+   ],
+   "668292000.0": [
+    "us-gaap:DebtLongtermAndShorttermCombinedAmount|USD"
+   ],
+   "6810000.0": [
+    "us-gaap:DerivativeAssets|USD"
+   ],
+   "700000.0": [
+    "us-gaap:LossContingencyAccrualAtCarryingValue|USD"
+   ],
+   "705308000.0": [
+    "us-gaap:AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment|USD"
+   ],
+   "718287000.0": [
+    "us-gaap:NoncurrentAssets|USD"
+   ],
+   "761000.0": [
+    "us-gaap:CommonStockValueOutstanding|USD"
+   ],
+   "76178000.0": [
+    "us-gaap:EquityMethodInvestments|USD"
+   ],
+   "77682000.0": [
+    "us-gaap:DeferredIncomeTaxesAndOtherTaxLiabilitiesNoncurrent|USD"
+   ],
+   "8106000.0": [
+    "us-gaap:OtherAccruedLiabilitiesCurrent|USD"
+   ],
+   "8174391000.0": [
+    "us-gaap:Assets|USD",
+    "us-gaap:LiabilitiesAndStockholdersEquity|USD"
+   ],
+   "83612000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueAfterYearFive|USD"
+   ],
+   "84859000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseNextTwelveMonths|USD"
+   ],
+   "8642000.0": [
+    "us-gaap:InterestPayableCurrent|USD"
+   ],
+   "927365000.0": [
+    "us-gaap:PurchaseObligationDueInNextTwelveMonths|USD"
+   ],
+   "927711000.0": [
+    "us-gaap:InventoryNet|USD"
+   ],
+   "9391000.0": [
+    "us-gaap:AccruedMarketingCostsCurrent|USD"
+   ],
+   "939492000.0": [
+    "us-gaap:AccountsReceivableNetCurrent|USD"
+   ],
+   "94626000.0": [
+    "us-gaap:DeferredTaxAssetsDerivativeInstruments|USD"
+   ],
+   "963763000.0": [
+    "us-gaap:PurchaseObligation|USD"
+   ],
+   "9900000.0": [
+    "us-gaap:ShortTermBorrowings|USD"
+   ]
+  },
+  "2026-06-30": {
+   "-82515000.0": [
+    "us-gaap:AccumulatedOtherComprehensiveIncomeLossNetOfTax|USD"
+   ],
+   "0.0": [
+    "us-gaap:DeferredTaxLiabilitiesPropertyPlantAndEquipment|USD",
+    "us-gaap:PreferredStockSharesIssued|shares",
+    "us-gaap:PreferredStockSharesOutstanding|shares",
+    "us-gaap:PreferredStockValue|USD",
+    "us-gaap:PurchaseObligationDueAfterFifthYear|USD"
+   ],
+   "0.004": [
+    "us-gaap:CommonStockParOrStatedValuePerShare|USD/shares"
+   ],
+   "0.01": [
+    "us-gaap:PreferredStockParOrStatedValuePerShare|USD/shares"
+   ],
+   "0.039": [
+    "us-gaap:OperatingLeaseWeightedAverageDiscountRatePercent|pure"
+   ],
+   "1000000.0": [
+    "us-gaap:LossContingencyAccrualAtCarryingValue|USD",
+    "us-gaap:RestructuringReserve|USD"
+   ],
+   "1036233000.0": [
+    "us-gaap:AccountsReceivableNetCurrent|USD"
+   ],
+   "10739000.0": [
+    "us-gaap:OtherAccruedLiabilitiesCurrent|USD"
+   ],
+   "1172524000.0": [
+    "us-gaap:PurchaseObligation|USD"
+   ],
+   "13081000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseCompensationAndBenefitsShareBasedCompensationCost|USD"
+   ],
+   "1332825000.0": [
+    "us-gaap:PropertyPlantAndEquipmentGross|USD"
+   ],
+   "137413000.0": [
+    "us-gaap:OperatingLeaseLiabilityNoncurrent|USD"
+   ],
+   "1395110000.0": [
+    "us-gaap:LiabilitiesCurrent|USD"
+   ],
+   "144239563.0": [
+    "us-gaap:CommonStockSharesOutstanding|shares"
+   ],
+   "1469234000.0": [
+    "us-gaap:CashAndCashEquivalentsAtCarryingValue|USD",
+    "us-gaap:CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|USD"
+   ],
+   "14804000.0": [
+    "us-gaap:AccruedMarketingCostsCurrent|USD"
+   ],
+   "153167000.0": [
+    "us-gaap:OperatingLeaseRightOfUseAsset|USD"
+   ],
+   "154826000.0": [
+    "us-gaap:PrepaidTaxes|USD"
+   ],
+   "162911000.0": [
+    "us-gaap:ContractWithCustomerLiabilityCurrent|USD"
+   ],
+   "16642000.0": [
+    "us-gaap:DerivativeLiabilitiesCurrent|USD"
+   ],
+   "166554000.0": [
+    "us-gaap:OperatingLeaseLiability|USD"
+   ],
+   "170951000.0": [
+    "us-gaap:ContractWithCustomerLiabilityNoncurrent|USD"
+   ],
+   "177000000.0": [
+    "us-gaap:EmployeeServiceShareBasedCompensationNonvestedAwardsTotalCompensationCostNotYetRecognized|USD"
+   ],
+   "18182000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearFive|USD"
+   ],
+   "185011000.0": [
+    "us-gaap:DeferredTaxAssetsDerivativeInstruments|USD"
+   ],
+   "185357000.0": [
+    "us-gaap:OtherAssetsCurrent|USD"
+   ],
+   "191037523.0": [
+    "us-gaap:CommonStockSharesIssued|shares"
+   ],
+   "197078000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDue|USD"
+   ],
+   "19895000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearFour|USD"
+   ],
+   "19906000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsWarrantyReserves|USD"
+   ],
+   "2000000.0": [
+    "us-gaap:PreferredStockSharesAuthorized|shares"
+   ],
+   "201.27": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisableWeightedAverageExercisePrice|USD/shares"
+   ],
+   "205.65": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestOutstandingWeightedAverageExercisePrice|USD/shares"
+   ],
+   "206.02": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingWeightedAverageExercisePrice|USD/shares"
+   ],
+   "21295000.0": [
+    "us-gaap:PurchaseObligationDueInFifthYear|USD"
+   ],
+   "213028000.0": [
+    "us-gaap:OtherLiabilitiesNoncurrent|USD"
+   ],
+   "214649000.0": [
+    "us-gaap:OtherAssetsNoncurrent|USD"
+   ],
+   "217807000.0": [
+    "us-gaap:DerivativeLiabilities|USD"
+   ],
+   "2190614000.0": [
+    "us-gaap:AdditionalPaidInCapitalCommonStock|USD"
+   ],
+   "226558000.0": [
+    "us-gaap:DeferredTaxLiabilitiesGoodwillAndIntangibleAssets|USD"
+   ],
+   "22898000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearThree|USD"
+   ],
+   "2380557000.0": [
+    "us-gaap:Liabilities|USD"
+   ],
+   "24095000.0": [
+    "us-gaap:DeferredTaxAssetsInventory|USD"
+   ],
+   "242933000.0": [
+    "us-gaap:DeferredTaxLiabilities|USD"
+   ],
+   "247944000.0": [
+    "us-gaap:EmployeeRelatedLiabilitiesCurrent|USD"
+   ],
+   "25533000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueYearTwo|USD"
+   ],
+   "25839000.0": [
+    "us-gaap:AllowanceForDoubtfulAccountsReceivableCurrent|USD"
+   ],
+   "259950000.0": [
+    "us-gaap:ShortTermBorrowings|USD"
+   ],
+   "2648000.0": [
+    "us-gaap:InventoryWorkInProcessNetOfReserves|USD"
+   ],
+   "265000.0": [
+    "us-gaap:ShareBasedCompensationSharesAuthorizedUnderStockOptionPlansExercisePriceRangeNumberOfExercisableOptions|shares"
+   ],
+   "26565000.0": [
+    "us-gaap:DeferredTaxAssetsOther|USD"
+   ],
+   "268531000.0": [
+    "us-gaap:DeferredTaxAssetsLiabilitiesNet|USD"
+   ],
+   "2778591000.0": [
+    "us-gaap:TreasuryStockCommonValue|USD"
+   ],
+   "2909575000.0": [
+    "us-gaap:Goodwill|USD"
+   ],
+   "29141000.0": [
+    "us-gaap:OperatingLeaseLiabilityCurrent|USD"
+   ],
+   "2997000.0": [
+    "us-gaap:DeferredTaxAssetsTaxCreditCarryforwards|USD"
+   ],
+   "30524000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityUndiscountedExcessAmount|USD"
+   ],
+   "308923000.0": [
+    "us-gaap:AccountsPayableCurrent|USD"
+   ],
+   "329254000.0": [
+    "us-gaap:DeferredIncomeTaxesAndOtherAssetsNoncurrent|USD"
+   ],
+   "33412000.0": [
+    "us-gaap:DeferredTaxAssetsDeferredIncome|USD"
+   ],
+   "34000000.0": [
+    "us-gaap:LossContingencyEstimateOfPossibleLoss|USD"
+   ],
+   "342000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestOutstandingNumber|shares"
+   ],
+   "346000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingNumber|shares"
+   ],
+   "34884000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueNextTwelveMonths|USD"
+   ],
+   "350000000.0": [
+    "us-gaap:CommonStockSharesAuthorized|shares"
+   ],
+   "36000000.0": [
+    "us-gaap:UnrecordedUnconditionalPurchaseObligationBalanceSheetAmount|USD"
+   ],
+   "36445000.0": [
+    "us-gaap:DeferredTaxAssetsOperatingLossCarryforwards|USD"
+   ],
+   "38222000.0": [
+    "us-gaap:DeferredTaxAssetsCapitalLossCarryforwards|USD"
+   ],
+   "38979000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseCompensationAndBenefits|USD"
+   ],
+   "396122000.0": [
+    "us-gaap:InventoryRawMaterialsNetOfReserves|USD"
+   ],
+   "39710000.0": [
+    "us-gaap:ProductWarrantyAccrualClassifiedCurrent|USD"
+   ],
+   "399415000.0": [
+    "us-gaap:LongTermDebt|USD"
+   ],
+   "400000000.0": [
+    "us-gaap:DebtInstrumentCarryingAmount|USD"
+   ],
+   "40566000.0": [
+    "us-gaap:TaxesPayableCurrent|USD"
+   ],
+   "4080000.0": [
+    "us-gaap:DeferredTaxAssetsStateTaxes|USD"
+   ],
+   "41118000.0": [
+    "us-gaap:DeferredTaxAssetsValuationAllowance|USD"
+   ],
+   "41156000.0": [
+    "us-gaap:LiabilitiesOfDisposalGroupIncludingDiscontinuedOperationCurrent|USD"
+   ],
+   "416081000.0": [
+    "us-gaap:PrepaidExpenseAndOtherAssetsCurrent|USD"
+   ],
+   "42054000.0": [
+    "us-gaap:AccruedProfessionalFeesCurrent|USD"
+   ],
+   "4324739000.0": [
+    "us-gaap:AssetsCurrent|USD"
+   ],
+   "4519000.0": [
+    "us-gaap:DeferredTaxAssetsPropertyPlantAndEquipment|USD"
+   ],
+   "452737000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsNet|USD"
+   ],
+   "457386000.0": [
+    "us-gaap:AssetsOfDisposalGroupIncludingDiscontinuedOperation|USD"
+   ],
+   "4641211000.0": [
+    "us-gaap:AssetsNoncurrent|USD"
+   ],
+   "46798043.0": [
+    "us-gaap:TreasuryStockCommonShares|shares"
+   ],
+   "48268000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearFive|USD"
+   ],
+   "48720000.0": [
+    "us-gaap:ContractWithCustomerAssetNetCurrent|USD"
+   ],
+   "49446000.0": [
+    "us-gaap:PurchaseObligationDueInThirdYear|USD"
+   ],
+   "494921000.0": [
+    "us-gaap:AccruedLiabilitiesCurrent|USD"
+   ],
+   "50000.0": [
+    "us-gaap:DeferredFinanceCostsCurrentNet|USD"
+   ],
+   "5000000.0": [
+    "us-gaap:SharebasedCompensationArrangementBySharebasedPaymentAwardOptionsExercisableIntrinsicValue1|USD"
+   ],
+   "50611000.0": [
+    "us-gaap:PurchaseObligationDueInFourthYear|USD"
+   ],
+   "511464000.0": [
+    "us-gaap:DeferredTaxAssetsNet|USD"
+   ],
+   "51432000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearFour|USD"
+   ],
+   "5217000.0": [
+    "us-gaap:DerivativeAssets|USD"
+   ],
+   "547035000.0": [
+    "us-gaap:InventoryFinishedGoodsNetOfReserves|USD"
+   ],
+   "552582000.0": [
+    "us-gaap:DeferredTaxAssetsGross|USD"
+   ],
+   "56483000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearThree|USD"
+   ],
+   "581829000.0": [
+    "us-gaap:PropertyPlantAndEquipmentNet|USD"
+   ],
+   "585000.0": [
+    "us-gaap:DeferredFinanceCostsNoncurrentNet|USD"
+   ],
+   "58754000.0": [
+    "us-gaap:PurchaseObligationDueInSecondYear|USD"
+   ],
+   "6000000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsOutstandingIntrinsicValue|USD",
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsVestedAndExpectedToVestExercisableAggregateIntrinsicValue|USD"
+   ],
+   "62313000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseYearTwo|USD"
+   ],
+   "64640000.0": [
+    "us-gaap:DeferredIncomeTaxesAndOtherTaxLiabilitiesNoncurrent|USD"
+   ],
+   "64706000.0": [
+    "us-gaap:FiniteLivedIntangibleAssetsAmortizationExpenseNextTwelveMonths|USD"
+   ],
+   "6585393000.0": [
+    "us-gaap:StockholdersEquity|USD"
+   ],
+   "659365000.0": [
+    "us-gaap:DebtLongtermAndShorttermCombinedAmount|USD"
+   ],
+   "7255121000.0": [
+    "us-gaap:RetainedEarningsAccumulatedDeficit|USD"
+   ],
+   "734996000.0": [
+    "us-gaap:NoncurrentAssets|USD"
+   ],
+   "750996000.0": [
+    "us-gaap:AccumulatedDepreciationDepletionAndAmortizationPropertyPlantAndEquipment|USD"
+   ],
+   "75686000.0": [
+    "us-gaap:LesseeOperatingLeaseLiabilityPaymentsDueAfterYearFive|USD"
+   ],
+   "764000.0": [
+    "us-gaap:CommonStockValueOutstanding|USD"
+   ],
+   "76801000.0": [
+    "us-gaap:EquityMethodInvestments|USD"
+   ],
+   "7727000.0": [
+    "us-gaap:DeferredTaxAssetsTaxDeferredExpenseReservesAndAccrualsAllowanceForDoubtfulAccounts|USD"
+   ],
+   "7900000.0": [
+    "us-gaap:StockRepurchaseProgramRemainingNumberOfSharesAuthorizedToBeRepurchased|shares"
+   ],
+   "80579000.0": [
+    "us-gaap:EquitySecuritiesWithoutReadilyDeterminableFairValueAmount|USD"
+   ],
+   "8654000.0": [
+    "us-gaap:InterestPayableCurrent|USD"
+   ],
+   "8965950000.0": [
+    "us-gaap:Assets|USD",
+    "us-gaap:LiabilitiesAndStockholdersEquity|USD"
+   ],
+   "945805000.0": [
+    "us-gaap:InventoryNet|USD"
+   ],
+   "97987000.0": [
+    "us-gaap:DeferredTaxAssetsInProcessResearchAndDevelopment|USD"
+   ],
+   "98108000.0": [
+    "us-gaap:AccruedIncomeTaxesCurrent|USD"
+   ],
+   "985447000.0": [
+    "us-gaap:LiabilitiesNoncurrent|USD"
+   ],
+   "992418000.0": [
+    "us-gaap:PurchaseObligationDueInNextTwelveMonths|USD"
+   ]
+  }
+ },
+ "over_period": {
+  "2024-06-30": {
+   "-1000000.0": [
+    "us-gaap:PaymentsForProceedsFromInvestments|USD"
+   ],
+   "-10744000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossForeignCurrencyTransactionAndTranslationAdjustmentNetOfTax|USD"
+   ],
+   "-1119287000.0": [
+    "us-gaap:NetCashProvidedByUsedInFinancingActivities|USD"
+   ],
+   "-1182000.0": [
+    "us-gaap:TemporaryEquityForeignCurrencyTranslationAdjustments|USD"
+   ],
+   "-1397000.0": [
+    "us-gaap:MarketableSecuritiesUnrealizedGainLoss|USD"
+   ],
+   "-15838000.0": [
+    "us-gaap:IncomeTaxReconciliationForeignIncomeTaxRateDifferential|USD"
+   ],
+   "-1719000.0": [
+    "us-gaap:EffectOfExchangeRateOnCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|USD"
+   ],
+   "-172203000.0": [
+    "us-gaap:IncreaseDecreaseInInventories|USD"
+   ],
+   "-1848000.0": [
+    "us-gaap:IncomeLossFromEquityMethodInvestmentsNetOfDividendsOrDistributions|USD",
+    "us-gaap:IncomeLossFromEquityMethodInvestments|USD"
+   ],
+   "-20435000.0": [
+    "us-gaap:GoodwillForeignCurrencyTranslationGainLoss|USD"
+   ],
+   "-22331000.0": [
+    "us-gaap:DeferredForeignIncomeTaxExpenseBenefit|USD"
+   ],
+   "-22915000.0": [
+    "us-gaap:DeferredFederalIncomeTaxExpenseBenefit|USD"
+   ],
+   "-269784000.0": [
+    "us-gaap:NetCashProvidedByUsedInInvestingActivities|USD"
+   ],
+   "-3494000.0": [
+    "us-gaap:OtherNonoperatingIncomeExpense|USD"
+   ],
+   "-4000000.0": [
+    "us-gaap:EquitySecuritiesFvNiUnrealizedGainLoss|USD"
+   ],
+   "-4045000.0": [
+    "us-gaap:DebtAndEquitySecuritiesUnrealizedGainLoss|USD",
+    "us-gaap:EquitySecuritiesFvNiGainLoss|USD"
+   ],
+   "-4149000.0": [
+    "us-gaap:DerivativeInstrumentsNotDesignatedAsHedgingInstrumentsGainLossNet|USD"
+   ],
+   "-45708000.0": [
+    "us-gaap:InterestIncomeExpenseNonoperatingNet|USD"
+   ],
+   "-4632000.0": [
+    "us-gaap:DeferredStateAndLocalIncomeTaxExpenseBenefit|USD"
+   ],
+   "-49878000.0": [
+    "us-gaap:DeferredIncomeTaxExpenseBenefit|USD"
+   ],
+   "-55095000.0": [
+    "us-gaap:NonoperatingIncomeExpense|USD"
+   ],
+   "-8757000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueRestrictedStockAwardNetOfForfeitures|USD"
+   ],
+   "0.0": [
+    "us-gaap:BusinessCombinationAcquisitionRelatedCosts|USD",
+    "us-gaap:GainLossOnSaleOfInvestments|USD",
+    "us-gaap:GainOnBusinessInterruptionInsuranceRecovery|USD",
+    "us-gaap:IncomeTaxReconciliationDispositionOfBusiness|USD",
+    "us-gaap:IncomeTaxReconciliationPriorYearIncomeTaxes|USD",
+    "us-gaap:InsuranceRecoveries|USD",
+    "us-gaap:PaymentsToAcquireIntangibleAssets|USD"
+   ],
+   "0.34": [
+    "us-gaap:IncomeTaxHolidayIncomeTaxBenefitsPerShare|USD/shares"
+   ],
+   "1.92": [
+    "us-gaap:CommonStockDividendsPerShareDeclared|USD/shares"
+   ],
+   "1000000.0": [
+    "us-gaap:ProceedsFromSaleMaturityAndCollectionsOfInvestments|USD"
+   ],
+   "1020951000.0": [
+    "us-gaap:NetIncomeLoss|USD"
+   ],
+   "1021000000.0": [
+    "us-gaap:NetIncomeLoss|USD"
+   ],
+   "10329790.0": [
+    "ecd:PeoActuallyPaidCompAmt|USD"
+   ],
+   "1041950000.0": [
+    "us-gaap:ComprehensiveIncomeNetOfTax|USD"
+   ],
+   "10470000.0": [
+    "us-gaap:CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect|USD"
+   ],
+   "105000000.0": [
+    "us-gaap:ProceedsFromIssuanceOfLongTermDebt|USD"
+   ],
+   "1083691000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign|USD"
+   ],
+   "115213000.0": [
+    "us-gaap:IncreaseDecreaseInPrepaidDeferredExpenseAndOtherAssets|USD"
+   ],
+   "122072000.0": [
+    "us-gaap:IncreaseDecreaseInAccountsPayableAndAccruedLiabilities|USD"
+   ],
+   "1264798000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest|USD"
+   ],
+   "12765000.0": [
+    "us-gaap:PaymentsToAcquireInvestments|USD"
+   ],
+   "1293000.0": [
+    "us-gaap:PaymentsOfMergerRelatedCostsFinancingActivities|USD"
+   ],
+   "1319893000.0": [
+    "us-gaap:OperatingIncomeLoss|USD"
+   ],
+   "133464000.0": [
+    "us-gaap:PaymentsToAcquireBusinessesNetOfCashAcquired|USD"
+   ],
+   "1335410000.0": [
+    "us-gaap:OperatingExpenses|USD"
+   ],
+   "134278000.0": [
+    "us-gaap:IncreaseDecreaseInAccountsReceivable|USD"
+   ],
+   "134757000.0": [
+    "us-gaap:PaymentsToAcquireBusinessesGross|USD"
+   ],
+   "13484000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueStockOptionsExercised|USD"
+   ],
+   "1401260000.0": [
+    "us-gaap:NetCashProvidedByUsedInOperatingActivities|USD"
+   ],
+   "14120829.0": [
+    "ecd:PeoTotalCompAmt|USD"
+   ],
+   "147021000.0": [
+    "us-gaap:WeightedAverageNumberOfSharesOutstandingBasic|shares"
+   ],
+   "147550000.0": [
+    "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding|shares"
+   ],
+   "148.9": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsGrantsInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "150011000.0": [
+    "us-gaap:PaymentsForRepurchaseOfCommonStock|USD",
+    "us-gaap:TreasuryStockValueAcquiredCostMethod|USD"
+   ],
+   "15053000.0": [
+    "us-gaap:EmployeeServiceShareBasedCompensationTaxBenefitFromCompensationExpense|USD"
+   ],
+   "15396000.0": [
+    "us-gaap:PaymentsToAcquireIntangibleAssets|USD"
+   ],
+   "15823000.0": [
+    "us-gaap:IncomeTaxReconciliationNondeductibleExpenseOther|USD",
+    "us-gaap:IncomeTaxReconciliationOtherAdjustments|USD"
+   ],
+   "166000.0": [
+    "us-gaap:StockIssuedDuringPeriodSharesStockOptionsExercised|shares"
+   ],
+   "17250000.0": [
+    "us-gaap:CurrentStateAndLocalTaxExpenseBenefit|USD"
+   ],
+   "176870000.0": [
+    "us-gaap:DepreciationDepletionAndAmortization|USD"
+   ],
+   "17900000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisesInPeriodTotalIntrinsicValue|USD"
+   ],
+   "18000000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisesInPeriodTotalIntrinsicValue|USD"
+   ],
+   "181107000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic|USD"
+   ],
+   "1997031000.0": [
+    "us-gaap:CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization|USD"
+   ],
+   "2.0": [
+    "us-gaap:NumberOfOperatingSegments|segment"
+   ],
+   "2000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsForfeituresInPeriod|shares"
+   ],
+   "2029994000.0": [
+    "us-gaap:CostOfGoodsAndServicesSold|USD"
+   ],
+   "20999000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossNetOfTax|USD"
+   ],
+   "219372000.0": [
+    "us-gaap:CurrentForeignTaxExpenseBenefit|USD"
+   ],
+   "232.16": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsForfeituresInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "243847000.0": [
+    "us-gaap:IncomeTaxExpenseBenefit|USD"
+   ],
+   "2578989.0": [
+    "ecd:NonPeoNeoAvgCompActuallyPaidAmt|USD"
+   ],
+   "2655303000.0": [
+    "us-gaap:GrossProfit|USD"
+   ],
+   "265608000.0": [
+    "us-gaap:IncomeTaxReconciliationIncomeTaxExpenseBenefitAtFederalStatutoryIncomeTaxRate|USD"
+   ],
+   "27786000.0": [
+    "us-gaap:IncomeTaxReconciliationTaxCreditsResearch|USD"
+   ],
+   "278400000.0": [
+    "us-gaap:IncomeTaxesPaidNet|USD"
+   ],
+   "282320000.0": [
+    "us-gaap:Dividends|USD",
+    "us-gaap:PaymentsOfDividends|USD"
+   ],
+   "293725000.0": [
+    "us-gaap:CurrentIncomeTaxExpenseBenefit|USD"
+   ],
+   "30573000.0": [
+    "us-gaap:OperatingLeasePayments|USD"
+   ],
+   "307525000.0": [
+    "us-gaap:ResearchAndDevelopmentExpense|USD"
+   ],
+   "3129017.0": [
+    "ecd:NonPeoNeoAvgTotalCompAmt|USD"
+   ],
+   "31743000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossCashFlowHedgeGainLossAfterReclassificationAndTax|USD"
+   ],
+   "323000.0": [
+    "us-gaap:StockIssuedDuringPeriodSharesEmployeeStockPurchasePlans|shares"
+   ],
+   "32963000.0": [
+    "us-gaap:AmortizationOfIntangibleAssets|USD"
+   ],
+   "33239000.0": [
+    "us-gaap:RestructuringReserveSettledWithoutCash2|USD"
+   ],
+   "39339000.0": [
+    "us-gaap:OperatingLeaseRightOfUseAssetAmortizationExpense|USD"
+   ],
+   "39610000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueEmployeeStockPurchasePlan|USD"
+   ],
+   "40800000.0": [
+    "us-gaap:OperatingLeaseCost|USD"
+   ],
+   "41000000.0": [
+    "us-gaap:OperatingLeaseCost|USD"
+   ],
+   "45708000.0": [
+    "us-gaap:InterestPaidNet|USD"
+   ],
+   "4685297000.0": [
+    "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax|USD"
+   ],
+   "4720000000.0": [
+    "ecd:CoSelectedMeasureAmt|USD"
+   ],
+   "4875000.0": [
+    "us-gaap:IncomeTaxReconciliationNondeductibleExpenseShareBasedCompensationCost|USD"
+   ],
+   "49600000.0": [
+    "us-gaap:IncomeTaxHolidayAggregateDollarAmount|USD"
+   ],
+   "4963000.0": [
+    "us-gaap:EquityMethodInvestmentOtherThanTemporaryImpairment|USD"
+   ],
+   "50000000.0": [
+    "us-gaap:IncomeTaxHolidayAggregateDollarAmount|USD"
+   ],
+   "51000000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsVestedInPeriodTotalFairValue|USD"
+   ],
+   "529000.0": [
+    "us-gaap:WeightedAverageNumberDilutedSharesOutstandingAdjustment|shares"
+   ],
+   "53094000.0": [
+    "us-gaap:ProceedsFromIssuanceOfCommonStock|USD"
+   ],
+   "54588000.0": [
+    "us-gaap:RightOfUseAssetObtainedInExchangeForOperatingLeaseLiability|USD"
+   ],
+   "57103000.0": [
+    "us-gaap:CurrentFederalTaxExpenseBenefit|USD"
+   ],
+   "6.92": [
+    "us-gaap:EarningsPerShareDiluted|USD/shares"
+   ],
+   "6.94": [
+    "us-gaap:EarningsPerShareBasic|USD/shares"
+   ],
+   "603859000.0": [
+    "us-gaap:AntidilutiveSecuritiesExcludedFromComputationOfEarningsPerShareAmount|shares"
+   ],
+   "64228000.0": [
+    "us-gaap:RestructuringCharges|USD"
+   ],
+   "65131000.0": [
+    "us-gaap:AllocatedShareBasedCompensationExpenseNetOfTax|USD"
+   ],
+   "73000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsGrantsInPeriodGross|shares"
+   ],
+   "7696000.0": [
+    "us-gaap:NoncashOrPartNoncashAcquisitionValueOfLiabilitiesAssumed1|USD"
+   ],
+   "77.65": [
+    "ecd:TotalShareholderRtnAmt|USD"
+   ],
+   "800000.0": [
+    "us-gaap:LossContingencyAccrualProvision|USD"
+   ],
+   "80184000.0": [
+    "us-gaap:AllocatedShareBasedCompensationExpense|USD",
+    "us-gaap:ShareBasedCompensation|USD",
+    "us-gaap:StockIssuedDuringPeriodValueShareBasedCompensation|USD"
+   ],
+   "81.76": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsExercisesInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "828000.0": [
+    "us-gaap:TreasuryStockSharesAcquired|shares"
+   ],
+   "8293000.0": [
+    "us-gaap:IncomeTaxReconciliationTaxCreditsForeign|USD"
+   ],
+   "835000000.0": [
+    "us-gaap:RepaymentsOfLongTermDebt|USD"
+   ],
+   "849000.0": [
+    "us-gaap:IncomeTaxReconciliationChangeInDeferredTaxAssetsValuationAllowance|USD"
+   ],
+   "8609000.0": [
+    "us-gaap:IncomeTaxReconciliationStateAndLocalIncomeTaxes|USD"
+   ],
+   "8757000.0": [
+    "us-gaap:PaymentsRelatedToTaxWithholdingForShareBasedCompensation|USD"
+   ],
+   "88900000.0": [
+    "us-gaap:Depreciation|USD"
+   ],
+   "89000000.0": [
+    "us-gaap:Depreciation|USD"
+   ],
+   "917136000.0": [
+    "us-gaap:SellingGeneralAndAdministrativeExpense|USD"
+   ],
+   "92191000.0": [
+    "us-gaap:GoodwillAcquiredDuringPeriod|USD"
+   ],
+   "93.12": [
+    "ecd:PeerGroupTotalShareholderRtnAmt|USD"
+   ],
+   "9699000.0": [
+    "us-gaap:PaymentsForProceedsFromDerivativeInstrumentInvestingActivities|USD"
+   ],
+   "99460000.0": [
+    "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment|USD"
+   ]
+  },
+  "2025-06-30": {
+   "-10299000.0": [
+    "us-gaap:DebtAndEquitySecuritiesUnrealizedGainLoss|USD",
+    "us-gaap:EquitySecuritiesFvNiGainLoss|USD"
+   ],
+   "-10700000.0": [
+    "us-gaap:EquitySecuritiesFvNiUnrealizedGainLoss|USD"
+   ],
+   "-11000000.0": [
+    "us-gaap:EquitySecuritiesFvNiUnrealizedGainLoss|USD"
+   ],
+   "-12225000.0": [
+    "us-gaap:IncomeTaxReconciliationForeignIncomeTaxRateDifferential|USD"
+   ],
+   "-1231000.0": [
+    "us-gaap:DeferredStateAndLocalIncomeTaxExpenseBenefit|USD"
+   ],
+   "-18077000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueRestrictedStockAwardNetOfForfeitures|USD"
+   ],
+   "-185000.0": [
+    "us-gaap:GoodwillPurchaseAccountingAdjustments|USD"
+   ],
+   "-200045000.0": [
+    "us-gaap:NetCashProvidedByUsedInInvestingActivities|USD"
+   ],
+   "-2612000.0": [
+    "us-gaap:IncomeTaxReconciliationNondeductibleExpenseOther|USD",
+    "us-gaap:IncomeTaxReconciliationOtherAdjustments|USD"
+   ],
+   "-29976000.0": [
+    "us-gaap:IncomeTaxReconciliationPriorYearIncomeTaxes|USD"
+   ],
+   "-35847000.0": [
+    "us-gaap:IncomeTaxReconciliationDispositionOfBusiness|USD"
+   ],
+   "-41633000.0": [
+    "us-gaap:PaymentsForProceedsFromDerivativeInstrumentInvestingActivities|USD"
+   ],
+   "-4628000.0": [
+    "us-gaap:PaymentsForProceedsFromInvestments|USD"
+   ],
+   "-5256000.0": [
+    "us-gaap:OtherNonoperatingIncomeExpense|USD"
+   ],
+   "-52573000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossCashFlowHedgeGainLossAfterReclassificationAndTax|USD"
+   ],
+   "-54058000.0": [
+    "us-gaap:DeferredForeignIncomeTaxExpenseBenefit|USD"
+   ],
+   "-5701000.0": [
+    "us-gaap:DeferredFederalIncomeTaxExpenseBenefit|USD"
+   ],
+   "-606253000.0": [
+    "us-gaap:NetCashProvidedByUsedInFinancingActivities|USD"
+   ],
+   "-60990000.0": [
+    "us-gaap:DeferredIncomeTaxExpenseBenefit|USD"
+   ],
+   "-7089000.0": [
+    "us-gaap:DerivativeInstrumentsNotDesignatedAsHedgingInstrumentsGainLossNet|USD"
+   ],
+   "-7797000.0": [
+    "us-gaap:NonoperatingIncomeExpense|USD"
+   ],
+   "-82629000.0": [
+    "us-gaap:IncreaseDecreaseInPrepaidDeferredExpenseAndOtherAssets|USD"
+   ],
+   "0.0": [
+    "us-gaap:GainLossOnSaleOfInvestments|USD",
+    "us-gaap:GainOnBusinessInterruptionInsuranceRecovery|USD",
+    "us-gaap:InsuranceRecoveries|USD",
+    "us-gaap:PaymentsToAcquireIntangibleAssets|USD",
+    "us-gaap:ProceedsFromIssuanceOfLongTermDebt|USD",
+    "us-gaap:RestructuringCharges|USD",
+    "us-gaap:RestructuringReserveSettledWithoutCash2|USD",
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardFairValueAssumptionsExpectedDividendRate|pure"
+   ],
+   "0.46": [
+    "us-gaap:IncomeTaxHolidayIncomeTaxBenefitsPerShare|USD/shares"
+   ],
+   "101323000.0": [
+    "us-gaap:GoodwillAcquiredDuringPeriod|USD"
+   ],
+   "103487000.0": [
+    "us-gaap:GoodwillForeignCurrencyTranslationGainLoss|USD"
+   ],
+   "104.2": [
+    "ecd:PeerGroupTotalShareholderRtnAmt|USD"
+   ],
+   "104.66": [
+    "ecd:TotalShareholderRtnAmt|USD"
+   ],
+   "105.35": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsExercisesInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "1054000.0": [
+    "us-gaap:MarketableSecuritiesUnrealizedGainLoss|USD"
+   ],
+   "10777000.0": [
+    "us-gaap:PaymentsToAcquireIntangibleAssets|USD"
+   ],
+   "11000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsForfeituresInPeriod|shares"
+   ],
+   "111800000.0": [
+    "us-gaap:Depreciation|USD"
+   ],
+   "112000000.0": [
+    "us-gaap:Depreciation|USD"
+   ],
+   "11742000.0": [
+    "us-gaap:EquityMethodInvestmentOtherThanTemporaryImpairment|USD"
+   ],
+   "1262000.0": [
+    "us-gaap:TreasuryStockSharesAcquired|shares"
+   ],
+   "1300000.0": [
+    "us-gaap:TreasuryStockSharesAcquired|shares"
+   ],
+   "1317825000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign|USD"
+   ],
+   "1369607000.0": [
+    "us-gaap:OperatingExpenses|USD"
+   ],
+   "139248000.0": [
+    "us-gaap:PaymentsToAcquireBusinessesNetOfCashAcquired|USD"
+   ],
+   "1400723000.0": [
+    "us-gaap:NetIncomeLoss|USD"
+   ],
+   "1401000000.0": [
+    "us-gaap:NetIncomeLoss|USD"
+   ],
+   "140103000.0": [
+    "us-gaap:PaymentsToAcquireBusinessesGross|USD"
+   ],
+   "146716000.0": [
+    "us-gaap:WeightedAverageNumberOfSharesOutstandingBasic|shares"
+   ],
+   "14674543.0": [
+    "ecd:PeoTotalCompAmt|USD"
+   ],
+   "147340000.0": [
+    "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding|shares"
+   ],
+   "154567000.0": [
+    "us-gaap:AntidilutiveSecuritiesExcludedFromComputationOfEarningsPerShareAmount|shares"
+   ],
+   "15590000.0": [
+    "us-gaap:IncomeTaxReconciliationStateAndLocalIncomeTaxes|USD"
+   ],
+   "1577553000.0": [
+    "us-gaap:ComprehensiveIncomeNetOfTax|USD"
+   ],
+   "1677566000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest|USD"
+   ],
+   "1685363000.0": [
+    "us-gaap:OperatingIncomeLoss|USD"
+   ],
+   "1735000.0": [
+    "us-gaap:IncomeTaxReconciliationNondeductibleExpenseShareBasedCompensationCost|USD"
+   ],
+   "1751588000.0": [
+    "us-gaap:NetCashProvidedByUsedInOperatingActivities|USD"
+   ],
+   "176830000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossNetOfTax|USD"
+   ],
+   "18077000.0": [
+    "us-gaap:PaymentsRelatedToTaxWithholdingForShareBasedCompensation|USD"
+   ],
+   "19744000.0": [
+    "us-gaap:CurrentFederalTaxExpenseBenefit|USD"
+   ],
+   "198473000.0": [
+    "us-gaap:DepreciationDepletionAndAmortization|USD"
+   ],
+   "19919000.0": [
+    "us-gaap:CurrentStateAndLocalTaxExpenseBenefit|USD"
+   ],
+   "2.0": [
+    "us-gaap:NumberOfOperatingSegments|segment"
+   ],
+   "2.12": [
+    "us-gaap:CommonStockDividendsPerShareDeclared|USD/shares"
+   ],
+   "2031000.0": [
+    "us-gaap:BusinessCombinationAcquisitionRelatedCosts|USD"
+   ],
+   "2059241000.0": [
+    "us-gaap:CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization|USD"
+   ],
+   "20644000.0": [
+    "us-gaap:IncomeTaxReconciliationChangeInDeferredTaxAssetsValuationAllowance|USD"
+   ],
+   "2091357000.0": [
+    "us-gaap:CostOfGoodsAndServicesSold|USD"
+   ],
+   "214013000.0": [
+    "us-gaap:IncomeTaxesPaidNet|USD"
+   ],
+   "21833000.0": [
+    "us-gaap:EmployeeServiceShareBasedCompensationTaxBenefitFromCompensationExpense|USD"
+   ],
+   "222.57": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsForfeituresInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "226000.0": [
+    "us-gaap:StockIssuedDuringPeriodSharesEmployeeStockPurchasePlans|shares"
+   ],
+   "229403000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossForeignCurrencyTransactionAndTranslationAdjustmentNetOfTax|USD"
+   ],
+   "249.56": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsGrantsInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "25799000.0": [
+    "us-gaap:EffectOfExchangeRateOnCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|USD"
+   ],
+   "276843000.0": [
+    "us-gaap:IncomeTaxExpenseBenefit|USD"
+   ],
+   "28415000.0": [
+    "us-gaap:InterestPaidNet|USD"
+   ],
+   "28859000.0": [
+    "us-gaap:IncomeTaxReconciliationTaxCreditsResearch|USD"
+   ],
+   "293000.0": [
+    "us-gaap:StockIssuedDuringPeriodSharesStockOptionsExercised|shares"
+   ],
+   "29631927.0": [
+    "ecd:PeoActuallyPaidCompAmt|USD"
+   ],
+   "298170000.0": [
+    "us-gaap:CurrentForeignTaxExpenseBenefit|USD"
+   ],
+   "300025000.0": [
+    "us-gaap:PaymentsForRepurchaseOfCommonStock|USD",
+    "us-gaap:TreasuryStockValueAcquiredCostMethod|USD"
+   ],
+   "3054970000.0": [
+    "us-gaap:GrossProfit|USD"
+   ],
+   "30883000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueStockOptionsExercised|USD"
+   ],
+   "310880000.0": [
+    "us-gaap:Dividends|USD",
+    "us-gaap:PaymentsOfDividends|USD"
+   ],
+   "32116000.0": [
+    "us-gaap:AmortizationOfIntangibleAssets|USD"
+   ],
+   "331284000.0": [
+    "us-gaap:ResearchAndDevelopmentExpense|USD"
+   ],
+   "3356257.0": [
+    "ecd:NonPeoNeoAvgTotalCompAmt|USD"
+   ],
+   "33638000.0": [
+    "us-gaap:RightOfUseAssetObtainedInExchangeForOperatingLeaseLiability|USD"
+   ],
+   "337833000.0": [
+    "us-gaap:CurrentIncomeTaxExpenseBenefit|USD"
+   ],
+   "35000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsGrantsInPeriodGross|shares"
+   ],
+   "352289000.0": [
+    "us-gaap:IncomeTaxReconciliationIncomeTaxExpenseBenefitAtFederalStatutoryIncomeTaxRate|USD"
+   ],
+   "35732000.0": [
+    "us-gaap:OperatingLeasePayments|USD"
+   ],
+   "359741000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic|USD"
+   ],
+   "3644000.0": [
+    "us-gaap:IncomeLossFromEquityMethodInvestmentsNetOfDividendsOrDistributions|USD",
+    "us-gaap:IncomeLossFromEquityMethodInvestments|USD"
+   ],
+   "37338000.0": [
+    "us-gaap:OperatingLeaseRightOfUseAssetAmortizationExpense|USD"
+   ],
+   "37700000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisesInPeriodTotalIntrinsicValue|USD"
+   ],
+   "38000000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisesInPeriodTotalIntrinsicValue|USD"
+   ],
+   "389000.0": [
+    "us-gaap:EquitySecuritiesFvNiRealizedGainLoss|USD"
+   ],
+   "3896000.0": [
+    "us-gaap:IncomeTaxReconciliationTaxCreditsForeign|USD"
+   ],
+   "39000000.0": [
+    "us-gaap:OperatingLeaseCost|USD"
+   ],
+   "40000000.0": [
+    "us-gaap:RepaymentsOfLongTermDebt|USD"
+   ],
+   "4114000.0": [
+    "us-gaap:InterestIncomeExpenseNonoperatingNet|USD"
+   ],
+   "43556000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueEmployeeStockPurchasePlan|USD"
+   ],
+   "4628000.0": [
+    "us-gaap:ProceedsFromSaleMaturityAndCollectionsOfInvestments|USD"
+   ],
+   "5137000000.0": [
+    "ecd:CoSelectedMeasureAmt|USD"
+   ],
+   "5146327000.0": [
+    "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax|USD"
+   ],
+   "5832409.0": [
+    "ecd:NonPeoNeoAvgCompActuallyPaidAmt|USD"
+   ],
+   "624000.0": [
+    "us-gaap:WeightedAverageNumberDilutedSharesOutstandingAdjustment|shares"
+   ],
+   "6279000.0": [
+    "us-gaap:NoncashOrPartNoncashAcquisitionValueOfLiabilitiesAssumed1|USD"
+   ],
+   "6416000.0": [
+    "us-gaap:PaymentsToAcquireInvestments|USD"
+   ],
+   "6540000.0": [
+    "us-gaap:TemporaryEquityForeignCurrencyTranslationAdjustments|USD"
+   ],
+   "67000000.0": [
+    "us-gaap:IncomeTaxHolidayAggregateDollarAmount|USD"
+   ],
+   "67400000.0": [
+    "us-gaap:IncomeTaxHolidayAggregateDollarAmount|USD"
+   ],
+   "69828000.0": [
+    "us-gaap:AllocatedShareBasedCompensationExpenseNetOfTax|USD"
+   ],
+   "74439000.0": [
+    "us-gaap:ProceedsFromIssuanceOfCommonStock|USD"
+   ],
+   "76684000.0": [
+    "us-gaap:IncreaseDecreaseInAccountsReceivable|USD"
+   ],
+   "80165000.0": [
+    "us-gaap:IncreaseDecreaseInInventories|USD"
+   ],
+   "855000.0": [
+    "us-gaap:PaymentsOfMergerRelatedCostsFinancingActivities|USD"
+   ],
+   "89865000.0": [
+    "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment|USD"
+   ],
+   "9.51": [
+    "us-gaap:EarningsPerShareDiluted|USD/shares"
+   ],
+   "9.55": [
+    "us-gaap:EarningsPerShareBasic|USD/shares"
+   ],
+   "90958000.0": [
+    "us-gaap:IncreaseDecreaseInAccountsPayableAndAccruedLiabilities|USD"
+   ],
+   "91661000.0": [
+    "us-gaap:AllocatedShareBasedCompensationExpense|USD",
+    "us-gaap:ShareBasedCompensation|USD",
+    "us-gaap:StockIssuedDuringPeriodValueShareBasedCompensation|USD"
+   ],
+   "971089000.0": [
+    "us-gaap:CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect|USD"
+   ],
+   "991019000.0": [
+    "us-gaap:SellingGeneralAndAdministrativeExpense|USD"
+   ],
+   "993050000.0": [
+    "us-gaap:SellingGeneralAndAdministrativeExpense|USD"
+   ]
+  },
+  "2026-06-30": {
+   "-1007029000.0": [
+    "us-gaap:NetCashProvidedByUsedInFinancingActivities|USD"
+   ],
+   "-10721000.0": [
+    "us-gaap:MarketableSecuritiesUnrealizedGainLoss|USD"
+   ],
+   "-13810000.0": [
+    "us-gaap:DerivativeInstrumentsNotDesignatedAsHedgingInstrumentsGainLossNet|USD"
+   ],
+   "-15000000.0": [
+    "us-gaap:EquitySecuritiesFvNiUnrealizedGainLoss|USD"
+   ],
+   "-15014000.0": [
+    "us-gaap:EquitySecuritiesFvNiGainLoss|USD"
+   ],
+   "-21833000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueRestrictedStockAwardNetOfForfeitures|USD"
+   ],
+   "-2313000.0": [
+    "us-gaap:TemporaryEquityForeignCurrencyTranslationAdjustments|USD"
+   ],
+   "-2752000.0": [
+    "us-gaap:PaymentsForProceedsFromInvestments|USD"
+   ],
+   "-32798000.0": [
+    "us-gaap:GoodwillForeignCurrencyTranslationGainLoss|USD"
+   ],
+   "-39166000.0": [
+    "us-gaap:DeferredForeignIncomeTaxExpenseBenefit|USD"
+   ],
+   "-412000.0": [
+    "us-gaap:DeferredStateAndLocalIncomeTaxExpenseBenefit|USD"
+   ],
+   "-545199000.0": [
+    "us-gaap:NetCashProvidedByUsedInInvestingActivities|USD"
+   ],
+   "-6801309.0": [
+    "ecd:PeoActuallyPaidCompAmt|USD"
+   ],
+   "-77977000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossCashFlowHedgeGainLossAfterReclassificationAndTax|USD"
+   ],
+   "-7816000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossNetOfTax|USD"
+   ],
+   "-8482000.0": [
+    "us-gaap:PaymentsForProceedsFromDerivativeInstrumentInvestingActivities|USD"
+   ],
+   "-9154000.0": [
+    "us-gaap:OtherNonoperatingIncomeExpense|USD"
+   ],
+   "0.0": [
+    "us-gaap:PaymentsOfMergerRelatedCostsFinancingActivities|USD",
+    "us-gaap:ProceedsFromIssuanceOfLongTermDebt|USD",
+    "us-gaap:RestructuringReserveSettledWithoutCash2|USD",
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardFairValueAssumptionsExpectedDividendRate|pure"
+   ],
+   "0.0057": [
+    "us-gaap:EffectiveIncomeTaxRateReconciliationChangeInDeferredTaxAssetsValuationAllowance|pure"
+   ],
+   "0.0103": [
+    "us-gaap:EffectiveIncomeTaxRateReconciliationStateAndLocalIncomeTaxes|pure"
+   ],
+   "0.0331": [
+    "us-gaap:EffectiveIncomeTaxRateReconciliationGiltiPercent|pure"
+   ],
+   "0.2064": [
+    "us-gaap:EffectiveIncomeTaxRateContinuingOperations|pure"
+   ],
+   "0.21": [
+    "us-gaap:EffectiveIncomeTaxRateReconciliationAtFederalStatutoryIncomeTaxRate|pure"
+   ],
+   "0.26": [
+    "us-gaap:IncomeTaxHolidayIncomeTaxBenefitsPerShare|USD/shares"
+   ],
+   "10.43": [
+    "us-gaap:EarningsPerShareDiluted|USD/shares"
+   ],
+   "10.47": [
+    "us-gaap:EarningsPerShareBasic|USD/shares"
+   ],
+   "10000000.0": [
+    "us-gaap:RepaymentsOfLongTermDebt|USD"
+   ],
+   "103000000.0": [
+    "us-gaap:Depreciation|USD"
+   ],
+   "104348000.0": [
+    "us-gaap:AllocatedShareBasedCompensationExpense|USD",
+    "us-gaap:ShareBasedCompensation|USD",
+    "us-gaap:StockIssuedDuringPeriodValueShareBasedCompensation|USD"
+   ],
+   "11006000.0": [
+    "us-gaap:IncomeTaxReconciliationChangeInDeferredTaxAssetsValuationAllowance|USD"
+   ],
+   "1119528000.0": [
+    "us-gaap:SellingGeneralAndAdministrativeExpense|USD"
+   ],
+   "11841000.0": [
+    "us-gaap:NoncashOrPartNoncashAcquisitionValueOfLiabilitiesAssumed1|USD"
+   ],
+   "1322074000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesForeign|USD"
+   ],
+   "136.82": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsExercisesInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "140260000.0": [
+    "us-gaap:IncreaseDecreaseInPrepaidDeferredExpenseAndOtherAssets|USD"
+   ],
+   "145523000.0": [
+    "us-gaap:WeightedAverageNumberOfSharesOutstandingBasic|shares"
+   ],
+   "146054000.0": [
+    "us-gaap:WeightedAverageNumberOfDilutedSharesOutstanding|shares"
+   ],
+   "1515477000.0": [
+    "us-gaap:ComprehensiveIncomeNetOfTax|USD"
+   ],
+   "1523000000.0": [
+    "us-gaap:NetIncomeLoss|USD"
+   ],
+   "1523293000.0": [
+    "us-gaap:NetIncomeLoss|USD"
+   ],
+   "156285000.0": [
+    "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment|USD"
+   ],
+   "1565024000.0": [
+    "us-gaap:OperatingExpenses|USD"
+   ],
+   "16201649.0": [
+    "ecd:PeoTotalCompAmt|USD"
+   ],
+   "172715000.0": [
+    "us-gaap:IncreaseDecreaseInAccountsPayableAndAccruedLiabilities|USD"
+   ],
+   "1805829000.0": [
+    "us-gaap:NetCashProvidedByUsedInOperatingActivities|USD"
+   ],
+   "1886715000.0": [
+    "us-gaap:OperatingIncomeLoss|USD"
+   ],
+   "1919416000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest|USD"
+   ],
+   "1971000.0": [
+    "us-gaap:GoodwillPurchaseAccountingAdjustments|USD"
+   ],
+   "19801000.0": [
+    "us-gaap:IncomeTaxReconciliationStateAndLocalIncomeTaxes|USD"
+   ],
+   "2.0": [
+    "us-gaap:NumberOfOperatingSegments|segment"
+   ],
+   "2.4": [
+    "us-gaap:CommonStockDividendsPerShareDeclared|USD/shares"
+   ],
+   "2000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsForfeituresInPeriod|shares"
+   ],
+   "201342000.0": [
+    "us-gaap:DepreciationDepletionAndAmortization|USD"
+   ],
+   "20213000.0": [
+    "us-gaap:CurrentStateAndLocalTaxExpenseBenefit|USD"
+   ],
+   "205000.0": [
+    "us-gaap:StockIssuedDuringPeriodSharesStockOptionsExercised|shares"
+   ],
+   "2169925000.0": [
+    "us-gaap:CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization|USD"
+   ],
+   "21745000.0": [
+    "us-gaap:RestructuringCharges|USD"
+   ],
+   "21833000.0": [
+    "us-gaap:PaymentsRelatedToTaxWithholdingForShareBasedCompensation|USD"
+   ],
+   "2201704000.0": [
+    "us-gaap:CostOfGoodsAndServicesSold|USD"
+   ],
+   "220962000.0": [
+    "us-gaap:GoodwillAcquiredDuringPeriod|USD"
+   ],
+   "2218000.0": [
+    "us-gaap:PaymentsToAcquireIntangibleAssets|USD"
+   ],
+   "22215000.0": [
+    "us-gaap:IncomeTaxPaidStateAndLocalAfterRefundReceived|USD"
+   ],
+   "224.58": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsForfeituresInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "23127000.0": [
+    "us-gaap:EmployeeServiceShareBasedCompensationTaxBenefitFromCompensationExpense|USD"
+   ],
+   "2382000.0": [
+    "us-gaap:IncomeLossFromEquityMethodInvestmentsNetOfDividendsOrDistributions|USD"
+   ],
+   "250.52": [
+    "us-gaap:ShareBasedCompensationArrangementsByShareBasedPaymentAwardOptionsGrantsInPeriodWeightedAverageExercisePrice|USD/shares"
+   ],
+   "25000000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsExercisesInPeriodTotalIntrinsicValue|USD"
+   ],
+   "254000.0": [
+    "us-gaap:StockIssuedDuringPeriodSharesEmployeeStockPurchasePlans|shares"
+   ],
+   "259784000.0": [
+    "us-gaap:CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalentsPeriodIncreaseDecreaseIncludingExchangeRateEffect|USD"
+   ],
+   "26106000.0": [
+    "us-gaap:RightOfUseAssetObtainedInExchangeForOperatingLeaseLiability|USD"
+   ],
+   "26222000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueStockOptionsExercised|USD"
+   ],
+   "27057000.0": [
+    "us-gaap:InterestPaidNet|USD"
+   ],
+   "2752000.0": [
+    "us-gaap:ProceedsFromSaleMaturityAndCollectionsOfInvestments|USD"
+   ],
+   "28536000.0": [
+    "us-gaap:PaymentsToAcquireInvestments|USD"
+   ],
+   "2900000.0": [
+    "us-gaap:TreasuryStockSharesAcquired|shares"
+   ],
+   "31779000.0": [
+    "us-gaap:AmortizationOfIntangibleAssets|USD"
+   ],
+   "32701000.0": [
+    "us-gaap:NonoperatingIncomeExpense|USD"
+   ],
+   "327240000.0": [
+    "us-gaap:GoodwillWrittenOffRelatedToSaleOfBusinessUnit|USD"
+   ],
+   "331425000.0": [
+    "us-gaap:CurrentForeignTaxExpenseBenefit|USD"
+   ],
+   "34313000.0": [
+    "us-gaap:IncomeTaxPaidFederalAfterRefundReceived|USD"
+   ],
+   "3451739000.0": [
+    "us-gaap:GrossProfit|USD"
+   ],
+   "349662000.0": [
+    "us-gaap:Dividends|USD",
+    "us-gaap:PaymentsOfDividends|USD"
+   ],
+   "350724000.0": [
+    "us-gaap:PaymentsToAcquireBusinessesGross|USD",
+    "us-gaap:PaymentsToAcquireBusinessesNetOfCashAcquired|USD"
+   ],
+   "357167000.0": [
+    "us-gaap:IncomeTaxesPaidNet|USD"
+   ],
+   "3576611.0": [
+    "ecd:NonPeoNeoAvgTotalCompAmt|USD"
+   ],
+   "36000.0": [
+    "us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardOptionsGrantsInPeriodGross|shares"
+   ],
+   "37000000.0": [
+    "us-gaap:IncomeTaxHolidayAggregateDollarAmount|USD"
+   ],
+   "378285000.0": [
+    "us-gaap:ResearchAndDevelopmentExpense|USD"
+   ],
+   "3881000.0": [
+    "us-gaap:DeferredIncomeTaxExpenseBenefit|USD"
+   ],
+   "392242000.0": [
+    "us-gaap:CurrentIncomeTaxExpenseBenefit|USD"
+   ],
+   "396123000.0": [
+    "us-gaap:IncomeTaxExpenseBenefit|USD"
+   ],
+   "403077000.0": [
+    "us-gaap:IncomeTaxReconciliationIncomeTaxExpenseBenefitAtFederalStatutoryIncomeTaxRate|USD"
+   ],
+   "40604000.0": [
+    "us-gaap:CurrentFederalTaxExpenseBenefit|USD"
+   ],
+   "41278000.0": [
+    "us-gaap:OperatingLeasePayments|USD"
+   ],
+   "42810000.0": [
+    "us-gaap:OperatingLeaseRightOfUseAssetAmortizationExpense|USD"
+   ],
+   "43459000.0": [
+    "us-gaap:DeferredFederalIncomeTaxExpenseBenefit|USD"
+   ],
+   "4353000.0": [
+    "us-gaap:GainLossOnSaleOfInvestments|USD"
+   ],
+   "45000000.0": [
+    "us-gaap:OperatingLeaseCost|USD"
+   ],
+   "4573000.0": [
+    "us-gaap:ProceedsFromDividendsReceived|USD"
+   ],
+   "48281000.0": [
+    "us-gaap:StockIssuedDuringPeriodValueEmployeeStockPurchasePlan|USD"
+   ],
+   "49914000.0": [
+    "us-gaap:InterestIncomeExpenseNonoperatingNet|USD"
+   ],
+   "531000.0": [
+    "us-gaap:WeightedAverageNumberDilutedSharesOutstandingAdjustment|shares"
+   ],
+   "5646000000.0": [
+    "ecd:CoSelectedMeasureAmt|USD"
+   ],
+   "5653443000.0": [
+    "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax|USD"
+   ],
+   "597342000.0": [
+    "us-gaap:IncomeLossFromContinuingOperationsBeforeIncomeTaxesDomestic|USD"
+   ],
+   "6183000.0": [
+    "us-gaap:EffectOfExchangeRateOnCashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents|USD"
+   ],
+   "63618000.0": [
+    "us-gaap:EffectiveIncomeTaxRateReconciliationGiltiAmount|USD"
+   ],
+   "6955000.0": [
+    "us-gaap:IncomeLossFromEquityMethodInvestments|USD"
+   ],
+   "700037000.0": [
+    "us-gaap:PaymentsForRepurchaseOfCommonStock|USD"
+   ],
+   "70161000.0": [
+    "us-gaap:OtherComprehensiveIncomeLossForeignCurrencyTransactionAndTranslationAdjustmentNetOfTax|USD"
+   ],
+   "705299000.0": [
+    "us-gaap:TreasuryStockValueAcquiredCostMethod|USD"
+   ],
+   "7409000.0": [
+    "us-gaap:EquityMethodInvestmentOtherThanTemporaryImpairment|USD"
+   ],
+   "74503000.0": [
+    "us-gaap:ProceedsFromIssuanceOfCommonStock|USD"
+   ],
+   "79.05": [
+    "ecd:TotalShareholderRtnAmt|USD"
+   ],
+   "8000.0": [
+    "us-gaap:SharesPaidForTaxWithholdingForShareBasedCompensation|shares"
+   ],
+   "81221000.0": [
+    "us-gaap:AllocatedShareBasedCompensationExpenseNetOfTax|USD"
+   ],
+   "82.11": [
+    "ecd:PeerGroupTotalShareholderRtnAmt|USD"
+   ],
+   "96152000.0": [
+    "us-gaap:AntidilutiveSecuritiesExcludedFromComputationOfEarningsPerShareAmount|shares"
+   ],
+   "961618.0": [
+    "ecd:NonPeoNeoAvgCompActuallyPaidAmt|USD"
+   ],
+   "96778000.0": [
+    "us-gaap:IncreaseDecreaseInAccountsReceivable|USD"
+   ],
+   "9920000.0": [
+    "us-gaap:IncreaseDecreaseInInventories|USD"
+   ]
+  }
+ }
+}

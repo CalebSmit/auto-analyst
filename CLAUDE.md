@@ -209,6 +209,44 @@ reasonableness run asked the same six questions three times each. One check - th
 comma - could not be made precise and was taken out rather than shipped (B-086). A check
 whose findings are mostly not findings teaches a reader to skip the section it is in.
 
+## Is every figure right
+
+The three reads above ask whether a workbook's arithmetic agrees with itself, whether the
+prose reads as a person's, and what a reviewer would ask of the numbers. None of them asks
+whether the **figures are the figures**, and until P161 nothing did - a total that re-adds
+and a balance sheet that balances prove arithmetic, which eight wrong rows adding correctly
+also satisfy.
+
+```
+python -m uv run python tools/check_against_filer.py              # every public fixture
+python -m uv run python tools/check_against_filer.py --fixture sec-ars-resmed-2026
+python -m uv run python tools/check_against_filer.py --fetch 0000943819    # needs the network
+```
+
+The SEC publishes the filer's own numbers as structured data, so `Assets` at 2025-12-31 is
+521,728,000 - the 521,728 on page 56 of the filing times the thousand it says it is in. That
+is ground truth from the same regulator for the same document, and it needs **no
+label-to-concept mapping**, which is the part that would have made it hard: the question is
+not which concept a row is, it is whether every figure the reader produced is one the filer
+reported *at the date that column is as of*. A figure out of the wrong column is still a
+figure the filer reported - that is B-030, this build's worst extraction defect - and
+matching by date is the only thing that sees it.
+
+Four answers per figure, and the last two are the useful ones: right at this date and scale;
+right but only at another scale; reported at a different date, which is the wrong column and
+is a failure; or in no fact at all, which this feed cannot tell from a figure tagged against
+a segment. It found B-131 by itself.
+
+**Over three filings and two filers: 194 right, 0 out of the wrong column.** The number worth
+having is ResMed's, because the reader had never been run on that document - the other filing
+was read until it read correctly, which is how it should be and is why its score says less.
+
+It is **offline**: the facts are committed under `fixtures/public/filer-facts/`, trimmed to
+the dates each filing's statements are as of, because a tool that needed `data.sec.gov` would
+answer differently on a train and a test that needed it would fail for a reason that is not
+about the code. What it cannot see is written in its own docstring, because a measurement
+whose limits are not recorded gets quoted as though it had none.
+
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not
 tell them from dead code:
