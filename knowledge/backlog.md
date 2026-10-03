@@ -2140,3 +2140,82 @@ spacing exception, accessible names on every control, duplicate ids, dangling `a
 text truncation, landmark and heading structure, numbers written in prose, and every colour
 coming from a token so a sweep over tokens is a sweep over the product.
 
+## B-120 A text line is not a statement row
+status: fixed (P151)
+2026-10-02. Measured on `fixtures/public/sec-ars-3d-systems-2025.pdf`, page 56, its
+consolidated balance sheet:
+
+| the filing says | the reader produced |
+|---|---|
+| Total assets **521,728** | *no row at all* |
+| Total liabilities **279,177** | *no row at all* |
+| Common stock **146** | **220,000** |
+
+**The two that vanished.** An audited statement sets its grand total on a ruled row and the
+PDF emits the label and the figures as separate runs - `Total assets` then
+`$ 521,728 $ 608,846` - so the run of figure-carrying lines broke at the label and the row
+was built by nothing. Those are the two figures a balance sheet exists to state.
+
+**The one that was wrong is worse.** The Common stock line wraps, and its first line reads
+`...authorized 220,000 shares; shares issued 145,581 and`. Taking the last figures on the
+line stored the authorized share count as the common stock balance. It passed every guard:
+provenance, because 220,000 really is at that locator, and footing, because the row is not a
+total and nothing re-adds it. A confidently wrong figure in the equity section of a balance
+sheet is the failure this build says it most cares about.
+
+**Both are one assumption**, and no reading of the text can fix either: a row is a band of
+the page and a column is a band too. Figures align on their **right** edge - left edges
+scatter with the width of the number - and on page 56 the columns sit within three points of
+x=482 and x=549 while the 220,000 inside that label sits at x=234.
+
+pdfplumber and pdfminer.six, pure Python, no system dependency, no network, no model. The
+line reader is kept and still runs: a PDF whose lines are each one drawn string has no column
+geometry at all, and coordinates there would find columns that are coincidences. The test is
+whether a run resolves into two or more columns.
+
+**What it cost elsewhere: nothing, and it gained.** Over the whole filing, rows carrying a
+value went 674 to 815 and tables whose every column is named went 21 to 28. The table count
+fell 88 to 72, because a statement no longer breaks into four tables at the rows that lost
+their figures.
+
+Four things measured rather than assumed, each of which changed the design: the row band is
+overlap and not baseline distance, because a figure set against a two-line label is centred
+on the pair and sits on neither; a column belongs to a table and not to a page, because page
+30 carries two tables and clustering the page gave it nine columns; a bare year may not
+establish a column, or the header row joins the table and no column gets a name; and a
+`COLUMN_SHARE` threshold I added on page-56 evidence turned out to change **no page at all**
+once the figure definition was tightened, so it is gone rather than kept as caution with a
+comment that had stopped being true.
+
+## B-121 Two of the four spreadsheet types could not be opened
+status: fixed (P152)
+2026-10-02. `intake/fingerprint.py` routes `.xlsx`, `.xlsm`, `.xls` and `.csv` to a reader
+that calls openpyxl, which opens the first two. A trial balance sent as a CSV was refused and
+what a person was told was **"TB.csv cannot be opened as a workbook (BadZipFile: File is not
+a zip file)"**.
+
+`tools/simulate_files.py` has had a CSV case since it was written and it passed every time,
+because the rehearsal judged a case by whether its run reached an end - and a halted run has
+ended. **A rehearsal that accepts any ending accepts the wrong one.** It now names the cases
+whose files are all well formed and calls an `UNREADABLE_FILE` on one of them a finding,
+which closes the hole for the other twelve cases too.
+
+Each is converted to a workbook at the door, so nothing above changed: sheet selection,
+normalisation, footing and the `'TB 2025'!B5:B8` locator a figure cites all go on reading a
+real workbook. The debit and credit columns of a CSV trial balance come back as two blocks
+at two ranges.
+
+**The care is in the numbers**, because a CSV has no types. `402,000` is four hundred and two
+thousand or four hundred and two depending on a convention the file may not state, and
+writing the wrong one is undetectable afterwards since both are plausible figures. The
+convention is decided once from the whole file on evidence that can only mean one thing, and
+where the file settles nothing the cell **stays text and is named** - a file carrying both
+`402,000` and `1.234` yields no figure block at all and says why.
+
+Two of my own mistakes, both found by the revert harness rather than by me: the encoding was
+reported as `utf-8-sig` for every UTF-8 file, because that codec reads a file with no byte
+order mark perfectly well and the name was saying something the file did not; and two tests
+were too weak to catch what they named - a title block that does not contain a comma cannot
+show that the delimiter is read from the whole file, and an `.xls` with no date in it cannot
+show that a date keeps its mode.
+

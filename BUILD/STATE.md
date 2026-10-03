@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **150 of 150 phases closed**
-- Last green checkpoint: **C83**
+- **152 of 152 phases closed**
+- Last green checkpoint: **C84**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -169,4 +169,6 @@
 - **P148** Four sentences that count, and two that count wrong (2026-10-02)
 - **P149** The panels whose length is not ours (2026-10-02)
 - **P150** What the page says to a reader who cannot see it (2026-10-02)
+- **P151** A line is not a row (2026-10-02)
+- **P152** The workbook that was not a zip file (2026-10-02)
 

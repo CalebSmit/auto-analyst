@@ -26,6 +26,7 @@ import io
 import re
 from dataclasses import dataclass, field
 
+from intake.readers.layout import LaidOutTable, lay_out
 from ops.source_parse import Row
 
 __all__ = ["Column", "Line", "Page", "ParsedDocument", "Table", "read_document"]
@@ -206,13 +207,25 @@ def _read_pdf(data: bytes, filename: str) -> ParsedDocument:
                     parsed.lines.append(Line(raw_line.strip(), hidden=hidden, font_size=size))
         doc.pages.append(parsed)
 
+    scanned = {page.number for page in doc.pages if page.scanned}
     _ocr_the_scanned_pages(doc, data)
+
+    # Where the words are, if they can be had. A page with a text layer gets its rows and
+    # columns from the page; a page that had none and was OCR'd has no coordinates to read
+    # - the engine gave lines - so it keeps the path it always had. Which of the two it was
+    # is settled before OCR runs, because OCR fills the lines in and the question would
+    # otherwise answer itself wrongly.
+    laid_out = lay_out(data)
     for parsed in doc.pages:
-        parsed.tables.extend(
-            _tables_from_lines(
-                parsed.number, [line for line in parsed.lines if not line.hidden]
+        page_layout = None if laid_out is None else laid_out.get(parsed.number)
+        if page_layout and parsed.number not in scanned:
+            parsed.tables.extend(_tables_from_layout(parsed.number, page_layout))
+        else:
+            parsed.tables.extend(
+                _tables_from_lines(
+                    parsed.number, [line for line in parsed.lines if not line.hidden]
+                )
             )
-        )
     return doc
 
 
@@ -287,7 +300,7 @@ def _tables_from_lines(page: int, lines: list[Line]) -> list[Table]:
 
     for line in lines:
         found = list(_FIGURES.finditer(line.text))
-        if found and line.text[: found[0].start()].strip(" .…	"):
+        if found and line.text[: found[0].start()].strip(" .â€¦	"):
             if not run:
                 # The line above the first figure row is where a statement writes its
                 # years. Captured when the run opens, because by the time it closes the
@@ -321,7 +334,7 @@ def _table_from_run(
         if len(found) < width:
             continue
         columns = found[-width:]
-        label = line.text[: columns[0].start()].strip(" .…	")
+        label = line.text[: columns[0].start()].strip(" .â€¦	")
         if not label:
             continue
         body.append((label, [_number(m.group(0)) for m in columns], line.text))
@@ -338,6 +351,53 @@ def _table_from_run(
                 rows=tuple(
                     Row(label=label, value=values[n], raw=raw, ordinal=ordinal)
                     for ordinal, (label, values, raw) in enumerate(body, start=1)
+                ),
+            )
+            for n in range(width)
+        ),
+    )
+
+
+def _cell_value(cell: str | None) -> float | None:
+    """A cell's figure, where it holds one. An empty cell and a cell holding the dash a
+    statement writes for nil both read as nothing, which is what `Row.value` is nullable
+    for - and they are different facts the raw text still carries."""
+    return _number(cell) if cell else None
+
+
+def _tables_from_layout(page: int, laid_out: list[LaidOutTable]) -> list[Table]:
+    """The page's tables, where the page had columns to read."""
+    built: list[Table] = []
+    for table in laid_out:
+        made = _table_from_laid_out(page, len(built) + 1, table)
+        if made is not None:
+            built.append(made)
+    return built
+
+
+def _table_from_laid_out(page: int, index: int, laid_out: LaidOutTable) -> Table | None:
+    body = [row for row in laid_out.rows if row.label and any(row.cells)]
+    if len(body) < 2:
+        return None
+    width = len(laid_out.columns)
+    # The page's own answer first - a heading matched to the column it is printed over.
+    # The token count is the fallback, for a heading line the layout could not place.
+    headings = laid_out.headings or _headings_for(laid_out.heading_line, width)
+    return Table(
+        page=page,
+        index=index,
+        columns=tuple(
+            Column(
+                index=n + 1,
+                heading=headings[n],
+                rows=tuple(
+                    Row(
+                        label=row.label,
+                        value=_cell_value(row.cells[n]),
+                        raw=row.text,
+                        ordinal=ordinal,
+                    )
+                    for ordinal, row in enumerate(body, start=1)
                 ),
             )
             for n in range(width)

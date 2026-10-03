@@ -4405,6 +4405,60 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P151",
+      "title": "A line is not a row",
+      "block": "Extraction",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Build a statement row from where the words are on the page rather than from how the text stream happens to be chunked, so a total keeps its figures and a number inside a sentence cannot be read as a column.",
+      "builds": [],
+      "tasks": [
+        "pdfplumber is added as a dependency, with what it is for written beside it",
+        "a page's rows are built from word baselines and its columns from where the figures actually sit",
+        "a figure outside the columns stays in the label, which is what stops a share count becoming a balance",
+        "the real filing's balance sheet is checked against what the filing says, total by total"
+      ],
+      "exit": [
+        "Every grand total on the real filing's balance sheet is built with its figures, measured against the filing rather than against a fixture",
+        "A number that sits in a label rather than in a figure column is never stored as that row's value",
+        "What the reader already got right on that filing it still gets right, row for row"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p151 -q",
+        "python -m uv run pytest tests/p17 tests/p53 tests/p74 tests/p76 tests/p85 tests/checkpoints/c43 tests/checkpoints/c44 tests/checkpoints/c52 -q",
+        "python -m uv run ruff check intake/ tests/p151"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P152",
+      "title": "The workbook that was not a zip file",
+      "block": "Extraction",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Let a CSV and an .xls be read as what they are, by presenting each to the existing workbook reader as a workbook - so sheet selection, normalisation and the Sheet!A1 locators a figure cites all stay exactly as they are.",
+      "builds": [],
+      "tasks": [
+        "a CSV becomes a one-sheet workbook, so the reader above it does not change at all",
+        "an .xls becomes a workbook the same way, through xlrd",
+        "the delimiter, the encoding and the decimal convention are read off the file and carried, and an ambiguous one is not guessed",
+        "the rehearsal's CSV case expects a reading rather than a refusal"
+      ],
+      "exit": [
+        "A trial balance sent as a CSV is read, with its figures as figures, and the rehearsal stops counting its refusal as a result",
+        "An .xls is read the same way, and neither format reaches a person as a zip-file error",
+        "A delimiter, an encoding and a decimal convention are decided from the file and reported, and an ambiguous one is reported rather than guessed"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p152 -q",
+        "python -m uv run pytest tests/p16 tests/p17 tests/p53 -q",
+        "python -m uv run ruff check intake/ tests/p152"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5319,6 +5373,17 @@
       "proves": "A reader who cannot see these pages meets the same structure on each of the four - one main, one nav, one top-level heading and no gap in the levels - and every control they land on has something to be called.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c83 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C84",
+      "title": "A figure can be found again",
+      "after": "P152",
+      "status": "done",
+      "proves": "Every figure these readers emit is printed in the source at the locator it cites, from a page and from a sheet alike, and a file that had to be converted carries what was decided to read it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c84 -q"
       ],
       "closed": "2026-10-02"
     }

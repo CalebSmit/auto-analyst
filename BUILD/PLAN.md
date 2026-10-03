@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**150 of 150 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**152 of 152 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -360,4 +360,12 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C82 - A page the firm cannot stretch** | integration | Every panel on the three boards is bounded by a number this build chose - one cap shared by all of them, or a list whose length the build fixes - so how tall a page gets is never a function of how long the firm has been using it. | 2026-10-02 |
 | [x] | **P150** What the page says to a reader who cannot see it | auto | Every page has exactly one main landmark and the board is inside it | 2026-10-02 |
 | [x] | **C83 - The same shape, unseen** | integration | A reader who cannot see these pages meets the same structure on each of the four - one main, one nav, one top-level heading and no gap in the levels - and every control they land on has something to be called. | 2026-10-02 |
+
+## Extraction
+
+| | Phase | Gate | Closes when | Status |
+|---|---|---|---|---|
+| [x] | **P151** A line is not a row | auto | Every grand total on the real filing's balance sheet is built with its figures, measured against the filing rather than against a fixture | 2026-10-02 |
+| [x] | **P152** The workbook that was not a zip file | auto | A trial balance sent as a CSV is read, with its figures as figures, and the rehearsal stops counting its refusal as a result | 2026-10-02 |
+| [x] | **C84 - A figure can be found again** | integration | Every figure these readers emit is printed in the source at the locator it cites, from a page and from a sheet alike, and a file that had to be converted carries what was decided to read it. | 2026-10-02 |
 

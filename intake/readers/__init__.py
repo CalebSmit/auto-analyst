@@ -30,6 +30,7 @@ from intake.readers.classify import Classification, Evidence, audited_evidence, 
 from intake.readers.documents import ParsedDocument, read_document
 from intake.readers.footing import FootingReport, footings_in
 from intake.readers.periods import PeriodDetection, detect_periods
+from intake.readers.tabular import Conversion, as_workbook, converts
 from intake.readers.workbook import (
     Selection,
     SheetSelector,
@@ -58,6 +59,10 @@ class ReadReport:
     selection: Selection | None = None
     classification: Classification | None = None
     periods: PeriodDetection | None = None
+    conversion: Conversion | None = None
+    """What had to be decided to read a file that was not already a workbook - the
+    delimiter, the encoding, the decimal point, and any cell that could have been two
+    numbers. `None` for a file that needed no converting."""
     wrapped: Wrapped | None = None
     hidden_text: tuple[str, ...] = ()
     review_item_id: str | None = None
@@ -137,6 +142,13 @@ def read_source(
 
     if row.kind == "spreadsheet":
         try:
+            # A CSV and an .xls are spreadsheets this build accepts and openpyxl cannot
+            # open. Converted here, once, so everything below reads a workbook - including
+            # the Sheet!A1 locator a figure will cite for as long as the figure exists.
+            if converts(row.filename):
+                converted = as_workbook(data, row.filename)
+                data = converted.workbook
+                report.conversion = converted
             survey = survey_workbook(data)
         except Exception as broken:  # noqa: BLE001 - openpyxl raises a zoo, all meaning "not a workbook"
             # A zero-byte file, a text file with the wrong extension, a workbook still
@@ -257,6 +269,28 @@ def read_source(
                     if report.totals_that_did_not_foot
                     else ""
                 )
+                # A file that was not a workbook had its separator, its encoding and its
+                # decimal point decided here, and a cell that could have been two numbers
+                # was left as text. Said in the message rather than only in the payload,
+                # because it is the kind of thing a person wants to see without opening a
+                # record: `402,000` is four hundred thousand or it is four hundred and two.
+                + (
+                    f"; read as {report.conversion.encoding}"
+                    f" split on {report.conversion.delimiter!r}"
+                    + (
+                        f", decimal {report.conversion.decimal!r}"
+                        if report.conversion.decimal
+                        else ", no decimal convention in the file"
+                    )
+                    + (
+                        "; left as text because it could be two numbers: "
+                        + ", ".join(report.conversion.ambiguous[:3])
+                        if report.conversion.ambiguous
+                        else ""
+                    )
+                    if report.conversion and report.conversion.delimiter
+                    else ""
+                )
             ),
             step_id=step_id,
             payload={
@@ -275,6 +309,16 @@ def read_source(
                 "period_ends": list(report.periods.period_ends),
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
+                "converted": (
+                    {
+                        "encoding": report.conversion.encoding,
+                        "delimiter": report.conversion.delimiter,
+                        "decimal": report.conversion.decimal,
+                        "ambiguous": list(report.conversion.ambiguous),
+                    }
+                    if report.conversion
+                    else None
+                ),
                 "audited": report.audited,
                 # The evidence `review/router.py` routes on. Counts and names rather than
                 # the runs themselves: the ordinals live in the parse store, and an event

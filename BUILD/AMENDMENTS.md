@@ -2828,3 +2828,46 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C83 after P150, covering P150
 - proves: A reader who cannot see these pages meets the same structure on each of the four - one main, one nav, one top-level heading and no gap in the levels - and every control they land on has something to be called.
+
+## 2026-10-02 - P151 A line is not a row
+
+**Why:** Measured on the real filing in fixtures/public, the Document Reader loses the two most important figures on a balance sheet and invents a third. Page 56: 'Total assets' is one text line and '$ 521,728 $ 608,846' is the next, because an audited statement sets its grand total on a ruled row and the PDF emits the label and the figures as separate runs - so the run of figure-carrying lines breaks, the label becomes a plain line, and the row is built by nothing. Total assets 521,728 and Total liabilities 279,177 are not built at all. Worse, the Common stock line wraps over two text lines and the first carries 'authorized 220,000 shares; shares issued 145,581' - the reader takes the last two figures on that line and stores Common stock as 220,000, when the balance is 146. A share count, confidently, in the equity section. The root cause is one assumption: that a text line is a statement row. In a real filing it is not. A row is a band of the page, and a column is a band too - on page 56 every figure column sits at x=449 and x=516, and the 220,000 inside that label sits at x=234. Coordinates separate them and text never can. Proved on the page before proposing it: grouping words by baseline at x_tolerance 1.5 rebuilds 'Total assets $ 521,728 $ 608,846' as one row with its figures on the column positions, and leaves the label's own numbers off the columns. pdfplumber and pdfminer.six are pure Python with no system dependency, cryptography is already a dependency, and nothing about them reaches a network or a model.
+
+- phase added: P151 A line is not a row (Extraction, gate: auto)
+- exit criterion: Every grand total on the real filing's balance sheet is built with its figures, measured against the filing rather than against a fixture
+- exit criterion: A number that sits in a label rather than in a figure column is never stored as that row's value
+- exit criterion: What the reader already got right on that filing it still gets right, row for row
+
+## 2026-10-02 - P151 A line is not a row
+
+**Why:** The tasks.
+
+- task added: pdfplumber is added as a dependency, with what it is for written beside it
+- task added: a page's rows are built from word baselines and its columns from where the figures actually sit
+- task added: a figure outside the columns stays in the label, which is what stops a share count becoming a balance
+- task added: the real filing's balance sheet is checked against what the filing says, total by total
+
+## 2026-10-02 - P152 The workbook that was not a zip file
+
+**Why:** A trial balance sent as a CSV is refused, and the reason a person is given is BadZipFile. Measured through the real server by tools/simulate_files.py, whose own CSV case has been passing since it was written because the rehearsal counts a refusal as an outcome on the record: 'TB.csv cannot be opened as a workbook (BadZipFile: File is not a zip file)'. The file is a perfectly good trial balance. The routing table in intake/fingerprint.py declares .csv and .xls as spreadsheets, and the only spreadsheet reader there is calls openpyxl, which can open neither - so two of the four formats this build says it accepts are refused at the door, and the refusal names a zip file to an accountant. A .doc and a .rtf are worse than refused: both route to the document reader, fall past the pdf and docx branches, and are decoded as UTF-8 text, which turns an OLE2 compound file into a line of replacement characters and hands it on as content. And nothing at all routes an image: a screenshot, a phone photograph of a statement and a faxed tiff are all 'other'. This phase takes the spreadsheet family, because for this firm that is where the work is - the trial balance, the WS grouping and the prior year's workbook are what a run reads.
+
+- phase added: P152 The workbook that was not a zip file (Extraction, gate: auto)
+- exit criterion: A trial balance sent as a CSV is read, with its figures as figures, and the rehearsal stops counting its refusal as a result
+- exit criterion: An .xls is read the same way, and neither format reaches a person as a zip-file error
+- exit criterion: A delimiter, an encoding and a decimal convention are decided from the file and reported, and an ambiguous one is reported rather than guessed
+
+## 2026-10-02 - P152 The workbook that was not a zip file
+
+**Why:** The tasks.
+
+- task added: a CSV becomes a one-sheet workbook, so the reader above it does not change at all
+- task added: an .xls becomes a workbook the same way, through xlrd
+- task added: the delimiter, the encoding and the decimal convention are read off the file and carried, and an ambiguous one is not guessed
+- task added: the rehearsal's CSV case expects a reading rather than a refusal
+
+## 2026-10-02 - C84 A figure can be found again
+
+**Why:** P151 found that a text line is not a statement row: on the real filing, Total assets 521,728 and Total liabilities 279,177 were built by nothing at all, and Common stock was built as 220,000 - the authorized share count - where the balance is 146. P152 found that two of the four spreadsheet types this build accepts could not be opened by the only reader it routes them to, so a trial balance sent as a CSV was refused with BadZipFile. Both phases make figures, and what a checkpoint can ask is the thing CLAUDE.md states as a non-negotiable and neither phase is placed to test: a figure is proved by arithmetic or it is seen, and seeing it means finding it again in the file at the place it says it is. Asked over every row of a hundred and eight pages and over a converted CSV, because a reader that invents on one page in a hundred is a reader nobody can trust and a spot check would not find it. It also caught a tolerance of mine that was hiding a formatting bug in the test rather than a defect in the reader.
+
+- checkpoint added: C84 after P152, covering P151, P152
+- proves: Every figure these readers emit is printed in the source at the locator it cites, from a page and from a sheet alike, and a file that had to be converted carries what was decided to read it.

@@ -314,6 +314,31 @@ CASES = {
 # nothing, a workbook no convention claims is held and preflight says so.
 EXPECTED_NO_RUN = {"empty-folder", "only-tb", "many-sheets"}
 
+# Cases whose documents are all well formed. A run of one of these may stop for any reason
+# a run stops for - a model it cannot reach, a question for a person - but it may never stop
+# because a file could not be read.
+#
+# Added in P152, after the `csv` case had been passing since it was written. Every file in it
+# is valid and the run halted on `INTAKE.UNREADABLE_FILE: TB.csv cannot be opened as a
+# workbook (BadZipFile: File is not a zip file)`, and the rehearsal called that a pass -
+# because a halted run has ended on the record, and nothing asked whether the refusal was
+# right. A rehearsal that accepts any ending accepts the wrong one.
+EVERY_FILE_IS_READABLE = {
+    "csv",
+    "pdf",
+    "formulas-only",
+    "merged-and-chart",
+    "huge-tb",
+    "wide-monthly",
+    "unicode",
+    "xlsm",
+    "nested",
+    "duplicate-bytes",
+    "parens-and-dashes",
+    "dates-as-headers",
+    "changed-after",
+}
+
 
 def register(api: Any, out: Any, name: str, who: str) -> str:
     eid = "BAT-" + name.upper().replace("-", "")[:8]
@@ -456,6 +481,16 @@ def main() -> int:
                 failed = [e for e in ev or [] if e["type"] == "worker.failed"]
                 if failed:
                     out.finding(f"{name}: worker.failed - {str(failed[0].get('message'))[:160]}")
+                if name in EVERY_FILE_IS_READABLE:
+                    unread = [
+                        e for e in ev or []
+                        if "UNREADABLE_FILE" in str(e.get("message"))
+                    ]
+                    if unread:
+                        out.finding(
+                            f"{name}: every file in this case is valid and one was refused "
+                            f"- {str(unread[0].get('message'))[:140]}"
+                        )
             for i in inbox_items:
                 if any(i["run_id"] == r["run_id"] for r in runs_):
                     out.say(f"        review: {i['item_id']} {i['subject'][:100]}")
