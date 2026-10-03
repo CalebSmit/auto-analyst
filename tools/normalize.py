@@ -162,8 +162,9 @@ def timing_normalizer(
             # A statement states one scale for itself and then prints rows that are not in
             # it. The filing says so - *in thousands, except share and per share data* - and
             # a workbook writes the exception into each row's label. The file's scale is
-            # applied to every row of it, and three places downstream multiply a figure by
-            # its scale, so a share count of 135,361,000 on a statement in thousands was
+            # applied to every row of it, and six lines downstream multiplied a figure by
+            # its scale (P165 made them one), so a share count of 135,361,000 on a
+            # statement in thousands was
             # reported as 135 billion and a par value of $0.001 as $1.00. Both plausible,
             # which is why nothing caught either.
             unit, scale, why = _unit_of(hits, int(meta["scale"]))

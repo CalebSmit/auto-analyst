@@ -174,12 +174,18 @@ def _label(item: Mapping[str, Any]) -> str:
 def _amount(item: Mapping[str, Any], currency: str) -> str:
     """The figure as locked, and the period as a label - `FY2024`, never a date, so the
     only digits in the sentence are the figure's."""
+    from harness.restate import amount_of
+
     figure = item.get("amount") or {}
-    value = float(figure.get("value", 0)) * int(figure.get("scale", 1))
+    # Through the one multiplication, and printed as what it is: a count of shares reads
+    # `135,361,000 shares`, never `135,361,000 USD` with the template's currency filled in
+    # for a figure that has none because it is not money.
+    said = amount_of({"value": 0, **figure}, _label(item))
+    word = said.currency or (currency if said.unit == "currency" else said.unit)
     period = figure.get("period") or {}
     end = str(period.get("end", ""))
     label = f"{period.get('type', 'FY')}{end[:4]}" if end else ""
-    return f"{value:,.0f} {figure.get('currency', currency)}" + (f" in {label}" if label else "")
+    return f"{said.number:,.0f} {word}" + (f" in {label}" if label else "")
 
 
 def _describe(item: Mapping[str, Any], currency: str) -> str:

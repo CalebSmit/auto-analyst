@@ -39,8 +39,9 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from harness.procedures.payload import as_payload
+from harness.restate import expect_unit
 from harness.runtime import BoundTools
-from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
+from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, RegistryError, diagnose
 from review.router import Item
 
 __all__ = [
@@ -331,6 +332,29 @@ class ModelLoad:
                         skill=PRODUCED_BY,
                     )
                 )
+            # And what the figure is a number of. A template declares one currency and one
+            # scale for every input, so every cell is money; a count of shares bound to one
+            # is the same class of mistake as a figure from the wrong year - arithmetic,
+            # not judgement - and it used to pass this check, be divided by a thousand to
+            # fit the template's scale, and be written. Refused here so it goes round the
+            # recipe's repair loop and then to a person, rather than halting at release.
+            try:
+                expect_unit(
+                    refs[ref].figure,
+                    ref,
+                    unit="currency",
+                    destination=f"{name} is a currency cell of {inputs.template_key}",
+                )
+            except RegistryError as not_money:
+                raise ProposalRefused(
+                    diagnose(
+                        UNKNOWN_LINE_ITEM,
+                        f"{not_money.diagnostic.detail}; a figure that is not money passes "
+                        f"every check after this one",
+                        locator=name,
+                        skill=PRODUCED_BY,
+                    )
+                ) from not_money
             bound[name] = ref
             bindings.append(
                 {"named_range": name, "source_output": refs[ref].source_output, "figure_ref": ref}

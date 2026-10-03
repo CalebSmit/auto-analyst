@@ -157,7 +157,7 @@ python -m uv run python tools/prose_checks.py <notes.md> --fix --out fixed.md
 python -m uv run python tools/reasonableness.py <table.json> --move points=5 --move days=10
 ```
 
-**The workbook.** Eight checks in three severities: *wrong* is arithmetic the file
+**The workbook.** Nine checks in three severities: *wrong* is arithmetic the file
 disagrees with itself about - a total whose range stops a row short of its block, a total
 counting another total, a saved total that does not equal what it adds; *suspect* is a
 pattern break - a plug in a row of formulas, a copy that landed a row off; *convention* is
@@ -272,6 +272,32 @@ Non-consecutive years are what catch it: a two-column table dated 2025 and 2023 
 reading `2025 2024 2023` says a column between them was never built. Two tables over 232 pages.
 It is **reported, not repaired** - rebuilding the column is a guess, and saying its indices
 cannot be trusted is a fact.
+
+**A total that says which way it points.** Every tie-out in `intake/readers/footing.py`
+passes a statement whose every sign is inverted: rows of -12,000 and -3,000 under a total of
+-15,000 re-add, two sides agree at -521,728, cash rolls forward to a negative balance. A cash
+flow section is all-negative, so a column read with every sign flipped foots exactly - and
+arithmetic cover is the evidence that will decide whether a person looks. What catches it is a
+statement about the table, not about the business: `Total assets` is not negative, `Net cash
+used in financing` is not positive. The whole of the rule is the line between a label that
+cannot honestly go either way and one that can, and the second kind says nothing - `Net cash
+provided by (used in)`, `Net income`, `Gross profit`, a proceed inside a roll-forward, an
+expense that one page prints positive and the next negative. Calibrated over 2,373 rows of the
+three filings: 69 read, none contradicted. One contradiction withdraws the **whole block's**
+cover, because on a flipped column the rows with no direction word look right. It reads 2.9%
+of rows and they are the grand totals; a flip confined to a section with no direction line
+still passes, and that is written down rather than left to be found.
+
+**The one multiplication asks the unit first.** P162 gave a share count `unit: shares,
+scale: 1`, and `harness/restate.py` divided it by a thousand anyway on the way into the
+workbook - it read `scale` and never `unit`, and rewrote the scale to the template's so that
+`deliver/builder.py`'s own refusal for a figure at the wrong scale could never fire. Six lines
+in three modules multiplied a figure by its scale and two lines in the repository read its
+unit. Now `amount_of` and `expect_unit` in `harness/restate.py` are the one way a figure
+becomes a number: a figure that is not money is left as it came and listed as such on the
+restatement event, a cell bound to one is refused with the unit in the sentence, and the
+narrative prints `135,361,000 shares`. The proof is not a search for a word - `tests/p165`
+makes `_moved` raise and watches every site fail.
 
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not

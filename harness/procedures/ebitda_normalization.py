@@ -36,9 +36,10 @@ from typing import Any
 
 from harness.procedures.line_item_tagging import line_item_ref
 from harness.procedures.payload import as_payload
+from harness.restate import amount_of
 from harness.runtime import BoundTools
 from ops.source_parse import SheetRange, parse_locator
-from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, diagnose
+from registries.errors import UNKNOWN_LINE_ITEM, DiagnosticError, RegistryError, diagnose
 from review import Money
 from review.router import Item
 
@@ -240,22 +241,32 @@ class EbitdaNormalization:
                 continue
             amount = dict(s.get("amount") or {})
             period = dict(amount.get("period") or {})
-            money: Money | None
-            try:
-                money = Money(
-                    abs(float(str(amount.get("value")))) * float(amount.get("scale") or 1),
-                    str(amount.get("currency") or ""),
-                )
-            except (TypeError, ValueError):
-                money = None
             cid = str(s["candidate_id"])
+            money: Money | None
+            not_money = ""
+            try:
+                # Through the one multiplication, asking the unit first. An add-back is
+                # money or it is not an add-back; a figure that is a count of shares gets
+                # no amount - by decision, with the reason on the item, where it used to
+                # get none by accident because `Money` refused the empty currency code a
+                # non-currency figure is forbidden to carry.
+                said = amount_of(
+                    amount, cid, unit="currency", destination="an add-back is an amount of money"
+                )
+                money = Money(abs(said.number), str(said.currency or ""))
+            except RegistryError as refused:
+                money = None
+                not_money = refused.diagnostic.detail
+            except (TypeError, ValueError, KeyError):
+                money = None
             what = str(s.get("description") or s.get("line_item_ref") or cid)
             when = str(period.get("label") or period.get("end") or "the period")
             items.append(
                 Item(
                     item_id=f"addback:{cid}",
                     skill=self.name,
-                    question=f"Add back {what} for {when}? ({s.get('category')})",
+                    question=f"Add back {what} for {when}? ({s.get('category')})"
+                    + (f" - {not_money}" if not_money else ""),
                     source_excerpt=" | ".join(
                         str(e.get("excerpt", "")) for e in (s.get("evidence") or [])[:2]
                     ),
@@ -362,8 +373,32 @@ class EbitdaNormalization:
                 line = inputs.line(ref)
                 assert line is not None
                 figure = line.figures.get(period)
-                if figure is not None:
-                    operands.append([float(figure["value"]) * int(figure["scale"])])
+                if figure is None:
+                    continue
+                # Officer compensation is money in the benchmark's currency, and a line
+                # that is not cannot be in the sum - a count of shares added to salaries
+                # is a number that means nothing, and the sentence it produced landed on
+                # every *other* officer item in the period. Refused like a candidate that
+                # names a line the step was not given.
+                try:
+                    said = amount_of(
+                        figure,
+                        ref,
+                        unit="currency",
+                        currency=benchmark.currency,
+                        destination=f"the owner-compensation benchmark is in {benchmark.currency}",
+                    )
+                except RegistryError as not_money:
+                    raise ProposalRefused(
+                        diagnose(
+                            UNKNOWN_LINE_ITEM,
+                            f"{not_money.diagnostic.detail}; it cannot be in the officer "
+                            f"compensation total",
+                            locator=ref,
+                            skill=PRODUCED_BY,
+                        )
+                    ) from not_money
+                operands.append([said.number])
             if operands:
                 total = tools[RECOMPUTE](
                     engagement_id=tools.engagement_id, op="sum", operands=operands, stated=0.0
@@ -425,11 +460,25 @@ class EbitdaNormalization:
         # person ever sees it. `review_items` a few hundred lines up already takes `abs()`
         # for the reviewer's queue, so the two halves of this file used to disagree about
         # what "how big is it" means.
-        absolute = abs(float(figure["value"]) * int(figure["scale"]))
+        # Through the one multiplication, which asks the unit and the currency before it
+        # multiplies. What cannot be compared to the threshold is treated as above it, so
+        # a person sees it - and the note says what the figure is, rather than "no
+        # currency" for a count of shares that is forbidden to carry one.
         currency = str(figure.get("currency", ""))
-        if currency != inputs.materiality_currency:
+        try:
+            absolute = abs(
+                amount_of(
+                    figure,
+                    line.line_item_ref,
+                    unit="currency",
+                    currency=inputs.materiality_currency,
+                    destination=f"the threshold is {inputs.materiality_amount:,.0f} "
+                    f"{inputs.materiality_currency}",
+                ).number
+            )
+        except RegistryError as not_comparable:
             above = True
-            notes.append(f"{currency or 'no currency'} cannot be compared to the threshold")
+            notes.append(not_comparable.diagnostic.detail)
         else:
             above = absolute >= inputs.materiality_amount
         if above:

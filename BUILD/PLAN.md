@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**163 of 163 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**165 of 165 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -262,6 +262,9 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C90 - Accuracy, measured and acted on** | integration | Every figure the readers extract off three real filings is a figure the filer reported at that column's own date, no row that was currency stopped being currency, and a row whose label declares another unit reaches a figure at its own scale rather than the statement's. | 2026-10-03 |
 | [x] | **P163** Which column is which year | auto | A comparative statement in a PDF names its columns, and the period detector settles on it instead of reporting that no header row names them | 2026-10-03 |
 | [x] | **C91 - The page and the declaration agree** | integration | On every statement the accuracy harness checks, the year the page prints above each column is the year a person declared that column to be, the detector settles on those dates without being told, the 194 figures the harness measured have not moved, and the table that lost a column is on a page the harness never covered. | 2026-10-03 |
+| [x] | **P164** A total that says which way it points | auto | A balance sheet column with every sign inverted is reported, with the rows named, and carries no arithmetic cover | 2026-10-03 |
+| [x] | **P165** The one multiplication, and the unit it asks first | auto | A share count at scale 1 into a template declaring thousands is not divided: the restater returns it unchanged and lists it, and the wrong number 135,361 appears in no output of any site | 2026-10-03 |
+| [x] | **C92 - A number that passes arithmetic and is wrong** | integration | One workbook carrying a wholly negated balance sheet and a share count comes out the far end with the contradiction withdrawing the block's cover, the share count neither divided nor written, and the cell bound to it refused for what it is rather than for its scale. | 2026-10-03 |
 
 ## A run that finishes
 

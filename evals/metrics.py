@@ -31,6 +31,7 @@ from harness.procedures.model_load import (
     catalogue_from,
     inputs_from,
 )
+from harness.restate import amount_of
 from review import CheckpointPolicy, ConfidenceRouter, Item, Money, Route
 from tools.normalize import timing_normalizer
 from tools.recompute import recompute
@@ -225,7 +226,9 @@ def ebitda_metrics(world: EvalWorld) -> dict[str, float]:
             source_excerpt="eval",
             proposal=i,
             confidence=0.99,
-            amount=Money(float(figure["value"]) * int(figure["scale"]), figure["currency"]),
+            amount=Money(
+                amount_of(figure, i["candidate_id"], unit="currency").number, figure["currency"]
+            ),
             category=i["category"],
             review_required=False,
         )

@@ -53,7 +53,7 @@ def envelope(value: float, scale: int, **over: Any) -> dict[str, Any]:
 
 def test_units_become_thousands() -> None:
     """What the client sends and what the firm delivers, which is the whole phase."""
-    out, moves = restated({"a": envelope(1_234_567.89, 1)}, 1000)
+    out, moves, _ = restated({"a": envelope(1_234_567.89, 1)}, 1000)
     assert out["a"]["value"] == pytest.approx(1234.56789)
     assert out["a"]["scale"] == 1000
     assert [m.figure_ref for m in moves] == ["a"]
@@ -63,7 +63,7 @@ def test_units_become_thousands() -> None:
 def test_millions_become_thousands_as_well() -> None:
     """The rule is the template's scale, not "divide by a thousand". A client sending
     millions is restated up, and the same code does it."""
-    out, moves = restated({"a": envelope(1.5, 1_000_000)}, 1000)
+    out, moves, _ = restated({"a": envelope(1.5, 1_000_000)}, 1000)
     assert out["a"]["value"] == pytest.approx(1500.0)
     assert out["a"]["scale"] == 1000
     assert moves[0].factor == 1000
@@ -73,7 +73,7 @@ def test_every_decimal_survives() -> None:
     """The analyst, on the output: don't round before writing, let Excel round for visual
     effect, keep all the decimals in there. The template's number format does the
     rounding; this must not."""
-    out, _ = restated({"a": envelope(123_456_789.01, 1)}, 1000)
+    out, _, _ = restated({"a": envelope(123_456_789.01, 1)}, 1000)
     assert out["a"]["value"] == pytest.approx(123456.78901, abs=1e-9)
     assert out["a"]["value"] != round(out["a"]["value"])
 
@@ -92,7 +92,7 @@ def test_a_figure_already_at_the_template_scale_is_untouched() -> None:
     """Identity, not a multiply by one - and nothing is recorded, because there is nothing
     to tell anybody about a number nobody moved."""
     already = envelope(42.0, 1000)
-    out, moves = restated({"a": already}, 1000)
+    out, moves, _ = restated({"a": already}, 1000)
     assert out["a"] is already
     assert moves == ()
 
@@ -100,7 +100,7 @@ def test_a_figure_already_at_the_template_scale_is_untouched() -> None:
 def test_everything_else_in_the_envelope_is_carried_through() -> None:
     """A restated figure is the same figure. Its locator, its source and its period are
     how anyone checks the restatement was right."""
-    out, _ = restated({"a": envelope(1000.0, 1, locator="IS!C7")}, 1000)
+    out, _, _ = restated({"a": envelope(1000.0, 1, locator="IS!C7")}, 1000)
     assert out["a"]["locator"] == "IS!C7"
     assert out["a"]["source_id"] == "sha256:" + "a" * 64
     assert set(out["a"]) == set(envelope(0.0, 1))
@@ -131,7 +131,7 @@ def test_a_bare_number_is_treated_as_units_and_restated_too() -> None:
     and `_value_of` returns a plain number without checking its scale at all. So a
     benchmark of 250,000 dollars was being written into a thousands cell as 250,000
     thousand - a quarter of a billion - and no guard in the build said a word."""
-    out, moves = restated({"profile:owner_compensation_baseline": 250_000.0}, 1000)
+    out, moves, _ = restated({"profile:owner_compensation_baseline": 250_000.0}, 1000)
     assert out["profile:owner_compensation_baseline"] == pytest.approx(250.0)
     assert moves[0].from_scale == BARE_NUMBERS_ARE_AT == 1
 
@@ -266,7 +266,7 @@ def test_the_driver_says_nothing_when_nothing_moved() -> None:
 def test_the_row_says_what_moved_and_where_to() -> None:
     """Enough to redo the multiplication by hand, which is the only form of "recorded"
     worth anything."""
-    _, moves = restated({"Revenue": envelope(2_500_000.0, 1)}, 1000)
+    _, moves, _ = restated({"Revenue": envelope(2_500_000.0, 1)}, 1000)
     assert moves[0].as_row() == {
         "figure_ref": "Revenue",
         "from_scale": 1,

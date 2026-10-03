@@ -3047,3 +3047,37 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C91 after P163, covering P163
 - proves: On every statement the accuracy harness checks, the year the page prints above each column is the year a person declared that column to be, the detector settles on those dates without being told, the 194 figures the harness measured have not moved, and the table that lost a column is on a page the harness never covered.
+
+## 2026-10-03 - P164 A total that says which way it points
+
+**Why:** Three tie-outs were run against a statement and against the same statement with every sign inverted, and all three pass both ways: footings re-add, the two sides agree at -521,728, the cash rolls forward to a negative balance. A cash flow section is all-negative, so a column read with every sign flipped foots exactly - and arithmetic cover is the evidence that will decide whether a person looks. Calibrated over 2,373 known-good rows: a label that states a direction is read on 69 of them and contradicted on none.
+
+- phase added: P164 A total that says which way it points (Reading what a client actually sends, gate: auto)
+- exit criterion: A balance sheet column with every sign inverted is reported, with the rows named, and carries no arithmetic cover
+- exit criterion: Over every row of the three public filings the rule contradicts nothing, and the number of rows it reads at all is asserted so its coverage cannot be overstated
+- exit criterion: A label that can honestly carry either sign - gross profit, net income, cash at the end of a period, a proceed inside a roll-forward - is not read, proved by the rows on the filings that would have fired
+- exit criterion: The three tie-outs still say what they said on the unchanged corpus
+
+## 2026-10-03 - P164 A total that says which way it points
+
+**Why:** The phase was registered as P164, not P165 - the restater phase it was written after is not yet in the plan - so its test directory follows its number.
+
+- check dropped: python -m uv run pytest tests/p165 -q
+- check added: python -m uv run pytest tests/p164 -q
+
+## 2026-10-03 - P165 The one multiplication, and the unit it asks first
+
+**Why:** P162 gave a share count unit shares at scale 1, and harness/restate.py divides it by a thousand anyway on the way into the workbook: it reads scale and never unit, and rewrites the scale to the template's so the builder's own refusal for a figure at the wrong scale can never fire. Six lines across three modules multiply a figure by its scale and only two lines in the repository read its unit, both asking whether it is currency. The restater's first line claims to be the one multiplication in the run, and making that true is the fix.
+
+- phase added: P165 The one multiplication, and the unit it asks first (Reading what a client actually sends, gate: auto)
+- exit criterion: A share count at scale 1 into a template declaring thousands is not divided: the restater returns it unchanged and lists it, and the wrong number 135,361 appears in no output of any site
+- exit criterion: A cell bound to a count of shares is refused with the unit in the sentence, and the sentence does not invite anybody to restate it
+- exit criterion: With the one multiplication made to raise, every site that turns a figure into a number fails - so none has a multiplication of its own
+- exit criterion: A dollar figure through every site is exactly what it was, and the existing restatement event is unchanged when nothing is left alone
+
+## 2026-10-03 - C92 A number that passes arithmetic and is wrong
+
+**Why:** P164 and P165 are one defect from two ends - a number that passes every arithmetic check and is wrong - and each phase's own tests pass alone. The checkpoint is one workbook carrying both: a balance sheet with every sign inverted and the one row a filer prints in shares, through the readers, the normalizer, the restater and the writer.
+
+- checkpoint added: C92 after P165, covering P164, P165
+- proves: One workbook carrying a wholly negated balance sheet and a share count comes out the far end with the contradiction withdrawing the block's cover, the share count neither divided nor written, and the cell bound to it refused for what it is rather than for its scale.

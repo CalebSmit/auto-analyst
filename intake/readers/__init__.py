@@ -149,6 +149,19 @@ class ReadReport:
         return tuple(line for _, line in sorted(out, reverse=True))
 
     @property
+    def signs_contradicted(self) -> tuple[str, ...]:
+        """Every row whose sign contradicts the direction its own label states, named.
+
+        The one thing a footing cannot see: a column read with every sign inverted re-adds
+        exactly, and `Total assets` coming out negative is the only thing on the page that
+        says so. A block with one of these carries no arithmetic cover at all."""
+        return tuple(
+            f"{locator}: {c.as_line()}"
+            for locator, report in self.footing.items()
+            for c in report.contradictions
+        )
+
+    @property
     def locators(self) -> tuple[str, ...]:
         return tuple(sorted(self.blocks))
 
@@ -271,7 +284,9 @@ def read_source(
         for table in normalize_workbook(data, [s.sheet for s in selection.selected]):
             for locator, rows in table.blocks.items():
                 report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
-                report.footing[locator] = footings_in(rows)
+                report.footing[locator] = footings_in(
+                    rows, heading=table.block_headers.get(locator, "")
+                )
             report.block_headers.update(table.block_headers)
             first_rows.extend(table.first_rows)
             text_for_model.append(table.as_text())
@@ -322,9 +337,16 @@ def read_source(
                 )
             ) from broken
         read_tables = [t for page in parsed.pages for t in page.tables]
+        # What the page wrote above each column, so the sign check can stay quiet on a
+        # column of changes - where a negative revenue is a fall and contradicts nothing.
+        headings = {
+            table.locator_for(column): column.heading
+            for table in read_tables
+            for column in table.columns
+        }
         for locator, rows in parsed.blocks().items():
             report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
-            report.footing[locator] = footings_in(rows)
+            report.footing[locator] = footings_in(rows, heading=headings.get(locator, ""))
         headers = parsed.headers()
         first_rows = parsed.first_rows()
         report.hidden_text = parsed.hidden_text()
@@ -575,6 +597,7 @@ def read_source(
                 ),
                 "rows_covered_by_a_total": report.covered_rows,
                 "did_not_re_add": list(report.totals_that_did_not_foot[:10]),
+                "signs_contradicted": list(report.signs_contradicted[:10]),
             },
         )
 

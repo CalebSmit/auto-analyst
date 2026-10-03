@@ -365,10 +365,10 @@ python -m uv run python tools/simulate_firm.py --scripted  # the same, with the 
 python -m uv run python tools/serve.py                     # start it
 ```
 
-The `python -m uv run` prefix is what puts the project's own dependencies on the path. A
-bare `python -m uv run python tools/serve.py` works only in a shell where the virtualenv is already
-activated; run without one it now tells you this rather than raising `ModuleNotFoundError`
-about a library you have never heard of.
+The `python -m uv run` prefix is what puts the project's own dependencies on the path.
+Dropping it and running the script with the system interpreter works only in a shell where
+the virtualenv is already activated; run without one it now tells you this rather than
+raising `ModuleNotFoundError` about a library you have never heard of.
 
 **Run the rehearsal before the first real engagement.** `tools/simulate_firm.py` starts
 the real server, sets up three invented clients through the same API the page uses, puts

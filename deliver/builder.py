@@ -23,6 +23,7 @@ from deliver.registry import SOURCE_SUFFIX, RegisteredTemplate
 from graph.execute import Blocked
 from guards import GuardResult
 from guards.numeric_lock import NumericLock
+from harness.restate import expect_unit
 from ops.events import EventBus
 from registries.errors import WRITE_FAILED, RegistryError, diagnose
 from tools.write_template import read_named, write_template
@@ -244,21 +245,24 @@ def _value_of(
 ) -> float:
     if isinstance(figure, int | float):
         return float(figure)
+    # The unit first, before the scale. A template declares one scale and one currency for
+    # every input, so every input is money - and a count of shares bound to a cell is not
+    # a figure at the wrong scale, it is not a figure of the right kind. Asked before the
+    # scale check so the sentence says so, rather than inviting somebody to restate it.
+    # `expect_unit` does no arithmetic, which is what lets the writer ask it.
+    expect_unit(
+        figure,
+        name,
+        unit="currency",
+        currency=currency,
+        destination=f"every input of this template is {currency} at scale {scale}",
+    )
     if int(figure.get("scale", 1)) != scale:
         raise RegistryError(
             diagnose(
                 WRITE_FAILED,
                 f"{name}: the figure is at scale {figure.get('scale')} and the template "
                 f"expects {scale}; restating is arithmetic and does not happen in the writer",
-                locator=name,
-            )
-        )
-    if figure.get("unit") == "currency" and figure.get("currency") != currency:
-        raise RegistryError(
-            diagnose(
-                WRITE_FAILED,
-                f"{name}: the figure is in {figure.get('currency')} and the template "
-                f"expects {currency}",
                 locator=name,
             )
         )

@@ -7,7 +7,7 @@ any formula **quietly wrong**. A total that sums nine rows of a ten-row block op
 cleanly, prints a number, shows no error, and is wrong by one line - and it is wrong in
 exactly the way nobody catches, because the wrongness is a plausible number.
 
-Eight checks, in three severities, and the severity is the whole design:
+Nine checks, in three severities, and the severity is the whole design:
 
 * **wrong** - the arithmetic demonstrably disagrees with itself. A numeric row sits
   between the end of a total's range and the total. A total's range contains another

@@ -567,10 +567,11 @@ class RunDriver:
     def _release(self, attempt: Attempt, context: RunContext) -> ContentRef:
         """Build the workbook from the mapping the model proposed, and deliver it once.
 
-        Reachable only when every step before it produced something, which today means
-        never on the shipped recipes: both end in `qc-tieout`, which has no mechanical
-        half. Written and exercised anyway, because the alternative is a path that is
-        wired and has never run - which is the thing this whole block is fixing.
+        Reachable when every step before it produced something. This used to say "which
+        today means never on the shipped recipes: both end in qc-tieout" - and that was
+        true until P101 gave version 1 its own recipe, `valuation-input-prep`, which ends
+        here. Two allowlist entries in `tests/p82` rested on the old sentence for a while
+        after it stopped being true (B-139).
         """
         from deliver.builder import ModelBuilder
         from deliver.release import ReleaseGate
@@ -956,12 +957,13 @@ class RunDriver:
         template = context.facts.template
         if template is None:  # build_inputs refuses first; this is for the type checker
             return figures
-        figures, moves = restated(figures, template.inputs.scale)
-        if moves:
+        figures, moves, left = restated(figures, template.inputs.scale)
+        if moves or left:
             # One event, not one per figure. Thirty lines over three years is ninety
             # restatements, and the question a person asks is "were they all moved by the
             # same factor, and which ones were not" - which a list answers and a flood
-            # does not.
+            # does not. The ones left alone are listed beside them: a count of shares in a
+            # catalogue restated to thousands is not moved, and used to be, silently.
             factors = sorted({m.from_scale for m in moves})
             self.wiring.bus.emit(
                 run_id=context.run_id,
@@ -969,13 +971,15 @@ class RunDriver:
                 node_id="run_driver",
                 type="model.figures.restated",
                 message=f"{len(moves)} figure(s) restated to scale "
-                f"{template.inputs.scale} for {template.key}, from "
-                f"{', '.join(str(f) for f in factors)}",
+                f"{template.inputs.scale} for {template.key}"
+                + (f", from {', '.join(str(f) for f in factors)}" if moves else "")
+                + (f", and {len(left)} left at their own unit" if left else ""),
                 step_id=attempt.step.id,
                 payload={
                     "template": template.key,
                     "to_scale": template.inputs.scale,
                     "restated": [m.as_row() for m in moves],
+                    "left_as_they_are": [alone.as_row() for alone in left],
                 },
             )
         return figures

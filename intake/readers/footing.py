@@ -60,6 +60,130 @@ RELATIVE = 1e-9
 materiality threshold and not to be turned into one: at a million it is a hundredth of a
 cent."""
 
+# ------------------------------------------------------ the direction a label states
+#
+# Every tie-out in this module passes a statement whose every sign is inverted. Rows of
+# -12,000 and -3,000 under a total of -15,000 re-add, and so do the same three flipped
+# positive; two sides that agree at 521,728 agree at -521,728; cash rolls forward to a
+# negative balance as readily as to a positive one. A cash flow investing or financing
+# section is all-negative, so a column read with every sign flipped foots exactly - and
+# arithmetic cover is the evidence that decides whether a person looks at a figure at all.
+#
+# What catches it is not arithmetic but a statement about the table: `Total assets` is not
+# negative, and `Net cash used in financing activities` is not positive. The whole of the
+# rule is the line between a label that cannot honestly go either way and one that can,
+# and the second kind says nothing here. Calibrated over every row of the three public
+# filings - 2,373 of them, audited and read right - where the phrases kept read 69 rows and
+# contradict none, and where every phrase rejected was rejected on a row that fired:
+#
+# * an expense or income line (`Interest expense`, `Depreciation`, `Cost of sales`) - 3D's
+#   income statement prints operating expenses positive and non-operating ones negative on
+#   the same page, so sign is a presentation convention and the label carries no direction;
+# * `Proceeds from`, `Repayments of`, `Payments for`, `Purchases of`, `Dividends paid` -
+#   a proceed inside an investments roll-forward is a deduction and prints negative, and
+#   EDGAR's detail sheets store every payment as an unsigned magnitude;
+# * `Total equity`, which a deficit makes negative, and `Cash at end of period`, which an
+#   overdraft does - facts about the business, which this must never state;
+# * `Net cash provided by`, `Net increase in`, `Net income`, `Net loss` - accounting
+#   software writes these as fixed labels whatever the sign (`Net Income -96,083`), so a
+#   positive reading has to be right for them and a negative one cannot be called wrong;
+# * `Gross profit`, which can be negative, and any share count, which feeds no footing.
+#
+# `used in` and `net decrease in` survive because no package writes them as a fixed label:
+# a fixed label has to be right for the positive case, and those are only ever written
+# when the figure went that way.
+
+NOT_NEGATIVE = (
+    "total assets",
+    "total current assets",
+    "total liabilities",
+    "total current liabilities",
+)
+"""Grand and section totals of a balance sheet, matched whole. `Total liabilities and
+stockholders' equity` is taken by prefix below, because it equals total assets."""
+
+_CHANGE_COLUMN = ("change", "increase", "decrease", "variance", "difference", "%", "percent", "vs")
+"""Words in a column heading that make every figure under it a movement, where a sign
+says which way something moved and contradicts nothing. The known limit is a change column
+with no heading at all - 55 of the 3D filing's 179 columns are unnamed - which this cannot
+see and on which an MD&A table will one day fire."""
+
+_TREASURY_ACTIVITY = ("purchas", "repurchas", "issu", "retire", "acqui", "sold", "sale")
+"""`Treasury stock, at cost` is a balance and is not positive. `Treasury stock purchases` is
+an activity line on a statement of equity, and in a shares column it is a count."""
+
+
+def states_a_direction(label: str) -> str | None:
+    """The direction a label states, or `None` for every label that could go either way.
+
+    Returns `"not negative"` or `"not positive"`. A label carrying both directions -
+    `Net cash provided by (used in) investing activities`, `Net increase (decrease) in
+    cash` - states nothing, and that is most of the section lines on an audited cash flow
+    statement; this rule is honest about reading few rows rather than wrong about many.
+    """
+    said = " ".join((label or "").split()).lower().strip(" :.")
+    if said in NOT_NEGATIVE or (said.startswith("total liabilities") and "equity" in said):
+        return "not negative"
+    if said.startswith(("net cash used in", "net cash used for")) and "provided" not in said:
+        return "not positive"
+    if said.startswith("net decrease in") and "increase" not in said:
+        return "not positive"
+    if "accumulated deficit" in said and "retained earnings" not in said:
+        return "not positive"
+    if said.startswith(("treasury stock", "treasury shares")) and not any(
+        word in said for word in _TREASURY_ACTIVITY
+    ):
+        return "not positive"
+    if "accumulated other comprehensive loss" in said and "income" not in said:
+        return "not positive"
+    return None
+
+
+def is_a_change_column(heading: str) -> bool:
+    """Whether a column's heading makes its figures movements rather than balances."""
+    words = (heading or "").lower().replace("%", " % ").split()
+    return any(word.strip("().,") in _CHANGE_COLUMN for word in words)
+
+
+@dataclass(frozen=True)
+class Contradiction:
+    """A row whose sign contradicts the direction its own label states."""
+
+    ordinal: int
+    label: str
+    value: float
+    states: str
+    """What the label says: `"not negative"` or `"not positive"`."""
+
+    def as_line(self) -> str:
+        return f"{self.label} is {self.value:,.2f}, and the label says it is {self.states}"
+
+
+def sign_contradictions(rows: Sequence[Any], heading: str = "") -> tuple[Contradiction, ...]:
+    """Every row whose sign contradicts its own label. A statement about the table, never
+    about the business, and silent on a column headed as a change."""
+    if is_a_change_column(heading):
+        return ()
+    out: list[Contradiction] = []
+    for index, row in enumerate(rows):
+        value = getattr(row, "value", None)
+        if value is None:
+            continue
+        # Zero needs no case of its own: it is neither negative nor positive, so the two
+        # comparisons below pass it. A branch for it was here and the revert harness showed
+        # it could not be made to matter.
+        states = states_a_direction(getattr(row, "label", "") or "")
+        if states == "not negative" and value < 0 or states == "not positive" and value > 0:
+            out.append(
+                Contradiction(
+                    ordinal=getattr(row, "ordinal", index),
+                    label=(getattr(row, "label", "") or "").strip(),
+                    value=float(value),
+                    states=states,
+                )
+            )
+    return tuple(out)
+
 
 def is_a_total(label: str) -> bool:
     """Does this row's label announce itself as a total?
@@ -104,8 +228,15 @@ class Footing:
 class FootingReport:
     footings: tuple[Footing, ...] = ()
     covered_ordinals: frozenset[int] = field(default_factory=frozenset)
-    """Every row that sits under a total that re-adds."""
+    """Every row that sits under a total that re-adds - and **none at all** where a row in
+    the block contradicts the direction its label states. A proof that passes a wholly
+    negated column proves nothing about any row of it, so one contradiction withdraws the
+    block's cover rather than one row's: on a flipped column the rows carrying no direction
+    word look right, and the one row that does is the only thing that saw it."""
     rows: int = 0
+    contradictions: tuple[Contradiction, ...] = ()
+    """Rows whose sign contradicts their own label. The footings above are still facts -
+    the arithmetic did re-add - and are kept; what they no longer are is cover."""
 
     @property
     def totals(self) -> int:
@@ -125,6 +256,14 @@ class FootingReport:
         return bool(self.footings) and not self.uncovered
 
     def as_line(self) -> str:
+        if self.contradictions:
+            said = "; ".join(c.as_line() for c in self.contradictions[:3])
+            return (
+                f"{len(self.contradictions)} row(s) contradict the direction the label "
+                f"states: {said}"
+                + (", and others" if len(self.contradictions) > 3 else "")
+                + "; no row is covered by a total, whatever re-adds"
+            )
         if not self.footings:
             return "no totals to check"
         if self.foots:
@@ -182,8 +321,11 @@ def _shape(run: Sequence[Any]) -> str:
     return MIXED
 
 
-def footings_in(rows: Sequence[Any]) -> FootingReport:
+def footings_in(rows: Sequence[Any], heading: str = "") -> FootingReport:
     """Walk a block of parsed rows once, in order, pairing each total with its run.
+
+    `heading` is what the document wrote above this column, if anything, and is only used
+    to keep the sign check quiet on a column of changes.
 
     Two shapes, tried in that order, because that is the order a statement nests them:
 
@@ -243,10 +385,12 @@ def footings_in(rows: Sequence[Any]) -> FootingReport:
         # The run it summed is now spoken for, and this total speaks for it.
         standing = standing[: len(standing) - len(found)] + [row]
 
+    contradicted = sign_contradictions(rows, heading)
     return FootingReport(
         footings=tuple(footings),
-        covered_ordinals=frozenset(covered),
+        covered_ordinals=frozenset() if contradicted else frozenset(covered),
         rows=sum(1 for r in rows if getattr(r, "value", None) is not None),
+        contradictions=contradicted,
     )
 
 

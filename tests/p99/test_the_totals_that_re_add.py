@@ -290,9 +290,16 @@ def test_the_read_report_carries_it_and_names_what_did_not_foot() -> None:
 
 def test_the_source_says_it_out_loud_in_the_event_a_person_reads() -> None:
     source = (ROOT / "intake" / "readers" / "__init__.py").read_text(encoding="utf-8")
-    assert "report.footing[locator] = footings_in(rows)" in source
+    # Both call sites pass the column's heading since P164, so the sign check can stay
+    # quiet on a column of changes.
+    assert 'footings_in(rows, heading=headings.get(locator, ""))' in source
+    assert (
+        'footings_in(\n                    rows, heading=table.block_headers.get(locator, "")'
+        in source
+    )
     assert "did not re-add" in source
     assert '"rows_covered_by_a_total"' in source
+    assert '"signs_contradicted"' in source
 
 
 # ============================================================ the real folder, if it is here

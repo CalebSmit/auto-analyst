@@ -7,8 +7,9 @@ row's label: `Common stock, shares, issued (in shares)`, `Common stock, par valu
 per share)`, `Basic (in dollars per share)`.
 
 **What went wrong without this.** The scale is per *file* - `SourceFile.scale`, applied to
-every row of it - and three places multiply a figure by its scale:
-`harness/procedures/ebitda_normalization.py`, `deliver/workpaper.py` and `harness/restate.py`.
+every row of it - and six lines in three modules multiplied a figure by its scale
+(`harness/procedures/ebitda_normalization.py` three times, `deliver/workpaper.py` once and
+`harness/restate.py` twice; P165 made them one place that asks the unit first).
 So on a statement in thousands a share count of 135,361,000 is reported as 135 **billion**
 shares, and a par value of $0.001 becomes **$1.00**. Both are plausible numbers, which is why
 nothing downstream catches either. Found by `tools/check_against_filer.py` against EDGAR's

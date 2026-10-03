@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **163 of 163 phases closed**
-- Last green checkpoint: **C91**
+- **165 of 165 phases closed**
+- Last green checkpoint: **C92**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -182,4 +182,6 @@
 - **P161** Checked against the filer's own numbers (2026-10-03)
 - **P162** A figure not in the statement's unit (2026-10-03)
 - **P163** Which column is which year (2026-10-03)
+- **P164** A total that says which way it points (2026-10-03)
+- **P165** The one multiplication, and the unit it asks first (2026-10-03)
 

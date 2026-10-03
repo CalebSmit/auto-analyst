@@ -179,7 +179,7 @@ def test_the_arrival_scale_is_what_the_restatement_moves_from() -> None:
     declares. This is the join: the number the person typed is the number the
     multiplication starts from."""
     arrived = profile()["statements_arrive_in"]
-    out, moves = restated({"timing:Revenue:FY1": envelope(4_200_000.0, arrived)}, 1000)
+    out, moves, _ = restated({"timing:Revenue:FY1": envelope(4_200_000.0, arrived)}, 1000)
     assert out["timing:Revenue:FY1"]["value"] == pytest.approx(4200.0)
     assert moves[0].from_scale == arrived
     assert moves[0].to_scale == 1000
@@ -190,7 +190,7 @@ def test_a_client_who_sends_thousands_is_not_restated_twice() -> None:
     the template says thousands, and a restatement that ran anyway would divide a correct
     figure by a thousand."""
     body = profile(statements_arrive_in=1000)
-    out, moves = restated({"a": envelope(4200.0, body["statements_arrive_in"])}, 1000)
+    out, moves, _ = restated({"a": envelope(4200.0, body["statements_arrive_in"])}, 1000)
     assert out["a"]["value"] == 4200.0
     assert moves == ()
 
@@ -199,7 +199,7 @@ def test_the_writer_accepts_what_the_restatement_produced() -> None:
     """End of the chain. The builder refuses a scale mismatch and that refusal is what
     makes the lock evidence - so the two phases agree exactly when a restated figure walks
     through it without complaint."""
-    out, _ = restated({"a": envelope(4_200_000.0, 1)}, 1000)
+    out, _, _ = restated({"a": envelope(4_200_000.0, 1)}, 1000)
     assert _value_of(out["a"], 1000, "USD", "Revenue_FY1") == pytest.approx(4200.0)
 
 

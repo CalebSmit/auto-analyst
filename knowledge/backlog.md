@@ -1206,7 +1206,7 @@ consistency and silly mistakes, a missing comma, a formula summing one too many 
 
 Three reads of what leaves the system. Two are built:
 
-- **`tools/formula_audit.py`** (P125). Eight checks in three severities over openpyxl.
+- **`tools/formula_audit.py`** (P125). Nine checks in three severities over openpyxl.
   The one the analyst named - a total whose range stops a row short of its block - is
   `total_misses_rows` and is severity `wrong`, because it is provable from the file.
   Wired three ways: every workbook a run releases (`release.audited`, recorded and never
@@ -2844,7 +2844,7 @@ its own calibration, because `_ESTABLISHES` and `_FILLS` are deliberately differ
 reason is written where they are defined.
 
 ## B-135 The restater reads a figure's scale and ignores its unit
-status: proposed - **live today**, and it is B-132 one stage later
+status: fixed (P165) - one place turns a figure into a number, and it asks the unit first
 2026-10-03. P162 stopped the statement's dollar scale being applied to a share count, by
 giving such a figure `unit: "shares"` and `scale: 1`. `harness/restate.py` then divides it
 anyway. The word `unit` does not appear in that file: `restated(figures, to_scale)` reads
@@ -2871,8 +2871,35 @@ answer", applied to arithmetic. Note also that `units.py:10` and B-132 say "thre
 and name three line numbers; there are six lines, which is the count that matters when the
 fix has to reach all of them.
 
+**Fixed in P165.** `harness/restate.py` is now what its first line always claimed - the one
+multiplication in the run. `amount_of` turns a figure into a number through `_moved` and says
+what it is a number of; `expect_unit` refuses a figure that is not what the destination is a
+number of, and does no arithmetic, which is what lets the writer ask it. `restated` leaves a
+figure that is not money as it came and returns it as *left alone*; the driver lists those
+beside the restated ones on the same event. The builder asks the unit before the scale, so a
+count of shares bound to a cell is refused as the wrong kind of figure, with the sentence
+naming the unit and what every input of the template is - not as a figure at the wrong scale
+that somebody might restate. Model-load refuses the binding earlier still, beside its period
+check, so it goes round the repair loop rather than halting at release. The workpaper prints
+`135,361,000 shares` and never fills in a currency for a figure forbidden to carry one; the
+materiality test and the officer total refuse what is not money by decision, with the reason
+on the item, where they used to be safe by the accident of `Money` rejecting an empty code.
+
+**The proof is behavioural.** `tests/p165` makes `_moved` raise and drives every site with an
+ordinary dollar figure - the restater, the workpaper, the review item, the materiality test
+and the officer total - and each one fails. A site that quietly went back to `value * scale`
+of its own would pass a dollar figure through without touching `_moved`, and that test would
+go red. An AST walk beside it asserts the only multiplication of a value by a scale left in
+those seven modules is in `_moved`.
+
+Honest classification, from tracing the binding path: no registered template asks for a share
+count, so the wrong **cell** was a trap armed for the first template that does or the first
+mapping that binds a count to a currency cell, which nothing refused. The wrong **record** was
+live: `_figures` restates the whole catalogue, bound or not, so any `(in shares)` row was
+divided and listed as a restatement on every run that reached release.
+
 ## B-136 Nothing asserts a sign, so a wholly flipped column foots perfectly
-status: proposed - the highest-value missing check found this session
+status: fixed (P164) - reported and the block's cover withdrawn; the sign itself is never repaired
 2026-10-03. All three tie-outs were run against correct input and against the same input
 wholly negated, and **all three pass both ways**:
 
@@ -2893,6 +2920,41 @@ activities` is not positive. Nothing anywhere looks. Related: `tools/statement_c
 takes `abs(amount)` for a CONTRA line and, unlike the MINUS and PLUS branches, does not
 increment `negative_fixed` - so a contra account read with the wrong sign ties perfectly and
 is not mentioned in `_sign_note`.
+
+**Fixed in P164 by reading the direction a label states.** `Total assets` is not negative;
+`Net cash used in financing activities` is not positive; an accumulated deficit, a treasury
+balance and an accumulated other comprehensive loss are not positive. A contradiction
+withdraws the arithmetic cover of its whole block - on a flipped column the rows carrying no
+direction word look right, and the one row that does is the only thing that saw it. The
+footings are kept, because the arithmetic did re-add; what they stop being is cover.
+
+**Calibrated over every row of the three public filings** - 2,373 of them, audited and read
+right - where the phrases kept read **69** rows and contradict **none**, and cover over the
+unchanged corpus is identical with the check in and out (262, 230 and 116 rows). Every phrase
+rejected was rejected on a row that fired: an expense line, because 3D's income statement
+prints operating expenses positive and non-operating ones negative on the same page; a
+proceed, a repayment or a payment, because a proceed inside an investments roll-forward is a
+deduction and EDGAR's detail sheets store every payment as an unsigned magnitude; total
+equity and cash at the end of a period, because a deficit and an overdraft are facts about
+the business; `net cash provided by`, `net increase in`, `net income` and `net loss`,
+because accounting software writes those as fixed labels whatever the sign. `used in` and
+`net decrease in` survive because no package writes them when the figure went the other way.
+
+**What it covers, honestly: 2.9% of rows**, and they are the grand and section totals -
+one row of every block that is wrong on every row of a flipped column. A negated balance
+sheet is caught on both filers (seven rows each, cover 26 and 28 to none). A negated cash
+flow statement is caught where the author wrote one direction (3D, three rows) and **not**
+where every section line reads `provided by (used in)` (ResMed, none). A sign flip confined
+to a section with no direction line passes everything, as before. The known limit of the
+change-column guard is a change column with no heading, which cannot be told from a balance
+column; 55 of the 3D filing's 179 columns are unnamed and none of them fired here.
+
+A correction to the premise this was found under: `arithmetic_cover` on the review item is
+set by nothing in production today - `tests/checkpoints/c38` asserts so against B-040 - so
+no figure was being auto-accepted on a negated column. Where the false proof reached a person
+was the parse-summary event (`totals_that_re_added`, `rows_covered_by_a_total`) and the
+three `as_line` sentences, and that is where the contradiction is now said. The evidence is
+wrong-proofed before B-040 joins it, which is the right order.
 
 ## B-137 A footing certifies a total across two unrelated statements, and certifies a row with no label
 status: proposed - a false proof, which is worse than a missing one
@@ -3000,7 +3062,7 @@ word"* - except there is not even a word being looked for, which is why P120's a
 find it. (The list also has eleven items and CLAUDE.md calls it ten.)
 
 ## B-142 Counts and commands in the documentation that no longer hold
-status: proposed
+status: part fixed - the check count (nine, in three places) and the USING.md prefix sentence were corrected with P165; the rest stands
 2026-10-03. Found by checking every command line, number and named path in the documentation
 against the code. The ones a reader would act on:
 

@@ -4737,6 +4737,60 @@
       ],
       "notes": "",
       "closed": "2026-10-03"
+    },
+    {
+      "id": "P164",
+      "title": "A total that says which way it points",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Read the direction a label states and say when the figure contradicts it. Total assets is not negative, net cash used in financing is not positive, an accumulated deficit is not positive - these are statements about the table and not about the business, and that line is the whole of the rule: a label that could honestly go either way says nothing. A contradiction withdraws the arithmetic cover of the block it is in, because a proof that passes a wholly negated column proves nothing about any row of it. Report, never repair, and calibrate every phrase against the three real filings before it is kept.",
+      "builds": [],
+      "tasks": [
+        "A function that reads the direction a label states, kept to the phrases that cannot honestly go either way, with the rejected phrases recorded and the reason each was rejected",
+        "Report every row whose sign contradicts its own label, beside the footing report, in the footing vocabulary",
+        "A contradiction withdraws the cover of its block: no ordinal in it counts as proved by arithmetic",
+        "Stay silent on a column headed as a change, because there every sign is a movement",
+        "Calibrate over every row of the three public filings and assert the counts: how many rows the rule reads, how many it contradicts"
+      ],
+      "exit": [
+        "A balance sheet column with every sign inverted is reported, with the rows named, and carries no arithmetic cover",
+        "Over every row of the three public filings the rule contradicts nothing, and the number of rows it reads at all is asserted so its coverage cannot be overstated",
+        "A label that can honestly carry either sign - gross profit, net income, cash at the end of a period, a proceed inside a roll-forward - is not read, proved by the rows on the filings that would have fired",
+        "The three tie-outs still say what they said on the unchanged corpus"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p164 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "P165",
+      "title": "The one multiplication, and the unit it asks first",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "One place turns a figure into a number, and it asks the unit before it touches the scale. A share count is not restated to a currency scale - it passes through as it came and is listed as left alone - and a cell that is bound to one is refused with a sentence that says what the figure is a number of and what every input of the template is. The narrative prints a count as a count and never fills in a currency it has not got; the materiality test and the officer total refuse what is not money by decision rather than by a swallowed exception. Every site that multiplies reaches the one function, proved by making that function raise and watching each site fail - not by searching for a word.",
+      "builds": [],
+      "tasks": [
+        "An amount helper in harness/restate.py: the figure in units, with what it is a number of, and a unit check that does no arithmetic so the builder can ask it",
+        "restated leaves a figure that is not currency as it came and returns it as left alone; the driver records those beside the restated ones",
+        "The builder refuses a non-currency figure before the scale check, with the sentence naming the unit and the template's declaration",
+        "The workpaper prints a count as a count, the materiality test and the officer total refuse what is not money and say so",
+        "Correct the count everywhere it says three places: six lines, four functions, three modules"
+      ],
+      "exit": [
+        "A share count at scale 1 into a template declaring thousands is not divided: the restater returns it unchanged and lists it, and the wrong number 135,361 appears in no output of any site",
+        "A cell bound to a count of shares is refused with the unit in the sentence, and the sentence does not invite anybody to restate it",
+        "With the one multiplication made to raise, every site that turns a figure into a number fails - so none has a multiplication of its own",
+        "A dollar figure through every site is exactly what it was, and the existing restatement event is unchanged when nothing is left alone"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p165 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-03"
     }
   ],
   "checkpoints": [
@@ -5739,6 +5793,17 @@
       "proves": "On every statement the accuracy harness checks, the year the page prints above each column is the year a person declared that column to be, the detector settles on those dates without being told, the 194 figures the harness measured have not moved, and the table that lost a column is on a page the harness never covered.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c91 -q"
+      ],
+      "closed": "2026-10-03"
+    },
+    {
+      "id": "C92",
+      "title": "A number that passes arithmetic and is wrong",
+      "after": "P165",
+      "status": "done",
+      "proves": "One workbook carrying a wholly negated balance sheet and a share count comes out the far end with the contradiction withdrawing the block's cover, the share count neither divided nor written, and the cell bound to it refused for what it is rather than for its scale.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c92 -q"
       ],
       "closed": "2026-10-03"
     }

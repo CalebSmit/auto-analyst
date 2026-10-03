@@ -17,6 +17,7 @@ from guards.untrusted import BEGIN, SENTINEL_RULE
 from harness.policy import PolicyDenied
 from harness.procedures.ebitda_normalization import ProposalRefused
 from harness.procedures.line_item_tagging import line_item_ref
+from harness.restate import amount_of
 from ops.models import DecisionKind
 from ops.run_store import SqlRunStore
 from registries.contracts import ContractRegistry
@@ -286,7 +287,7 @@ def test_an_approved_add_back_becomes_a_precedent_without_its_amount(
         source_excerpt=settlement["evidence"][0]["excerpt"],
         proposal={**settlement, "description": "Legal settlement"},
         confidence=figure["confidence"],
-        amount=Money(float(figure["value"]) * int(figure["scale"]), figure["currency"]),
+        amount=Money(amount_of(figure, "settlement", unit="currency").number, figure["currency"]),
         category=settlement["category"],
         review_required=settlement["review_required"],
     )
