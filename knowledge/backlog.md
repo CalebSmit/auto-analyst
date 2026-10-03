@@ -1668,6 +1668,11 @@ Two ways, and the choice is a small design one:
 Not done here because it is 68 deletions in a session that was about the consoles, and
 because which of the two is right is a judgement about the gate rather than a defect in it.
 
+**It grows by one per checkpoint.** C85 made it 69 (2026-10-02), and the count is updated
+here rather than left at 68, because a backlog item that quietly stops being true about its
+own size is the same defect it is describing. Still not fixed in that session either: it was
+about reading a client's documents, and nothing about a stub affects that.
+
 ## B-102 The consoles were served with no cache headers
 status: fixed (P140)
 2026-10-02. Fixed a syntax error in the Setup page, restarted the server, and the page was
@@ -2219,3 +2224,95 @@ were too weak to catch what they named - a title block that does not contain a c
 show that the delimiter is read from the whole file, and an `.xls` with no date in it cannot
 show that a date keeps its mode.
 
+
+## B-122 A file that was not text became content anyway
+status: fixed (P153)
+2026-10-02. `read_document` ended in a branch that decoded its bytes as UTF-8 and called the
+result a document. The assumption was one line long - a file that is not a PDF and not a
+`.docx` is text - and it applied to everything that reached the reader. Measured:
+
+| what was sent | what the parse store got |
+|---|---|
+| an RTF engagement letter | **one line** of `{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fnil Calibri;}}...` |
+| a `.doc` (OLE2 compound file) | replacement characters and a dump of the bytes 0 to 255, over three lines |
+
+Both were written to the Source Parse Store as rows a figure could cite, both were handed to
+the classifier, and **both were appended to the text a model is sent**. That is worse than
+refusing: it is wrong *as content*, and nothing downstream can tell a line of RTF control
+words from a sentence somebody wrote.
+
+So the question asked now is what the file *is*, from its first bytes rather than from its
+name - a `.doc` saved as `.txt` is still an OLE2 compound file - and a file that is not text
+is refused with what it is and what to do about it. `INTAKE.FORMAT_NOT_READ` is its own code
+rather than `UNREADABLE_FILE`, because the action differs: save it as something that is
+read, not ask the client to send it again.
+
+The signature list will always be shorter than the world, so a NUL byte is the general
+catch - no text file in any encoding holds one, and every binary format does.
+
+**An RTF really is text and is now read properly.** `striprtf` leaves the font table, the
+stylesheet and the generator behind and turns both kinds of escape back into characters:
+`\'24` is a byte in the document's code page and `舒?` is a codepoint with an ASCII
+fallback after it. A reader that handled one and not the other would leave half the
+punctuation as markup, including the em dash, which this build has a prose check about.
+
+**A `.doc` is refused on purpose.** `legacy-doc` is pure Python and would have been easy to
+add. There is no real `.doc` on this machine to measure a parser against, and a half-working
+parser for a binary format produces plausible *partial* text - the failure this repository is
+most careful about. Routed, named, refused, with the thing to do.
+
+Two of my own errors, both from the tooling rather than the code. A heredoc turned
+`\rtf1\ansi` into `tf1nsi` and made a fixture that tested nothing - the sixth time that has
+happened, so RTF fixtures are built with `chr(92)` now. And the Write tool resolved `舒`
+on the way to disk, so three probe files held the character rather than the escape and I
+believed `striprtf` had failed to decode an em dash. It never had: what I was looking at was
+a Windows console that cannot print one.
+
+## B-123 Three totals a person checks first were all uncovered
+status: fixed (P154)
+2026-10-02. `review/router.py` routes an extracted figure to a person unless a total that
+re-adds covers it, and `intake/readers/footing.py` is the only thing that produces that
+evidence. It knew two shapes - a total of the lines above it, and a total of the subtotals
+above it - and **a real balance sheet's grand total is neither**:
+
+    Total current assets          346,707     <- subtotal, over the five rows above
+    Property and equipment, net    49,249
+    ... six more
+    Total assets                  521,728     <- the subtotal AND the seven loose rows
+
+Over the lines it double-counted the subtotal and missed by exactly 346,707; over the
+subtotals it needed two and had one. So `Total assets`, `Total liabilities` and the line that
+totals the other side were all uncovered - and because the rows above an uncovered total stay
+uncovered too, **every figure on the statement went to a person as though nothing had been
+checked**.
+
+**The two shapes are one shape seen twice.** A total sums the run of rows standing above it,
+where a run that has already been totalled stands as its own total rather than as its parts.
+One list, and the mix falls out of it. Measured over the whole filing: the 65 totals that
+footed over lines still foot over lines, four more foot over a mix, nothing else moved, and
+`Total assets` takes eight rows while `Total liabilities` takes five - which is what they are.
+
+One rule had to be said out loud that the old reader got for free. A subtotal equal to a
+later total is a figure **carried down**, not a sum of it, and the old shape refused that by
+needing two subtotals. With one list it is stated directly, and it matters because calling it
+a footing would cover the subtotal's own rows a second time and claim the same evidence twice.
+
+**And footing cannot prove the two sides agree.** They are different runs of rows, and on a
+real filing they are not even in the same block - the reader starts a new one at every
+heading. So that is a separate check, reading the two labels the statement wrote and comparing
+the two figures it printed: nothing inferred, `None` rather than `False` on a document that
+states no balance sheet, and of a hundred and eight pages it speaks about one.
+
+Two near misses in the matching, both found by reading rather than by a test. `Total
+liabilities` is a *part* of the other side, so the label has to name the equity as well or
+every balance sheet in the world is out by its equity. And the assets side is matched
+**exactly** rather than by prefix, because a statement writes `Total assets held for sale` as
+an ordinary line in the current assets - it begins with the same two words, it comes first,
+and a prefix match reports the balance sheet as out by nearly all of itself. The filing this
+build measures against carries that very label.
+
+C85 then found that two of its own guards could not fail on this document - no page here
+holds a `Total assets ...` line and no page states a single side - so those two live in
+`tests/p154` on statements written for them, and C85's docstrings say what the filing can and
+cannot see. A checkpoint that reads as though it covered more than it does is the same defect
+as a test that asserts nothing.

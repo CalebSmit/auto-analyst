@@ -104,6 +104,7 @@ MISSING_CREDENTIAL = "SCOPE.MISSING_CREDENTIAL"
 MODEL_PIN_UNAVAILABLE = "SCOPE.MODEL_PIN_UNAVAILABLE"
 PROVIDER_REFUSED_A_FIELD = "SCOPE.PROVIDER_REFUSED_A_FIELD"
 UNREADABLE_FILE = "INTAKE.UNREADABLE_FILE"
+FORMAT_NOT_READ = "INTAKE.FORMAT_NOT_READ"
 WRITE_FAILED = "DELIVER.WRITE_FAILED"
 SCHEMA_INVALID = "SKILL.SCHEMA_INVALID"
 NO_PROVENANCE = "SKILL.NO_PROVENANCE"
@@ -344,6 +345,15 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "The file could not be read. A figure that cites nothing is worse than a "
         "figure that never existed, so the run stops rather than proceeding with a "
         "null source id. Ask the client for a readable copy.",
+    ),
+    FORMAT_NOT_READ: (
+        "client-data",
+        "The file is whole and this build does not read its format. That is a "
+        "different thing from a file that is broken, and the answer is different: "
+        "save it in a format that is read - a .docx or a PDF for a document, an "
+        ".xlsx or a CSV for a workbook - rather than asking the client again. The "
+        "diagnostic names what the file actually is, read from its first bytes "
+        "rather than from its extension.",
     ),
     WRITE_FAILED: (
         "system",

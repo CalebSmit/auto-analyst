@@ -27,8 +27,8 @@ from typing import Any
 
 from guards.untrusted import UntrustedBoundary, Wrapped
 from intake.readers.classify import Classification, Evidence, audited_evidence, classify
-from intake.readers.documents import ParsedDocument, read_document
-from intake.readers.footing import FootingReport, footings_in
+from intake.readers.documents import NotText, ParsedDocument, read_document
+from intake.readers.footing import FootingReport, TwoSides, footings_in, two_sides
 from intake.readers.periods import PeriodDetection, detect_periods
 from intake.readers.tabular import Conversion, as_workbook, converts
 from intake.readers.workbook import (
@@ -42,7 +42,12 @@ from intake.store import IntakeRow
 from ops.events import EventBus
 from ops.run_store import SqlRunStore
 from ops.source_parse import Row, SourceParseStore
-from registries.errors import UNREADABLE_FILE, DiagnosticError, diagnose
+from registries.errors import (
+    FORMAT_NOT_READ,
+    UNREADABLE_FILE,
+    DiagnosticError,
+    diagnose,
+)
 
 __all__ = ["ReadReport", "read_source"]
 
@@ -59,6 +64,13 @@ class ReadReport:
     selection: Selection | None = None
     classification: Classification | None = None
     periods: PeriodDetection | None = None
+    balances: tuple[tuple[str, TwoSides], ...] = ()
+    """Where a statement states both sides of a balance sheet, whether they agree.
+
+    Per statement rather than per block: a total only ever sums what stands above it, and
+    on a real filing the assets total and the line that totals the other side are in
+    different blocks, because the reader starts a new one at every heading. Empty for a
+    document that states no balance sheet, which is most of them."""
     conversion: Conversion | None = None
     """What had to be decided to read a file that was not already a workbook - the
     delimiter, the encoding, the decimal point, and any cell that could have been two
@@ -113,6 +125,17 @@ def _folders_of(path: str, filename: str) -> list[str]:
     if parts and parts[-1] == PurePosixPath(filename.replace("\\", "/")).name:
         parts = parts[:-1]
     return [part for part in parts if part not in ("", ".", "/")]
+
+
+def _two_sides_of(statements: dict[str, list[Any]]) -> tuple[tuple[str, TwoSides], ...]:
+    """The balance-sheet check over each statement, keeping only the ones that state both
+    sides. A statement that states neither is not a failure and must not read as one."""
+    found = []
+    for where, rows in statements.items():
+        got = two_sides(rows)
+        if got.stated:
+            found.append((where, got))
+    return tuple(found)
 
 
 def read_source(
@@ -176,8 +199,27 @@ def read_source(
             report.block_headers.update(table.block_headers)
             first_rows.extend(table.first_rows)
             text_for_model.append(table.as_text())
+            report.balances += _two_sides_of(
+                {locator: list(rows) for locator, rows in table.blocks.items()}
+            )
     else:
-        parsed: ParsedDocument = read_document(data, row.filename)
+        try:
+            parsed: ParsedDocument = read_document(data, row.filename)
+        except NotText as not_text:
+            # Whole, and in a format this build does not read. Said as its own thing rather
+            # than as UNREADABLE_FILE, because what a person should do differs: save it as
+            # something that is read, not ask the client for it again. What it actually is
+            # comes from its first bytes, so a `.doc` renamed `.txt` is still named a Word
+            # 97-2003 file rather than described as whatever its extension claimed.
+            raise DiagnosticError(
+                diagnose(
+                    FORMAT_NOT_READ,
+                    f"{row.filename} is {not_text.looks_like}, which this build does not "
+                    f"read. Save it as a .docx or a PDF and send it again.",
+                    locator=row.filename,
+                    found=f"{len(data)} bytes",
+                )
+            ) from not_text
         read_tables = [t for page in parsed.pages for t in page.tables]
         for locator, rows in parsed.blocks().items():
             report.blocks[locator] = parse_store.write(run_id, row.source_id, locator, rows)
@@ -186,6 +228,26 @@ def read_source(
         first_rows = parsed.first_rows()
         report.hidden_text = parsed.hidden_text()
         text_for_model.append(parsed.as_text())
+        # One statement is a page read down one column, across whatever blocks the reader
+        # split it into - it starts a new one at every heading, and a balance sheet has
+        # three. Tables on a page need not be the same width, so a table without this
+        # column contributes nothing to it rather than raising.
+        widest = {
+            page.number: max((len(t.columns) for t in page.tables), default=0)
+            for page in parsed.pages
+        }
+        report.balances = _two_sides_of(
+            {
+                f"p{page.number} column {n + 1}": [
+                    row
+                    for table in page.tables
+                    if n < len(table.columns)
+                    for row in table.columns[n].rows
+                ]
+                for page in parsed.pages
+                for n in range(widest[page.number])
+            }
+        )
 
     evidence = Evidence(
         filename=row.filename,
@@ -274,6 +336,14 @@ def read_source(
                 # was left as text. Said in the message rather than only in the payload,
                 # because it is the kind of thing a person wants to see without opening a
                 # record: `402,000` is four hundred thousand or it is four hundred and two.
+                # The check an analyst makes before any other, said in the line rather
+                # than only in the payload. A balance sheet that does not balance is the
+                # one thing nobody should have to open a record to find out.
+                + "".join(
+                    f"; {where}: {sides.as_line()}"
+                    for where, sides in report.balances
+                    if not sides.balances
+                )
                 + (
                     f"; read as {report.conversion.encoding}"
                     f" split on {report.conversion.delimiter!r}"
@@ -309,6 +379,16 @@ def read_source(
                 "period_ends": list(report.periods.period_ends),
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
+                "balances": [
+                    {
+                        "statement": where,
+                        "assets": sides.assets,
+                        "liabilities_and_equity": sides.liabilities_and_equity,
+                        "agrees": sides.balances,
+                        "out_by": sides.out_by,
+                    }
+                    for where, sides in report.balances
+                ],
                 "converted": (
                     {
                         "encoding": report.conversion.encoding,

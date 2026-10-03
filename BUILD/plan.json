@@ -4459,6 +4459,59 @@
       ],
       "notes": "",
       "closed": "2026-10-02"
+    },
+    {
+      "id": "P153",
+      "title": "A file that is not text is not text",
+      "block": "Extraction",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Stop a binary file being decoded as text and passed on as content, read the one format in that group that genuinely is text, and give every other file an answer that says what it is and what to do about it.",
+      "builds": [],
+      "tasks": [
+        "a file whose bytes are not text is refused rather than decoded, with what it looks like in the diagnostic",
+        "an RTF is read with striprtf, so the words survive and the control words do not",
+        "the formats that route nowhere are given an answer, and the routing table says which are read",
+        "Record INTAKE.FORMAT_NOT_READ in BUILD/surfaces.json"
+      ],
+      "exit": [
+        "No file that is not text reaches the parse store or a model as text, proved on the formats that were doing it",
+        "An RTF is read as the words a person reads, with the markup left behind",
+        "A file this build cannot read is refused with a diagnostic that names the format and the thing to do, rather than with a decoding artefact"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p153 -q",
+        "python -m uv run pytest tests/p16 tests/p17 tests/p45 tests/p151 tests/p152 -q",
+        "python -m uv run ruff check intake/ registries/ tests/p153"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "P154",
+      "title": "What a statement's grand total is a total of",
+      "block": "Extraction",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Foot a total the way a person does - over whatever stands above it, subtotals and loose lines together - so the cover a figure needs is produced where a statement really has it.",
+      "builds": [],
+      "tasks": [
+        "a total foots over the rows standing above it, where a totalled run stands as its own total",
+        "which shape it was is still recorded, including that it was a mix",
+        "the whole filing is measured total by total, before and after"
+      ],
+      "exit": [
+        "The grand totals of the real filing's balance sheet re-add, and the statement's two sides are checked against each other",
+        "Nothing that did not foot before is made to foot by loosening what foots, measured total by total over the whole filing",
+        "A total is never attached to a run that merely nearly fits, and an uncovered one still says what it is out by"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p154 -q",
+        "python -m uv run pytest tests/p99 tests/p151 tests/p152 tests/p153 -q",
+        "python -m uv run ruff check intake/ tests/p154"
+      ],
+      "notes": "",
+      "closed": "2026-10-02"
     }
   ],
   "checkpoints": [
@@ -5384,6 +5437,17 @@
       "proves": "Every figure these readers emit is printed in the source at the locator it cites, from a page and from a sheet alike, and a file that had to be converted carries what was decided to read it.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c84 -q"
+      ],
+      "closed": "2026-10-02"
+    },
+    {
+      "id": "C85",
+      "title": "What reaches a model, and what covers a figure",
+      "after": "P154",
+      "status": "done",
+      "proves": "Nothing in the text a model is sent came from a reader that refused the format it came from, every format the routing table lists is either read or refused, and every total that claims to cover a figure re-adds when its rows are added again here.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c85 -q"
       ],
       "closed": "2026-10-02"
     }

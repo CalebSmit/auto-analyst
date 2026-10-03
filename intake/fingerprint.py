@@ -26,7 +26,14 @@ from intake.bind import Bound
 from intake.store import IntakeRow, IntakeStore
 from ports.storage import StoragePort
 
-__all__ = ["BY_EXTENSION", "Fingerprinter", "IntakeRecord", "kind_of", "mime_of"]
+__all__ = [
+    "BY_EXTENSION",
+    "READ",
+    "Fingerprinter",
+    "IntakeRecord",
+    "kind_of",
+    "mime_of",
+]
 
 IntakeRecord = IntakeRow
 
@@ -46,6 +53,11 @@ BY_EXTENSION: dict[str, str] = {
     ".pdf": "application/pdf",
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ".doc": "application/msword",
+    # Its own type rather than Word's. `mimetypes` calls an .rtf `application/msword` on
+    # some hosts, which put it in the same bucket as a .doc - and the two could not be more
+    # different to a reader: an RTF is text with its formatting written into it and is read,
+    # a .doc is an OLE2 compound file and is refused.
+    ".rtf": "application/rtf",
     ".txt": "text/plain",
     ".md": "text/markdown",
 }
@@ -60,7 +72,22 @@ DOCUMENT = {
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/msword",
+    "application/rtf",
     "text/plain",
+    "text/markdown",
+}
+
+# Of the document types above, the ones a reader actually reads. `.doc` is routed and
+# refused on purpose: it is an OLE2 compound file, and the reader that met one decoded it as
+# UTF-8 and stored the bytes 0 to 255 as lines of a document. Being routed is what gets a
+# person the diagnostic that says to save it as a .docx; being read is a different claim and
+# this build does not make it.
+READ = {
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/rtf",
+    "text/plain",
+    "text/markdown",
 }
 
 

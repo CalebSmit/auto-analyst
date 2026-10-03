@@ -34,6 +34,7 @@ __all__ = ["Footing", "FootingReport", "footings_in", "is_a_total"]
 
 LINES = "the lines above it"
 SUBTOTALS = "the subtotals above it"
+MIXED = "the subtotals and the lines above it"
 
 CENT = 0.005
 """Half a cent: what "it re-adds" means.
@@ -161,6 +162,18 @@ def _matching_tail(
     return (nearest, None)
 
 
+def _shape(run: Sequence[Any]) -> str:
+    """Which of the three a total turned out to be. Kept because it is what a reader checks
+    when a footing looks wrong: a total of subtotals that should have been a total of lines
+    is a statement laid out differently from how it reads."""
+    totals = sum(1 for r in run if is_a_total((getattr(r, "label", "") or "").strip()))
+    if totals == 0:
+        return LINES
+    if totals == len(run):
+        return SUBTOTALS
+    return MIXED
+
+
 def footings_in(rows: Sequence[Any]) -> FootingReport:
     """Walk a block of parsed rows once, in order, pairing each total with its run.
 
@@ -177,8 +190,17 @@ def footings_in(rows: Sequence[Any]) -> FootingReport:
     """
     footings: list[Footing] = []
     covered: set[int] = set()
-    leaves: list[Any] = []
-    subtotals: list[Any] = []
+
+    # What stands above the next total: the rows it could be a total of. A loose row stands
+    # for itself; a run that has already been totalled stands as its own total, so the next
+    # total up adds the subtotal once rather than adding its parts again.
+    #
+    # One list rather than two. The old reader kept leaves and subtotals apart and tried
+    # each in turn, which reads a statement that nests cleanly and no other: a real balance
+    # sheet's grand total is `Total current assets` **and** the seven non-current rows after
+    # it, and neither list alone holds that. Over the lines it double-counted the subtotal
+    # and missed by exactly the subtotal; over the subtotals it had one and needed two.
+    standing: list[Any] = []
 
     for row in rows:
         value = getattr(row, "value", None)
@@ -186,32 +208,122 @@ def footings_in(rows: Sequence[Any]) -> FootingReport:
             continue
         label = (getattr(row, "label", "") or "").strip()
         if not is_a_total(label):
-            leaves.append(row)
+            standing.append(row)
             continue
 
-        found = _matching_tail(leaves, value)
-        how = LINES
+        found = _matching_tail(standing, value)
+        # One subtotal equal to a later total is a figure carried down, not a sum of it.
+        # The old reader refused that by requiring two subtotals; with one list the same
+        # rule is said directly, and it matters because calling it a footing would cover
+        # the subtotal's own rows a second time and claim evidence twice.
+        if (
+            isinstance(found, tuple)
+            and len(found) == 1
+            and is_a_total((getattr(found[0], "label", "") or "").strip())
+        ):
+            footings.append(Footing(label, value, (), "", 0.0))
+            standing = []
+            continue
         if isinstance(found, tuple) and len(found) == 2 and found[1] is None:
-            near_lines = found[0]
-            # Two or more, because one subtotal equalling a later total is a carried figure
-            # rather than a sum, and calling that a footing would cover its rows twice.
-            found = _matching_tail(subtotals, value, least=2)
-            how = SUBTOTALS
-            if isinstance(found, tuple) and len(found) == 2 and found[1] is None:
-                nearest = found[0] if found[0] is not None else near_lines
-                footings.append(Footing(label, value, (), "", nearest))
-                leaves = []
-                continue
-            subtotals = subtotals[: len(subtotals) - len(found)]
+            footings.append(Footing(label, value, (), "", found[0]))
+            standing = []
+            continue
 
         ordinals = tuple(getattr(r, "ordinal", i) for i, r in enumerate(found))
-        footings.append(Footing(label, value, ordinals, how))
+        footings.append(Footing(label, value, ordinals, _shape(found)))
         covered.update(ordinals)
-        subtotals.append(row)
-        leaves = []
+        # The run it summed is now spoken for, and this total speaks for it.
+        standing = standing[: len(standing) - len(found)] + [row]
 
     return FootingReport(
         footings=tuple(footings),
         covered_ordinals=frozenset(covered),
         rows=sum(1 for r in rows if getattr(r, "value", None) is not None),
     )
+
+
+# ------------------------------------------------------- and the check a person makes first
+
+
+ASSETS = "total assets"
+BOTH_SIDES = "total liabilities"
+EQUITY = "equity"
+
+
+@dataclass(frozen=True)
+class TwoSides:
+    """Whether a balance sheet balances.
+
+    Footing proves that each side adds up. It cannot prove the two sides agree, because
+    they are different runs of rows and a total only ever sums what stands above it - on a
+    real filing the assets total and the line that totals the other side are not even in the
+    same block, since the reader starts a new one at every heading.
+
+    This is the check an analyst makes before any other, and the statement states both
+    numbers itself, so nothing here infers anything: it reads the two labels the statement
+    wrote and compares the two figures it printed under them.
+    """
+
+    assets: float | None = None
+    liabilities_and_equity: float | None = None
+
+    @property
+    def stated(self) -> bool:
+        """Both sides are on the statement. A balance sheet states both; an income
+        statement states neither, and saying nothing about one is the right answer."""
+        return self.assets is not None and self.liabilities_and_equity is not None
+
+    @property
+    def balances(self) -> bool | None:
+        """`None` where the statement does not state both sides - which is not a failure
+        and must not read as one."""
+        if not self.stated:
+            return None
+        assert self.assets is not None and self.liabilities_and_equity is not None
+        gap = abs(self.assets - self.liabilities_and_equity)
+        return gap <= max(CENT, abs(self.assets) * RELATIVE)
+
+    @property
+    def out_by(self) -> float | None:
+        if not self.stated or self.balances:
+            return None
+        assert self.assets is not None and self.liabilities_and_equity is not None
+        return self.assets - self.liabilities_and_equity
+
+    def as_line(self) -> str:
+        if not self.stated:
+            return ""
+        if self.balances:
+            return f"the two sides agree at {self.assets:,.2f}"
+        return (
+            f"the two sides do not agree: assets {self.assets:,.2f} against "
+            f"{self.liabilities_and_equity:,.2f}, out by {self.out_by:,.2f}"
+        )
+
+
+def two_sides(rows: Sequence[Any]) -> TwoSides:
+    """The assets total and the total of the other side, by the names the statement uses.
+
+    `Total liabilities` on its own is not the other side - it is one part of it - so the
+    label has to name the equity as well. On the real filing the line reads `Total
+    liabilities, redeemable non-controlling interest and stockholders' equity`, and on a
+    plainer one `Total liabilities and stockholders' equity`; both say liabilities and say
+    equity, and a line that says only the first is a subtotal of one side.
+
+    The assets side is matched **exactly** rather than by prefix, because a statement writes
+    `Total assets held for sale` too, and that is a line inside the assets rather than the
+    sum of them. Taking the first label that began with the words would compare the wrong
+    figure and report a balance sheet as out by nearly all of itself.
+    """
+    assets: float | None = None
+    other: float | None = None
+    for row in rows:
+        value = getattr(row, "value", None)
+        if value is None:
+            continue
+        label = (getattr(row, "label", "") or "").strip().lower()
+        if label.strip(" :.") == ASSETS and assets is None:
+            assets = value
+        elif label.startswith(BOTH_SIDES) and EQUITY in label and other is None:
+            other = value
+    return TwoSides(assets=assets, liabilities_and_equity=other)

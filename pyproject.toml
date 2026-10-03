@@ -32,7 +32,16 @@ dependencies = [
     "cryptography>=43",
     "rq>=2.12.0",
     "redis>=8.1.0",
+    # Reads the old binary .xls, which openpyxl never could. The routing table has
+    # declared .xls a spreadsheet since it was written and the only reader behind it was
+    # openpyxl, so one came back as "BadZipFile: File is not a zip file". Pure Python.
     "xlrd>=2.0.2",
+    # An RTF is text with its formatting written into it, so the reader that met one
+    # stored the control words as lines of a document and sent them to a model. Pure
+    # Python, no system dependency. Measured over the escapes that matter: it leaves the
+    # font table, the stylesheet and the generator behind, and keeps the dollar sign, the
+    # accent and the em dash.
+    "striprtf>=0.0.33",
 ]
 
 [dependency-groups]

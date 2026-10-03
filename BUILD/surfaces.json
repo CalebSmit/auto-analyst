@@ -288,6 +288,7 @@
    "GUARD.TIEOUT_MISMATCH": "client-data",
    "GUARD.UNMASK_RESIDUAL": "system",
    "INTAKE.CONTEXT_TOO_LARGE": "client-data",
+   "INTAKE.FORMAT_NOT_READ": "client-data",
    "INTAKE.INJECTION_DETECTED": "client-data",
    "INTAKE.NO_ENGAGEMENT": "client-data",
    "INTAKE.UNKNOWN_TYPE": "client-data",

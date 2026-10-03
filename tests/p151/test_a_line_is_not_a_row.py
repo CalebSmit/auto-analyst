@@ -59,8 +59,14 @@ def filing():
 
 
 def _starting(prefix: str, rows: dict[str, float | None]) -> float | None:
-    """The one row whose label starts this way. The filing writes an apostrophe this PDF
-    does not encode, so `stockholders’ equity` cannot be matched as written."""
+    """The one row whose label starts this way.
+
+    Matched by prefix because the filing writes `stockholders’ equity` with a curly
+    apostrophe, and writing that into a test is a way to be wrong about which character it
+    is. The reader gets it right - there is no replacement character anywhere in this
+    document - and an earlier version of this note said the PDF did not encode it, which
+    was a Windows console that could not print it rather than anything about the file.
+    """
     found = [value for label, value in rows.items() if label.startswith(prefix)]
     assert len(found) == 1, f"{prefix!r} matched {len(found)} rows"
     return found[0]

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**152 of 152 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**154 of 154 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -368,4 +368,7 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P151** A line is not a row | auto | Every grand total on the real filing's balance sheet is built with its figures, measured against the filing rather than against a fixture | 2026-10-02 |
 | [x] | **P152** The workbook that was not a zip file | auto | A trial balance sent as a CSV is read, with its figures as figures, and the rehearsal stops counting its refusal as a result | 2026-10-02 |
 | [x] | **C84 - A figure can be found again** | integration | Every figure these readers emit is printed in the source at the locator it cites, from a page and from a sheet alike, and a file that had to be converted carries what was decided to read it. | 2026-10-02 |
+| [x] | **P153** A file that is not text is not text | auto | No file that is not text reaches the parse store or a model as text, proved on the formats that were doing it | 2026-10-02 |
+| [x] | **P154** What a statement's grand total is a total of | auto | The grand totals of the real filing's balance sheet re-add, and the statement's two sides are checked against each other | 2026-10-02 |
+| [x] | **C85 - What reaches a model, and what covers a figure** | integration | Nothing in the text a model is sent came from a reader that refused the format it came from, every format the routing table lists is either read or refused, and every total that claims to cover a figure re-adds when its rows are added again here. | 2026-10-02 |
 

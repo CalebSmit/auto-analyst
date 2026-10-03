@@ -29,7 +29,16 @@ from dataclasses import dataclass, field
 from intake.readers.layout import LaidOutTable, lay_out
 from ops.source_parse import Row
 
-__all__ = ["Column", "Line", "Page", "ParsedDocument", "Table", "read_document"]
+__all__ = [
+    "Column",
+    "Line",
+    "NotText",
+    "Page",
+    "ParsedDocument",
+    "Table",
+    "looks_like",
+    "read_document",
+]
 
 HIDDEN_BELOW_PT = 4.0
 # A money-shaped figure, the same shape the period detector counts with: grouped with
@@ -180,12 +189,70 @@ class ParsedDocument:
         return "\n".join(f"[page {p.number}]\n{p.text}" for p in self.pages)
 
 
+class NotText(Exception):
+    """The file is whole and this build does not read its format.
+
+    Different from a file that will not open, and the answer a person gets is different:
+    save it as something that is read, rather than ask the client for it again. Carries what
+    the file actually is, read from its first bytes rather than from its name.
+    """
+
+    def __init__(self, looks_like: str) -> None:
+        super().__init__(looks_like)
+        self.looks_like = looks_like
+
+
+# What a file's first bytes say it is, whatever its name says. A `.doc` renamed `.txt` is
+# still an OLE2 compound file, and a reader that trusted the extension would decode it.
+SIGNATURES: tuple[tuple[bytes, str], ...] = (
+    (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", "a Word 97-2003 or Excel 97-2003 file (OLE2)"),
+    (b"PK\x03\x04", "a zip archive - a .docx, .xlsx or .pptx under another name"),
+    (b"\x89PNG\r\n\x1a\n", "a PNG image"),
+    (b"\xff\xd8\xff", "a JPEG image"),
+    (b"GIF8", "a GIF image"),
+    (b"II*\x00", "a TIFF image"),
+    (b"MM\x00*", "a TIFF image"),
+    (b"%PDF", "a PDF under another name"),
+    (b"\x1f\x8b", "a gzip archive"),
+    (b"Rar!", "a RAR archive"),
+    (b"\x7fELF", "a program"),
+    (b"MZ", "a program"),
+)
+
+
+def looks_like(data: bytes) -> str | None:
+    """What this file is, or `None` where it reads as text.
+
+    Signatures first, so the answer names the format. Then a NUL byte, which is the one
+    thing a text file in any encoding does not contain and every binary format does - a
+    general catch for the formats nobody listed, which is the group that matters, because
+    the list will always be shorter than the world.
+    """
+    for magic, name in SIGNATURES:
+        if data.startswith(magic):
+            return name
+    if b"\x00" in data[:8192]:
+        return "a binary file"
+    return None
+
+
 def read_document(data: bytes, filename: str) -> ParsedDocument:
     name = filename.lower()
     if name.endswith(".pdf"):
         return _read_pdf(data, filename)
     if name.endswith(".docx"):
         return _read_docx(data, filename)
+    if name.endswith(".rtf"):
+        return _read_rtf(data, filename)
+    # Everything left is read as text, and so everything left has to *be* text. This branch
+    # used to take anything: an RTF arrived as one line of `{\rtf1\ansi\ansicpg1252...`, and
+    # a `.doc` arrived as replacement characters and a dump of the bytes 0 to 255 - both
+    # written to the parse store as rows a figure could cite, both classified, and both
+    # appended to the text a model is sent. Content, not an error, and nothing downstream
+    # could tell either from a sentence somebody wrote.
+    found = looks_like(data)
+    if found is not None:
+        raise NotText(found)
     return _read_text(data, filename)
 
 
@@ -536,9 +603,48 @@ def _read_docx(data: bytes, filename: str) -> ParsedDocument:
 # -------------------------------------------------------------------- text
 
 
+def _read_rtf(data: bytes, filename: str) -> ParsedDocument:
+    """An RTF, as the words a person reads.
+
+    An RTF is text with its formatting written into the same stream, so the fallback reader
+    stored the control words as the document: one line beginning `{` and naming the fonts.
+    `striprtf` leaves the font table, the stylesheet and the generator behind and turns the
+    escapes back into characters - `'24` into a dollar sign, `'e9` into an accented e, and
+    the numeric ones into what they stand for, which matters here because an em dash is one
+    of the things the prose checks are about.
+
+    Read as a page of lines, like a text file, because that is what an RTF is: a letter or a
+    memorandum. Nothing claims it has tables.
+    """
+    from striprtf.striprtf import rtf_to_text
+
+    markup, _ = _decode_text(data)
+    # striprtf ships no type information, so the call is annotated here rather than the
+    # whole module being excused from type checking.
+    words: str = rtf_to_text(markup)  # type: ignore[no-untyped-call]
+    return _read_text(words.encode("utf-8"), filename)
+
+
+def _decode_text(data: bytes) -> tuple[str, str]:
+    """A text file's characters and the encoding that read them.
+
+    The same order the spreadsheet reader uses and for the same reason: a byte order mark is
+    checked rather than tried, strict UTF-8 next, and cp1252 last because it decodes almost
+    any byte without complaining and would quietly accept a UTF-8 file.
+    """
+    import codecs
+
+    if data.startswith(codecs.BOM_UTF8):
+        return data.decode("utf-8-sig"), "utf-8-sig"
+    try:
+        return data.decode("utf-8"), "utf-8"
+    except UnicodeDecodeError:
+        return data.decode("cp1252", errors="replace"), "cp1252"
+
+
 def _read_text(data: bytes, filename: str) -> ParsedDocument:
     page = Page(number=1)
-    for raw in data.decode("utf-8", errors="replace").splitlines():
+    for raw in _decode_text(data)[0].splitlines():
         if raw.strip():
             page.lines.append(Line(raw.rstrip()))
     page.tables.extend(_tables_from_lines(1, page.lines))

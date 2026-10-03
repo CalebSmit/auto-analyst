@@ -2871,3 +2871,50 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C84 after P152, covering P151, P152
 - proves: Every figure these readers emit is printed in the source at the locator it cites, from a page and from a sheet alike, and a file that had to be converted carries what was decided to read it.
+
+## 2026-10-02 - P153 A file that is not text is not text
+
+**Why:** The document reader's last branch decodes anything it does not recognise as UTF-8 text, and hands the result on as content. Measured: an RTF engagement letter becomes one line reading {rtf1 ansi ansicpg1252 deff0 {fonttbl{f0 fnil Calibri;}}... and a .doc - an OLE2 compound file - becomes replacement characters and a dump of the bytes 0 to 255 across three lines. Both are written to the Source Parse Store as rows a figure could cite, both are classified, and both are appended to text_for_model and sent to a model. That is worse than refusing in two ways: the content is wrong, and it is wrong as content rather than as an error. Nothing downstream can tell a line of RTF control words from a sentence somebody wrote. The root of it is one assumption - that a file which is not a PDF and not a .docx is text - and the same assumption is what would happen to a .png, a .xlsb or anything else that reaches read_document. An RTF really is text and can be read properly: striprtf is pure Python, and measured over the escapes that matter it returns the words a person reads with the font table, the stylesheet and the generator left behind, turns 'hex and uN escapes back into characters, and keeps the dollar sign, the accent and the em dash. A .doc cannot be read to this build's standard here: a pure-Python reader exists but there is no real .doc on this machine to measure one against, and a half-working parser for a binary format produces plausible partial text, which is the failure this repository is most careful about.
+
+- phase added: P153 A file that is not text is not text (Extraction, gate: auto)
+- exit criterion: No file that is not text reaches the parse store or a model as text, proved on the formats that were doing it
+- exit criterion: An RTF is read as the words a person reads, with the markup left behind
+- exit criterion: A file this build cannot read is refused with a diagnostic that names the format and the thing to do, rather than with a decoding artefact
+
+## 2026-10-02 - P153 A file that is not text is not text
+
+**Why:** The tasks.
+
+- task added: a file whose bytes are not text is refused rather than decoded, with what it looks like in the diagnostic
+- task added: an RTF is read with striprtf, so the words survive and the control words do not
+- task added: the formats that route nowhere are given an answer, and the routing table says which are read
+
+## 2026-10-02 - P154 What a statement's grand total is a total of
+
+**Why:** The footing check is the evidence the whole acceptance rule turns on - review/router.py routes an extracted figure to a person unless a total that re-adds covers it - and on a real filing it covers less than it should, for a reason that only became visible when the totals started existing. It knows two shapes: a total of the lines above it, and a total of the subtotals above it. A real balance sheet's grand total is neither. Total assets is Total current assets plus the seven non-current rows that follow it - a subtotal and some loose lines, mixed - so the lines shape double-counts the subtotal and misses by exactly 346,707, and the subtotals shape needs two and has one. Measured over the whole filing now that P151 built the grand totals: 90 totals found and 65 re-add, and the three that fail on the balance sheet are the three a person checks first - Total assets, Total liabilities, and the line that totals both sides. A statement whose grand total cannot be footed is a statement where every row above it stays uncovered, which means every figure on it goes to a person as though nothing had been checked. The two shapes are one shape seen twice: a total sums the run of rows standing above it, where a row that has already been totalled is represented by its total rather than by its parts.
+
+- phase added: P154 What a statement's grand total is a total of (Extraction, gate: auto)
+- exit criterion: The grand totals of the real filing's balance sheet re-add, and the statement's two sides are checked against each other
+- exit criterion: Nothing that did not foot before is made to foot by loosening what foots, measured total by total over the whole filing
+- exit criterion: A total is never attached to a run that merely nearly fits, and an uncovered one still says what it is out by
+
+## 2026-10-02 - P154 What a statement's grand total is a total of
+
+**Why:** The tasks.
+
+- task added: a total foots over the rows standing above it, where a totalled run stands as its own total
+- task added: which shape it was is still recorded, including that it was a mix
+- task added: the whole filing is measured total by total, before and after
+
+## 2026-10-02 - C85 What reaches a model, and what covers a figure
+
+**Why:** P153 and P154 both change what a reader hands to the two consumers that decide what a person sees - the text a model is sent, and the arithmetic that covers a figure - and neither phase is placed to ask about the other.
+
+- checkpoint added: C85 after P154, covering P153, P154
+- proves: Nothing in the text a model is sent came from a reader that refused the format it came from, every format the routing table lists is either read or refused, and every total that claims to cover a figure re-adds when its rows are added again here.
+
+## 2026-10-02 - P153 A file that is not text is not text
+
+**Why:** The reader needed a code of its own for a file that is whole and in a format this build does not read, because what a person should do about it differs from UNREADABLE_FILE: save it as something that is read, rather than ask the client to send it again.
+
+- task added: Record INTAKE.FORMAT_NOT_READ in BUILD/surfaces.json
