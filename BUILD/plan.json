@@ -4791,6 +4791,60 @@
       ],
       "notes": "",
       "closed": "2026-10-03"
+    },
+    {
+      "id": "P166",
+      "title": "The files a client actually sends",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Close the intake defects a real client file hits first, each one reported rather than resolved. A file telling two decimal stories decides nothing and says so, and a cell that does not parse under the settled convention is reported rather than reinterpreted. A number with an unbalanced parenthesis is refused, not read positive, so the footing catches the dropped figure; a trailing minus and a unicode minus are read as the negatives they are. A page with no text layer is said to be one, on the report and on the event, so a scan that read nothing cannot pass for a file that held no figures. And the refusals say the true thing: a protected workbook is protected, a PDF named .xlsx is a PDF, a tab-separated file named .xls is readable text, a UTF-16 export is read rather than refused by coincidence.",
+      "builds": [],
+      "tasks": [
+        "A contradicted decimal convention reports instead of resolving; a cell that does not parse under the settled one goes to ambiguous",
+        "documents._number refuses an unbalanced parenthesis; a trailing minus and U+2212 read as negatives in both readers",
+        "scanned pages reach the read report and the intake.read event, and a run says when a document yielded nothing because it had no text layer",
+        "The spreadsheet branch consults looks_like before openpyxl, so a protected workbook, a PDF under another name and a text file named .xls each get the sentence that is true of them; a UTF-16 BOM is decoded",
+        "Every new refusal sentence is calibrated against the three public filings and the rehearsal cases, so nothing that read before stops reading"
+      ],
+      "exit": [
+        "A CSV with 1.234,56 and 402,000 in one column yields neither 402.0 nor 1.23456 silently: the file is reported as telling two stories and the cell is in ambiguous",
+        "(12,000 ) reads as -12,000 in both readers; 12,000- and the unicode minus read as -12,000; 12,000) alone yields no figure rather than +12,000",
+        "A PNG with no OCR adapter is recorded as a scan that read nothing, on the report and on the event, distinct from a readable file with no figures",
+        "A password-protected .xlsx is refused as protected, a PDF named .xlsx as a PDF under another name, a TSV named .xls is read, and a UTF-16 CSV is read - each proved with a built file",
+        "The three public filings and every rehearsal case read exactly as they did"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p166 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-06"
+    },
+    {
+      "id": "P167",
+      "title": "Methodology, not procedures",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "open",
+      "intent": "Put the firm's valuation knowledge where the model already looks. Six knowledge files under knowledge/methodology/, mined from the five interview sessions with every item cited and every gap written as a question for the work laptop; and six rule files under foundations/valuation/_group/, each the rules section of its knowledge file verbatim, which every valuation run attaches once a person clears it. The three compute skills are superseded by the knowledge and say so. Nothing here invents methodology the interviews do not support: a short honest file beats a long plausible one, and the open questions are the point - they are what the work laptop answers.",
+      "builds": [],
+      "tasks": [
+        "Six knowledge files under knowledge/methodology/, each with what we know (cited), what the model should do, and what is still unknown",
+        "Six rule files under foundations/valuation/_group/, each the rules of its knowledge file verbatim, under the layer's byte ceiling, and clean to the clearance scan",
+        "A test that holds each rule file to its knowledge file, so the two cannot drift",
+        "Point the interview topic map at the knowledge files, so the next session on the work laptop writes where the model reads",
+        "Mark dcf-build, gpc-scrub and cost-of-capital as superseded by the knowledge, with every declaration that named them amended and the reason recorded"
+      ],
+      "exit": [
+        "Every valuation scope resolves the six rule files into its methodology layers, and the clearance scan passes each of them",
+        "Every rule in a foundations file appears verbatim in its knowledge file, and the valuation layer is under the byte ceiling",
+        "The identifier scan is clean over knowledge/methodology/ and foundations/",
+        "The three superseded skills say what supersedes them, nothing dispatches them, and every test that named them says so for a recorded reason"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p167 -q"
+      ],
+      "notes": ""
     }
   ],
   "checkpoints": [

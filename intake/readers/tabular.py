@@ -65,6 +65,15 @@ class Conversion:
     ambiguous: tuple[str, ...] = field(default_factory=tuple)
     """Cells that could have been two numbers. Left as text, and named here so a person is
     told rather than a figure being guessed."""
+    contradiction: str = ""
+    """Why no convention was settled, where the file itself is the reason: it holds a cell
+    only readable one way and another only readable the other. Empty where the file told
+    one story or none."""
+
+
+_OLE2 = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+"""The first bytes of every Office 97-2003 file - and of a password-protected `.xlsx`,
+which is an OOXML package wrapped in the same container."""
 
 
 def converts(filename: str) -> bool:
@@ -77,6 +86,11 @@ def as_workbook(data: bytes, filename: str) -> Conversion:
     caller's one diagnostic covers every spreadsheet that will not open."""
     name = filename.lower()
     if name.endswith(".xls"):
+        # Extremely common from legacy systems: a tab-separated text file saved under an
+        # `.xls` name. It is readable content in the wrong wrapper, and xlrd's "Expected
+        # BOF record" told a person to ask the client for another copy of a fine file.
+        if not data.startswith(_OLE2) and b"\x00" not in data[:8192]:
+            return _from_separated(data, filename)
         return _from_xls(data)
     if name.endswith(".ods"):
         return _from_ods(data)
@@ -93,7 +107,7 @@ def _from_separated(data: bytes, filename: str) -> Conversion:
     if not any(any(cell.strip() for cell in row) for row in grid):
         raise ValueError("the file holds no rows")
 
-    decimal, ambiguous = _convention(grid)
+    decimal, ambiguous, contradiction = _convention(grid)
     from openpyxl import Workbook
 
     book = Workbook()
@@ -111,6 +125,7 @@ def _from_separated(data: bytes, filename: str) -> Conversion:
         delimiter=delimiter,
         decimal=decimal,
         ambiguous=tuple(sorted(ambiguous)[:20]),
+        contradiction=contradiction,
     )
 
 
@@ -128,6 +143,13 @@ def _decode(data: bytes) -> tuple[str, str]:
     """
     if data.startswith(codecs.BOM_UTF8):
         return data.decode("utf-8-sig"), "utf-8-sig"
+    # UTF-16 is what Excel's "Unicode Text" and a good many ERP exports write. Without this
+    # the bytes fell through to cp1252, "succeeded" as NUL-interleaved text, and were
+    # refused three layers later by openpyxl complaining about a NUL in a cell - a guard
+    # that worked by coincidence, and told the person nothing about their file.
+    for mark, encoding in ((codecs.BOM_UTF16_LE, "utf-16-le"), (codecs.BOM_UTF16_BE, "utf-16-be")):
+        if data.startswith(mark):
+            return data[len(mark):].decode(encoding), encoding
     try:
         return data.decode("utf-8"), "utf-8"
     except UnicodeDecodeError:
@@ -162,7 +184,7 @@ def _delimiter(text: str) -> str:
 # ----------------------------------------------------------------------- the numbers
 
 
-def _convention(grid: list[list[str]]) -> tuple[str, set[str]]:
+def _convention(grid: list[list[str]]) -> tuple[str, set[str], str]:
     """Which character is this file's decimal point, and what stays text because nothing
     said.
 
@@ -171,9 +193,17 @@ def _convention(grid: list[list[str]]) -> tuple[str, set[str]]:
     where the grouping is regular. What is left over is named rather than guessed.
     """
     cells = [cell.strip() for row in grid for cell in row if cell.strip()]
-    if any(_US.match(cell) for cell in cells):
+    us = [cell for cell in cells if _US.match(cell)]
+    eu = [cell for cell in cells if _EU.match(cell)]
+    if us and eu:
+        # The file is telling two stories, and this used to take the first one it met and
+        # apply it to every cell - so `1.234,56` beside `402,000` read the second as 402.0,
+        # a thousand times out, with nothing said, because the reporting lived behind "no
+        # convention" and a settled one reported nothing. Two stories is no convention.
+        decimal = ""
+    elif us:
         decimal = "."
-    elif any(_EU.match(cell) for cell in cells):
+    elif eu:
         decimal = ","
     else:
         grouped = {
@@ -186,11 +216,34 @@ def _convention(grid: list[list[str]]) -> tuple[str, set[str]]:
         decimal = {",": ".", ".": ","}[grouped.pop()] if len(grouped) == 1 else ""
 
     ambiguous: set[str] = set()
+    contradiction = ""
     if not decimal:
         for cell in cells:
-            if any(shape.match(cell) for shape in _GROUPED_BY.values()):
+            if any(shape.match(cell) for shape in _GROUPED_BY.values()) or _US.match(cell) or _EU.match(cell):
                 ambiguous.add(cell)
-    return decimal, ambiguous
+        if us and eu:
+            contradiction = (
+                f"the file is telling two stories: {us[0]} reads one way and {eu[0]} the "
+                f"other, so no decimal convention was settled and every grouped figure is "
+                f"left as text"
+            )
+    else:
+        # A cell written the other way under a settled convention is reported rather than
+        # reinterpreted. `1.234,56` in a file that decided on `.` is not 1.23456 - and
+        # `402,000` in a file that decided on `,` is not 402.0, which is the thousand-fold
+        # error this was found by: the other story's *grouped* shape counts too, because
+        # under the settled convention it would read as a decimal with three places.
+        others = (_EU, _GROUPED_BY["."]) if decimal == "." else (_US, _GROUPED_BY[","])
+        told = [cell for cell in cells if any(shape.match(cell) for shape in others)]
+        ambiguous.update(told)
+        if told:
+            settled_by = (us or eu)[0]
+            contradiction = (
+                f"the file is telling two stories: {settled_by} settled the decimal point "
+                f"as {decimal!r} and {told[0]} reads the other way, so it and "
+                f"{len(told) - 1} more like it are left as text"
+            )
+    return decimal, ambiguous, contradiction
 
 
 def _cell(value: str, decimal: str, ambiguous: set[str]) -> str | float:

@@ -299,6 +299,21 @@ restatement event, a cell bound to one is refused with the unit in the sentence,
 narrative prints `135,361,000 shares`. The proof is not a search for a word - `tests/p165`
 makes `_moved` raise and watches every site fail.
 
+**The files a client actually sends.** Sixty-three malformed, hostile and degenerate files
+went through the readers; every refusal came back as one of the two intended codes, and every
+finding was on a file that was *read*. P166 closed the ones a real client file hits first. A
+CSV telling two decimal stories decides nothing and says so, and a cell written the other way
+under a settled convention is left as text and named - `1.234,56` beside `402,000` used to
+read the second as 402.0 with nothing said. `(12,000 )`, `12,000-` and the unicode minus are
+the negatives they are, and a parenthesis without its pair yields no figure rather than a
+positive one, so the footing sees a dropped row instead of a flipped sign. A page with no text
+layer is said to be one, on the report and the `intake.read` event, so a scan nothing read
+cannot pass for a file that held no figures. And the refusals say the true thing: a protected
+workbook or PDF is *protected*, a PDF under an .xlsx name is a PDF, a tab-separated file named
+.xls is read, a UTF-16 export is read. None of the admitted shapes occurs on the three public
+filings, which read to the row as they did. What is still unbounded - a million-row sheet, a
+200 MB shared-strings member - is B-146.
+
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not
 tell them from dead code:

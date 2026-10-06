@@ -2978,7 +2978,7 @@ openpyxl is already read in non-read-only mode; an empty label on a row carrying
 also a one-line refusal.
 
 ## B-138 A spreadsheet with two decimal conventions reads a figure a thousand times out, silently
-status: proposed
+status: fixed (P166) - a file telling two stories decides nothing and says so; a cell written the other way under a settled convention is left as text and named
 2026-10-03. `intake/readers/tabular.py::_convention` takes the **first** regex class that
 matches anywhere in the file and applies it to every cell, including the cells that
 contradict it. The `ambiguous` reporting path is behind `if not decimal:`, so a file that
@@ -3033,7 +3033,7 @@ response and dropped), and an HTTP route no page reaches - ten of those, includi
 `POST /api/admin/report/start`, which is the first half of a shipped feature and has no button.
 
 ## B-140 A scan that read nothing is not reported as a scan
-status: proposed
+status: fixed (P166) - the pages with no text layer are on the read report, the intake.read event and the message a person reads; the Row.ocr half stays open
 2026-10-03. `ParsedDocument.scanned_pages()` exists, is documented as the honest answer to
 "was there a text layer", and is called by **nothing but `tests/p17`**. `ReadReport` has no
 field for it and the `intake.read` event payload does not carry it. So with no OCR adapter
@@ -3146,7 +3146,7 @@ out of `runs/`.
   the field as a routing decision anyway.
 
 ## B-144 `documents._number` returns a positive for an unbalanced parenthesis
-status: proposed - one line, and it turns a sign flip into a dropped figure
+status: fixed (P166) - refused, so the footing sees a dropped figure; a padded parenthesis, a trailing minus and U+2212 read as the negatives they are in both readers; the mojibake strip set stays open
 2026-10-03. `_number("12,000)")` and `_number("(12,000")` both return **+12,000**, because
 the negative test is `startswith("(") and endswith(")")` and `strip("()")` then discards the
 orphan. It is the root cause under two sign flips: a figure printed `(12,000 )` - a space
@@ -3188,7 +3188,7 @@ prior-year fixture of any kind**, where the smallest honest one is twenty lines 
 the profile on a run, so the path a person sets at Setup is read by nothing but a screen.
 
 ## B-146 Nothing bounds anything on the intake path
-status: proposed
+status: proposed - the four refusals that sent a person to do the wrong thing were corrected in P166 (a protected workbook or PDF is said to be protected, a PDF or image under a spreadsheet name is named, a tab-separated file named .xls is read, a UTF-16 export is read); the bounds themselves stay open
 2026-10-03. There is no size cap, page cap, row cap or inflated-size cap anywhere in
 `intake/`. The de facto bounds are library-internal and accidental. Measured, per file:
 

@@ -113,13 +113,20 @@ COLUMNS_NEEDED = 2
 # the header inside the table as its first row and left every column with no heading at
 # all. This is the same judgement `documents._FIGURES` already made for the line reader -
 # a page number, a note reference and a year are all numbers and none is a column.
-_ESTABLISHES = re.compile(r"^\(?[$£€]?\s*-?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?$|^\(-?[\d.]+\)$")
+#
+# The minus may be ASCII or U+2212 and may trail the figure (`12,000-`, how Sage, SAP and
+# QuickBooks write a credit). Neither shape occurred here before P166, and a band of them
+# read as prose - so a statement exported from any of those packages produced no table at
+# all. None occurs on the three public filings, so admitting them changes nothing read.
+_ESTABLISHES = re.compile(
+    r"^\(?[$£€]?\s*[-−]?\d{1,3}(?:,\d{3})+(?:\.\d+)?-?\)?$|^\([-−]?[\d.]+-?\)$"
+)
 
 # **A column is filled by whatever is printed at its position.** Once the column exists,
 # a bare number in it is that column's value - which is how the balance sheet's Common
 # stock balance of 146, four figures short of needing a comma, is read at all.
-_FILLS = re.compile(r"^\(?[$£€]?\s*-?[\d,]+(?:\.\d+)?\)?$")
-_NIL = re.compile(r"^[$£€]?\s*[—–-]$")
+_FILLS = re.compile(r"^\(?[$£€]?\s*[-−]?[\d,]+(?:\.\d+)?-?\)?$")
+_NIL = re.compile(r"^[$£€]?\s*[—–−-]$")
 
 
 @dataclass(frozen=True)

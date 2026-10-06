@@ -3081,3 +3081,24 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C92 after P165, covering P164, P165
 - proves: One workbook carrying a wholly negated balance sheet and a share count comes out the far end with the contradiction withdrawing the block's cover, the share count neither divided nor written, and the cell bound to it refused for what it is rather than for its scale.
+
+## 2026-10-05 - P166 The files a client actually sends
+
+**Why:** Sixty-three malformed, hostile and degenerate files were put through the readers. Every refusal came back as one of the two intended codes; every finding was on the other side, on a file that was read. A CSV holding two decimal conventions reads a figure a thousand times out with nothing said; a parenthesis with a space inside it flips a sign; a trailing or unicode minus reads as positive or drops the table; a scan that read nothing is recorded exactly like a readable file with no figures; and a password-protected workbook is reported as corrupt with advice to ask the client for another copy. These are the files a client actually sends, and the work laptop will meet them on day one.
+
+- phase added: P166 The files a client actually sends (Reading what a client actually sends, gate: auto)
+- exit criterion: A CSV with 1.234,56 and 402,000 in one column yields neither 402.0 nor 1.23456 silently: the file is reported as telling two stories and the cell is in ambiguous
+- exit criterion: (12,000 ) reads as -12,000 in both readers; 12,000- and the unicode minus read as -12,000; 12,000) alone yields no figure rather than +12,000
+- exit criterion: A PNG with no OCR adapter is recorded as a scan that read nothing, on the report and on the event, distinct from a readable file with no figures
+- exit criterion: A password-protected .xlsx is refused as protected, a PDF named .xlsx as a PDF under another name, a TSV named .xls is read, and a UTF-16 CSV is read - each proved with a built file
+- exit criterion: The three public filings and every rehearsal case read exactly as they did
+
+## 2026-10-06 - P167 Methodology, not procedures
+
+**Why:** The owner's decision of 2026-10-05: dcf-build, gpc-scrub and cost-of-capital will not be built as procedures. The firm's model already does the DCFs and takes its WACC inputs from Capital IQ, and comps screening is the analyst's judgement with Cap IQ keyword and industry screens. What the tool needs is knowledge the model consults when deciding how to handle something in the model - EBITDA adjustments, the NWC lines a balance sheet excludes, a normal NWC as a percentage of revenue, GPC screening, the cost-of-capital inputs, and the reports the firm writes. The mechanism exists: foundations/ is scope-walked into every context and cleared by digest. It held four skeletons.
+
+- phase added: P167 Methodology, not procedures (Reading what a client actually sends, gate: auto)
+- exit criterion: Every valuation scope resolves the six rule files into its methodology layers, and the clearance scan passes each of them
+- exit criterion: Every rule in a foundations file appears verbatim in its knowledge file, and the valuation layer is under the byte ceiling
+- exit criterion: The identifier scan is clean over knowledge/methodology/ and foundations/
+- exit criterion: The three superseded skills say what supersedes them, nothing dispatches them, and every test that named them says so for a recorded reason

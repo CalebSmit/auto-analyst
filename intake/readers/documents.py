@@ -52,8 +52,14 @@ _FIGURES = re.compile(
     # one-column row in a two-column table, so it was dropped and the line disappeared.
     # A dash is a cell with nothing in it, which is not the same as a cell that is not
     # there, and `Row.value` is `float | None` precisely so the difference survives.
-    r"(?<![\w.])\(?-?[$£€]?\s?\d{1,3}(?:,\d{3})+(?:\.\d+)?\)?(?![\w.])"
-    r"|(?<![\w.-])[$£€]?\s?[—–-](?![\w.-])"
+    # The minus may be the ASCII one or U+2212, which Word's autoformat and several XBRL
+    # viewers emit; it may trail the figure, which is how Sage, SAP and QuickBooks write
+    # a credit balance; and a closing parenthesis may sit a space after the digits, which
+    # is how several packages pad a negative. Each of those used to read as *positive*,
+    # or make the row disappear - measured in P166, and none occurs on the three public
+    # filings, so admitting them changes nothing that read before.
+    r"(?<![\w.])\(?[-−]?[$£€]?\s?\d{1,3}(?:,\d{3})+(?:\.\d+)?-?\s?\)?(?![\w.])"
+    r"|(?<![\w.-])[$£€]?\s?[—–−-](?![\w.-])"
 )
 _NUMBER_AT_END = re.compile(
     r"^(?P<label>.*?\S)\s{2,}(?P<num>\(?-?\$?\s?[\d,]+(?:\.\d+)?\)?)\s*$|"
@@ -784,13 +790,29 @@ def _is_nil(text: str) -> bool:
 
 
 def _number(text: str) -> float | None:
-    cleaned = text.strip().replace("$", "").replace(",", "").replace(" ", "")
-    negative = cleaned.startswith("(") and cleaned.endswith(")")
+    """A figure as a statement prints one, or nothing.
+
+    Nothing, rather than a guess, for a parenthesis without its pair: `12,000)` and
+    `(12,000` used to come back as **+12,000**, because the sign test wanted both ends and
+    the strip then threw the orphan away. A space before the closing parenthesis -
+    `(12,000 )`, which several accounting packages pad - was read by the line matcher as
+    `(12,000` and so flipped its sign silently. Refusing makes it a dropped figure, which
+    the footing check sees; a wrong sign it cannot. A trailing minus and U+2212 are read
+    as the negatives they are.
+    """
+    cleaned = (
+        text.strip().replace("$", "").replace(",", "").replace(" ", "").replace("−", "-")
+    )
+    opens, closes = cleaned.startswith("("), cleaned.endswith(")")
+    if opens != closes:
+        return None
     cleaned = cleaned.strip("()")
+    if cleaned.endswith("-") and not cleaned.startswith("-"):
+        cleaned = "-" + cleaned[:-1]
     if not re.fullmatch(r"-?\d+(?:\.\d+)?", cleaned):
         return None
     value = float(cleaned)
-    return -value if negative else value
+    return -value if opens else value
 
 
 def _segments(page: object) -> list[tuple[str, float | None]]:

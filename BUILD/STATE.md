@@ -1,13 +1,32 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-10-03.*
+*Last written 2026-10-06.*
 
 ## Where the build is
 
-- **165 of 165 phases closed**
+- **166 of 167 phases closed**
 - Last green checkpoint: **C92**
-- **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
+- Current phase: **P167 - Methodology, not procedures** (gate: auto)
+
+## The next action
+
+Work P167. Its full definition is in [BUILD/phases/P167.md](phases/P167.md).
+
+> Put the firm's valuation knowledge where the model already looks. Six knowledge files under knowledge/methodology/, mined from the five interview sessions with every item cited and every gap written as a question for the work laptop; and six rule files under foundations/valuation/_group/, each the rules section of its knowledge file verbatim, which every valuation run attaches once a person clears it. The three compute skills are superseded by the knowledge and say so. Nothing here invents methodology the interviews do not support: a short honest file beats a long plausible one, and the open questions are the point - they are what the work laptop answers.
+
+Tasks:
+
+- [ ] Six knowledge files under knowledge/methodology/, each with what we know (cited), what the model should do, and what is still unknown
+- [ ] Six rule files under foundations/valuation/_group/, each the rules of its knowledge file verbatim, under the layer's byte ceiling, and clean to the clearance scan
+- [ ] A test that holds each rule file to its knowledge file, so the two cannot drift
+- [ ] Point the interview topic map at the knowledge files, so the next session on the work laptop writes where the model reads
+- [ ] Mark dcf-build, gpc-scrub and cost-of-capital as superseded by the knowledge, with every declaration that named them amended and the reason recorded
+
+Then:
+
+    python tools/gate.py check P167
+    python tools/gate.py close P167
 
 ## Before you start
 
@@ -184,4 +203,5 @@
 - **P163** Which column is which year (2026-10-03)
 - **P164** A total that says which way it points (2026-10-03)
 - **P165** The one multiplication, and the unit it asks first (2026-10-03)
+- **P166** The files a client actually sends (2026-10-06)
 

@@ -28,7 +28,7 @@ from typing import Any
 from guards.untrusted import UntrustedBoundary, Wrapped
 from intake.fingerprint import READ, mime_of
 from intake.readers.classify import Classification, Evidence, audited_evidence, classify
-from intake.readers.documents import NotText, ParsedDocument, read_document
+from intake.readers.documents import NotText, ParsedDocument, looks_like, read_document
 from intake.readers.footing import (
     CashRollForward,
     FootingReport,
@@ -93,6 +93,13 @@ class ReadReport:
     which is most of them."""
 
     cash_chain: tuple[str, ...] = ()
+    scanned: tuple[int, ...] = ()
+    """The pages that had no text layer - a scan, or an image. Carried here and on the
+    event because until P166 `ParsedDocument.scanned_pages()` was called by one test and
+    nothing else, so a PNG read with no OCR engine was recorded exactly like a readable
+    file that happened to hold no figures: `0 block(s) written`, classified, no review
+    item. CLAUDE.md's rule is that a page yielding nothing is reported rather than filled
+    in, and this is the report."""
     """Where one column opens at a figure the column beside it does not close at.
 
     A comparative statement prints its years side by side, so each year's closing cash is
@@ -253,6 +260,27 @@ def read_source(
                     found=f"{len(data)} bytes",
                 )
             )
+        # The file's first bytes, before openpyxl. The document branch has asked this since
+        # P156 and the spreadsheet branch never did, so a password-protected workbook - an
+        # OOXML package inside the same container as an Excel 97-2003 file - was reported
+        # as "cannot be opened as a workbook (BadZipFile)" with advice to ask the client for
+        # a readable copy of a file that was perfectly whole. Same for a PDF saved under an
+        # .xlsx name, where the document branch says "a PDF under another name" and this one
+        # said BadZipFile. The sentence has to be the true one, because a person does what
+        # it says.
+        # A UTF-16 export carries a NUL in every other byte and would read as "a binary
+        # file" here; its byte order mark says what it is, and the decoder reads it.
+        utf16 = data[:2] in (b"\xff\xfe", b"\xfe\xff")
+        wrapper = _wrong_wrapper(row.filename.lower(), None if utf16 else looks_like(data))
+        if wrapper:
+            raise DiagnosticError(
+                diagnose(
+                    FORMAT_NOT_READ,
+                    f"{row.filename} {wrapper}",
+                    locator=row.filename,
+                    found=f"{len(data)} bytes",
+                )
+            )
         try:
             # A CSV and an .xls are spreadsheets this build accepts and openpyxl cannot
             # open. Converted here, once, so everything below reads a workbook - including
@@ -317,6 +345,17 @@ def read_source(
                 )
             ) from not_text
         except Exception as broken:  # noqa: BLE001 - every reader's library raises its own
+            if _protected_pdf(data, broken):
+                raise DiagnosticError(
+                    diagnose(
+                        FORMAT_NOT_READ,
+                        f"{row.filename} is a PDF protected with a password. Remove the "
+                        f"password (or ask the client to) and send it again; the file "
+                        f"itself is whole.",
+                        locator=row.filename,
+                        found=f"{len(data)} bytes",
+                    )
+                ) from broken
             # A file that will not open, as against a format nobody reads. The workbook
             # branch above has said this since it was written; this branch let whatever the
             # library raised out of the reader, so the three cases measured - a truncated
@@ -350,6 +389,7 @@ def read_source(
         headers = parsed.headers()
         first_rows = parsed.first_rows()
         report.hidden_text = parsed.hidden_text()
+        report.scanned = parsed.scanned_pages()
         # Over every line the reader produced, scanned or not. On a scan a near-miss is a
         # misread; in a text layer the document really does print it, which is a worse fact
         # about the file rather than a reason not to say so.
@@ -495,6 +535,19 @@ def read_source(
                     if not rolled.rolls_forward
                 )
                 + "".join(f"; {said}" for said in report.cash_chain)
+                # A page with no text layer is said to be one. With blocks, an engine read
+                # it; with none, nothing did, and that is a scan nobody read rather than a
+                # file that held no figures - which is what the record used to say.
+                + (
+                    f"; {len(report.scanned)} page(s) with no text layer"
+                    + (
+                        " and nothing read from them - a scan, and no OCR engine read it"
+                        if not report.blocks
+                        else ""
+                    )
+                    if report.scanned
+                    else ""
+                )
                 # A token that is shaped like a figure but for one letter, which is a row
                 # that silently is not there: the reader drops the line, label and all, and
                 # the only other symptom is a total out by an amount nobody can account for.
@@ -543,6 +596,7 @@ def read_source(
                 "period_ends": list(report.periods.period_ends),
                 "ambiguous": list(report.periods.ambiguous),
                 "hidden_text": len(report.hidden_text),
+                "scanned_pages": list(report.scanned),
                 "cash": [
                     {
                         "where": where,
@@ -613,6 +667,65 @@ def read_source(
         step_id=step_id,
     )
     return report
+
+
+def _wrong_wrapper(name: str, kind: str | None) -> str:
+    """What a spreadsheet's first bytes say when they disagree with its name - as the
+    clause of a sentence, or empty where the bytes are what the name claims or say
+    nothing. A text file under any name says nothing here: it goes on to the reader, and
+    a text file named .xlsx is refused there as one that will not open, which is right."""
+    if kind is None:
+        return ""
+    ole2 = kind.startswith("a Word 97-2003 or Excel 97-2003")
+    zipped = kind.startswith("a zip archive")
+    if name.endswith((".xlsx", ".xlsm")):
+        if zipped:
+            return ""
+        if ole2:
+            return (
+                "is protected with a password, or is an Excel 97-2003 workbook under an "
+                ".xlsx name. Remove the password (or ask the client to), or save it as "
+                ".xlsx, and send that; the file itself is whole."
+            )
+    elif name.endswith(".xls"):
+        if ole2:
+            return ""
+        if zipped:
+            return "is an .xlsx under an .xls name. Rename it .xlsx and send that."
+    elif name.endswith(".ods"):
+        if zipped:
+            return ""
+    elif name.endswith((".csv", ".tsv")):
+        if zipped:
+            return (
+                "is a zip archive - an .xlsx, most likely - under a text name. Rename it "
+                "to what it is and send that."
+            )
+        if ole2:
+            return "is an Excel 97-2003 workbook under a text name. Rename it .xls and send that."
+    if kind.startswith("a PDF"):
+        return (
+            "is a PDF under a spreadsheet name. This build reads a PDF as a document: rename "
+            "it .pdf and send that."
+        )
+    if kind.endswith("image"):
+        return (
+            f"is {kind} under a spreadsheet name. This build reads an image as a scanned "
+            f"page: rename it to what it is and send that."
+        )
+    return f"is {kind} under a spreadsheet name, which this build does not read as a spreadsheet."
+
+
+def _protected_pdf(data: bytes, broken: BaseException) -> bool:
+    """Whether a PDF failed to read because it is encrypted, rather than because it is
+    broken. pypdf names the condition; the `/Encrypt` entry in the trailer is the file
+    naming it itself, and is checked too because the exception type has changed between
+    pypdf versions."""
+    if not data.startswith(b"%PDF"):
+        return False
+    if broken.__class__.__name__ in ("FileNotDecryptedError", "DependencyError"):
+        return True
+    return b"/Encrypt" in data[-4096:] or b"/Encrypt" in data[:65536]
 
 
 def _unused(_: Row, __: Any) -> None:  # pragma: no cover - keeps Row imported for readers

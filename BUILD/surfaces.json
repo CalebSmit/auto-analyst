@@ -499,6 +499,18 @@
     "valuation-standards.md"
    ]
   },
+  "valuation/_group": {
+   "bytes": 12760,
+   "digest": "sha256:4b665bb0a1ebfe262c5c51c0a621c73b160fecbdb83785ab396bdf14561b18d4",
+   "files": [
+    "cost-of-capital-inputs.md",
+    "ebitda-adjustments.md",
+    "gpc-screening.md",
+    "nwc-excluded-items.md",
+    "nwc-normal-level.md",
+    "report-writing.md"
+   ]
+  },
   "valuation/non-esop/_segment": {
    "bytes": 6974,
    "digest": "sha256:12b4c1b875fa6b04df3c7f1c078fc2ea5f039c8c92cd85c5c851e80f7aaab6f1",
