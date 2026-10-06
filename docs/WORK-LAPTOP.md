@@ -11,8 +11,16 @@ is the short path. Where a step was not rehearsed on a fresh clone it says so.
 git clone https://github.com/CalebSmit/auto-analyst.git
 cd auto-analyst
 python -m uv sync
+python -m uv run python tools/synthesize_templates.py    # the three template workbooks
 python -m uv run python tools/serve.py --check
 ```
+
+`templates/*.xlsx` is not in git - a template is generated from its input schema, so the
+synthesizer is the step that puts the files there. Skip it and `--check` lists every
+practice group under *no model set up here*, with the command in the sentence. `start.cmd`
+runs it for you. On a fresh clone `--check` ends with *nothing is set up yet on this
+machine* and exits 1: that is the expected first answer, not a fault, and it turns to 0
+once the environment is initialised and preflight passes.
 
 `uv` has to be on PATH; `start.cmd` installs it if it is not. The `python -m uv run` prefix
 is what puts the project's dependencies on the path - every command in every document
@@ -22,8 +30,15 @@ NOT WIRED is a join this build has not made. On a fresh clone expect two things 
 plainly: the model port is `fake`, and scans read as nothing until an OCR engine is named.
 
 **`start.cmd` / `tools/start.ps1 -SetupOnly` ask for the API key interactively.** Run them in
-a terminal you are sitting at; run non-interactively they wait on that prompt. (Found by the
-day-one rehearsal that was cut short; not yet re-run to the end.)
+a terminal you are sitting at; run non-interactively they wait on that prompt.
+
+**The fresh-clone rehearsal was run to the end on 2026-10-06** - clone, `uv sync`, `--check`,
+then both rehearsals against the clone's own server. It found four things, all fixed as
+P169: the rehearsals never approved a recipe (they had been riding on the register the test
+suite leaves behind on a developer's machine), preflight called a never-approved recipe
+*does not compile*, the files rehearsal said nothing launched without saying why, and the
+install step above did not produce the templates. Step 3's second item - approve a recipe -
+is the one that was missing from every automated path; it is still yours to do by hand.
 
 ## 2. Set the two adapters a work machine needs
 

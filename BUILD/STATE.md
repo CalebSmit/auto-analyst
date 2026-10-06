@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **168 of 168 phases closed**
-- Last green checkpoint: **C93**
+- **169 of 169 phases closed**
+- Last green checkpoint: **C94**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -187,4 +187,5 @@
 - **P166** The files a client actually sends (2026-10-06)
 - **P167** Methodology, not procedures (2026-10-06)
 - **P168** A laptop closes (2026-10-06)
+- **P169** A clone's first day (2026-10-06)
 

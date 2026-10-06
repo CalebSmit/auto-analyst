@@ -3119,3 +3119,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C93 after P168, covering P166, P167, P168
 - proves: On a machine with no .env, nothing cleared and the default adapters, the readiness report names the record before there is one, preflight is red on the default model adapter in a way a person can act on, a fresh register shows ten uncleared files six of which are the new knowledge, version one runs without the superseded skills, and the first wrong client file gets the true sentence.
+
+## 2026-10-06 - P169 A clone's first day
+
+**Why:** The fresh-clone rehearsal, run to the end for the first time, failed at setup: both rehearsals rode on the recipe register the test suite leaves behind on a developer's machine, preflight relabelled 'never approved' as 'does not compile', the files rehearsal said nothing launched without saying why, and the manual install path never produced the template workbooks
+
+- phase added: P169 A clone's first day (Reading what a client actually sends, gate: auto)
+- exit criterion: On a register with no entries, both rehearsals' set-up approves the recipes they use and preflight passes - proved against a temporary register
+- exit criterion: An unregistered recipe reaches preflight's report as SCOPE.RECIPE_UNREGISTERED with 'never been approved', not as SCOPE.RECIPE_INVALID
+- exit criterion: A missing template's refusal names tools/synthesize_templates.py, and docs/WORK-LAPTOP.md names it in the install step
+
+## 2026-10-06 - C94 Day one, after the set-up the page walks
+
+**Why:** The fresh-clone rehearsal was run to the end and the four things it found are fixed; the block that began with reading what a client sends ends with the machine that reads it being set up from nothing
+
+- checkpoint added: C94 after P169, covering P169
+- proves: A machine with no configuration, no approved recipe and nothing cleared is set up through the real routes the way the Setup page does it, the approval goes through the board under a name, the sixteen checks end with no failure and the two allowed warnings, the two valuation engagements are active and the consulting one is refused in compilation's words, and nothing of it is written into the machine's own records.

@@ -58,6 +58,7 @@ from registries.errors import (
     PATH_UNREADABLE,
     PROFILE_INCOMPLETE,
     RECIPE_INVALID,
+    RECIPE_UNREGISTERED,
     TEMPLATE_HASH_MISMATCH,
     TEMPLATE_INPUTS_MISSING,
     TEMPLATE_UNREGISTERED,
@@ -191,6 +192,24 @@ def resolve_model(
         if binding is not None and binding.file:
             found = binding
     return found, layers
+
+
+def _recipe_refusal(
+    failure: Exception, detail: str, *, locator: str, expected: str = "", found: str = ""
+) -> Diagnostic:
+    """The diagnostic for a recipe that did not load or compile - in the registry's own
+    words when it has them.
+
+    A recipe nobody has approved is refused by the register as SCOPE.RECIPE_UNREGISTERED,
+    whose next action is *take it through the board*. Wrapping every failure as
+    RECIPE_INVALID turned that into *a step naming something that does not exist* - and on
+    a fresh clone, where the register is empty by design, that was the first sentence a
+    person read about every engagement they tried to activate (P169). The compile check is
+    still RECIPE_INVALID; only a refusal that already carries a code keeps it.
+    """
+    if isinstance(failure, DiagnosticError) and failure.diagnostic.code == RECIPE_UNREGISTERED:
+        return diagnose(RECIPE_UNREGISTERED, failure.diagnostic.detail, locator=locator)
+    return diagnose(RECIPE_INVALID, detail, locator=locator, expected=expected, found=found)
 
 
 class Preflight:
@@ -737,8 +756,8 @@ class Preflight:
                 failures.append(
                     Failure(
                         "recipes_and_budgets",
-                        diagnose(
-                            RECIPE_INVALID,
+                        _recipe_refusal(
+                            failure,
                             f"watch {watch.id} names recipe {watch.recipe!r}: {failure}",
                             locator=f"config/watches/{watch.id}",
                         ),
@@ -796,8 +815,8 @@ class Preflight:
                 failures.append(
                     Failure(
                         "recipes_and_budgets",
-                        diagnose(
-                            RECIPE_INVALID,
+                        _recipe_refusal(
+                            failure,
                             f"{entry.engagement_id} cannot run recipe {name!r} as "
                             f"{entry.scope_path}: {failure}",
                             locator=f"engagements/{entry.engagement_id}/recipe",

@@ -367,6 +367,15 @@ runs reach the review queue, get answered, resume and write precedent. Between t
 found twenty-three bugs the suite passed over. Run both after any change that touches
 intake, the driver, the guards or the consoles; a line marked FINDING is something to fix.
 
+**Run them on a fresh clone too, not only here.** They passed for weeks on this machine and
+failed at every activation on a clone (P169, 2026-10-06), because they had been relying on
+`recipes/registered.yaml` - which the test suite writes and git ignores. They approve the
+workflow they run through `POST /api/admin/recipes/{name}/approve` now, the way the Setup
+page does, and `tests/p169` drives `set_up` against a machine that has nothing. The same
+rehearsal found that preflight was calling a never-approved recipe *does not compile*, that
+`templates/*.xlsx` is not in git and nothing in the manual install path produced them, and
+that a rehearsal killed mid-run leaves its server process behind (B-158).
+
 The consoles answer only to this machine: the request gate in `ui/who.py` refuses a foreign
 `Host` or `Origin` before a route runs (a page the browser has open can reach `127.0.0.1`), and
 uvicorn is given `proxy_headers=False` so the peer address cannot be rewritten by a header.

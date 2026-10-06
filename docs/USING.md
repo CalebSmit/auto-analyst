@@ -372,8 +372,9 @@ a "what to do now". If the answer is not obvious, the code is the thing to quote
 ### First day on a new machine
 
 ```
-start.cmd                                 # Windows: all of the next three, then starts
+start.cmd                                 # Windows: all of the next four, then starts
 uv sync                                   # install
+python -m uv run python tools/synthesize_templates.py      # the template workbooks; not in git
 cp .env.example .env                      # then add the Anthropic API key
 
 python -m uv run python tools/serve.py --check             # what is ready, what is not

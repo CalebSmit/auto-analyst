@@ -3410,3 +3410,41 @@ not; the recompute, taxonomy, precedent and template-schema tools are live and `
 is not registered; the builder, release gate, QC and workpaper are live and `workpaper@1.0.0`
 is validated by tests alone) but were not re-run as a set. The next session should finish the
 table.
+
+## B-157 Both rehearsals passed here and failed on a fresh clone
+status: fixed (P169)
+2026-10-06. The fresh-clone rehearsal was run to the end for the first time: clone into a
+scratch directory, `uv sync`, `serve.py --check`, then `simulate_firm --scripted` and
+`simulate_files` against the clone's own server. Both failed at setup with
+`SCOPE.RECIPE_INVALID` on every activation. Four causes, each fixed with a guard proved by
+reverting it:
+
+1. Neither rehearsal approved a recipe. `recipes/registered.yaml` is gitignored and the test
+   suite writes it on a developer's machine, so the rehearsals had been riding on the suite's
+   leftovers for weeks. `simulate_firm.set_up` now approves `RECIPES_USED` through the real
+   approval route before registering an engagement; 409 (already approved) is accepted.
+2. Preflight's `recipes_and_budgets` caught the register's `RECIPE_UNREGISTERED` and re-issued
+   it as `RECIPE_INVALID`, whose next action is about compilation. `_recipe_refusal` keeps a
+   `DiagnosticError`'s own code when it is the unregistered one.
+3. `simulate_files` reported "nothing launched and nothing said why" for every case, while
+   preflight had said why. `blocked(preflight, eid)` puts preflight's blocking failures in
+   the finding.
+4. `templates/*.xlsx` is gitignored and neither runbook's manual path ran the synthesizer;
+   `--check` named the absence without the command. The `TEMPLATE_MISSING` detail names
+   `tools/synthesize_templates.py`, and WORK-LAPTOP.md and USING.md run it in the install
+   step.
+
+What the clone run also confirmed, and did not need fixing: no `.env`, nothing cleared, no
+approved recipe and no `runs/` on a fresh clone; `--check` exiting 1 with "nothing is set up
+yet" before configuration (deliberate); the ten uncleared methodology files.
+
+## B-158 A rehearsal killed mid-run leaves its server process behind
+status: proposed
+2026-10-06. Two `serve.py` processes were found still running: one in this repo on a fixed
+port from 2026-10-02, one in the scratch clone from a rehearsal the session's usage limit cut
+off that morning. The clone's `runs/run_store.db` was held open by it, so the directory could
+not be removed. `simulate_firm.py` kills its server in a `finally`, which only runs when the
+rehearsal process itself lives to run it. Options: start the server in a Windows job object
+that dies with the parent; or have `serve.py` take a `--parent-pid` and exit when that process
+is gone; or have the rehearsal write the server's pid to a file beside its report and refuse to
+start while that pid is alive. None done yet; the two were stopped by hand.

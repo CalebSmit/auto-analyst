@@ -286,7 +286,13 @@ class TemplateRegistry:
             raise RegistryError(
                 diagnose(
                     TEMPLATE_MISSING,
-                    f"{file} is not under {self.templates_dir}",
+                    # templates/*.xlsx is not in git. A clone has none until somebody
+                    # runs the synthesizer, and a sentence that names the absence
+                    # without the command left a fresh machine reading every practice
+                    # group as having no model (P169).
+                    f"{file} is not under {self.templates_dir}; "
+                    "python -m uv run python tools/synthesize_templates.py writes it, "
+                    "and start.cmd runs that on a clone",
                     locator=str(source),
                 )
             )

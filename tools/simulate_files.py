@@ -560,6 +560,23 @@ check that case needs, and the two are the two halves of one question - was this
 looked at, and what was said about it."""
 
 
+def blocked(preflight: Any, eid: str) -> list[str]:
+    """What preflight says stops this engagement, in its own words - the failures that
+    name it and the ones that fail the environment it would run in. An engagement that
+    launched nothing has usually been told why, somewhere; the finding should carry it
+    rather than say nobody did (P169)."""
+    reasons: list[str] = []
+    for check in (preflight or {}).get("checks", []):
+        for failure in check.get("failures", []):
+            if failure.get("severity") != "fail":
+                continue
+            names = failure.get("engagement_ids") or []
+            if names and eid not in names:
+                continue
+            reasons.append(f"{failure.get('code')}: {str(failure.get('detail'))[:140]}")
+    return reasons
+
+
 def register(api: Any, out: Any, name: str, who: str) -> str:
     eid = "BAT-" + name.upper().replace("-", "")[:8]
     code, r = api.post(
@@ -704,7 +721,11 @@ def main() -> int:
             summary = ", ".join(f"{r['run_id']} {r['state']}" for r in runs_) or "no run"
             out.say(f"  {name:18} {eid:13} {summary}")
             if not runs_ and name not in EXPECTED_NO_RUN:
-                out.finding(f"{name}: nothing launched and nothing said why")
+                why = blocked(pre, eid)
+                out.finding(
+                    f"{name}: nothing launched"
+                    + (" - preflight: " + "; ".join(why) if why else " and nothing said why")
+                )
             for r in runs_:
                 _, ev = api.get(f"/api/runs/{r['run_id']}/events")
                 for e in ev or []:

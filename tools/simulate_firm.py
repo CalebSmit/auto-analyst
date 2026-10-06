@@ -395,6 +395,12 @@ def refused_codes(body: Any) -> list[str]:
 
 # ---------------------------------------------------------------- the rehearsal
 
+RECIPES_USED = ("monthly-refresh",)
+"""The workflows the rehearsal's watch and engagements run. Approved at set-up through
+the same route the Setup page uses, because the recipe register is not in git: the
+rehearsal passed for weeks on the machine whose test suite had written that file, and
+failed at every activation on a fresh clone (P169)."""
+
 
 def set_up(api: Api, out: Report) -> None:
     out.say("\n=== setup, the way the page does it")
@@ -426,6 +432,18 @@ def set_up(api: Api, out: Report) -> None:
         },
     )
     out.check(code == 200, "destination")
+    for recipe in RECIPES_USED:
+        # 409 is the register already holding these exact bytes - a developer's machine,
+        # or a second rehearsal on the same clone. Both are the system saying nothing
+        # changed, which is right.
+        code, r = api.post(f"/api/admin/recipes/{recipe}/approve", {"reason": "dress rehearsal"})
+        out.check(
+            code in (200, 409),
+            f"approve {recipe}",
+            "already approved"
+            if code == 409
+            else ("" if code == 200 else f"{code} {str(r)[:120]}"),
+        )
     _, meth = api.get("/api/admin/methodology")
     for f in meth["files"]:
         if f["state"] != "cleared":

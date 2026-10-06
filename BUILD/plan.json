@@ -4873,6 +4873,31 @@
       ],
       "notes": "",
       "closed": "2026-10-06"
+    },
+    {
+      "id": "P169",
+      "title": "A clone's first day",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A fresh clone of the private repo, followed through docs/WORK-LAPTOP.md, reaches a released run with every refusal along the way saying the true thing. The rehearsals approve the workflows they use through the same route the Setup page uses, so they pass on a clone and not only on the machine whose suite wrote the register. Preflight passes a registry's own refusal through instead of wrapping it in a sentence about compilation. The files rehearsal reports what blocked an engagement beside the case that launched nothing. The missing-template refusal names the one command that produces the file, and the runbook's manual path runs it.",
+      "builds": [],
+      "tasks": [
+        "simulate_firm.py and simulate_files.py approve every recipe they rely on through POST /api/admin/recipes/{name}/approve before registering an engagement, accepting 409 already-approved",
+        "Preflight's recipes_and_budgets check keeps a DiagnosticError's own code and detail - SCOPE.RECIPE_UNREGISTERED stays what it is",
+        "simulate_files.py names preflight's blocking diagnostics for an engagement that launched nothing",
+        "TEMPLATE_MISSING's detail names tools/synthesize_templates.py; docs/WORK-LAPTOP.md's manual path runs it and says what --check prints on a fresh clone"
+      ],
+      "exit": [
+        "On a register with no entries, both rehearsals' set-up approves the recipes they use and preflight passes - proved against a temporary register",
+        "An unregistered recipe reaches preflight's report as SCOPE.RECIPE_UNREGISTERED with 'never been approved', not as SCOPE.RECIPE_INVALID",
+        "A missing template's refusal names tools/synthesize_templates.py, and docs/WORK-LAPTOP.md names it in the install step"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p169 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-06"
     }
   ],
   "checkpoints": [
@@ -5897,6 +5922,17 @@
       "proves": "On a machine with no .env, nothing cleared and the default adapters, the readiness report names the record before there is one, preflight is red on the default model adapter in a way a person can act on, a fresh register shows ten uncleared files six of which are the new knowledge, version one runs without the superseded skills, and the first wrong client file gets the true sentence.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c93 -q"
+      ],
+      "closed": "2026-10-06"
+    },
+    {
+      "id": "C94",
+      "title": "Day one, after the set-up the page walks",
+      "after": "P169",
+      "status": "done",
+      "proves": "A machine with no configuration, no approved recipe and nothing cleared is set up through the real routes the way the Setup page does it, the approval goes through the board under a name, the sixteen checks end with no failure and the two allowed warnings, the two valuation engagements are active and the consulting one is refused in compilation's words, and nothing of it is written into the machine's own records.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c94 -q"
       ],
       "closed": "2026-10-06"
     }
