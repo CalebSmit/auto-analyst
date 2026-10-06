@@ -107,16 +107,20 @@ not licensed here** and was never a dependency.
 Two things are true on this laptop that stop being acceptable the moment the system is on
 a network the firm can reach, and both are phases rather than settings:
 
-- **Nothing executes yet.** `graph.execute.StepRunner` has no production implementation, so
-  a run released by intake sits with its lock taken. `python tools/serve.py --check` says
-  so. Phases P34 and P35.
-- **Neither surface has authentication**, and the `who` recorded against every change is a
-  string the caller supplies. Bound to `127.0.0.1` that is correct; bound to anything else
-  it makes the change log unverifiable. Phase P36, and it needs a decision from the firm
-  about which identity provider before it can be built.
-
-Neither is a surprise waiting to be found: both are on the open register, in
-[`docs/USING.md`](docs/USING.md), and reported by the command that starts the system.
+- **Execution is joined** (P34, P35, closed 2026-09-07): `harness/runner.py` implements
+  `graph.execute.StepRunner`, the driver constructs it, and
+  `python -m uv run python tools/serve.py --check` prints `[ok]` for step and run execution.
+  This paragraph used to say the opposite, and was still saying it a month later - which
+  is the reason `--check` derives its answer from the code.
+- **The consoles answer only to this machine** (P36, closed 2026-09-18): the request gate
+  in `ui/who.py` refuses a foreign `Host` or `Origin`, and `who` is a local identity. Bound
+  to `127.0.0.1` that is the whole of what is needed; binding it to a network the firm can
+  reach still wants a decision about an identity provider, and that is on the open
+  register.
+- **The model adapter and the key** are the two settings a work machine has to make before
+  a run reaches a model - `AA_LLM_ADAPTER=anthropic_messages` and the key it declares.
+  Preflight's `model_answers` check warns until they are set (P168), and
+  [`docs/WORK-LAPTOP.md`](docs/WORK-LAPTOP.md) is the order to do everything in.
 
 ---
 

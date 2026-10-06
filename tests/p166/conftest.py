@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from tests.p156.conftest import kit  # noqa: F401 - re-exported as a fixture
 from tests.p17.conftest import (  # noqa: F401 - re-exported as fixtures
     boundary,
     bus,
@@ -11,3 +10,4 @@ from tests.p17.conftest import (  # noqa: F401 - re-exported as fixtures
     started,
     store,
 )
+from tests.p156.conftest import kit  # noqa: F401 - re-exported as a fixture

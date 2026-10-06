@@ -283,7 +283,7 @@ the client - the admin form field beside it, and `workers/driver._identifiers` d
 those names an analyst actually has to hand at the point the engagement is set up. Size: medium.
 
 ## B-032 The quarantine store has never held anything
-status: proposed
+status: done - `store.hold()` has written a quarantine record on every quarantine since P60; what is still missing is the console view of it (B-153)
 2026-09-17, from the engine defect hunt. `RunStore.hold()` is called from one place, inside
 `LoopController.exhaust`, which is reachable only from `RepairNeeded` - raised nowhere in
 production. So a quarantined step writes no quarantine record and opens no review item, against
@@ -3062,7 +3062,7 @@ word"* - except there is not even a word being looked for, which is why P120's a
 find it. (The list also has eleven items and CLAUDE.md calls it ten.)
 
 ## B-142 Counts and commands in the documentation that no longer hold
-status: part fixed - the check count (nine, in three places) and the USING.md prefix sentence were corrected with P165; the rest stands
+status: mostly fixed - the check count (nine) and the USING.md prefix sentence with P165; with P168 the README's and HANDOFF's bare commands, HANDOFF section 2a, the knowledge README's commands, MORNING.md (deleted; it asked to be), the five-skills claim in README and USING.md, and the preflight count. Still standing: `python -m evals` documented bare, the p74 overstatement, p73's hand-written package list, CLAUDE.md's 'phases 4-10' framing
 2026-10-03. Found by checking every command line, number and named path in the documentation
 against the code. The ones a reader would act on:
 
@@ -3302,3 +3302,111 @@ status: proposed - and B-101's own number has drifted
   session summary, and the container one fails rather than skipping if the flag is given with
   no runtime. 16 are environment-conditional and most now run here. Neither group is a
   finding.
+
+## B-149 A laptop closes, and the run it was in the middle of is stranded for good
+status: fixed (P168)
+2026-10-06. The queue is in-process and memory-only. When the process ends, the job of a run
+that was mid-pass is gone while the record still says the run is running and a step is open.
+`WorkerPool.stranded()` looked only for a job the queue reported as *failed*; a job the queue
+had never heard of was skipped. So nothing listed the run, the ops console refused both Resume
+and Halt with `RUN.HELD` ("is running under a worker"), nothing at start picked it up, and the
+engagement lock stayed held - every later run on that client queued behind it forever. Proved
+by the ops node audit with a probe against the real pool and store; on a laptop that gets
+closed, routine.
+
+Fixed: a running run whose job this process's queue has no memory of is stranded, raised once
+on the record as `worker.lost` ("the worker's process is gone"), and `serve.py` picks every
+such run up before its first sweep through `pool.resume`, which re-enqueues it under the lock
+it still holds. Resume is replay; the ledger makes the replay idempotent. The console's
+stuck-run check consults the same `stranded()` and so stops refusing. The server test goes
+through `sweep_forever` itself, because the revert harness showed a direct call to the pickup
+stayed green with the wire cut.
+
+## B-150 The fake model adapter passes preflight and activation
+status: fixed (P168)
+2026-10-06. Nothing in the fifteen preflight checks asked whether the model adapter answers
+from a model. A work laptop on the default `AA_LLM_ADAPTER=fake` set up an engagement, passed
+preflight, launched a run, and quarantined at the first skill step with *"no LLM fixture for
+sha256:... Record one at fixtures/llm/..."* - a developer's sentence, with no diagnostic code.
+`serve.py --check` printed `Model port: fake` honestly and exited 0; HANDOFF.md named the key
+but never the adapter switch.
+
+Fixed: a sixteenth check, `model_answers`, amber on `fake` and `scripted` with a sentence naming
+`AA_LLM_ADAPTER` (a warning, because every test and rehearsal runs under the replayer and a
+developer's machine is allowed to), red on an answering adapter whose declared key is not in
+the Secrets Port, green otherwise - under a new code, `CONFIG.MODEL_NOT_REACHED`, whose *what now* names the
+adapter to set. The Setup page's sentence derives from `len(CHECKS)` and moved to sixteen on
+its own; `admin/README.md` said ten and now says sixteen.
+
+## B-151 Everything the tool knows is one gitignored file nobody is told about
+status: fixed (P168) - said; retention and backup remain a person's
+2026-10-06. Runs, steps, events, the intake manifest, every parsed figure, the precedent
+store, review items, decisions, the roster, the configuration and its change log: one SQLite
+file at `runs/run_store.db` under the clone (`AA_DB_URL` overrides). `runs/` and `*.db` are
+gitignored, so a clone starts empty - correct - and `docs/USING.md` never mentioned the file,
+`backup` appears in no document, and the only retention setting anywhere is the mask vault's
+placeholder. A reclone, a `git clean` or a wiped folder loses every precedent and every
+decision silently. Fixed as far as saying it: `serve.py --check` has a seam, *the record*, that
+prints the path and says it is not in git; `docs/USING.md` has *Where your data is*. A backup
+schedule is the firm's.
+
+## B-152 A rejection or correction changes nothing on the run it was made on
+status: proposed - decided 2026-09-18, built by no phase
+2026-10-06. From the guard node audit. `workers/driver.py` reads only `DecisionKind.ACCEPTED`
+(as waivers); `graph/execute.py` never reads a decision; a resumed step is satisfied from the
+ledger. On the one real run 87 items reached a person; had one been **rejected**, the rejected
+tag would have been delivered. `BUILD/OPEN.md` records the decision - *a correction amends the
+run, a rejection stops it* - and no backlog id or phase existed for it until this line. This
+is the gap that matters most for a person reviewing real work, and it is not blocked on the
+analyst.
+
+## B-153 A quarantine is written and never shown; Fixed Notice is six-sevenths dead
+status: proposed
+2026-10-06. From the guard node audit. `store.hold()` writes a quarantine record on every
+quarantine (P60) - so B-032's *"has never held anything"* is stale and that item is done - but
+`store.quarantines()` has no production caller: the inputs, attempts and guard output a person
+would need to re-run a step are stored and invisible. `harness/notice.py` has seven templates
+and one reachable path (`blocked_release`), whose sentence lands in an event payload the
+console never renders; `notice_for` and the other six are reached by nothing. And the policy
+gate's fourth predicate (budget) cannot fire: no tool caller passes `estimated_cost_usd`, so
+the cost is always zero against a static roster figure; the governor at the door covers spend,
+and `harness/README.md` claims four predicates where three can fire. Fold into B-079.
+
+## B-154 Skill registration is not consulted on the run path, and the config change log has no reader
+status: proposed
+2026-10-06. From the ops node audit. `skills/registered.yaml` does not exist, no shipped skill
+is registered, and `harness/dispatch.py`, `registries/skills.py` and the driver never ask
+`is_registered` - the eval harness works as a command and *"a skill passes, or it does not
+ship"* is unenforced on the run path. `ConfigStore.log_change` is written on every admin
+write and `GET /api/admin/changes` is fetched by no page and read by no command, so *who
+changed what, when* is unanswerable from any surface. `GovernanceRecord.verify()` runs in no
+production path, so an edited approval record is never noticed. `/analytics` is reachable
+only by typed URL. `EngagementLock.overdue()` has no caller - the step-level stall scan covers
+it, and should say so or call it.
+
+## B-155 Five blueprint nodes the code does not have, and three that ship their deterministic half only
+status: proposed - resolve with gate amend, not by building
+2026-10-06. From the intake and ops node audits. `analyst_chat`, `index_gate`, `skill_drop`
+and `skill_adapt` are marked `now: True` in the blueprint and are reached by nothing or do not
+exist as code; `replay_harness` is tests-only; `coc_data`, `multiples_data` and
+`email_watcher` do not exist and no backlog line says the dataset or the watcher is parked;
+`secrets_port` claims keyring and cloud adapters that do not exist; `model_pin` "fails at
+startup" is in fact "fails at first call". And three hybrid intake nodes ship deterministic
+halves with the model half parked and unrecorded: `ModelSheetSelector` is built and tested and
+the driver passes no selector, and the classifier's and period detector's docstrings promise a
+model residue "with the dispatcher" that the dispatcher does not have. The deterministic halves
+are arguably the right version 1 - the record should say so.
+
+## B-156 The orch, skill, tool and out groups of the blueprint are audited by code reading only
+status: proposed
+2026-10-06. Three of the four node audits ran to completion (guard/privacy/hitl/notice;
+ops/gov/port/pref; intake/source/data/entry - 81 of 118 nodes, every one with a built / wired /
+tested verdict and the sentence a person would see). The fourth - `orch`, `skill`, `tool`,
+`out`, 37 nodes - was cut off twice by the session's usage limit, after establishing one fact:
+nothing in production reads a skill's `status` except the surface snapshot, which is what made
+P167's retirement safe. Those 37 are known from the code and the earlier phases (the
+`orchestrate/` package is dead and allowlisted, B-058; four skills have procedures and six do
+not; the recompute, taxonomy, precedent and template-schema tools are live and `index_lookup`
+is not registered; the builder, release gate, QC and workpaper are live and `workpaper@1.0.0`
+is validated by tests alone) but were not re-run as a set. The next session should finish the
+table.

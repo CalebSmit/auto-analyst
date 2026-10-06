@@ -226,8 +226,11 @@ def test_readiness_names_every_seam_and_does_not_flatter_itself(served: Any) -> 
         "step execution",
         "run execution",
         "precedent retrieval",
+        "the record",  # P168: where everything the tool knows lives, and that it is not in git
     }
     assert all(isinstance(s, Seam) for s in seams.values())
+    assert "one database at" in seams["the record"].detail
+    assert "not in git" in seams["the record"].detail
 
     # Every seam this machine can join is joined. `reading a scan` is the exception and is
     # not a regression: it needs an OCR engine installed, which most machines do not have,

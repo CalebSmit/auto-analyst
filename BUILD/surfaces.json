@@ -275,6 +275,7 @@
    "CONFIG.METHODOLOGY_TOO_LARGE": "config",
    "CONFIG.METHODOLOGY_UNCLEARED": "config",
    "CONFIG.METHODOLOGY_UNSAFE": "config",
+   "CONFIG.MODEL_NOT_REACHED": "config",
    "CONFIG.PATH_UNREADABLE": "config",
    "CONFIG.PROFILE_INCOMPLETE": "config",
    "CONFIG.TEMPLATE_HASH_MISMATCH": "config",
@@ -1157,7 +1158,7 @@
     "hitl": "company_specific_premium_requires_review",
     "layer": "valuation/_group",
     "output_contract": "skills/cost-of-capital@1.0.0",
-    "status": "skeleton",
+    "status": "superseded",
     "tier": "mid",
     "tools": [
      "index_lookup"
@@ -1168,7 +1169,7 @@
     "hitl": "assumptions_require_review",
     "layer": "valuation/_group",
     "output_contract": "skills/dcf-build@1.0.0",
-    "status": "skeleton",
+    "status": "superseded",
     "tier": "high",
     "tools": [
      "recompute"
@@ -1225,7 +1226,7 @@
     "hitl": "comparable_set_requires_review",
     "layer": "valuation/_group",
     "output_contract": "skills/gpc-scrub@1.0.0",
-    "status": "skeleton",
+    "status": "superseded",
     "tier": "high",
     "tools": [
      "index_lookup"

@@ -132,6 +132,10 @@ def test_every_seam_reads_as_joined_and_says_why() -> None:
         # is excluded from "every seam is joined" below, or a clone with no OCR engine
         # would read as an unfinished build.
         "reading a scan",
+        # P168. Not a join but the thing every join writes to: one SQLite file under
+        # runs/, not in git, named here because no document named it and a reclone loses
+        # every precedent and decision silently.
+        "the record",
     }
     assert all(seam.ready for seam in seams.values() if not seam.needs_installing), [
         seam.name for seam in seams.values() if not seam.ready and not seam.needs_installing

@@ -2,7 +2,7 @@
 
 Where a person actually sets this thing up. Three blueprint nodes:
 
-- **preflight.py** — Setup Preflight. Ten checks over the live configuration, the
+- **preflight.py** — Setup Preflight. Sixteen checks over the live configuration, the
   roster and the ports. Every failure is a standard diagnostic with the owner set to
   `config`, and the report says which engagements it blocks. Not part of any run: it
   emits into no event stream and colours no node on the trace.

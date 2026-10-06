@@ -10,16 +10,20 @@ the work.
 To **use** it, or to see what it can currently do:
 
 ```
-python tools/serve.py --check     # what is wired, what is not, and what setup needs
-python tools/serve.py             # the admin page at /admin, the ops console at /
+python -m uv run python tools/serve.py --check     # what is wired, what is not, and what setup needs
+python -m uv run python tools/serve.py             # the admin page at /admin, the ops console at /
 ```
 
-[`docs/USING.md`](docs/USING.md) is the guide for the people it is for. Every seam is
-joined: a file landing in a watched folder is bound to an engagement, held until the set is
-complete, released as a run, picked up and driven through its plan - masked, checked, and
-recorded. What it cannot yet do is *finish*, because two of the skills the shipped recipes
-name have no mechanical half written. `tools/serve.py --check` says what is joined, derived
-from the code rather than from a sentence somebody has to remember to update.
+[`docs/USING.md`](docs/USING.md) is the guide for the people it is for, and
+[`docs/WORK-LAPTOP.md`](docs/WORK-LAPTOP.md) is the short path from a fresh clone to a first
+run. Every seam is joined: a file landing in a watched folder is bound to an engagement,
+held until the set is complete, released as a run, picked up and driven through its plan -
+masked, checked, and recorded - and version 1's recipe, `valuation-input-prep`, runs to a
+released workbook. Of the skills the other recipes name, five have no mechanical half, and
+three of those (`dcf-build`, `gpc-scrub`, `cost-of-capital`) never will: the firm's own model
+does that work, and the knowledge the model needs lives under `knowledge/methodology/`
+instead. `tools/serve.py --check` says what is joined, derived from the code rather than
+from a sentence somebody has to remember to update.
 
 To **build** it:
 

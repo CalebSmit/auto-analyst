@@ -253,8 +253,17 @@ def test_the_firms_files_moved_into_the_firm_layer() -> None:
         "_firm/valuation-standards.md",
     ]
     # P37: the non-ESOP group's first methodology of its own, drafted from the interview.
+    # P167: the valuation group's six rule files, each the rules of a knowledge file under
+    # knowledge/methodology/ - the owner's decision that dcf-build, gpc-scrub and
+    # cost-of-capital are knowledge the model consults rather than procedures the tool runs.
     assert [n for n in names if not n.startswith("_firm/")] == [
-        "valuation/non-esop/_segment/how-we-work.md"
+        "valuation/_group/cost-of-capital-inputs.md",
+        "valuation/_group/ebitda-adjustments.md",
+        "valuation/_group/gpc-screening.md",
+        "valuation/_group/nwc-excluded-items.md",
+        "valuation/_group/nwc-normal-level.md",
+        "valuation/_group/report-writing.md",
+        "valuation/non-esop/_segment/how-we-work.md",
     ]
     stray = [p.name for p in (ROOT / "foundations").glob("*.md") if p.name != "README.md"]
     assert not stray, f"methodology left outside a layer: {stray}"

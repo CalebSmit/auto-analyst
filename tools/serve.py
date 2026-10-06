@@ -197,6 +197,17 @@ def scans_can_be_read() -> tuple[bool, str]:
     return True, name
 
 
+def _record_path() -> str:
+    """Where the run store lives, as a person would find it, from the same setting the
+    store opens with."""
+    import os  # noqa: PLC0415
+
+    from ops.run_store import DEFAULT_URL, URL_VAR  # noqa: PLC0415
+
+    url = os.environ.get(URL_VAR, DEFAULT_URL)
+    return url.removeprefix("sqlite:///") if url.startswith("sqlite:///") else url
+
+
 def readiness() -> tuple[Seam, ...]:
     """What is joined, in the order a piece of work passes through it."""
     steps = steps_are_wired()
@@ -210,6 +221,13 @@ def readiness() -> tuple[Seam, ...]:
             "engagements, folder labels, methodology clearance, preflight - at /admin",
         ),
         Seam("ops console", True, "runs, steps, cost, review queue - at /"),
+        Seam(
+            "the record",
+            True,
+            f"everything this tool knows - runs, parsed figures, decisions, precedent, the "
+            f"roster - is one database at {_record_path()}; it is not in git, so a reclone "
+            f"or a wiped folder loses it. Copy that file to back it up",
+        ),
         Seam(
             "intake",
             True,
@@ -624,6 +642,7 @@ def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
     unplugged a network drive should not take the consoles down with it - and the
     consoles are how anybody would find out what happened.
     """
+    _pick_up_stranded(served)
     while not stop.wait(seconds):
         try:
             result = served.intake.sweep()
@@ -659,6 +678,36 @@ def sweep_forever(served: Served, seconds: int, stop: threading.Event) -> None:
             served.pool.work()
         except Exception as failed:  # noqa: BLE001 - one bad run is not a dead process
             print(f"  a run did not finish: {failed.__class__.__name__}: {failed}", flush=True)
+
+
+def _pick_up_stranded(served: Served) -> None:
+    """Every run the last process left mid-pass, picked back up before the first sweep.
+
+    A laptop closes. The in-process queue is memory-only, so the job of a run that was
+    running when the process died is gone while the record still says the run is running
+    with a step open. The pool says so on the record (`worker.lost`) and resumes it under
+    the lock it still holds; resume is replay, and the ledger makes the replay idempotent.
+    Before P168 nothing did this, and the run sat as "running" until somebody noticed.
+    """
+    if served.pool is None:
+        return
+    try:
+        lost = served.pool.stranded()
+    except Exception as failed:  # noqa: BLE001 - a bad look is not a dead process
+        print(f"  could not look for stranded runs: {failed.__class__.__name__}: {failed}")
+        return
+    for run in lost:
+        try:
+            placed = served.pool.resume(run.run_id)
+        except Exception as failed:  # noqa: BLE001 - one run that will not resume is not all
+            print(f"  {run.run_id} was stranded and did not resume: {failed}", flush=True)
+            continue
+        print(
+            f"  {run.run_id} was mid-pass when the last process ended"
+            + (f" (in {run.step_id})" if run.step_id else "")
+            + f"; picked back up - {placed.waiting_on}",
+            flush=True,
+        )
 
 
 def _raise_alerts(served: Served) -> None:

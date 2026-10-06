@@ -24,12 +24,19 @@ Configuration, read fresh on every call:
 
 | Port | Variable | Default | Adapters |
 |---|---|---|---|
-| storage | `AA_STORAGE_ADAPTER` | `local_folder` | local_folder |
-| delivery | `AA_DELIVERY_ADAPTER` | `local_folder` | local_folder |
+| storage | `AA_STORAGE_ADAPTER` | `local_folder` | local_folder, box, sharefile |
+| delivery | `AA_DELIVERY_ADAPTER` | `local_folder` | local_folder, box (a contract, not yet an adapter) |
 | secrets | `AA_SECRETS_ADAPTER` | `dotenv` | dotenv |
 | queue | `AA_QUEUE_ADAPTER` | `in_process` | in_process, redis_rq |
-| llm | `AA_LLM_ADAPTER` | `fake` | fake, anthropic_messages |
+| llm | `AA_LLM_ADAPTER` | `fake` | fake, anthropic_messages, scripted (rehearsal only) |
 | compute | `AA_COMPUTE_ADAPTER` | `local_process` | local_process |
+| identity | `AA_IDENTITY_ADAPTER` | `local_user` | local_user |
+| ocr | `AA_OCR_ADAPTER` | `none` | none, rapidocr, tesseract |
+
+The defaults are a developer's machine. **A work laptop sets two of them**: `AA_LLM_ADAPTER=
+anthropic_messages` with its key in `.env`, or no run reaches a model (preflight's
+`model_answers` check says so), and `AA_OCR_ADAPTER=rapidocr`, or every scanned page reads as
+nothing (`serve.py --check` says so).
 
 An unknown name is `SCOPE.UNKNOWN_ADAPTER`, never a silent fallback to the default: a run
 reading from somewhere nobody chose is the failure this arrangement exists to prevent.

@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**166 of 167 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**168 of 168 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -266,7 +266,9 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **P165** The one multiplication, and the unit it asks first | auto | A share count at scale 1 into a template declaring thousands is not divided: the restater returns it unchanged and lists it, and the wrong number 135,361 appears in no output of any site | 2026-10-03 |
 | [x] | **C92 - A number that passes arithmetic and is wrong** | integration | One workbook carrying a wholly negated balance sheet and a share count comes out the far end with the contradiction withdrawing the block's cover, the share count neither divided nor written, and the cell bound to it refused for what it is rather than for its scale. | 2026-10-03 |
 | [x] | **P166** The files a client actually sends | auto | A CSV with 1.234,56 and 402,000 in one column yields neither 402.0 nor 1.23456 silently: the file is reported as telling two stories and the cell is in ambiguous | 2026-10-06 |
-| [ ] | **P167** Methodology, not procedures | auto | Every valuation scope resolves the six rule files into its methodology layers, and the clearance scan passes each of them |  |
+| [x] | **P167** Methodology, not procedures | auto | Every valuation scope resolves the six rule files into its methodology layers, and the clearance scan passes each of them | 2026-10-06 |
+| [x] | **P168** A laptop closes | auto | A run with an open step and no job in a fresh pool is listed by stranded(), resumed by resume() under the engagement lock it still holds, and finishes its pass on the next work() | 2026-10-06 |
+| [x] | **C93 - Day one, before anyone has done anything** | integration | On a machine with no .env, nothing cleared and the default adapters, the readiness report names the record before there is one, preflight is red on the default model adapter in a way a person can act on, a fresh register shows ten uncleared files six of which are the new knowledge, version one runs without the superseded skills, and the first wrong client file gets the true sentence. | 2026-10-06 |
 
 ## A run that finishes
 

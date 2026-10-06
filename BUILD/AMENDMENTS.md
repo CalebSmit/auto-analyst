@@ -3102,3 +3102,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 - exit criterion: Every rule in a foundations file appears verbatim in its knowledge file, and the valuation layer is under the byte ceiling
 - exit criterion: The identifier scan is clean over knowledge/methodology/ and foundations/
 - exit criterion: The three superseded skills say what supersedes them, nothing dispatches them, and every test that named them says so for a recorded reason
+
+## 2026-10-06 - P168 A laptop closes
+
+**Why:** The ops and intake node audits found what a laptop does that a server does not: it closes. The queue is in-process and memory-only, so a server restart forgets the job of any run that was mid-pass - stranded() sees no failed job and reports nothing, the console refuses both Resume and Halt with RUN.HELD because the run is 'running under a worker', nothing re-drives it at start, and the engagement lock stays held so every later run on that client queues behind it forever. Separately, the fake model adapter passes all fifteen preflight checks and activation, and the first real run quarantines with a developer's sentence about a missing fixture. And everything the tool knows - manifests, parsed figures, precedent, decisions - is one gitignored SQLite file under runs/ that no document names.
+
+- phase added: P168 A laptop closes (Reading what a client actually sends, gate: auto)
+- exit criterion: A run with an open step and no job in a fresh pool is listed by stranded(), resumed by resume() under the engagement lock it still holds, and finishes its pass on the next work()
+- exit criterion: The console's stuck-run check does not refuse RUN.HELD for such a run
+- exit criterion: Preflight is red on the fake adapter with a sentence naming the adapter and the key, and green once an adapter that answers is selected - proved against a stubbed port
+- exit criterion: serve.py --check prints the run store's path and docs/USING.md names it
+
+## 2026-10-06 - C93 Day one, before anyone has done anything
+
+**Why:** P166, P167 and P168 were built for the same morning: the one when this repository is cloned onto the work laptop and a person tries to use it. Each passes alone; the checkpoint asks what that machine looks like with all three in place and nothing set up.
+
+- checkpoint added: C93 after P168, covering P166, P167, P168
+- proves: On a machine with no .env, nothing cleared and the default adapters, the readiness report names the record before there is one, preflight is red on the default model adapter in a way a person can act on, a fresh register shows ten uncleared files six of which are the new knowledge, version one runs without the superseded skills, and the first wrong client file gets the true sentence.

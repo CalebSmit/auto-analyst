@@ -160,7 +160,10 @@ def test_a_new_engagement_is_set_up_without_code_and_its_run_is_observable_from_
     run_id = launched.run_id
     assert launched.engagement_id == HEND and launched.sources == 2
     assert not any("Pinecrest" in p for p in world["port"].touched), "not on the roster: unread"
-    unclaimed = admin.get("/api/admin/preflight").json()["checks"][3]
+    # By id, not by position: P168 added a check above this one and the fourth row became
+    # a different check, which is exactly the kind of drift a positional index invites.
+    checks = admin.get("/api/admin/preflight").json()["checks"]
+    unclaimed = next(c for c in checks if c["id"] == "unclaimed_folders")
     assert unclaimed["status"] == "warn" and "Pinecrest" in unclaimed["failures"][0]["detail"]
 
     # ---- the run ends; nothing refused it and nothing was delivered ----

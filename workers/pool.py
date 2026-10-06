@@ -189,7 +189,9 @@ class WorkerPool:
 
     def resume(self, run_id: str) -> Placement:
         """Pick a run back up: a stranded one under the same job id, any other as a
-        fresh submission. Resume is replay either way."""
+        fresh submission - including one whose job this process's queue has never seen,
+        which goes in as a fresh job under the lock the run still holds. Resume is replay
+        either way, and the ledger makes the replay idempotent."""
         job_id = self._job_for(run_id)
         status = self._status(job_id) if job_id else None
         if job_id and status is not None and status.state is JobState.FAILED:
@@ -231,15 +233,28 @@ class WorkerPool:
         )
 
     def stranded(self, *, emit: bool = True) -> tuple[Stranded, ...]:
-        """Every running run whose job ended without a result. Raised on the record once
-        per attempt; decided nothing about the run."""
+        """Every running run whose worker is gone. Raised on the record once per attempt;
+        decided nothing about the run.
+
+        Two ways a worker goes. The job ended without a result - the pass raised, or the
+        thread died - and the queue says so. Or **the queue has no memory of the job at
+        all**, which is what a run that was mid-pass looks like from the next process: the
+        in-process adapter is memory-only, so closing the laptop forgot the job while the
+        record still says the run is running and a step is open. Until P168 that second
+        case was skipped here, so nothing listed it, the console refused both Resume and
+        Halt with RUN.HELD because the run was "running under a worker", nothing picked it
+        up at start, and the engagement lock stayed held - every later run on that client
+        queued behind it for good.
+        """
         found: list[Stranded] = []
         for run in self.store.runs():
             if run.is_finished or run.state is not RunState.RUNNING:
                 continue
             job_id = self._job_for(run.run_id)
-            status = self._status(job_id) if job_id else None
-            if job_id is None or status is None or status.state is not JobState.FAILED:
+            if job_id is None:
+                continue
+            status = self._status(job_id)
+            if status is not None and status.state is not JobState.FAILED:
                 continue
             open_step = next(
                 (
@@ -249,11 +264,27 @@ class WorkerPool:
                 ),
                 None,
             )
-            lost = Stranded(
-                run.run_id, run.engagement_id, job_id, status.job.attempts, open_step, status.error
-            )
+            if status is None:
+                lost = Stranded(
+                    run.run_id,
+                    run.engagement_id,
+                    job_id,
+                    0,
+                    open_step,
+                    f"the queue has no record of job {job_id}; the process that was running "
+                    f"it is gone",
+                )
+            else:
+                lost = Stranded(
+                    run.run_id,
+                    run.engagement_id,
+                    job_id,
+                    status.job.attempts,
+                    open_step,
+                    status.error,
+                )
             found.append(lost)
-            if emit and not self._already_raised(run.run_id, job_id, status.job.attempts):
+            if emit and not self._already_raised(run.run_id, job_id, lost.attempt):
                 self._raise(lost, status)
         return tuple(found)
 
@@ -441,8 +472,11 @@ class WorkerPool:
             for e in self.store.events(run_id)
         )
 
-    def _raise(self, lost: Stranded, status: JobStatus) -> None:
-        how = "the worker died" if status.worker_lost else "the pass raised"
+    def _raise(self, lost: Stranded, status: JobStatus | None) -> None:
+        if status is None:
+            how = "the worker's process is gone"
+        else:
+            how = "the worker died" if status.worker_lost else "the pass raised"
         d = diagnose(
             WORKER_LOST,
             f"{how} on attempt {lost.attempt}"

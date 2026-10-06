@@ -233,7 +233,7 @@ topics:
       - Any valuation or diligence software the firm already uses or has trialled
       - Which data you copy by hand today that an export could replace
     done_when: Each of the three core methods has its data source and export format recorded.
-    feeds: [skills/valuation/_group (gpc-scrub, cost-of-capital), backlog (M&A transactions skill)]
+    feeds: [knowledge/methodology/gpc-screening.md, knowledge/methodology/cost-of-capital-inputs.md, backlog (M&A transactions)]
 
   - id: income-approach
     title: The income approach
@@ -245,31 +245,31 @@ topics:
       - Terminal value method and long-term growth conventions
       - Tax-effecting pass-through entities - whether, and how
     done_when: Method selection, projection handling, terminal value and tax-effecting conventions are written with reasons.
-    feeds: [skills/valuation/_group/dcf-build, foundations/valuation/non-esop/]
+    feeds: [knowledge/methodology/cost-of-capital-inputs.md, knowledge/methodology/nwc-normal-level.md, foundations/valuation/non-esop/]
 
   - id: cost-of-capital
     title: Cost of capital
     priority: 2
-    why: The cost of capital skill exists as a skeleton; its sources and choices are the firm's.
+    why: The cost of capital is inputs to the firm's model, and its sources and choices are the firm's; the tool gathers and labels them.
     angles:
       - Build-up versus CAPM, and which data sources you use for each component
       - Size premium source and how you pick the decile
       - Company-specific risk - how you size it and how you support it
       - Capital structure - actual, industry or target
     done_when: Each component has its source and selection rule recorded.
-    feeds: [skills/valuation/_group/cost-of-capital]
+    feeds: [knowledge/methodology/cost-of-capital-inputs.md]
 
   - id: market-approach
     title: The market approach
     priority: 2
-    why: The guideline public company scrub exists as a skeleton; transaction methods are not built at all.
+    why: Comps are screened by keyword and by industry in Capital IQ by a person; the inclusion criteria are owed, and transactions have no record at all.
     angles:
       - Guideline public companies versus guideline transactions - which you rely on, and when
       - The databases you use (Capital IQ, PitchBook, DealStats, others) and how you export from them
       - How you select and scrub comparables, and the reasons you drop one
       - How you pick a multiple from the range, and what adjustments you make
     done_when: Sources, selection criteria and multiple selection are written with reasons.
-    feeds: [skills/valuation/_group/gpc-scrub, knowledge/decisions.md]
+    feeds: [knowledge/methodology/gpc-screening.md, knowledge/decisions.md]
 
   - id: asset-approach
     title: The asset approach and non-operating items

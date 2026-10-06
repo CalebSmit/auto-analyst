@@ -28,8 +28,12 @@ group that has written nothing of its own still carries the firm's: a missing la
 contributes nothing rather than failing, so a new practice group works from the day it is
 declared.
 
-Only `_firm/` exists today. The rest is written when a practice group writes it - the
-system does not invent firm standards.
+`_firm/` holds three skeletons, `valuation/non-esop/_segment/` the draft of how the
+non-ESOP group works, and `valuation/_group/` six draft rule files written in P167 from the
+interviews - EBITDA adjustments, the working-capital exclusions and normal level, guideline
+company screening, the cost-of-capital inputs and report writing. Each is the rules section
+of its `knowledge/methodology/` file, verbatim, and `tests/p167` holds the pair together. The
+rest is written when a practice group writes it - the system does not invent firm standards.
 
 ## Cleared once, checked every run
 

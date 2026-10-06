@@ -35,18 +35,23 @@ Read this before anything else, because the honest answer matters more than a de
 | **Intake** — a watched folder is swept, files are bound to an engagement, held until the set is complete, and released as a run | Works |
 | **Watching** — runs, steps, cost, the review queue, alerts | Works |
 | **Running the work** — a released run is picked up and driven through its plan | Works |
-| **Finishing every job** — two skills have no mechanical half yet | **Not yet** |
+| **Finishing version 1** — `valuation-input-prep` runs to a released input-help workbook | Works |
+| **Finishing the other recipes** — five of the skills they name have no mechanical half, and three never will | **Not yet, and not all owed** |
 
-A file landing in a watched folder now becomes a run that is picked up and driven: the
+A file landing in a watched folder becomes a run that is picked up and driven: the
 workbooks are read into rows, the payload is masked, the model is called through the door,
 the guards check what comes back, and anything the system is not sure about goes to a
-person. What it cannot yet do is *finish*, and the reason is specific rather than vague.
+person. Version 1's recipe, `valuation-input-prep`, runs to the end and releases a workbook.
 
-Two of the skills the shipped recipes name have no mechanical half written yet —
-**`qc-tieout`**, which both recipes end with, and **`ddr-tagging`** in the full intake. A
-run that reaches one of those stops there, with the step named in the record. That is the
-system saying what it cannot do rather than delivering something nobody checked, and it is
-on [`../BUILD/OPEN.md`](../BUILD/OPEN.md) as skill work rather than plumbing.
+The other three recipes name five skills with no mechanical half: **`qc-tieout`** (three
+recipes end with it), **`ddr-tagging`** in the full intake, and **`gpc-scrub`**,
+**`cost-of-capital`** and **`dcf-build`** - which are not owed at all. The firm's own model
+does the DCFs and takes its cost-of-capital inputs, and comps are screened by a person in
+Capital IQ; what those three needed is knowledge the model consults, and it lives under
+`knowledge/methodology/` with its rules attached to every valuation run from `foundations/`.
+A run that reaches a skill with no procedure stops there, with the step named in the record.
+That is the system saying what it cannot do rather than delivering something nobody checked,
+and what is still owed is on [`../BUILD/OPEN.md`](../BUILD/OPEN.md).
 
 You will also see runs stop for a reason that is not a gap at all: a workbook whose scale
 is ambiguous — thousands or units — escalates to a person before any model sees it, rather
@@ -153,7 +158,19 @@ document — not instructions for a particular engagement.
 every model call for every client, so the system scans it for anything that looks like a
 real engagement's data, records who cleared it, and checks the file has not changed since.
 Editing a cleared file un-clears it automatically. You do this on the admin page, and it
-takes seconds.
+takes seconds per file. There are ten today: the firm's three under `foundations/_firm/`,
+the valuation group's six under `foundations/valuation/_group/` (EBITDA adjustments, the
+working-capital exclusions and normal level, guideline company screening, the
+cost-of-capital inputs, report writing - each the rules of a fuller file under
+`knowledge/methodology/`), and the non-ESOP segment's one. A fresh clone has none of them
+cleared, on purpose: a clearance is a person's act and is never shipped.
+
+**Where your data is.** Everything the tool knows - every run, every figure it read, every
+decision a person made, every precedent, the roster and the configuration - is one database
+file, `runs/run_store.db` under the folder you cloned into (or wherever `AA_DB_URL` points).
+It is not in git. A reclone, a `git clean` or a wiped folder loses all of it, so copy that
+file somewhere safe on a schedule; `python -m uv run python tools/serve.py --check` prints
+its path.
 
 There is a size limit per layer, reported at setup. Methodology is carried on every call,
 so it costs money on every run; the limit makes growth a decision rather than a surprise.

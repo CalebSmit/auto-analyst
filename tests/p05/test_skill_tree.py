@@ -108,6 +108,17 @@ WRITTEN = {
     "model-load": "P21",
 }
 
+# The skills that will never get a procedure, by the owner's decision (P167): the firm's
+# own model does this work and the tool carries the knowledge instead, under
+# knowledge/methodology/ and foundations/valuation/_group/. A superseded skill keeps its
+# frontmatter so the tree, the resolver and the contracts stay whole, and says in its body
+# what replaced it - so a reader never takes its empty procedure for one still owed.
+SUPERSEDED = {
+    "cost-of-capital": "P167",
+    "dcf-build": "P167",
+    "gpc-scrub": "P167",
+}
+
 
 def test_every_skill_is_a_skeleton_and_says_so_until_its_phase_writes_it(tree: SkillTree) -> None:
     for skill in tree.all():
@@ -115,6 +126,10 @@ def test_every_skill_is_a_skeleton_and_says_so_until_its_phase_writes_it(tree: S
         if skill.name in WRITTEN:
             assert skill.status == "draft", f"{skill.name} was written in {WRITTEN[skill.name]}"
             assert "Skeleton" not in body and "## Procedure" in body
+        elif skill.name in SUPERSEDED:
+            assert skill.status == "superseded", skill.name
+            assert "Superseded by methodology" in body and "knowledge/methodology/" in body
+            assert "Skeleton" not in body
         else:
             assert skill.status == "skeleton", skill.name
             assert "Skeleton" in body

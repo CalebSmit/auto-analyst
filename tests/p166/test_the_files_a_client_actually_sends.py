@@ -165,7 +165,9 @@ def test_a_scan_that_read_nothing_is_said_to_be_one(kit: dict, monkeypatch) -> N
 
 
 def test_a_document_with_a_text_layer_reports_no_scanned_pages(kit: dict) -> None:
-    statement = b"Statement\n(in thousands)\n            2025\nRevenue   1,482,113\nCost     912,004\n"
+    statement = (
+        b"Statement\n(in thousands)\n            2025\nRevenue   1,482,113\nCost     912,004\n"
+    )
     report = read("document", "is.txt", statement, **kit)
     assert report.scanned == ()
     (event,) = [e for e in kit["store"].events(kit["started"]) if e.type == "intake.read"]
@@ -224,7 +226,10 @@ def test_a_tab_separated_file_under_an_xls_name_is_read(kit: dict) -> None:
 
 
 def test_a_utf16_export_is_read(kit: dict) -> None:
-    text = "Account,FY2025\nRevenue,\"1,482,113\"\nCost of sales,\"912,004\"\nGross profit,\"570,109\"\n"
+    text = (
+        "Account,FY2025\nRevenue,\"1,482,113\"\nCost of sales,\"912,004\"\n"
+        "Gross profit,\"570,109\"\n"
+    )
     for encoding in ("utf-16", "utf-16-be"):
         data = text.encode(encoding)
         if encoding == "utf-16-be":

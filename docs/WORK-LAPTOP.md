@@ -1,0 +1,129 @@
+# The work laptop: from clone to first run
+
+Written 2026-10-06 for the morning this repository is cloned onto a Chartwell machine. It is
+the order to do things in, what each step writes, and what will refuse you until the step
+before it is done. Everything here is also in [`USING.md`](USING.md) at greater length; this
+is the short path. Where a step was not rehearsed on a fresh clone it says so.
+
+## 1. Clone and install
+
+```
+git clone https://github.com/CalebSmit/auto-analyst.git
+cd auto-analyst
+python -m uv sync
+python -m uv run python tools/serve.py --check
+```
+
+`uv` has to be on PATH; `start.cmd` installs it if it is not. The `python -m uv run` prefix
+is what puts the project's dependencies on the path - every command in every document
+carries it, and `tests/p58` holds them to it. `--check` is the honest answer to "does this
+work yet": every seam it prints as `[ok]` is joined; NOT INSTALLED waits on software;
+NOT WIRED is a join this build has not made. On a fresh clone expect two things it says
+plainly: the model port is `fake`, and scans read as nothing until an OCR engine is named.
+
+**`start.cmd` / `tools/start.ps1 -SetupOnly` ask for the API key interactively.** Run them in
+a terminal you are sitting at; run non-interactively they wait on that prompt. (Found by the
+day-one rehearsal that was cut short; not yet re-run to the end.)
+
+## 2. Set the two adapters a work machine needs
+
+Copy `.env.example` to `.env` and set:
+
+```
+AA_LLM_ADAPTER=anthropic_messages
+ANTHROPIC_API_KEY=...            # the firm's key; the name the adapter declares
+AA_OCR_ADAPTER=rapidocr          # a wheel, no administrator needed
+AA_VAULT_KEY=...                 # start.ps1 generates one; the pool will not start without it
+```
+
+Without the first two, **preflight warns at the sixteenth check** - `model_answers` - and
+fails it outright once an answering adapter is named without its key. That is deliberate: before P168 a machine on the fake adapter set up an engagement,
+passed preflight, launched a run and failed at its first skill step with a sentence written
+for a developer. Without `AA_OCR_ADAPTER`, every scanned PDF reads as nothing and is
+*reported* as a scan nothing read (P166), which is correct and useless. `serve.py` reads
+`.env` on start; the shell wins where both set a value.
+
+## 3. Start it, and do the three things a fresh machine owes
+
+```
+python -m uv run python tools/serve.py        # admin at /admin, the ops console at /, help at /help
+```
+
+On the Setup page, in this order - each is a gate the next waits on:
+
+1. **Initialise the environment**, add a **watch** (the folder tree to sweep) and a
+   **destination** (where deliverables go).
+2. **Approve a recipe.** `recipes/registered.yaml` is not in git, so a fresh clone has no
+   approved recipe and nothing launches until one is approved under your name. Version 1's
+   recipe is `valuation-input-prep`.
+3. **Clear the methodology.** `foundations/cleared.yaml` is not in git either: a clearance
+   is a person's act and is never shipped. There are **ten** files - the firm's three under
+   `foundations/_firm/`, the valuation group's six under `foundations/valuation/_group/`
+   (EBITDA adjustments, the working-capital exclusions and normal level, guideline company
+   screening, the cost-of-capital inputs, report writing), and the non-ESOP segment's one.
+   Read each, then clear it at `/admin`. Half an hour. Until every file a run resolves is
+   cleared, preflight is red and no run starts.
+4. **Register an engagement** - id, client, practice group (`valuation / non-esop /
+   repeat` or `non-repeat`), watch, destination, folder - and **activate** it. Preflight runs
+   on activation and refuses with a sentence naming what is missing.
+
+Then drop the client's files into the engagement's folder (`python -m uv run python
+tools/aa.py where <ENGAGEMENT>` prints it). A run waits for the quiet period and for the
+recipe's required document types, then launches; `python -m uv run python tools/watch_run.py
+--once` says what it is doing.
+
+## 4. Where your data is
+
+Everything the tool knows - runs, every figure it read, every decision, every precedent, the
+roster and the configuration - is **one SQLite file**: `runs/run_store.db` under the clone
+(or wherever `AA_DB_URL` points). It is not in git. A reclone, a `git clean` or a wiped
+folder loses all of it. `serve.py --check` prints the path; copy that file somewhere safe on
+a schedule. The mask vault is a second small database beside it, and `.env` holds the keys.
+
+## 5. Teaching it what the firm knows
+
+This is the part the work machine exists for. Three places, three kinds of knowledge:
+
+- **`knowledge/methodology/`** - six files the model's rules come from. Each has *what we
+  know* (cited to an interview), *what the model should do with it*, and *what is still
+  unknown* - the questions to answer here, where the real documents and the firm's model
+  are. Answer one by moving it into *what we know* with its source, update the rules if it
+  changes them, copy the rules section into the matching `foundations/valuation/_group/`
+  file, and clear that file again. [`knowledge/methodology/README.md`](../knowledge/methodology/README.md)
+  says how; `tests/p167` holds the pair together.
+- **`/improve-agent`** (Cursor or Claude Code) - the interview. It asks one question at a
+  time from `interview/topics.yaml`, records answers under `knowledge/`, and turns what it
+  learns into changes through the gate. The topics that fed the retired compute skills feed
+  the methodology files now. Run `python -m uv run python tools/interview.py status` first:
+  it says where the interview stands and what version 1 still lacks.
+- **The firm's model.** `python -m uv run python tools/read_template.py <Model Template -
+  MASTER 2026.xlsx> --sheet Input --inventory` writes every defined name and what sits
+  behind it, and `--version 2026.1 --out draft.yaml` writes the draft input schema. Every
+  line in the draft is marked `REVIEW` and will not load until you have read it - the schema
+  binds the firm's model by named range, and a name is a convention, not a statement.
+
+**Before any session ends:** `python -m uv run python tools/interview.py scan` must print
+`clean`. `knowledge/identifiers.txt` holds the client names the scan looks for; add a new
+client's name there the day you first type it. Nothing identifying leaves `knowledge/`.
+
+## 6. What to expect on the first real files
+
+- A file no document type claims by name is **held**, and the sweep prints it; the Setup
+  page's conventions say which name tokens bind to which type.
+- Every extracted figure goes to a person unless a total it feeds re-adds from its rows -
+  and a total whose sign contradicts its label withdraws that cover (P164). Expect to see
+  most of the first statement.
+- A CSV telling two decimal stories, a protected workbook, a PDF under a spreadsheet name, a
+  tab-separated file named `.xls`, a UTF-16 export: each gets the sentence that is true of
+  it (P166). "Ask the client for a readable copy" now means the file is actually broken.
+- If the laptop closes mid-run, the next start picks the run back up and says so (P168).
+- `docs/USING.md` §"Right now" lists what does not work yet; `BUILD/OPEN.md` lists what
+  waits on a person, which from this machine is mostly you.
+
+## 7. Known limits, so they are not discoveries
+
+`.doc`, `.xlsb` and `.msg` are refused by name until a real sample exists. Nothing bounds
+intake size (B-146). A rejection in the review queue is recorded and does not yet change the
+run it was made on (B-152). ShareFile is proved only against a fake (B-056). The delivery
+templates repository the branding will come from was not found under this GitHub account on
+2026-10-06 - say where it is and the report-writing file gets its first real section.

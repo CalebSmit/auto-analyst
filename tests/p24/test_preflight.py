@@ -25,8 +25,15 @@ def test_every_check_in_the_table_runs_and_a_clean_setup_passes_them_all(
     assert [c.id for c in report.checks] == [c[0] for c in CHECKS]
     assert len(set(CHECKS)) == len(CHECKS), "a check id is declared twice"
     assert report.passed, report.report()
-    assert all(c.status == "pass" for c in report.checks), report.report()
+    # One warning, and it is the right one: this suite runs on the fixture replayer, and
+    # since P168 preflight says so rather than passing a machine that cannot reach a model.
+    # A developer's machine is allowed to be on it; a work laptop is told to change it.
     by_id = {c.id: c for c in report.checks}
+    assert all(c.status == "pass" for c in report.checks if c.id != "model_answers"), (
+        report.report()
+    )
+    assert by_id["model_answers"].status == "warn"
+    assert "AA_LLM_ADAPTER is 'fake'" in by_id["model_answers"].detail
     assert by_id["credentials"].detail.endswith("presence only, never the value")
     assert by_id["bindings"].detail.startswith("1 of 1")
     assert "probe written" in by_id["destinations_writable"].detail

@@ -314,6 +314,43 @@ workbook or PDF is *protected*, a PDF under an .xlsx name is a PDF, a tab-separa
 filings, which read to the row as they did. What is still unbounded - a million-row sheet, a
 200 MB shared-strings member - is B-146.
 
+## Methodology, not procedures
+
+The analyst's decision of 2026-10-05: **`dcf-build`, `gpc-scrub` and `cost-of-capital` are
+not procedures this tool runs.** The firm's own model already does the DCFs - exit multiple
+or Gordon Growth, CAPM or build-up, beta relevered to a target structure - and takes its WACC
+inputs; comps are screened by a person in Capital IQ, by keyword and by industry. What the
+model needs is **knowledge it consults when deciding how to handle something in the model**,
+and the mechanism for that already existed: `foundations/` is scope-walked into every context
+and cleared by digest.
+
+So the knowledge lives in two places with one content. [`knowledge/methodology/`](knowledge/methodology/)
+holds six files - EBITDA adjustments, the working-capital exclusions and normal level,
+guideline company screening, the cost-of-capital inputs, report writing - each with *what we
+know* (every item cited to the interview session it came from), *what the model should do
+with it* (rules, only where the interviews support them) and *what is still unknown* (the
+precise questions the work laptop answers). `foundations/valuation/_group/` holds each file's
+rules section **verbatim**, and that is what a valuation run attaches once a person clears it
+at `/admin`. `tests/p167` holds each pair together, so the two cannot drift. The three skills
+keep their frontmatter and say in their bodies what superseded them; nothing in production
+reads a skill's status, so nothing changed at run time. The interview topic map feeds the
+knowledge files now, so the next session on the work laptop writes where the model reads.
+Two of the six are mostly questions - no interview ever asked about working capital - and a
+short honest file beats a long plausible one.
+
+**A laptop closes.** A server runs until somebody stops it; a laptop closes at six. The queue
+is in-process and memory-only, so a run that was mid-pass when the process ended had a job the
+next process had never heard of - and `stranded()` only looked for jobs the queue called
+*failed*. The console refused Resume and Halt with `RUN.HELD`, nothing picked it up at start,
+and the engagement lock stayed held so every later run on that client queued behind it for
+good. P168: a running run whose job the queue has no memory of is stranded, said so on the
+record, and picked back up before the first sweep - resume is replay and the ledger makes the
+replay idempotent. Preflight gained a sixteenth check - a warning on the fixture replayer, a failure on a
+missing key - because the fake model adapter passed the other fifteen and the first real
+run failed with a sentence for a developer. And
+`serve.py --check` says where the record is: one SQLite file under `runs/`, not in git, the
+whole of what the tool knows - copy it to back it up.
+
 Three more commands, written down here because until P82 each one's invocation existed only
 in its own docstring - so a person could not find them and the reachability scan could not
 tell them from dead code:
@@ -456,9 +493,11 @@ These are not style preferences. Each one is an invariant with a test behind it.
 
 ## Working style here
 
-- Local only through P24. No cloud, no ShareFile, no Box. The ports exist so that stays
-  true without costing anything later.
-- The fake LLM adapter replays fixtures, so phases 4–10 need no API key and cost nothing.
+- Local by default, and local on the work laptop. No cloud; the Box and ShareFile adapters
+  exist and are proved against fakes only (B-056). The ports exist so that stays true
+  without costing anything later.
+- The fake LLM adapter replays fixtures, so the suite needs no API key and costs nothing -
+  and preflight's `model_answers` check warns about a machine left on it (P168).
 - Client data enters the repo only under `knowledge/`, and only because the repo is private
   (decided 2026-09-16). `fixtures/` is masked, synthetic, or **public** - a document a
   regulator publishes, kept under `fixtures/public/` with where it came from and when.

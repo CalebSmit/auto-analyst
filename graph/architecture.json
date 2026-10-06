@@ -1,7 +1,7 @@
 {
   "generated_from": "docs/architecture.html",
   "generated_by": "tools/export_architecture.py",
-  "source_digest": "sha256:37ae2a54234280e20f448b4e4a7b4b53ad811076684f2bb44911112d5f338a7b",
+  "source_digest": "sha256:c9e3498ca168393076dcfa590b19ad8c005f5340608beeb9fa4fd0bf2f9346c2",
   "counts": {
     "nodes": 118,
     "edges": 240,
@@ -1572,7 +1572,7 @@
       "group": "ops",
       "exec": "code",
       "now": true,
-      "desc": "Fifteen checks over a proposed or live configuration: path readable · credential present and unexpired · no two watches claiming one path · every swept subfolder claimed by an engagement · every file seen under an engagement carries a document type (a held file starts no clock, so a person is told) · every active engagement has a resolving scope, a practice group and segment that are actually defined, a complete engagement profile, a template pin, a destination, a review policy and a budget · template hash matches the registered version · template declares every required input · destination writable · named recipe exists · headroom · every methodology file cleared, and the version that was cleared · no methodology layer past its size ceiling.",
+      "desc": "Sixteen checks over a proposed or live configuration: path readable · credential present and unexpired · the model adapter answers from a model, with its key present (a warning on the fixture replayer, a failure on a missing key) · no two watches claiming one path · every swept subfolder claimed by an engagement · every file seen under an engagement carries a document type (a held file starts no clock, so a person is told) · every active engagement has a resolving scope, a practice group and segment that are actually defined, a complete engagement profile, a template pin, a destination, a review policy and a budget · template hash matches the registered version · template declares every required input · destination writable · named recipe exists · headroom · every methodology file cleared, and the version that was cleared · no methodology layer past its size ceiling.",
       "impl": "Runs on demand and on every config write (<span class=\"mono\">admin/preflight.py</span>). Emits the standard diagnostic — code, owner, expected, found, and <span class=\"mono\">what_now</span> — with the owner set to <span class=\"mono\">config</span>. A failing check blocks activation of that engagement rather than failing later inside a run: the console’s <span class=\"mono\">activate</span> runs preflight for that engagement and refuses with every failing check, each a diagnostic. Not part of any run, so it emits into no event stream.",
       "full": "A setup error found here costs a minute. The same error found at run time costs a halted run, a diagnostic somebody has to read, and a client waiting. Deliberately not part of any run — it is a setup-time activity, so it never appears in a run’s event stream and never colours a node on the trace.",
       "x": 2300,

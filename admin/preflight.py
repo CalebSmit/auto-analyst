@@ -53,6 +53,7 @@ from registries.errors import (
     METHODOLOGY_TOO_LARGE,
     METHODOLOGY_UNCLEARED,
     MISSING_CREDENTIAL,
+    MODEL_NOT_REACHED,
     NO_ENGAGEMENT,
     PATH_UNREADABLE,
     PROFILE_INCOMPLETE,
@@ -78,6 +79,7 @@ PROBE_NAME = "_preflight/probe.txt"
 CHECKS: tuple[tuple[str, str], ...] = (
     ("watch_paths", "Watch paths readable"),
     ("credentials", "Credentials present and unexpired"),
+    ("model_answers", "The model adapter answers from a model, and its key is present"),
     ("watch_overlap", "No two watches claim the same path"),
     ("unclaimed_folders", "Every swept subfolder maps to an engagement"),
     ("folder_depth", "Every engagement's folder is as deep as its watch looks"),
@@ -231,6 +233,7 @@ class Preflight:
         checks = (
             self._watch_paths(),
             self._credentials(),
+            self._model_answers(),
             self._watch_overlap(),
             self._unclaimed(),
             self._folder_depth(entries),
@@ -866,6 +869,68 @@ class Preflight:
                 taxonomy_version="coa-taxonomy@1.0.0",
                 precedent_snapshot="preflight",
             ),
+        )
+
+    def _model_answers(self) -> Check:
+        """Whether a run on this machine would reach a model at all.
+
+        The fifteen checks before this one passed on a laptop whose model port was the
+        fixture replayer: engagement set up, preflight green, run launched - and the first
+        skill step quarantined with "no LLM fixture for sha256:... Record one at
+        fixtures/llm/", which is a sentence for a developer. `serve.py --check` printed
+        `Model port: fake` honestly and exited 0. The adapter is an environment choice, so
+        it is asked here, at setup, where a person can act on the answer - and the key is
+        asked for as well, because an adapter that answers with no key answers nothing.
+        """
+        import ports  # noqa: PLC0415
+
+        label = dict(CHECKS)["model_answers"]
+        adapter = ports.selected("llm")
+        if adapter in ("fake", "scripted"):
+            # A warning carries no `Failure`: the credentials check keeps its expiry
+            # warnings the same way, because activation refuses on failures and a
+            # developer's machine on the replayer is allowed to activate.
+            return Check(
+                "model_answers",
+                label,
+                "warn",
+                f"AA_LLM_ADAPTER is {adapter!r}, which replays fixtures and never asks a "
+                f"model; a real engagement's run would stop at its first skill step. Right "
+                f"for a developer's machine; on a work laptop set it to one that answers "
+                f"(anthropic_messages) and put its key in .env",
+            )
+        try:
+            wants = tuple(ports.credentials_for("llm", adapter))
+        except Exception:  # noqa: BLE001 - an adapter nobody registered declares nothing
+            wants = ()
+        missing = [name for name in wants if not self.secrets.has(name)]
+        if missing:
+            return Check(
+                "model_answers",
+                label,
+                "fail",
+                f"AA_LLM_ADAPTER is {adapter!r} and its key {', '.join(missing)} is not in "
+                f"the Secrets Port",
+                tuple(
+                    Failure(
+                        "model_answers",
+                        diagnose(
+                            MODEL_NOT_REACHED,
+                            f"{adapter!r} needs {name} and the Secrets Port has no such entry",
+                            locator=name,
+                            expected=f"{name} in .env",
+                            found="nothing",
+                        ),
+                    )
+                    for name in missing
+                ),
+            )
+        return Check(
+            "model_answers",
+            label,
+            "pass",
+            f"AA_LLM_ADAPTER is {adapter!r}"
+            + (f", with {', '.join(wants)} present" if wants else ""),
         )
 
     def _methodology(self) -> Check:

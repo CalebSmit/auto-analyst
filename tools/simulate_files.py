@@ -607,7 +607,17 @@ def register(api: Any, out: Any, name: str, who: str) -> str:
 
 
 def main() -> int:
+    import argparse
+
     from cryptography.fernet import Fernet
+
+    # Takes no arguments, and says so: until P168 `--help` ran the whole battery, and the
+    # test that holds every documented tool to answering `--help` was green only because
+    # the battery happened to exit 0 that day.
+    argparse.ArgumentParser(
+        prog="simulate_files.py",
+        description="Every way a file can arrive wrong, through the real server. No arguments.",
+    ).parse_args()
 
     home = ROOT / "runs" / "_battery"
     if home.exists():

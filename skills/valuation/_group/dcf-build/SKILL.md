@@ -1,7 +1,7 @@
 ---
 name: dcf-build
 version: 0.1.0
-status: skeleton
+status: superseded
 scope: valuation/_group
 title: DCF Build
 tier: high
@@ -29,10 +29,10 @@ scripts: []
 
 # DCF Build
 
-> **Skeleton.** This file exists so the Skill Tree and the Skill Index are real, and so
-> the Scope Resolver resolves against something rather than against a fixture. The
-> frontmatter above is complete and is what the index reads. Everything below is a
-> placeholder. No phase has been scheduled to write the procedure yet.
+> **Superseded by methodology (P167).** The owner decided on 2026-10-05 that this
+> is not a procedure this tool runs: the firm's model already does the DCFs - exit multiple or Gordon Growth, CAPM or build-up, relevering beta to a target structure - and takes inputs. What the model needs is in `knowledge/methodology/cost-of-capital-inputs.md` and `knowledge/methodology/gpc-screening.md`, attached to every valuation run from `foundations/valuation/_group/`. The frontmatter stays so the Skill
+> Tree, the Scope Resolver and the output contract stay whole; nothing dispatches
+> this and nothing will. Its reference files were empty placeholders.
 
 ## When to use
 
@@ -44,8 +44,8 @@ Historicals are not yet tied out. Never emit a single point value — the output
 
 ## Procedure
 
-Not written. A skeleton is not a skill: nothing dispatches this until it has a
-procedure, fixtures and a review, and the Skill Registry is what makes it live.
+Not written, and not to be written. Superseded by methodology - see the note above
+for where the knowledge lives and what attaches it to a run.
 
 ## Escalate when
 

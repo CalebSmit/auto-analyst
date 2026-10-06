@@ -197,10 +197,20 @@ def test_foundations_are_attached_to_every_call(builder: ContextBuilder, request
     """
     for step_id in ("timing", "ebitda", "qc"):
         names = {s.name for s in builder.build(request_for(step_id)).section("foundations")}
-        assert names == {
+        assert names >= {
             "_firm/qc-conventions.md",
             "_firm/tagging-policy.md",
             "_firm/valuation-standards.md",
+        }
+        # And what the valuation group added on top (P31's mechanism, P167's files): the
+        # six knowledge rule files, on every valuation call and never on a consulting one.
+        assert {n for n in names if n.startswith("valuation/_group/")} == {
+            "valuation/_group/cost-of-capital-inputs.md",
+            "valuation/_group/ebitda-adjustments.md",
+            "valuation/_group/gpc-screening.md",
+            "valuation/_group/nwc-excluded-items.md",
+            "valuation/_group/nwc-normal-level.md",
+            "valuation/_group/report-writing.md",
         }
 
 

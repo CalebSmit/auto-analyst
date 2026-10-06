@@ -219,7 +219,8 @@ def _convention(grid: list[list[str]]) -> tuple[str, set[str], str]:
     contradiction = ""
     if not decimal:
         for cell in cells:
-            if any(shape.match(cell) for shape in _GROUPED_BY.values()) or _US.match(cell) or _EU.match(cell):
+            grouped_shape = any(shape.match(cell) for shape in _GROUPED_BY.values())
+            if grouped_shape or _US.match(cell) or _EU.match(cell):
                 ambiguous.add(cell)
         if us and eu:
             contradiction = (

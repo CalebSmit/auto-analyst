@@ -170,6 +170,7 @@ GROUP_UNDEFINED = "SCOPE.GROUP_UNDEFINED"
 GATE_SKIPPED = "SKILL.GATE_SKIPPED"
 CLIENT_DATA_IN_DRAFT = "SKILL.CLIENT_DATA_IN_DRAFT"
 SHADOW_INSUFFICIENT = "SKILL.SHADOW_INSUFFICIENT"
+MODEL_NOT_REACHED = "CONFIG.MODEL_NOT_REACHED"
 METHODOLOGY_UNCLEARED = "CONFIG.METHODOLOGY_UNCLEARED"
 METHODOLOGY_UNSAFE = "CONFIG.METHODOLOGY_UNSAFE"
 METHODOLOGY_TOO_LARGE = "CONFIG.METHODOLOGY_TOO_LARGE"
@@ -478,6 +479,15 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "real runs, so it cannot be promoted. Either it disagrees with the registered "
         "version too often, or it has not yet run beside it enough times. Neither is "
         "fixed by approving it again: let it keep shadowing.",
+    ),
+    MODEL_NOT_REACHED: (
+        "config",
+        "The model port is pointed at an adapter that does not answer from a model - the "
+        "fixture replayer or the rehearsal stand-in - or at one whose key is not in the "
+        "Secrets Port. Every other check passes on such a machine, and the first real run "
+        "quarantines at its first skill step with a sentence written for a developer. Set "
+        "AA_LLM_ADAPTER to an adapter that answers (anthropic_messages) and put its key in "
+        ".env, then run preflight again.",
     ),
     METHODOLOGY_UNCLEARED: (
         "config",
