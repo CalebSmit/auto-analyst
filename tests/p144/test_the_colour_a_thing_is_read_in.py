@@ -166,12 +166,55 @@ def test_the_three_that_moved_are_named_in_the_sheet() -> None:
         )
 
 
+# Each of the six, as the thing a person reads and the class it has to be carrying. The
+# markup around them has moved twice since - P172 rewrote the diagnostic and P173 took the
+# hand-written lengths off the pages - so each is found by its own words and asked what
+# class it is in, rather than by a spelling of the whole element. A sweep that passes
+# because the markup moved is a sweep that has stopped watching what it was written for;
+# one that fails because the markup moved is watching the markup.
+THE_SIX = (
+    ("the count of runs that need somebody", ACTIVITY, "wants-a-person", None),
+    ("where a run failed", ACTIVITY, "code", "at step "),
+    ("the rule behind a finding", ACTIVITY, "quiet-note", "${esc(f.check)}"),
+    ("the checks that did not run", ACTIVITY, "quiet-note", "Did not run: "),
+    ("a figure nobody has measured", SHELL, "not-measured", "not yet"),
+)
+
+
+def enclosing_class(markup: str, at: int) -> str:
+    """The class of the element that actually contains the text at `at`.
+
+    Walking back to the nearest `class="..."` is not the same question, and the difference
+    is the whole of what this file checks: with a window of a couple of hundred characters
+    the sentence can be moved *out* of the readable class and still have one nearby. So the
+    tags before it are walked with a depth counter, and the first opening tag still open is
+    the one whose colour the words are drawn in.
+    """
+    depth = 0
+    for tag in reversed(list(re.finditer(r"<(/?)(\w+)([^>]*)>", markup[:at]))):
+        if tag.group(1):
+            depth += 1
+        elif depth:
+            depth -= 1
+        else:
+            found = re.search(r'class="([^"]*)"', tag.group(3))
+            return found.group(1) if found else ""
+    return ""
+
+
 def test_each_of_the_six_is_fixed_where_it_was() -> None:
-    """Named one by one, because a sweep that passes because the markup moved is a sweep
-    that has stopped watching the thing it was written for."""
-    assert 'class="wants-a-person"' in ACTIVITY, "the count is not on the readable gold"
-    assert 'class="quiet-note">at step ' in ACTIVITY
-    assert 'class="quiet-note">${esc(f.check)}' in ACTIVITY
-    assert 'class="quiet-note" style="margin-top:.35rem">Did not run: ' in ACTIVITY
-    assert ".r .sub.mono{font-size:.74rem;letter-spacing:0;color:var(--ink-3)}" in CSS
-    assert 'class="not-measured">not yet' in SHELL, "the absent figure is back on the grey"
+    """Named one by one, because a sweep over the tokens cannot tell that *this* sentence is
+    the one that used to be unreadable."""
+    for what, page, klass, words in THE_SIX:
+        # Comments out first: every one of these is explained in prose beside the code that
+        # draws it, and the prose contains the words being looked for.
+        drawn = re.sub(r"/\*.*?\*/", "", page, flags=re.S)
+        assert f'class="{klass}' in drawn, f"{what} no longer carries a class at all"
+        if words is not None:
+            holder = enclosing_class(drawn, drawn.index(words))
+            assert klass in holder.split(), (
+                f"{what} is drawn inside class={holder!r} rather than {klass!r}"
+            )
+    # And the id line, which is a rule rather than a piece of markup.
+    mono = re.search(r"\.r \.sub\.mono\{([^}]*)\}", CSS)
+    assert mono and "var(--ink-3)" in mono.group(1), "the id line is back on the decorative grey"

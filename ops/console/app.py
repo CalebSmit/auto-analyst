@@ -1167,7 +1167,13 @@ function scorecardPill(c, state) {
   const says = c.in_progress
     ? (stopped ? 'the run stopped before the scorecard reached a verdict' : 'still running')
     : (VERDICT_SAYS[c.verdict] || "the scorecard's verdict");
-  const tone = c.in_progress ? (stopped ? '' : 'accent') : (VERDICT_TONE[c.verdict] ?? '');
+  /* A pill only for an actual verdict. "no verdict" and "in progress" are notes about the
+     scorecard rather than facts about the run, and they were being drawn as a second pill
+     beside the state - which is the thing this sheet's own note says makes a tool look like
+     a toy, and which left a stopped run wearing two. Both cases are also already said
+     further down, where the scorecard discloses what it did and did not measure. */
+  if (c.in_progress) return `<span class="quiet-note" title="${esc(says)}">${esc(label)}</span>`;
+  const tone = VERDICT_TONE[c.verdict] ?? '';
   return `<span class="pill ${tone}" title="${esc(says)}">${esc(label)}</span>`;
 }
 
@@ -1210,10 +1216,10 @@ async function refresh() {
     ? `<span class="attention">${plural(RUNS.length, 'run', 'runs')}`
       + (attention ? ` &middot; <b class="chip" role="button" tabindex="0" data-act="onlyNeedsAPerson"`
          + ` title="Show only these. A run stops on itself when a step failed in a way retrying`
-         + ` will not fix, or on a person when it has a question.">${needAPerson(attention)}</b>` : '')
+         + ` will not fix, or on a person when it has a question."><span>${needAPerson(attention)}</span></b>` : '')
       + (inbox.length ? ` &middot; <b class="chip" role="button" tabindex="0" data-act="toReview"`
          + ` title="Open questions waiting for an answer. Each sits on one of the runs above.">`
-         + `${plural(inbox.length, 'question', 'questions')} waiting</b>` : '')
+         + `<span>${plural(inbox.length, 'question', 'questions')} waiting</span></b>` : '')
       + `</span>`
     : '';
 
@@ -1226,7 +1232,7 @@ async function refresh() {
 function runRow(r) {
   return `<div class="r pick${r.run_id === current ? ' on' : ''}" role="button" tabindex="0" data-act="open" data-run="${esc(r.run_id)}">
      <span class="lbl"><b>${runName(r)}</b>
-      <span class="sub" style="display:block;white-space:normal">${esc(r.engagement_id)}${r.scope_path ? ' &middot; ' + esc(r.scope_path) : ''} &middot; <span class="mono" title="run id">${esc(r.run_id)}</span></span>
+      <span class="sub line">${esc(r.engagement_id)}${r.scope_path ? ' &middot;&nbsp;' + esc(r.scope_path) : ''} &middot;&nbsp;<span class="mono" title="run id">${esc(r.run_id)}</span></span>
       ${r.state_reason && r.state !== 'delivered' ? `<span class="why-line" title="${esc(r.state_reason)}">${esc(r.state_reason)}</span>` : ''}
      </span>
      <span style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
@@ -1331,7 +1337,7 @@ function paintRuns() {
 function paintRest(inbox, alerts) {
   $('inbox').innerHTML = inbox.length ? inbox.map(i => `<div class="r pick" role="button" tabindex="0" data-act="review" data-run="${esc(i.run_id)}" data-item="${esc(i.item_id)}">
      <span class="lbl"><b>${esc(i.subject || i.item_id)}</b>
-      <span class="sub" style="display:block;white-space:normal">${i.client ? esc(i.client) + ' &middot; ' : ''}${esc(i.skill || i.kind || '')}${i.due_at ? ' &middot; due ' + esc(i.due_at.slice(0, 16).replace('T', ' ')) : ''}</span></span>
+      <span class="sub line">${i.client ? esc(i.client) + ' &middot;&nbsp;' : ''}${esc(i.skill || i.kind || '')}${i.due_at ? ' &middot;&nbsp;due ' + esc(i.due_at.slice(0, 16).replace('T', ' ')) : ''}</span></span>
      <span style="display:flex;flex-direction:column;align-items:flex-end;gap:.3rem">
       ${i.severity ? `<span class="pill ${i.severity === 'high' ? 'bad' : 'warn'}">${esc(i.severity)}</span>` : ''}
       <span class="sub">${esc(i.owner || 'unassigned')}</span>
@@ -1422,7 +1428,7 @@ async function review(runId, itemId) {
      ${item.source_excerpt ? `<div class="section-label">What the source says${item.locator ? ' &middot; <span class="mono aside">' + esc(item.locator) + '</span>' : ''}</div>
       <div class="excerpt">${esc(item.source_excerpt)}</div>` : ''}
      ${(item.reasons || []).length ? `<div class="section-label">Why it came to a person</div>
-      <ul style="margin:.2rem 0 .8rem 1.1rem;padding:0;font-size:.9rem;color:var(--ink-2)">${item.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}
+      <ul class="reasons">${item.reasons.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>` : ''}
      <div id="rv-proposal"><div class="reveal"><p>${item.source_excerpt
        ? `Read the source first.`
        : `No excerpt was recorded for this one, so there is nothing above to read - open the file itself before you answer.`} The system's proposal and its confidence are shown when you ask, and the asking is recorded - so an answer given without looking is visible later.</p>
@@ -1585,8 +1591,8 @@ function diagRows(diagnostics, step) {
   return Object.entries(diagnostics || {})
     .filter(([, d]) => step === undefined || d.step_id === step)
     .map(([node, d]) => `<div class="d-row">
-     <span class="code">${esc(node)} &mdash; ${esc(d.code || d.type || 'failed')}</span>
-     <span class="msg">${esc(d.message || '')}${d.step_id ? ' <span class="quiet-note">at step ' + esc(d.step_id) + '</span>' : ''}</span>
+     <span class="msg">${esc(d.message || d.code || d.type || 'failed')}</span>
+     <span class="code">${esc(node)} &middot; ${esc(d.code || d.type || 'failed')}${d.step_id ? ' &middot; at step ' + esc(d.step_id) : ''}</span>
     </div>`).join('');
 }
 
@@ -1615,8 +1621,8 @@ function steps(run) {
   if (!box) return;
   const rows = run.steps || [];
   box.innerHTML = rows.length ? `<div class="section-label">Steps</div>` + rows.map(x => `<div class="r">
-     <span class="lbl"><b style="font-size:var(--t-sm)">${esc(x.step_id)}</b>
-      <span class="sub" style="margin-left:.45rem">${esc(x.skill || x.kind)}</span></span>
+     <span class="lbl step-id"><b>${esc(x.step_id)}</b>
+      <span class="sub">${esc(x.skill || x.kind)}</span></span>
      ${x.attempts > 1 ? `<span class="sub" title="attempts">&times;${esc(x.attempts)}</span>` : ''}
      <span class="pill ${STEP_TONE[x.status] ?? ''}">${esc(String(x.status).replace('_', ' '))}</span>
     </div>`).join('') : '';
@@ -1651,8 +1657,8 @@ async function decisions(id) {
   box.innerHTML = `<details><summary><b>Decided on this run</b> &mdash; ${esc(parts.join(' · '))}</summary>`
     + rows.map(d => `<div class="r">
      <span class="lbl"><b>${esc(d.item_id)}</b>
-      <span class="d" style="display:block;white-space:normal">${esc(d.decision)} by ${esc(d.decided_by)} &middot; ${esc(ago(d.decided_at))}${d.rationale ? ' &middot; ' + esc(d.rationale) : ''}</span>
-      <span class="sub" style="display:block;white-space:normal">${d.revealed_at
+      <span class="d">${esc(d.decision)} by ${esc(d.decided_by)} &middot; ${esc(ago(d.decided_at))}${d.rationale ? ' &middot; ' + esc(d.rationale) : ''}</span>
+      <span class="sub line">${d.revealed_at
         ? 'proposal revealed' + (d.seconds_looking !== null && d.seconds_looking !== undefined ? ` ${esc(d.seconds_looking)}s before the decision` : '')
         : 'decided without the proposal being revealed'}${d.writes_precedent ? ' &middot; written to precedent' : ''}</span></span>
      <span class="pill ${d.decision === 'accepted' ? 'good' : d.decision === 'rejected' ? 'bad' : 'warn'}">${esc(d.decision)}</span>
@@ -1667,12 +1673,12 @@ async function deliverables(id) {
   const files = all.filter(a => a.path && !/manifest|\\.json$/i.test(a.name));
   const record = all.filter(a => a.path && /manifest/i.test(a.name));
   box.innerHTML = files.length ? `<div class="section-label" style="margin-top:.2rem">Delivered</div>` + files.map((a, i) => `<div class="r">
-     <span class="lbl"><b>${esc(a.name)}</b><span class="sub" style="display:block;white-space:normal">${esc(a.path)} &middot; ${esc(ago(a.written_at))}</span></span>
+     <span class="lbl"><b>${esc(a.name)}</b><span class="sub line">${esc(a.path)} &middot;&nbsp;${esc(ago(a.written_at))}</span></span>
      ${/\\.xls[xm]$/i.test(a.name) ? `<button class="btn small"${data({act: 'auditFile', run: id, name: a.name, box: 'audit-' + i})}>Check formulas</button>` : ''}
      <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>
-     <div id="audit-${i}" class="sub" style="display:none;white-space:normal;padding:.1rem 0 .6rem .2rem"></div>`).join('') : '';
+     <div id="audit-${i}" class="audit" hidden></div>`).join('') : '';
   box.innerHTML += record.length ? `<div class="section-label" style="margin-top:.2rem">Record</div>` + record.map(a => `<div class="r">
-     <span class="lbl"><b>Run manifest</b><span class="sub" style="display:block;white-space:normal">what was in context, which model, which skill versions, what each guard said</span></span>
+     <span class="lbl"><b>Run manifest</b><span class="sub line">what was in context, which model, which skill versions, what each guard said</span></span>
      <a class="btn small" href="/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(a.name)}/download">Download</a></div>`).join('') : '';
 }
 
@@ -1685,7 +1691,7 @@ async function deliverables(id) {
 async function auditFile(id, name, boxId) {
   const box = $(boxId);
   if (!box) return;
-  box.style.display = 'block';
+  box.hidden = false;
   box.textContent = 'Reading the formulas...';
   let a;
   try { a = await get(`/api/runs/${encodeURIComponent(id)}/artifacts/${encodeURIComponent(name)}/audit`); }
@@ -1700,12 +1706,12 @@ async function auditFile(id, name, boxId) {
     const rows = (a.findings || []).filter(f => f.severity === severity);
     if (!rows.length) continue;
     found += rows.length;
-    html += `<div style="margin-top:.35rem"><span class="pill ${tone}">${esc(heading)}</span></div>`;
-    html += rows.map(f => `<div style="margin:.2rem 0 0 .2rem"><b>${esc(f.sheet)}!${esc(f.cell)}</b> ${esc(f.says)}<br><span class="quiet-note">${esc(f.check)}: ${esc(f.formula)}</span></div>`).join('');
+    html += `<div><span class="pill ${tone}">${esc(heading)}</span></div>`;
+    html += rows.map(f => `<div class="found"><b>${esc(f.sheet)}!${esc(f.cell)}</b> ${esc(f.says)}<br><span class="quiet-note">${esc(f.check)}: ${esc(f.formula)}</span></div>`).join('');
   }
-  if (!found) html += '<div style="margin-top:.35rem"><span class="pill good">Nothing found</span></div>';
+  if (!found) html += '<div><span class="pill good">Nothing found</span></div>';
   if ((a.skipped || []).length) {
-    html += `<div class="quiet-note" style="margin-top:.35rem">Did not run: ` + a.skipped.map(esc).join(' ') + `</div>`;
+    html += `<div class="quiet-note found">Did not run: ` + a.skipped.map(esc).join(' ') + `</div>`;
   }
   box.innerHTML = html;
 }
@@ -1736,11 +1742,24 @@ async function open_(id) {
       <span class="lbl"><span class="pill ${STATE_TONE[run.state] ?? ''}"><i class="dot" aria-hidden="true"></i>${esc(run.state)}</span>
        ${scorecardPill(c, run.state)}</span>
       <span id="run-actions"></span></div>
-     ${run.state_reason ? `<p class="note" style="margin:.1rem 0 .2rem">${esc(STATE_SAYS[run.state] ? STATE_SAYS[run.state] + '.' : '')}</p>
-      ${run.state_reason.length > 160
-        ? `<details style="margin:0 0 .6rem"><summary><b style="color:var(--navy)">${esc(run.state_reason.slice(0, 150))}&hellip;</b></summary><p class="note" style="margin:.2rem 0 0">${esc(run.state_reason)}</p></details>`
-        : `<p style="margin:0 0 .6rem;font-size:.9rem;color:var(--navy);font-weight:600">${esc(run.state_reason)}</p>`}` : ''}
-     ${whyItStopped(run)}
+     ${(() => {
+       /* Said once. A quarantined run used to carry the word three times in sixty pixels:
+          the state pill, then `quarantined: qc` as its reason, then the diagnostic's own
+          `step.quarantined` under that - three vocabularies for one fact, and the only one
+          of the three that told you anything you could act on was the last.
+
+          So: the pill says the state, one line says what that state means, and the reason
+          is whichever of the two is the better sentence. When the run recorded a diagnostic
+          for the step it stopped on, that is the better sentence by definition - it is the
+          only one that names a cause - and the state reason is a restatement of the pill. */
+       const diagnostic = whyItStopped(run);
+       const says = STATE_SAYS[run.state] ? `<p class="note tight">${esc(STATE_SAYS[run.state])}.</p>` : '';
+       if (diagnostic) return says + diagnostic;
+       if (!run.state_reason) return '';
+       return says + (run.state_reason.length > 160
+         ? `<details class="said"><summary><b>${esc(run.state_reason.slice(0, 150))}&hellip;</b></summary><p class="note">${esc(run.state_reason)}</p></details>`
+         : `<p class="said">${esc(run.state_reason)}</p>`);
+     })()}
      <dl class="kv" style="margin-bottom:.4rem">
       <dt>Started</dt><dd>${esc((run.started_at || '').slice(0, 16).replace('T', ' '))} <span class="sub">(${esc(ago(run.started_at))})</span></dd>
       ${run.ended_at ? `<dt>Ended</dt><dd>${esc(run.ended_at.slice(0, 16).replace('T', ' '))}</dd>` : ''}
@@ -1759,7 +1778,7 @@ async function open_(id) {
      <details><summary>Scorecard &mdash; ${esc(c.criteria.filter(x => x.status === 'pass').length)} passed &middot; ${esc(c.criteria.filter(x => x.status === 'fail').length)} failed &middot; ${esc(c.criteria.filter(x => x.status !== 'pass' && x.status !== 'fail').length)} never measured <span class="mono">(${esc(c.criteria_version)})</span></summary>` +
     c.criteria.map(x => `<div class="r">
       <span class="lbl">${esc(x.label)}
-       ${(x.exceptions || []).length ? `<span class="d" style="display:block;white-space:normal">${(x.exceptions || []).map(e => esc(typeof e === 'string' ? e : JSON.stringify(e))).join('<br>')}</span>` : ''}</span>
+       ${(x.exceptions || []).length ? `<span class="d">${(x.exceptions || []).map(e => esc(typeof e === 'string' ? e : JSON.stringify(e))).join('<br>')}</span>` : ''}</span>
       <span class="sub mono">${esc(x.measured)}</span>
       <span class="pill ${x.status === 'pass' ? 'good' : x.status === 'fail' ? 'bad' : 'warn'}">${esc(x.status.replace('_', ' '))}</span>
      </div>`).join('') + '</details>';

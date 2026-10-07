@@ -177,8 +177,8 @@ function funnel(rows, runs) {{
   }}
   $('funnel').innerHTML = rows.map(f => {{
     const share = runs ? (f.reached / runs * 100) : 0;
-    return `<div style="padding:9px 0;border-bottom:1px solid var(--line-soft)">
-      <div class="r" style="border:0;padding:0 0 7px">
+    return `<div class="measure">
+      <div class="r">
        <span class="lbl">${{esc(f.stage)}}</span>
        <span class="val">${{f.reached}}<span class="sub" style="font-weight:400"> of ${{runs}}</span></span>
        ${{f.dropped ? `<span class="pill warn">&minus;${{f.dropped}} here</span>` : ''}}
@@ -198,14 +198,14 @@ function failures(rows) {{
   }}
   const top = rows[0].count || 1;
   $('failures').innerHTML = rows.slice(0, 12).map(f => `
-    <details><summary style="padding:0">
-      <div class="r" style="border:0;padding:7px 0;display:inline-flex;width:calc(100% - 22px)">
+    <details class="measure"><summary>
+      <div class="r">
        <span class="lbl mono" style="color:var(--ink)">${{esc(f.code)}}</span>
        <span class="pill ${{OWNER_TONE[f.owner] ?? ''}}">${{esc(f.owner)}}</span>
        <span class="val">${{f.count}}</span>
       </div></summary>
-     <div class="bar" style="margin:0 0 8px"><i style="width:${{(f.count / top * 100).toFixed(0)}}%"></i></div>
-     <p class="note" style="margin:0 0 10px">${{esc(f.what_now || 'No guidance recorded for this code.')}}</p>
+     <div class="bar"><i style="width:${{(f.count / top * 100).toFixed(0)}}%"></i></div>
+     <p class="note">${{esc(f.what_now || 'No guidance recorded for this code.')}}</p>
     </details>`).join('') +
     (rows.length > 12 ? `<p class="note">${{rows.length - 12}} more, less often.</p>` : '');
 }}
@@ -221,13 +221,13 @@ function outcomes(rows) {{
     rows.map(o => {{
       const total = o.clean + o.released_with_review + o.blocked + o.halted || 1;
       const seg = (n, colour) => n ? `<i style="display:block;height:100%;float:left;width:${{(n / total * 100).toFixed(1)}}%;background:${{colour}}"></i>` : '';
-      return `<div style="padding:8px 0;border-bottom:1px solid var(--line-soft)">
-        <div class="r" style="border:0;padding:0 0 6px">
+      return `<div class="measure">
+        <div class="r">
          <span class="lbl mono">${{esc(o.week)}}</span>
-         <span class="num" style="color:var(--good)">${{o.clean}}</span>
+         <span class="num good">${{o.clean}}</span>
          <span class="num">${{o.released_with_review}}</span>
-         <span class="num" style="color:var(--warn)">${{o.blocked}}</span>
-         <span class="num" style="color:var(--bad)">${{o.halted}}</span>
+         <span class="num warn">${{o.blocked}}</span>
+         <span class="num bad">${{o.halted}}</span>
         </div>
         <div class="bar">${{seg(o.clean, 'var(--good)')}}${{seg(o.released_with_review, 'var(--accent)')}}${{seg(o.blocked, 'var(--warn)')}}${{seg(o.halted, 'var(--bad)')}}</div>
        </div>`;
@@ -249,7 +249,7 @@ function stuck(s) {{
   const total = lines.reduce((n, l) => n + (l[1] || 0), 0);
   const flagged = s.skills_flagged_by_drift || [];
   $('stuck').innerHTML =
-    `<div class="r" style="border:0;padding:0 0 10px"><span class="lbl">
+    `<div class="r lede"><span class="lbl">
       <!-- "Needs a person", not "Needs attention". P132 replaced that phrase everywhere on
            the Activity console and C74 holds the three surfaces there to one vocabulary;
            this is the fourth surface and nobody looked at it. Somebody reading "2 need a

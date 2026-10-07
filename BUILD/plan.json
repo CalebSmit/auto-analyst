@@ -4980,6 +4980,36 @@
       ],
       "notes": "",
       "closed": "2026-10-06"
+    },
+    {
+      "id": "P173",
+      "title": "Every box, every target, every name",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "Nothing on any page is clipped, shattered or pushed out of its panel; nothing a person reads is below the floor the sheet states; every control is big enough to hit; every length and every colour in the product is a named token, including the ones the sheet itself had been choosing by eye; an empty panel reads as composed rather than unfinished; and a stopped run says why once, in a sentence, rather than three times in three vocabularies. Proved by sweeping the served pages rather than by reading them.",
+      "builds": [],
+      "tasks": [
+        "A row holding a sentence wraps it: the sheet stops forcing nowrap on every sub, the nine pages that were overriding it by hand use a component, and the preflight check list takes the same shape as the findings above it",
+        "Nothing a person reads is under the floor: the design's node names come off the ink reserved for placeholders and disabled controls, and a sweep over every text node on every page holds it",
+        "Every control clears the 24px a target needs, from one token, because a target is an ergonomic constant and not a typographic one",
+        "Every type size in the product is a named step: the scale gains the sizes the sheet had been choosing by eye, and nothing is left as a bare length",
+        "An empty panel is composed - a mark, a title and the next action - rather than a sentence adrift in white",
+        "A stopped run says why once: the diagnostic leads with what happened, the duplicate state line goes, and a row carries one pill the way the sheet says"
+      ],
+      "exit": [
+        "No element on any served page is clipped horizontally without an ellipsis, and nothing lies outside the panel that paints it",
+        "Every text node on every page clears 4.5:1, or 3:1 where it is large, measured against what is actually painted behind it",
+        "Every control that is not an inline link is at least 24px in its smaller dimension at the smallest root the fluid scale reaches",
+        "No font-size anywhere in the product is a bare length except the one fluid root, and every colour is a token"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p173 -q",
+        "python -m uv run pytest tests/p142 tests/p145 tests/p149 tests/p170 tests/p171 tests/p172 -q",
+        "python -m uv run pytest tests/checkpoints/c49 tests/checkpoints/c79 tests/checkpoints/c82 tests/checkpoints/c97 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-07"
     }
   ],
   "checkpoints": [
@@ -6050,6 +6080,17 @@
         "python -m uv run pytest tests/checkpoints/c97 -q"
       ],
       "closed": "2026-10-06"
+    },
+    {
+      "id": "C98",
+      "title": "As the browser gets it",
+      "after": "P173",
+      "status": "done",
+      "proves": "Every token any served page names is declared in what that page is served, no served stylesheet carries a type size that is not a named step and no served element carries a bare pixel length or a size of its own, the target minimum reaches every control on all four pages with the rule that restores [hidden] served after the display that outranks it, the ink reserved for placeholders is served only on a placeholder a disabled control and a marker, the four pages are served the same heading size target size and inks, and a row that holds a sentence is served one that wraps with no page overriding it by hand.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c98 -q"
+      ],
+      "closed": "2026-10-07"
     }
   ]
 }

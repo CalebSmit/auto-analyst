@@ -138,9 +138,20 @@ def test_the_run_and_its_list_have_more_of_the_screen_than_the_map() -> None:
 
 
 def test_the_steps_table_reads_down() -> None:
-    """A step and the skill that ran it on one line, so seven steps are seven lines."""
+    """A step and the skill that ran it on one line, so seven steps are seven lines.
+
+    Asked as *are they one label* rather than as the one spelling of it. P173 moved the
+    size and the gap off the element and onto `.step-id`, which is the same row rendered
+    the same way, and the literal version of this went red on it.
+    """
     body = scripts(ACTIVITY)
-    assert 'esc(x.step_id)}</b>\n      <span class="sub" style="margin-left:.45rem"' in body
+    at = body.index("${esc(x.step_id)}")
+    row = body[at:]
+    row = row[: row.index("</span>", row.index("x.skill"))]
+    assert "step-id" in body[at - 120 : at], "the step row no longer names the component"
+    assert '<span class="sub">' in row, "the skill is no longer beside the step"
+    assert "</b>" in row[: row.index("x.skill")], "the id and the skill are no longer one label"
+    assert "step-id" in CSS, "the sheet does not put them on one line"
 
 
 @pytest.mark.parametrize("page", ["analytics"])

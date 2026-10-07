@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-10-06.*
+*Last written 2026-10-07.*
 
 ## Where the build is
 
-- **172 of 172 phases closed**
-- Last green checkpoint: **C97**
+- **173 of 173 phases closed**
+- Last green checkpoint: **C98**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -191,4 +191,5 @@
 - **P170** The number in the corner (2026-10-06)
 - **P171** A dashboard with some life in it (2026-10-06)
 - **P172** The white space, the reason, and the word you do not know (2026-10-06)
+- **P173** Every box, every target, every name (2026-10-07)
 

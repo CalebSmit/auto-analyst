@@ -564,9 +564,9 @@ function roster() {{
   if (n) n.textContent = rows.length ? String(rows.length) : '';
   $('roster').innerHTML = rows.length ? rows.map(r => `<div class="r engagement">
      <span class="lbl"><b>${{esc(r.client || r.engagement_id)}}</b><br>
-      <span class="sub" style="white-space:normal">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>
-      ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}
-      ${{r.is_repeat && !r.prior_model ? `<span class="why-line"><a href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" style="color:var(--warn)" title="A repeat client's work starts from last year's workbook. Until this is set there is nothing to roll forward from.">last year&rsquo;s model: not set</a></span>` : ''}}</span>
+      <span class="sub line">${{esc(r.engagement_id)}} &middot; ${{esc(r.scope_path)}} &middot; ${{r.recipe ? esc(r.recipe) : 'default workflow'}}</span>
+      ${{(r.profile_gaps || []).length ? `<span class="why-line"><a href="#profile=${{esc(r.engagement_id)}}" data-act="editProfile" data-id="${{esc(r.engagement_id)}}" class="wants-a-person" title="${{esc(r.profile_gaps.join('; '))}}">profile: ${{esc(r.profile_gaps.length === 1 ? r.profile_gaps[0] : r.profile_gaps.length + ' things missing')}}</a></span>` : ''}}
+      ${{r.is_repeat && !r.prior_model ? `<span class="why-line"><a href="#settings=${{esc(r.engagement_id)}}" data-act="settings" data-id="${{esc(r.engagement_id)}}" class="wants-a-person" title="A repeat client's work starts from last year's workbook. Until this is set there is nothing to roll forward from.">last year&rsquo;s model: not set</a></span>` : ''}}</span>
      <span class="pill ${{r.state === 'active' ? 'good' : ''}}"><i class="dot" aria-hidden="true"></i>${{esc(r.state)}}</span>
      <span class="acts">
       <a class="btn quiet" href="#files=${{esc(r.engagement_id)}}" data-act="showFiles" data-id="${{esc(r.engagement_id)}}" title="Where this engagement's files go, what is there, and adding more">files</a>
@@ -620,9 +620,17 @@ async function preflight() {{
           <span class="pill ${{f.severity === 'fail' ? 'bad' : 'warn'}}">${{f.severity === 'fail' ? 'blocks' : 'warning'}}</span>
          </div>`).join('')
       : '<div class="empty"><b>Nothing is in the way</b>Every check passed against the live configuration.</div>') +
+    /* The same shape as the findings above it: what the check is, what it says underneath,
+       and one pill on the right. It used to put the detail *beside* the label in a `.sub`,
+       which the sheet held to one line - and a check's detail is a sentence. The model
+       adapter's runs to about a thousand pixels, so it took the row with it, crushed the
+       label to one word a line eleven lines tall, and pushed this pill six hundred and
+       thirty pixels past a panel that clips its own overflow. The one check that tells a
+       new machine its model is a replay adapter showed no status at all. */
     `<details><summary>All ${{p.checks.length}} checks</summary>` +
-    p.checks.map(c => `<div class="r"><span class="lbl">${{esc(c.label)}}</span>
-       <span class="sub">${{esc(c.detail)}}</span>
+    p.checks.map(c => `<div class="r">
+       <span class="lbl"><b>${{esc(c.label)}}</b>
+        <span class="d">${{esc(c.detail)}}</span></span>
        <span class="pill ${{c.status === 'pass' ? 'good' : c.status === 'warn' ? 'warn' : 'bad'}}">${{esc(c.status)}}</span></div>`).join('') +
     '</details>';
 }}

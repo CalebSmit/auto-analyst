@@ -78,9 +78,32 @@ CSS = r"""
  --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem; --s5:1.25rem; --s6:1.75rem; --s7:2.5rem;
 
  /* Type. Set from the ratio rather than chosen per element: a display size that can
-    carry a page, two title sizes, one body, and two quiet ones under it. */
- --t-display:1.75rem; --t-title:1.12rem; --t-subtitle:1rem;
+    carry a page, two title sizes, one body, and two quiet ones under it.
+
+    `--t-title` was declared here and worn by nothing, while three headings a few
+    millimetres apart each chose their own - a panel's at 1.24rem, a dialog's at 1.32, the
+    wordmark at 1.3. That is a scale with a dead step in it and three live sizes outside
+    it, which is the same thing as having no scale. It is one size now and all three wear
+    it; the largest move any of them made was 0.08rem, which at this root is half a pixel.
+
+    `--t-figure` is the one size off the text ratio, and deliberately: the hero band's
+    figures are the subject of a page rather than text on it, and a number that has to read
+    as an instrument does not sit on a scale built for sentences.
+
+    `--t-mono-ratio` is not a size at all. It is what `.mono` multiplies whatever it is
+    inside by, because a monospace face set at the same nominal size as the sans beside it
+    reads a step larger. */
+ --t-display:1.75rem; --t-title:1.28rem; --t-subtitle:1rem;
  --t-body:.95rem; --t-sm:.86rem; --t-xs:.79rem; --t-label:.68rem;
+ --t-figure:2.25rem; --t-mono-ratio:.86em;
+
+ /* How small a thing you have to hit may be. One of the three places this sheet writes a
+    length in pixels, and for the same kind of reason as a hairline: a target is an
+    ergonomic constant, not a typographic one. 24px is 24px on a 13-inch laptop and on a
+    27-inch monitor, and a target that scaled with the type would be *smallest* on the
+    machine with the smallest type - which is the laptop, where the pointing device is a
+    trackpad. Seventeen controls on the Setup page measured 20px before this existed. */
+ --hit:24px;
 
  /* Ground and surfaces: warm paper, white panels on it. */
  --bg:#f2f1ea;
@@ -150,7 +173,7 @@ body{font:var(--t-body)/1.5 var(--sans);margin:0;min-height:100%;
 a{color:var(--link);text-decoration:none}
 a:hover{text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
 b,strong{font-weight:600}
-.mono{font-family:var(--mono);font-size:.86em;letter-spacing:-.01em}
+.mono{font-family:var(--mono);font-size:var(--t-mono-ratio);letter-spacing:-.01em}
 /* One focus ring for the whole tool, and only for the keyboard. It is named rather than
    written in, because the ground it lands on is not all one colour: the accent measures
    4.33 to 4.94 on the four papers and 2.40 on the chrome, and the chrome is where a
@@ -192,14 +215,14 @@ b,strong{font-weight:600}
  max-width:1900px;margin:0 auto;width:100%}
 .brand{display:flex;align-items:baseline;gap:.6rem;margin-right:var(--s4);
  padding-right:var(--s4);border-right:1px solid rgba(255,255,255,.12)}
-.brand b{font:400 1.3rem/1 var(--serif);letter-spacing:-.012em;color:#fff;
+.brand b{font:400 var(--t-title)/1 var(--serif);letter-spacing:-.012em;color:#fff;
  text-shadow:0 1px 0 rgba(0,0,0,.18)}
-.brand span{font-size:.64rem;color:color-mix(in srgb,var(--brand-p3) 80%,white);
+.brand span{font-size:var(--t-label);color:color-mix(in srgb,var(--brand-p3) 80%,white);
  letter-spacing:.22em;text-transform:uppercase;font-weight:600}
 .nav{display:flex;gap:.1rem;align-self:stretch}
 .nav a{display:flex;align-items:center;gap:.45rem;padding:0 .85rem;position:relative;
  color:color-mix(in srgb,var(--brand-s5) 72%,var(--brand-p3));
- font-size:.92rem;letter-spacing:.005em;transition:color .15s var(--ease)}
+ font-size:var(--t-body);letter-spacing:.005em;transition:color .15s var(--ease)}
 .nav a::after{content:"";position:absolute;left:.85rem;right:.85rem;bottom:0;height:2px;
  background:var(--gold);border-radius:2px 2px 0 0;opacity:0;transform:scaleX(.6);
  transform-origin:center;transition:opacity .18s var(--ease),transform .18s var(--ease)}
@@ -265,7 +288,7 @@ b,strong{font-weight:600}
 .board>.card:nth-child(5){--i:4}.board>.card:nth-child(6){--i:5}.board>.card:nth-child(7){--i:6}
 .board>.card:nth-child(8){--i:7}.board>.card:nth-child(n+9){--i:8}
 .card>header{flex:none;padding:var(--s4) var(--s5) .6rem}
-.card h2{font:400 1.24rem/1.25 var(--serif);margin:0;color:var(--navy);letter-spacing:-.016em}
+.card h2{font:400 var(--t-title)/1.25 var(--serif);margin:0;color:var(--navy);letter-spacing:-.016em}
 .card h2 small{font:400 var(--t-xs) var(--sans);color:var(--ink-3);margin-left:.5rem;letter-spacing:0}
 .card h2 .of{font:600 var(--t-label)/1 var(--sans);letter-spacing:.1em;color:var(--ink-3);
  margin-left:.55rem;vertical-align:.12em;font-variant-numeric:tabular-nums}
@@ -328,10 +351,10 @@ b,strong{font-weight:600}
 .metric.bad::after{background:linear-gradient(90deg,var(--bad),color-mix(in srgb,var(--bad) 15%,transparent))}
 .metric .k{font-size:var(--t-label);letter-spacing:.14em;text-transform:uppercase;
  color:var(--ink-3);display:block;margin-bottom:.45rem;font-weight:600}
-.metric .v{font-size:2.25rem;font-weight:600;letter-spacing:-.035em;line-height:1;
+.metric .v{font-size:var(--t-figure);font-weight:600;letter-spacing:-.035em;line-height:1;
  display:block;color:var(--navy);font-variant-numeric:lining-nums tabular-nums;
  animation:rise .6s var(--ease) both}
-.metric .v small{font-size:.9rem;font-weight:500;color:var(--ink-3);letter-spacing:0;margin-left:.15rem}
+.metric .v small{font-size:var(--t-sm);font-weight:500;color:var(--ink-3);letter-spacing:0;margin-left:.15rem}
 .metric .c{display:block;margin-top:.45rem;font-size:var(--t-xs);color:var(--ink-3);line-height:1.45}
 .metric.good .v{color:var(--good)}.metric.warn .v{color:var(--warn)}.metric.bad .v{color:var(--bad)}
 /* The figures a page is about, set on the chrome's own navy so the first thing seen is the
@@ -366,11 +389,33 @@ b,strong{font-weight:600}
  text-transform:uppercase;font-weight:600}
 .of-n{color:var(--ink-3);font-weight:400;font-size:var(--t-xs);margin-left:.35rem;
  font-variant-numeric:tabular-nums}
-.r .sub{color:var(--ink-3);font-size:var(--t-xs);white-space:nowrap}
+/* A sub wraps. It held `white-space:nowrap` from the day it was written, because the first
+   thing it ever carried was a timestamp - and a timestamp that breaks across two lines is
+   a mess. Every later use was a sentence.
+
+   What that cost, found by sweeping the served pages rather than by reading them: on the
+   Setup page's **All sixteen checks** list, the row for the model adapter carries a
+   sentence of about a thousand pixels. It would not wrap, so it took the row with it; the
+   label beside it, which is `flex:1;min-width:0` and *will* shrink, was crushed to one word
+   a line and ran eleven lines tall; and the check's own status pill was pushed six hundred
+   and thirty pixels past the panel, which clips its own overflow - so the one check that
+   tells a new machine its model is a replay adapter showed no status at all.
+
+   Nine places had already worked around it with `white-space:normal` written on the
+   element. Nine hand-written overrides of one declaration is the declaration being wrong,
+   so the default is the safe one now and the two uses that genuinely must not break say so:
+   `.sub.keep` for a figure or a timestamp read as one token, and the group header's own
+   right-aligned meta, which has its own rule below. */
+.r .sub{color:var(--ink-3);font-size:var(--t-xs);overflow-wrap:anywhere}
+.r .sub.keep{white-space:nowrap;overflow-wrap:normal}
+/* A sub that is its own line under the label rather than a word beside it. This is what
+   the nine inline overrides were spelling out by hand, in two files, one element at a
+   time. */
+.r .sub.line{display:block}
 /* The id line under a row: an engagement, a scope and a run id, which is read and
    copied. It was set in the decorative grey at 2.86:1 - under the floor this sheet
    states for itself, and in the token it says nothing a person has to read uses. */
-.r .sub.mono{font-size:.74rem;letter-spacing:0;color:var(--ink-3)}
+.r .sub.mono{font-size:var(--t-xs);letter-spacing:0;color:var(--ink-3)}
 .r .d{display:block;color:var(--ink-3);font-size:var(--t-xs);margin-top:.15rem;
  white-space:normal;line-height:1.45}
 .r.head{padding-bottom:.4rem;border-bottom:1px solid var(--line)}
@@ -434,9 +479,21 @@ b,strong{font-weight:600}
    and the engagement row's `files` and `settings` are exactly that. Half the rules below
    named only `button`, so an anchor got the base style and none of the modifiers: a quiet
    link rendered as a solid button beside the quiet buttons it sits with. */
+/* Every control clears `--hit` in both directions, and it is set on the base rather than on
+   the variants so a new variant cannot be born too small. `inline-flex` is what makes a
+   minimum height mean something: a minimum on an inline-block leaves the label sitting at
+   the top of the extra space, and the whole point is that the label stays in the middle of
+   the thing you are aiming at.
+
+   Measured before this existed: the five actions on an engagement row - files, settings,
+   workflow, profile, retire - were 20px tall on a laptop and sit a few pixels apart, so
+   neither the size exception nor the spacing one applied to any of them. Seventeen controls
+   on the Setup page were under the bar; none is now. */
 button,.btn{font:600 var(--t-sm)/1 var(--sans);background:var(--surface);color:var(--navy);
  border:1px solid var(--line-strong);border-radius:var(--radius-sm);
  padding:.5rem .85rem;cursor:pointer;letter-spacing:.005em;
+ display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+ min-height:var(--hit);min-width:var(--hit);
  box-shadow:0 1px 1px rgba(12,46,63,.04);
  transition:background .16s var(--ease),border-color .16s var(--ease),
   box-shadow .16s var(--ease),transform .12s var(--ease)}
@@ -458,6 +515,11 @@ button.quiet:hover,.btn.quiet:hover{color:var(--navy);background:var(--accent-so
 button.ghost,.btn.ghost{background:transparent;color:var(--ink-2);box-shadow:none}
 button.ghost:hover,.btn.ghost:hover{background:var(--surface-2);color:var(--navy)}
 button.small,.btn.small{padding:.32rem .6rem;font-size:var(--t-xs)}
+/* `[hidden]` is a `display:none` the user-agent sheet makes, and the `display:inline-flex`
+   above outranks it - so the moment a control got a display of its own, every button the
+   pages hide by attribute came back. Three of them: the runs filter's Clear, its Needs a
+   person, and the Setup page's reveal. Found by looking at the board after the change. */
+button[hidden],.btn[hidden]{display:none}
 button:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}
 button:disabled:hover{background:var(--surface);border-color:var(--line-strong)}
 input,textarea,select{font:var(--t-body) var(--sans);background:var(--surface);color:var(--ink);
@@ -478,8 +540,24 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 
 /* ---------------------------------------------------------------- states */
 .card .body:has(>.empty:only-child){display:flex;align-items:center;justify-content:center}
+/* An empty panel is composed rather than vacant.
+
+   Six panels across the three boards are empty on a quiet machine - nothing raised, nobody
+   waiting, nothing stuck - and each was a sentence of small grey text adrift in three
+   hundred pixels of white. That reads as a page that has not finished loading, which is the
+   one thing a tool wants never to look like; and it reads that way most on the morning when
+   the honest answer is that everything is fine.
+
+   What it gets is a mark: a ring in the quiet ink with a dot at the centre of it, the same
+   two shapes the pills already use, drawn once and sized on the scale. The mark is the
+   whole of the addition - no colour, no illustration - because the state it is announcing
+   is *nothing*, and anything louder would make an idle panel the brightest thing on the
+   board. */
 .empty{padding:var(--s6) var(--s4);text-align:center;color:var(--ink-3);font-size:var(--t-xs);
  line-height:1.55;max-width:44ch;margin:0 auto}
+.empty::before{content:"";display:block;width:var(--s6);height:var(--s6);margin:0 auto var(--s3);
+ border-radius:99px;box-shadow:inset 0 0 0 1px var(--line);
+ background:radial-gradient(circle at 50% 50%,var(--line) 0 2px,transparent 2px)}
 /* The title, which is the first thing in every empty state and nothing else. It used to
    be every `b` inside one, and the Activity console's "here is how one starts" puts a `b`
    mid-sentence to name a control - so "files" and "Waiting on a person" rendered as
@@ -492,6 +570,50 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 .note{font-size:var(--t-xs);color:var(--ink-3);margin-top:var(--s3);line-height:1.5}
 /* A note that follows straight on from what it is about, rather than closing a section. */
 .note.tight{margin-top:0}
+
+/* A measure: a row of labels and figures with a bar under it, and a rule under that.
+
+   Three panels on the Analytics board draw exactly this - a stage of the funnel, a week of
+   outcomes, a class of failure - and each was spelling it out on the element in hand-picked
+   pixels: `padding:9px 0`, `padding:0 0 7px`, `margin:0 0 8px`, `padding:8px 0`. Eight of
+   them, on a page whose root is fluid, which is the defect P81 wrote down: a length in
+   pixels does not follow the type, so every one of these got *proportionally smaller* on
+   the bigger monitor it had more room on. They are one component and three steps of the
+   spacing scale now. */
+.measure{padding:var(--s2) 0;border-bottom:1px solid var(--line-soft)}
+.measure:last-child{border-bottom:0}
+.measure>.r{border-bottom:0;padding:0 0 var(--s2)}
+/* Folded, for a measure that carries an explanation under it. The summary's own marker
+   takes the width the row gives back, so the row is inline rather than block. */
+.measure>summary{padding:0}
+.measure>summary>.r{display:inline-flex;width:calc(100% - 1.6rem);padding:var(--s2) 0}
+.measure>.bar{margin:0 0 var(--s2)}
+.measure>.note{margin:0 0 var(--s3)}
+/* A figure in a column, in one of the three colours that carry meaning. The Outcomes table
+   was setting these on the element, which is a colour decided in a page. */
+.r .num.good{color:var(--good)}
+.r .num.warn{color:var(--warn)}
+.r .num.bad{color:var(--bad)}
+
+/* The formula audit's answer, under the deliverable it is about. It sits outside a `.r`, so
+   it names the quiet size itself rather than inheriting one. */
+.audit{font-size:var(--t-xs);color:var(--ink-3);line-height:1.5;
+ padding:var(--s1) 0 var(--s3) var(--s1)}
+.audit .pill{margin-top:var(--s1)}
+.audit .found{margin:var(--s1) 0 0 var(--s1)}
+
+/* A step of the plan, and the skill that ran it, on one line: the id is the subject and the
+   skill is its qualifier, so they sit at two weights rather than two blocks. The page was
+   writing both the size and the gap on the elements. */
+.r .lbl.step-id>b{font-size:var(--t-sm)}
+.r .lbl.step-id>.sub{margin-left:var(--s2)}
+
+/* Why a guard refused, listed under it. */
+.reasons{margin:var(--s1) 0 var(--s3) var(--s5);padding:0;font-size:var(--t-sm);color:var(--ink-2)}
+/* The one sentence a run gives for the state it is in, when it is short enough to read
+   whole. Both of these were set on the element, and both set a type size there - which is
+   the one thing this sheet says a page may never do. */
+.said{margin:0 0 var(--s2);font-size:var(--t-body);color:var(--navy);font-weight:600}
 .skel{height:.7rem;border-radius:3px;background:linear-gradient(90deg,var(--surface-2),var(--surface-sunken),var(--surface-2));
  background-size:200% 100%;animation:sh 1.4s ease-in-out infinite;margin:.6rem 0}
 @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -571,7 +693,7 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 .modal>.card{width:min(56rem,100%);max-height:100%;box-shadow:var(--shadow-modal);
  animation:rise .22s var(--ease)}
 .modal>.card>header{padding:var(--s5) var(--s6) .7rem}
-.modal>.card h2{font-size:1.32rem;line-height:1.25}
+.modal>.card h2{font-size:var(--t-title);line-height:1.25}
 .modal>.card .body{padding:var(--s2) var(--s6) var(--s4)}
 .modal>.card .foot{padding:var(--s3) var(--s6)}
 @keyframes rise{from{opacity:0;transform:translateY(8px) scale(.995)}to{opacity:1;transform:none}}
@@ -652,6 +774,11 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 /* ---------------------------------------------------------------- lists that are work */
 .r .why-line{display:block;font-size:var(--t-xs);color:var(--ink-3);margin-top:.2rem;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34rem}
+/* A why-line that is a link is the only way to reach the thing it is complaining about -
+   "profile: 3 things missing" opens the profile - so it is a control and clears `--hit`.
+   It is not an inline link in a sentence; it is the whole line, which is the case the
+   target-size exception does not cover. It measured 13px. */
+.r .why-line a{display:inline-flex;align-items:center;min-height:var(--hit)}
 .count{display:inline-grid;place-items:center;min-width:1.4rem;height:1.4rem;padding:0 .4rem;
  border-radius:99px;font-size:var(--t-xs);font-weight:700;background:var(--gold);color:var(--navy);
  box-shadow:0 1px 2px rgba(12,46,63,.16)}
@@ -679,9 +806,15 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 /* A figure nobody has measured yet, where a figure would be. Quieter than a real
    one and still legible, because it is the answer rather than a stand-in for one. */
 .not-measured{color:var(--ink-3)}
-.chip{color:var(--gold);cursor:pointer;border-bottom:1px dotted currentColor;
- padding-bottom:1px;transition:color .15s var(--ease)}
-.chip:hover,.chip:focus-visible{color:var(--navy);border-bottom-style:solid}
+/* It is the one live control in the chrome - "2 need a person", and pressing it shows those
+   two - so it clears `--hit` like any other. It was 17px tall, which is the smallest target
+   in the product carrying the most important thing on the page. The rule is drawn under the
+   word rather than around the box, so the extra height is reach rather than decoration. */
+.chip{color:var(--gold);cursor:pointer;transition:color .15s var(--ease);
+ display:inline-flex;align-items:center;min-height:var(--hit)}
+.chip>span{border-bottom:1px dotted currentColor;padding-bottom:1px}
+.chip:hover,.chip:focus-visible{color:var(--navy)}
+.chip:hover>span,.chip:focus-visible>span{border-bottom-style:solid}
 .chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:2px}
 .toggle{display:inline-flex;align-items:center;gap:.4rem;font-size:var(--t-xs);color:var(--ink-3);
  cursor:pointer;user-select:none;text-transform:none;letter-spacing:0;margin:0;font-weight:400}
@@ -701,10 +834,19 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 @keyframes arrive{from{opacity:0;transform:translateY(-.3rem);background:var(--accent-soft)}
  to{opacity:1;transform:none;background:transparent}}
 .grp{margin:0 0 var(--s2)}
-.grp-head{display:flex;align-items:baseline;gap:var(--s2);padding:.3rem .2rem .2rem;
- border-bottom:1px solid var(--line)}
-.grp-head b{font-size:var(--t-sm);color:var(--navy)}
-.grp-head .sub{margin-left:auto;text-align:right;white-space:nowrap}
+/* The client's name, what they are, and how their work stands - on one line where there is
+   room and on two where there is not.
+
+   It was one line that could not wrap, so the three items competed for a column 285px wide
+   and the one that lost was the name: `Brightwater Fabrication LLC` was squeezed to 55px
+   and set three lines tall, one word each, while the scope and the counts beside it kept
+   their full width. The name is the reason anybody is reading the row. It takes what it
+   needs and ellipses if even that is too much; the meta wraps under it instead. */
+.grp-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.1rem var(--s2);
+ padding:.3rem .2rem .2rem;border-bottom:1px solid var(--line)}
+.grp-head b{font-size:var(--t-sm);color:var(--navy);flex:0 0 auto;max-width:100%;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grp-head .sub{margin-left:auto;text-align:right;white-space:nowrap;flex:0 1 auto}
 .grp-runs{padding-left:var(--s2)}
 
 /* ---------------------------------------------------------------- steps */
@@ -778,11 +920,21 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
  padding-bottom:.35rem;border-bottom:1px solid var(--line-soft)}
 .map-group{break-inside:avoid}
 .map{display:flex;flex-wrap:wrap;gap:.15rem .45rem}
+/* A node the run never reached is named rather than drawn - no chip, no border - and that
+   is what distinguishes it, not how faint its name is.
+
+   It was set in `--ink-4`, which measures 2.86:1 on the panel's white and which this sheet
+   reserves in its own words for "a placeholder, a disabled control or a node no run
+   reached". The third of those was wrong, and it was the one with ninety-eight instances:
+   the whole purpose of this panel is reading which parts of the design a run went through,
+   so every name in it is text a person has to read. The distinction survives the change
+   intact, because it was never carried by the ink - `used`, `passed`, `failed` and `active`
+   each have a wash and a hairline, and an unreached node has neither. */
 .node{display:inline-flex;align-items:center;gap:.35rem;padding:.12rem .3rem;
  border-radius:var(--radius-xs);font-size:var(--t-xs);line-height:1.4;
- background:transparent;color:var(--ink-4);box-shadow:none;
+ background:transparent;color:var(--ink-3);box-shadow:none;
  cursor:default;transition:background .16s var(--ease),color .16s var(--ease)}
-.node .id{font-family:var(--mono);font-size:.74rem}
+.node .id{font-family:var(--mono);font-size:var(--t-xs)}
 .node[title]{cursor:help}
 .node.used{color:var(--ink-2);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line-soft);
  padding:.12rem .4rem}
@@ -810,8 +962,16 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 .diag{margin-top:var(--s3)}
 .diag .d-row{padding:.55rem .85rem;border-radius:0 var(--radius-sm) var(--radius-sm) 0;
  background:var(--surface-2);box-shadow:inset 3px 0 0 var(--bad);margin-bottom:.45rem}
-.diag .d-row .code{font-family:var(--mono);font-size:var(--t-xs);color:var(--bad);font-weight:600}
-.diag .d-row .msg{display:block;margin-top:.2rem;color:var(--ink-2);font-size:var(--t-sm);line-height:1.5}
+/* What happened, first, in the words the run recorded - and the codes under it, because a
+   code is what you quote once the sentence has not been enough.
+
+   It was the other way round: two internal identifiers, `step_executor` and
+   `step.quarantined`, set in plum and bold above the one line that said anything a person
+   could act on. The plum rule down the left is what marks this as a diagnostic; the
+   heading did not need to carry it as well. */
+.diag .d-row .msg{display:block;color:var(--ink);font-size:var(--t-sm);line-height:1.5}
+.diag .d-row .code{display:block;margin-top:var(--s1);font-family:var(--mono);
+ font-size:var(--t-xs);color:var(--ink-3)}
 
 details>summary{cursor:pointer;color:var(--ink-3);font-size:var(--t-sm);list-style:none;
  padding:.3rem 0;user-select:none;transition:color .16s var(--ease)}

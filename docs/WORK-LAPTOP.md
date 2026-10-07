@@ -51,7 +51,8 @@ AA_OCR_ADAPTER=rapidocr          # a wheel, no administrator needed
 AA_VAULT_KEY=...                 # start.ps1 generates one; the pool will not start without it
 ```
 
-Without the first two, **preflight warns at the sixteenth check** - `model_answers` - and
+Without the first two, **preflight warns on the `model_answers` check** - *the model adapter
+answers from a model, and its key is present*, third in the list of sixteen - and
 fails it outright once an answering adapter is named without its key. That is deliberate: before P168 a machine on the fake adapter set up an engagement,
 passed preflight, launched a run and failed at its first skill step with a sentence written
 for a developer. Without `AA_OCR_ADAPTER`, every scanned PDF reads as nothing and is

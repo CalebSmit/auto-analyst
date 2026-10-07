@@ -3198,3 +3198,20 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C97 after P172, covering P172
 - proves: Every board the server serves lays out in bands with no panel in two of them, every panel it serves is capped or is fed by a list this build fixes and the panel bound is still one number, the run detail the page draws finds a stopped run's reason by the same step_id the trace reducer puts on a diagnostic, the slash key reaches a find box on every surface that has one and does nothing on the one that has not, and registering an engagement over HTTP makes the folder the files dialog then prints.
+
+## 2026-10-07 - P173 Every box, every target, every name
+
+**Why:** A sweep of every text node, control and box on the four pages at 1366 and 1900 found what reading them could not. One row on the Setup page breaks apart - the label falls to one word a line, the sentence beside it never wraps, and the check's own status is pushed six hundred pixels outside the panel that clips it. Ninety-eight node names a person reads sit at 2.86:1, under the floor this sheet states for itself. Seventeen controls are under the 24px a target needs. And the sheet that says nothing is off its two scales has ten sizes of its own that are.
+
+- phase added: P173 Every box, every target, every name (Reading what a client actually sends, gate: auto)
+- exit criterion: No element on any served page is clipped horizontally without an ellipsis, and nothing lies outside the panel that paints it
+- exit criterion: Every text node on every page clears 4.5:1, or 3:1 where it is large, measured against what is actually painted behind it
+- exit criterion: Every control that is not an inline link is at least 24px in its smaller dimension at the smallest root the fluid scale reaches
+- exit criterion: No font-size anywhere in the product is a bare length except the one fluid root, and every colour is a token
+
+## 2026-10-07 - C98 As the browser gets it
+
+**Why:** P173 renamed ten type sizes, added a target minimum, moved twelve hand-picked values off the pages and changed what a row does with a sentence - and every one of those was proved against the string a module holds. A stylesheet is only true of the page it is served with, and three of the changes fail silently rather than loudly: a token the sheet stops declaring renders as nothing, two rules whose order decides the answer cannot be ordered by a substring test, and the Activity console is served two stylesheets so a question asked of one is half an answer.
+
+- checkpoint added: C98 after P173, covering P173
+- proves: Every token any served page names is declared in what that page is served, no served stylesheet carries a type size that is not a named step and no served element carries a bare pixel length or a size of its own, the target minimum reaches every control on all four pages with the rule that restores [hidden] served after the display that outranks it, the ink reserved for placeholders is served only on a placeholder a disabled control and a marker, the four pages are served the same heading size target size and inks, and a row that holds a sentence is served one that wraps with no page overriding it by hand.

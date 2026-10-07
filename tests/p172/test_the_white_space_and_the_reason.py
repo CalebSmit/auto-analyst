@@ -189,12 +189,18 @@ def test_a_diagnostic_is_drawn_by_one_renderer_and_filtered_by_its_caller() -> N
 
 
 def test_the_run_detail_actually_calls_it() -> None:
-    """The defect this build is named for: built, and wired to nothing."""
+    """The defect this build is named for: built, and wired to nothing.
+
+    Asked as *is it called, and does what it returns land above the figures* rather than as
+    the one spelling `${whyItStopped(run)}`. P173 made the call part of a choice - when a run
+    recorded a diagnostic that is the reason, and the state reason is only the fallback - and
+    the literal version of this went red on a change that kept every part of its claim.
+    """
     js = script(ACTIVITY)
     card = js[js.index("$('card').innerHTML =") :]
     card = card[: card.index("actions(row.run_id")]
-    assert "${whyItStopped(run)}" in card
-    assert card.index("whyItStopped") < card.index("<dl class=\"kv\""), (
+    assert "whyItStopped(run)" in card, "the run detail no longer asks why it stopped"
+    assert card.index("whyItStopped") < card.index('<dl class="kv"'), (
         "the reason a run stopped belongs above when it started and what it cost"
     )
 
