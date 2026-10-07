@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **173 of 173 phases closed**
-- Last green checkpoint: **C98**
+- **174 of 174 phases closed**
+- Last green checkpoint: **C99**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -192,4 +192,5 @@
 - **P171** A dashboard with some life in it (2026-10-06)
 - **P172** The white space, the reason, and the word you do not know (2026-10-06)
 - **P173** Every box, every target, every name (2026-10-07)
+- **P174** The first thing a new machine says (2026-10-07)
 

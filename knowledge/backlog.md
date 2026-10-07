@@ -3618,3 +3618,141 @@ folder on this machine, with the same containment check a file gets, and recorde
 person and the reason like everything else this console does. A folder already there is left
 exactly as it is and nothing is recorded - which is the ordinary case on a repeat client, where
 last year's folder has last year's files in it.
+
+## B-170 A row holding a sentence shattered the row it was in
+status: fixed (P173)
+2026-10-07. Found by sweeping every element the four pages paint rather than by reading
+them. `.r .sub` held `white-space:nowrap` from the day the first thing in it was a
+timestamp; every later use was a sentence. On the Setup page's *All sixteen checks* list the
+model-adapter check's detail is about a thousand pixels long, so it took the row with it:
+the label beside it is `flex:1;min-width:0` and *will* shrink, so it was crushed to one word
+a line and ran eleven lines tall, and the check's own status pill was pushed 630px past a
+panel that clips its own overflow. **The one check that tells a new machine its model is a
+replay adapter showed no status at all.**
+
+Nine places in two files had already worked around that `nowrap` with `white-space:normal`
+written on the element, which is the declaration being wrong rather than nine pages being
+unlucky. The default wraps now, the nine overrides are a component (`.sub.line`), and the
+check list takes the same shape as the findings above it - what it is in bold, what it says
+underneath, one pill on the right.
+
+## B-171 Ninety-eight names a person reads sat under the contrast floor
+status: fixed (P173)
+2026-10-07. The Run trace panel draws every node of the design, and the ones a run never
+reached were set in `--ink-4` - 2.86:1 on the panel's white, against a floor of 4.5 that
+this sheet states about itself. The token is documented for "a placeholder, a disabled
+control or a node no run reached"; the third of those was wrong, and it was the one with
+ninety-eight instances. Reading which parts of the design a run went through is the whole
+purpose of the panel.
+
+The distinction survives intact because it was never carried by the ink: `used`, `passed`,
+`failed` and `active` each have a wash and a hairline, and an unreached node has neither.
+`--ink-4` keeps its three honest uses - a placeholder, the map's dimmed focus mode, and a
+disclosure marker - and `tests/p173` sweeps for a fourth.
+
+## B-172 Seventeen controls were too small to hit
+status: fixed (P173)
+2026-10-07. The five actions on an engagement row - files, settings, workflow, profile,
+retire - measured 20px tall on a laptop and sit a few pixels apart, so neither the size
+exception nor the spacing one in WCAG 2.5.8 applied to any of them. The masthead's
+`2 need a person`, which is the one live control in the chrome and carries the most
+important thing on the page, was 17px.
+
+One token, `--hit:24px`, set on the base control so a variant cannot be born too small. It
+is one of the three places this sheet writes a length in pixels, and for the same kind of
+reason as a hairline: a target is an ergonomic constant rather than a typographic one, and
+one that scaled with the type would be *smallest* on the machine with the smallest type -
+which is the laptop, where the pointing device is a trackpad.
+
+**It came with a regression, found by looking rather than by a test.** The minimum needs
+`display:inline-flex` to mean anything, and that outranks the `display:none` the
+user-agent sheet gives `[hidden]` - so three buttons the pages hide by attribute came back.
+One rule restores it, served after the one that broke it, and `tests/checkpoints/c98` holds
+the ordering because `in CSS` cannot see one.
+
+## B-173 The sheet had ten sizes off the scale it says nothing is off
+status: fixed (P173)
+2026-10-07. *Two scales, and nothing off them* was enforced on the pages and never on the
+sheet. `--t-title` was declared and worn by nothing while three headings a few millimetres
+apart each chose their own - a panel's at 1.24rem, a dialog's at 1.32, the wordmark at 1.3 -
+which is a scale with a dead step in it and three live sizes outside it. They share one step
+now; the largest move any of them made was 0.08rem, half a pixel at this root.
+
+Eight bare pixel lengths sat in the Analytics board's own markup on a page whose root is
+*fluid*, which is the defect P81 wrote down: a length in pixels does not follow the type, so
+it gets proportionally smaller on the bigger monitor it had more room on. Twelve hand-picked
+values moved onto components (`.measure`, `.audit`, `.reasons`, `.said`, `.step-id`). What is
+left off the text ratio is `--t-figure` and `--t-mono-ratio`, both named and both with the
+reason beside them.
+
+## B-174 A quarantined run said the word three times in sixty pixels
+status: fixed (P173)
+2026-10-07. The state pill said `quarantined`, the line under it said `quarantined: qc`, and
+the diagnostic under that led with `step_executor - step.quarantined` - three vocabularies
+for one fact, of which only the last named a cause, and that one was set in plum and bold
+*above* the sentence a person could act on. The pill says the state, one line says what the
+state means, and the reason is whichever of the two is the better sentence: when the run
+recorded a diagnostic for the step it stopped on, that is the better sentence by definition.
+The diagnostic leads with what happened and keeps its codes underneath, and `no verdict` -
+a note about the scorecard rather than a fact about the run - is a quiet word instead of a
+second pill on a row the sheet says carries one.
+
+## B-175 Six empty panels read as a page that had not finished loading
+status: fixed (P173)
+2026-10-07. On a quiet machine - nothing raised, nobody waiting, nothing stuck - six panels
+across the three boards were a sentence of small grey text adrift in three hundred pixels of
+white. That is the one thing a tool wants never to look like, and it looks that way most on
+the morning when the honest answer is that everything is fine. Each has a mark now: a ring
+in the quiet ink with a dot at the centre, the same two shapes the pills already use, drawn
+once and sized on the scale. No colour and no illustration, because the state being
+announced is *nothing*.
+
+## B-176 The revert harness could test an edit against the previous edit's bytecode
+status: fixed (P173, in the harness rather than the repo)
+2026-10-07. Not a product defect - a defect in how this build proves its guards, which is
+worse, because it makes both answers worthless. The memory file says to `os.utime` a file
+back after restoring it. That is necessary and not sufficient: when two breaks edit the
+*same* file and both set the mtime to `original + 1`, the second run finds a cached `.pyc`
+whose recorded source mtime already equals `original + 1` and uses it - so the second break
+is tested against the first break's bytecode.
+
+It surfaced as a guard reported `NOT PROVED` that was sound when run alone. Closed with a
+strictly increasing mtime no earlier edit can have used, plus deleting the edited module's
+cached bytecode before each run. P172's nineteen guards and C97's six were re-proved through
+the corrected harness and all twenty-five still hold.
+
+## B-177 The runbook sent a new machine to the sixteenth check for the third one
+status: fixed (P174)
+2026-10-07. Found by cloning the repository from GitHub the way a work laptop would and
+walking `docs/WORK-LAPTOP.md` line by line against it. The runbook said *preflight warns at
+the sixteenth check - `model_answers`*. There are sixteen checks and `model_answers` is the
+**third**; P168's note - "preflight gained a sixteenth check" - was about the count, and the
+runbook turned it into an ordinal. A reader looking for that warning scrolls to the bottom of
+a list of sixteen and does not find it.
+
+It names the check and quotes its label now, and `tests/p174` holds both to the registry -
+a count in prose is a count nothing checks. `tests/checkpoints/c99` asks the same of every
+command the runbook gives and every check it names, from the fenced blocks *and* from the
+prose, which is where most of them are.
+
+## B-178 The first thing a new machine printed was an exception class name
+status: fixed (P174)
+2026-10-07. `serve.py --check` is step one of the runbook and setting `AA_VAULT_KEY` is step
+two, so on a first morning there is never a key yet and the vault always fails to open. That
+printed as `the pool did not start: RegistryError: PRIVACY.VAULT_UNAVAILABLE [system] at
+AA_VAULT_KEY - ` followed by two sentences joined with a pipe, above eight green `[ok]`
+lines. The loudest thing on a correctly-working new machine was the name of a Python class.
+
+It reads as the setup step it is now, in the voice this report already used for a binding
+that would not register: what it means for the person, the command on its own lines, the
+code kept for quoting. Step 1 of the runbook says the line is coming and why.
+
+## B-179 What a rehearsal leaves behind in a clone
+status: documented (P174)
+2026-10-07. Running either rehearsal inside a clone writes `foundations/cleared.yaml` and
+`recipes/registered.yaml`, both gitignored - so afterwards the Setup page shows the
+methodology cleared and a recipe approved under the rehearsal's name rather than a person's.
+Not a defect: a rehearsal has to set a machine up to rehearse on it. But it means a clone
+that has been rehearsed in is not the first morning any more, and the runbook now says so
+and says which two files to delete to get it back. This is the same shape as B-157, which is
+how P169 was found.

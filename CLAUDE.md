@@ -446,6 +446,38 @@ its name - somebody who has read *stopped on itself* on a run types that, and th
 files dialog, `aa stage` and a Box connector are not all pointed at a directory that does
 not exist on the one day they are most likely to be used.
 
+**Sweep the page, do not read it (P173).** A script that walks every element the four pages
+paint - at 1366, 1900 and 1024 - and measures the contrast of every text node against what is
+*actually painted behind it*, every control's target size, and every box against the panel
+that clips it, found 106 things reading could not. The worst was on Setup: `.r .sub` held
+`white-space:nowrap` from the day the first thing in it was a timestamp, and a check's detail
+is a sentence - so the model-adapter row's label was crushed to one word a line eleven lines
+tall and its status pill was pushed 630px outside a panel that clips its overflow. Nine
+places had already overridden that `nowrap` by hand, which is the declaration being wrong.
+Also: 98 node names at 2.86:1 in the ink reserved for placeholders, 17 controls under the
+24px a target needs, a scale with a dead step and three headings choosing their own within
+0.08rem, eight bare pixel lengths on a page whose root is fluid, and a quarantined run saying
+the word three times in three vocabularies. All fixed; `tests/p173` asks each as a question
+about the source and `c98` asks it of what the server serves.
+
+**Two rules whose order is the answer.** The target minimum needs `display:inline-flex`, and
+that outranks the `display:none` the user-agent sheet gives `[hidden]` - so three buttons the
+pages hide came back, and that was found by looking at the board. `in CSS` cannot see an
+ordering, so the checkpoint reads the served bytes and asserts the restoring rule comes
+after. And one about the method: the revert harness could test an edit against the *previous*
+edit's bytecode, because two breaks on one file both set mtime+1 and the cache matched. A
+strictly increasing mtime and a purge of the edited module's cache close it; P172's and C97's
+guards were all re-proved through the corrected one (B-176).
+
+**Walked against its own runbook (P174).** The repository was cloned from GitHub as a work
+laptop would clone it and `docs/WORK-LAPTOP.md` was followed line by line. Two sentences were
+not true: it sent a reader to the sixteenth check for a warning that is the third of sixteen,
+and it did not mention that step one always prints a vault failure - which it must, because
+the step that sets `AA_VAULT_KEY` is step two. That failure was an exception class name above
+eight green lines; it reads as the setup step it is now. `tests/checkpoints/c99` holds every
+command the runbook gives and every check it names to the code, from the prose as well as the
+fenced blocks, because most of them are in prose.
+
 **The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
 (`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
 of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it

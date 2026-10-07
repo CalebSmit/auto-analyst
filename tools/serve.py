@@ -554,7 +554,27 @@ def _pool(
     try:
         vault = open_vault(ports.get_secrets())
     except Exception as unopened:  # noqa: BLE001 - reported, not raised
-        print(f"  the pool did not start: {unopened.__class__.__name__}: {unopened}")
+        # The diagnostic's own sentences, one to a line, rather than its whole rendering on
+        # one - the same rule the rest of this report already follows for a binding that
+        # would not register.
+        #
+        # This is the one line that matters most for how it reads, because it is the first
+        # thing a fresh clone prints. `--check` is step one of the runbook and setting
+        # `AA_VAULT_KEY` is step two, so on the first morning there is never a key yet and
+        # this always fires. It was `the pool did not start: RegistryError:
+        # PRIVACY.VAULT_UNAVAILABLE [system] at AA_VAULT_KEY - ` followed by four hundred
+        # characters of two sentences joined with a pipe, above eight green `[ok]` lines -
+        # so the loudest thing on a correctly-working new machine was an exception class
+        # name. Lead with what it means for the person, keep the code for quoting.
+        import textwrap  # noqa: PLC0415
+
+        found = getattr(unopened, "diagnostic", None)
+        said = getattr(found, "detail", None) or str(unopened)
+        print("  no run can be picked up yet - the mask vault will not open:")
+        for line in textwrap.wrap(str(said), 92):
+            print(f"    {line}")
+        if code := getattr(found, "code", None):
+            print(f"    ({code})")
         return None
 
     blobs = LocalContentStore()

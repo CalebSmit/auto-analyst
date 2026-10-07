@@ -22,6 +22,12 @@ runs it for you. On a fresh clone `--check` ends with *nothing is set up yet on 
 machine* and exits 1: that is the expected first answer, not a fault, and it turns to 0
 once the environment is initialised and preflight passes.
 
+**The first line it prints is about the vault, and it is expected.** `--check` runs before
+the step below that sets `AA_VAULT_KEY`, so on the first morning there is never a key yet and
+it says so: *no run can be picked up yet - the mask vault will not open*, with the command
+that generates a key. Everything under it still reports honestly; `start.cmd` generates the
+key for you and this line goes.
+
 `uv` has to be on PATH; `start.cmd` installs it if it is not. The `python -m uv run` prefix
 is what puts the project's dependencies on the path - every command in every document
 carries it, and `tests/p58` holds them to it. `--check` is the honest answer to "does this
@@ -32,13 +38,25 @@ plainly: the model port is `fake`, and scans read as nothing until an OCR engine
 **`start.cmd` / `tools/start.ps1 -SetupOnly` ask for the API key interactively.** Run them in
 a terminal you are sitting at; run non-interactively they wait on that prompt.
 
-**The fresh-clone rehearsal was run to the end on 2026-10-06** - clone, `uv sync`, `--check`,
-then both rehearsals against the clone's own server. It found four things, all fixed as
-P169: the rehearsals never approved a recipe (they had been riding on the register the test
-suite leaves behind on a developer's machine), preflight called a never-approved recipe
-*does not compile*, the files rehearsal said nothing launched without saying why, and the
-install step above did not produce the templates. Step 3's second item - approve a recipe -
-is the one that was missing from every automated path; it is still yours to do by hand.
+**The fresh-clone rehearsal was run to the end on 2026-10-07** - `git clone` from GitHub,
+`uv sync`, `synthesize_templates`, `--check`, then both rehearsals against the clone's own
+server, then the four consoles opened on it. Both rehearsals reported **no findings**, and
+every page swept clean. What it found was the two sentences above: the ordinal for
+`model_answers`, and the vault line nothing warned you about (P174).
+
+The run before it, on 2026-10-06, found four things, all fixed as P169: the rehearsals never
+approved a recipe (they had been riding on the register the test suite leaves behind on a
+developer's machine), preflight called a never-approved recipe *does not compile*, the files
+rehearsal said nothing launched without saying why, and the install step above did not
+produce the templates. Step 3's second item - approve a recipe - is the one that was missing
+from every automated path; it is still yours to do by hand.
+
+**One thing the rehearsal leaves behind, so it does not surprise you.** Running either
+rehearsal in the clone writes `foundations/cleared.yaml` and `recipes/registered.yaml` -
+both gitignored - so afterwards the Setup page shows the methodology already cleared and a
+recipe already approved, under the rehearsal's name rather than yours. On a clone you have
+not rehearsed in, step 3's items two and three are genuinely yours to do. Delete those two
+files to get the first morning back.
 
 ## 2. Set the two adapters a work machine needs
 

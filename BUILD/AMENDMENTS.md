@@ -3215,3 +3215,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C98 after P173, covering P173
 - proves: Every token any served page names is declared in what that page is served, no served stylesheet carries a type size that is not a named step and no served element carries a bare pixel length or a size of its own, the target minimum reaches every control on all four pages with the rule that restores [hidden] served after the display that outranks it, the ink reserved for placeholders is served only on a placeholder a disabled control and a marker, the four pages are served the same heading size target size and inks, and a row that holds a sentence is served one that wraps with no page overriding it by hand.
+
+## 2026-10-07 - P174 The first thing a new machine says
+
+**Why:** The repository was cloned from GitHub onto this machine as a work laptop would clone it, and the runbook was walked line by line. Two things it says are not what the machine does: it sends a reader to the sixteenth check for a warning that is the third of sixteen, and it does not mention that the first command prints a vault failure above everything else - which it always does on a first morning, because the step that sets the key comes after the step that runs the check. The failure itself was an exception class name and four hundred characters of two sentences joined by a pipe, printed above eight green lines.
+
+- phase added: P174 The first thing a new machine says (Reading what a client actually sends, gate: auto)
+- exit criterion: No sentence in the runbook names a preflight check by a position that the registry does not agree with
+- exit criterion: The vault failure prints the diagnostic's own sentence rather than an exception class name, and its code on a line of its own
+- exit criterion: A fresh clone reaches a served console and both rehearsals report no findings against it
+
+## 2026-10-07 - C99 Walked against its own runbook
+
+**Why:** P174 is the end of the block: the repository was cloned the way a work laptop would clone it, walked against its own runbook, and the two things that were not true are fixed. The checkpoint asks the one question the phase could not, which is whether a reader following the runbook on a machine that has nothing is sent anywhere real - the runbook, the preflight registry and the report the server prints are three files that cannot see each other.
+
+- checkpoint added: C99 after P174, covering P174
+- proves: Every preflight check the runbook names is one the registry has, at the position and under the label the runbook gives it; the report a machine with no vault key prints leads with the diagnostic's own sentence and keeps its code on a line of its own; and the runbook's first step warns about the line that first step always produces.

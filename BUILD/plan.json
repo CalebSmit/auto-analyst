@@ -5010,6 +5010,32 @@
       ],
       "notes": "",
       "closed": "2026-10-07"
+    },
+    {
+      "id": "P174",
+      "title": "The first thing a new machine says",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The first thing a new machine prints reads like the rest of the report - what it means for the person, then the command, then the code - and the runbook tells the truth about what the machine will say and about where to find the check it names. Both rehearsals are run to the end against a clone's own server on today's code, which is the only way the gitignored files a developer's machine accumulates cannot hide a clone-only failure.",
+      "builds": [],
+      "tasks": [
+        "A vault that will not open is reported as the setup step it is, in the report's own voice, with its sentences on their own lines and its code kept for quoting",
+        "The runbook names the check a reader is looking for rather than a position in a list, and says that the first command prints the vault line and why",
+        "A test holds the runbook's claims about preflight to the registry, so a check that is renamed or reordered cannot leave the runbook pointing at nothing",
+        "Both rehearsals run to the end against a fresh clone's own server, on the code this is being handed over at"
+      ],
+      "exit": [
+        "No sentence in the runbook names a preflight check by a position that the registry does not agree with",
+        "The vault failure prints the diagnostic's own sentence rather than an exception class name, and its code on a line of its own",
+        "A fresh clone reaches a served console and both rehearsals report no findings against it"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p174 -q",
+        "python -m uv run pytest tests/p58 tests/p128 tests/p171 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-07"
     }
   ],
   "checkpoints": [
@@ -6089,6 +6115,17 @@
       "proves": "Every token any served page names is declared in what that page is served, no served stylesheet carries a type size that is not a named step and no served element carries a bare pixel length or a size of its own, the target minimum reaches every control on all four pages with the rule that restores [hidden] served after the display that outranks it, the ink reserved for placeholders is served only on a placeholder a disabled control and a marker, the four pages are served the same heading size target size and inks, and a row that holds a sentence is served one that wraps with no page overriding it by hand.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c98 -q"
+      ],
+      "closed": "2026-10-07"
+    },
+    {
+      "id": "C99",
+      "title": "Walked against its own runbook",
+      "after": "P174",
+      "status": "done",
+      "proves": "Every preflight check the runbook names is one the registry has, at the position and under the label the runbook gives it; the report a machine with no vault key prints leads with the diagnostic's own sentence and keeps its code on a line of its own; and the runbook's first step warns about the line that first step always produces.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c99 -q"
       ],
       "closed": "2026-10-07"
     }

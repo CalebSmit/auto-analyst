@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**173 of 173 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**174 of 174 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -279,6 +279,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C97 - The board as the server hands it over** | integration | Every board the server serves lays out in bands with no panel in two of them, every panel it serves is capped or is fed by a list this build fixes and the panel bound is still one number, the run detail the page draws finds a stopped run's reason by the same step_id the trace reducer puts on a diagnostic, the slash key reaches a find box on every surface that has one and does nothing on the one that has not, and registering an engagement over HTTP makes the folder the files dialog then prints. | 2026-10-06 |
 | [x] | **P173** Every box, every target, every name | auto | No element on any served page is clipped horizontally without an ellipsis, and nothing lies outside the panel that paints it | 2026-10-07 |
 | [x] | **C98 - As the browser gets it** | integration | Every token any served page names is declared in what that page is served, no served stylesheet carries a type size that is not a named step and no served element carries a bare pixel length or a size of its own, the target minimum reaches every control on all four pages with the rule that restores [hidden] served after the display that outranks it, the ink reserved for placeholders is served only on a placeholder a disabled control and a marker, the four pages are served the same heading size target size and inks, and a row that holds a sentence is served one that wraps with no page overriding it by hand. | 2026-10-07 |
+| [x] | **P174** The first thing a new machine says | auto | No sentence in the runbook names a preflight check by a position that the registry does not agree with | 2026-10-07 |
+| [x] | **C99 - Walked against its own runbook** | integration | Every preflight check the runbook names is one the registry has, at the position and under the label the runbook gives it; the report a machine with no vault key prints leads with the diagnostic's own sentence and keeps its code on a line of its own; and the runbook's first step warns about the line that first step always produces. | 2026-10-07 |
 
 ## A run that finishes
 
