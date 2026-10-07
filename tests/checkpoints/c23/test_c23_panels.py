@@ -2,9 +2,13 @@
 
 Proves on the assembled system: the Analytics route carries the denominator beside every
 rate it reports, and every served page carries the counts in its titles, the shadow at a cut
-edge, and a board that gives the run's own detail two rows of the three.
+edge, and a board that puts the run's own detail beside the list it is chosen from.
 
 P47 touched the analytics computation and three pages. This is the join.
+
+The last of those used to read *two rows of the three*, which is a shape rather than a
+property, and P172 found what that shape cost every panel beside it. The test below says
+why, and asks for what P47 was after instead of for how it got it.
 """
 
 from __future__ import annotations
@@ -55,6 +59,33 @@ def test_every_served_page_says_what_it_holds_and_what_it_hides(served: TestClie
         assert page.count("radial-gradient(farthest-side at 50% 0") == 1, path
 
 
-def test_the_run_detail_is_served_two_rows_of_the_three(served: TestClient) -> None:
+def test_the_run_detail_is_served_the_room_it_needs_in_one_band(served: TestClient) -> None:
+    """P47 gave the run's own detail two rows of the three, and this checkpoint asserted
+    that shape. P172 found what the shape cost.
+
+    On a grid, every panel in a row is stretched to that row's height. A panel spanning two
+    rows has its height shared out across rows nothing else is in, so the panels beside it
+    are stretched to heights nothing in their own band asked for - and the run detail is
+    unbounded, because it draws one row per decision a person made and the median run has
+    34 of them. Measured with three real runs loaded: the detail panel 3,018px, the Runs
+    panel stretched to 3,108px around 259px of content, Waiting on a person to 1,557px
+    around 92, and the page 3,750px tall.
+
+    So what P47 was actually after is kept and the shape it used is not: the detail is
+    served on the first band, beside the list it is chosen from, and nothing on the board
+    spans a row. The property is `tests/p172`'s; what this checkpoint adds is that it is
+    true of the page the server assembles rather than of the string a module holds.
+    """
     areas = re.search(r"grid-template-areas:(.*?)\}", served.get("/").text, re.S)
-    assert areas and '"runs detail alerts"' in areas.group(1)
+    assert areas, "the board no longer names its areas"
+    bands = [row.split() for row in re.findall(r'"([^"]*)"', areas.group(1))]
+    assert bands, "the board names no bands"
+    assert "detail" in bands[0], "the run's own detail is not on the band it is chosen from"
+    assert "runs" in bands[0], "the list and the thing the list is for are in different bands"
+
+    rows_of: dict[str, set[int]] = {}
+    for n, row in enumerate(bands):
+        for area in row:
+            rows_of.setdefault(area, set()).add(n)
+    spanning = sorted(area for area, rows in rows_of.items() if len(rows) > 1)
+    assert spanning == [], f"served with a panel in more than one band: {spanning}"

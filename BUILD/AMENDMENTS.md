@@ -3174,3 +3174,27 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 **Why:** A new public surface, deliberately: SCOPE.RECIPE_UNBUILT in registries/errors, so a workflow with an unbuilt step carries its own next action instead of RECIPE_INVALID's 'does not compile'; recorded in BUILD/surfaces.json
 
 - task added: SCOPE.RECIPE_UNBUILT: the P117 unbuilt-workflow warning carries its own sentence, in the blueprint's SCOPE.* row and the surface snapshot
+
+## 2026-10-06 - P172 The white space, the reason, and the word you do not know
+
+**Why:** A UI walk-through with three real runs on the board found four things no test could see: the run-detail panel has no bound, so one run's decisions made three panels beside it mostly empty white; the sentence saying why a run stopped is in the payload and is drawn only on the map; two of the three boards are ragged because their panels span different numbers of rows; and the glossary cannot be searched.
+
+- phase added: P172 The white space, the reason, and the word you do not know (Reading what a client actually sends, gate: auto)
+- exit criterion: No panel on any board is more than 1.6x the height of the tallest panel sharing its band, measured from the stylesheet and the markup
+- exit criterion: Every board panel is still bounded by something this build decides, and the panel bound is still one number in one place
+- exit criterion: A quarantined run's own diagnostic is rendered on the run detail, and a run with none renders nothing extra
+- exit criterion: Every colour added is a token the theme defines and every length is rem or a token; every animation added stops under the one reduced-motion rule
+
+## 2026-10-06 - P172 The white space, the reason, and the word you do not know
+
+**Why:** Sparklines in the head metrics do not survive the walk-through. Five of the six figures are scalars _head computes once over the whole window - first-pass yield, time to first reviewable, review items per run, spend per engagement, released then corrected - and no series exists behind any of them. The only weekly rows the board has are the outcome mix, which the Outcomes by week panel already draws, so putting them under a figure would be a second renderer of one answer, which is B-046's defect. A row of six figures where one carries a line and five carry nothing reads worse than six that carry none. Recorded as B-166 with what it would actually take.
+
+- task added: The / key goes to a page's find box on every surface that has one, written once in the shared shell, because the whole-design view has answered it since P49 and the consoles answered nothing
+- task dropped: The Analytics head metrics carry the shape of the period behind each figure, drawn from the weekly rows the board already has
+
+## 2026-10-06 - C97 The board as the server hands it over
+
+**Why:** P172 is the end of the block: the consoles were walked with three real runs in them, the four things that walk found are fixed, and what is left from it is written down as B-166 and B-167 rather than carried. The checkpoint asks the three questions the phase could not, because each of them lives in two files that cannot see each other.
+
+- checkpoint added: C97 after P172, covering P172
+- proves: Every board the server serves lays out in bands with no panel in two of them, every panel it serves is capped or is fed by a list this build fixes and the panel bound is still one number, the run detail the page draws finds a stopped run's reason by the same step_id the trace reducer puts on a diagnostic, the slash key reaches a find box on every surface that has one and does nothing on the one that has not, and registering an engagement over HTTP makes the folder the files dialog then prints.

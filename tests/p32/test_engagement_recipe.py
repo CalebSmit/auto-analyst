@@ -60,9 +60,11 @@ def test_the_sweep_plans_each_engagement_with_its_own_recipe(
     import ports
     from intake.store import IntakeStore
 
-    # A folder the sweeper can see is a folder with something in it.
+    # A folder the sweeper can see is a folder with something in it. Registering the
+    # engagement makes the folder now (P172), so what this line is still for is the case
+    # where it does not exist - and the file below is the part the sweep actually needs.
     novak = environment["inbox"] / "Clients" / "Novak Industrial" / "2026 ESOP"
-    novak.mkdir(parents=True)
+    novak.mkdir(parents=True, exist_ok=True)
     henderson_folder = environment["inbox"] / "Clients" / "Henderson Manufacturing"
     for folder in (novak, henderson_folder / "2026 ESOP"):
         (folder / "trial balance FY25.csv").write_text("account,amount\n", encoding="utf-8")

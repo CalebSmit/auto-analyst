@@ -77,6 +77,9 @@ PAGE = (
  grid-template-areas:"how words words" "how colours stops"}}
 .gl{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.1rem 1.4rem}}
 .gl .r{{display:block}}
+/* `[hidden]` is a display rule the user-agent sheet makes, and the line above outranks it.
+   A row filtered out has to actually go, so the rule that puts it back says so here. */
+.gl .r[hidden]{{display:none}}
 </style>
 {shell("Help", "/help")}
 <main class="wrap">
@@ -108,14 +111,26 @@ PAGE = (
   </section>
 
   <section class="card" style="grid-area:words">
-   <header><h2>Words you will see</h2>
-    <p class="why">In the order you meet them.</p></header>
+   <header><h2>Words you will see <span class="of" id="gl-n"></span></h2>
+    <p class="why">In the order you meet them &mdash; which is the order to read them in and
+     the wrong one to look one up in, so there is a box.</p>
+    <div class="filter">
+     <input id="gq" type="search" placeholder="Find a word &mdash; or press /"
+      autocomplete="off" spellcheck="false" aria-label="Find a word in the glossary"
+      data-act="findWord">
+     <button class="btn small" id="gq-clear" data-act="clearWord" hidden>Clear</button>
+    </div></header>
    <div class="body"><div class="gl">"""
     + "".join(
         f'<div class="r"><span class="lbl"><b>{term}</b><span class="d">{means}</span></span></div>'
         for term, means in GLOSSARY
     )
-    + """</div></div>
+    + """</div>
+    <div class="empty" id="gq-none" hidden><b>No word here says that</b>These are the words
+     this tool puts on a screen. If the word came from somewhere else, the
+     <a href="/">Activity</a> page names what a run is doing and every refusal carries its
+     own line on what to do next.</div>
+   </div>
   </section>
 """
     # Its own piece, because the rest of this page is a plain string and the two things
@@ -149,4 +164,42 @@ PAGE = (
 <div id="toast"></div>
 """
     + SHELL
+    + """<script>
+/* Looking a word up. Nothing here reaches the server: every word is on the page already,
+   so the box narrows what is drawn rather than asking for a shorter list - which is also
+   why it answers on each keystroke without costing anything.
+
+   It searches the meaning as well as the term, because the person using it mostly does not
+   know the term. Somebody who has just read "stopped on itself" on a run and wants to know
+   what that means types *stopped*, and the word they need is Quarantined. */
+const WORDS = [...document.querySelectorAll('.gl > .r')];
+const GL_SAYS = document.getElementById('gl-n');
+
+function findWord(query) {
+  const needle = String(query || '').trim().toLowerCase();
+  let shown = 0;
+  for (const row of WORDS) {
+    const hit = !needle || row.textContent.toLowerCase().includes(needle);
+    row.hidden = !hit;
+    if (hit) shown++;
+  }
+  const none = $('gq-none');
+  if (none) none.hidden = shown > 0;
+  const clear = $('gq-clear');
+  if (clear) clear.hidden = !needle;
+  // The count says what the list is now, which is the only thing a filter has to promise:
+  // "4 of 24" is the difference between a short glossary and a glossary that is hiding
+  // most of itself.
+  if (GL_SAYS) GL_SAYS.textContent = needle ? shown + ' of ' + WORDS.length : String(WORDS.length);
+}
+
+ACTIONS.findWord = (d, el) => findWord(el.value);
+ACTIONS.clearWord = () => {
+  const box = $('gq');
+  box.value = '';
+  findWord('');
+  box.focus();
+};
+findWord('');
+</script>"""
 )

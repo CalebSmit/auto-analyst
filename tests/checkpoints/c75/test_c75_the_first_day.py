@@ -102,7 +102,14 @@ def test_the_board_is_a_grid_whose_rows_fit_what_is_in_them() -> None:
     panels hiding content behind an inner scrollbar while eight sat under seventy per cent
     full, on the same screens."""
     assert ".board{display:grid;gap:var(--s3);align-content:start}" in CSS
-    assert "grid-template-rows:repeat(6,min-content)" in SETUP_PAGE
+    # How many rows the board has is a layout decision that has moved twice - P136 gave the
+    # checklist a fourth, P172 laid the board out in three bands with nothing spanning a row
+    # - and neither moved the thing this test is about. What has to stay true is that a row
+    # is as tall as what is in it, which is a question about `min-content` rather than about
+    # the count.
+    rows = re.search(r"grid-template-rows:\s*repeat\(\d+,\s*min-content\)", SETUP_PAGE)
+    assert rows, "the Setup board's rows are no longer sized to what is in them"
+    assert "fr" not in rows.group(0), "a row is a share of the screen again"
 
 
 def test_every_page_that_lays_out_a_board_places_every_area_it_names() -> None:

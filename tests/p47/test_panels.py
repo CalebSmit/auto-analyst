@@ -101,13 +101,40 @@ def test_an_empty_panel_is_composed_rather_than_top_aligned() -> None:
 
 def test_the_run_and_its_list_have_more_of_the_screen_than_the_map() -> None:
     """The detail is what a person reads. It was cut at its fifth line while the map of
-    118 nodes - which a run touches eight of - had the largest share."""
+    118 nodes - which a run touches eight of - had the largest share.
+
+    P47 got that by giving the detail two rows of the three, and P172 found what spanning
+    rows cost: a panel in two rows has its height shared out across rows nothing else is
+    in, so every panel beside it is stretched to a height nothing in its band asked for,
+    and with an unbounded detail that was 2,500px of white in the Runs panel.
+
+    So the claim is kept and the mechanism is not. The detail has the widest of the three
+    columns, it is on the first band beside the list it is chosen from, and *being cut
+    while the map runs on* cannot happen any more: both are streams, so they are bounded to
+    the same height by construction rather than by how the rows divide.
+    """
     areas = re.search(r"grid-template-areas:(.*?)\}", ACTIVITY, re.S)
     assert areas, "the Activity board names no areas"
     named = areas.group(1)
-    assert named.count('"runs detail inbox"') == 1
-    assert '"runs detail alerts"' in named, "the detail no longer spans two rows"
-    assert named.count("trace") == 2, "the map should hold one row, across two columns"
+    bands = [row.split() for row in re.findall(r'"([^"]*)"', named)]
+    assert bands[0] == ["runs", "detail", "inbox"], "the run and its list no longer lead"
+    assert "trace" not in bands[0], "the map is back on the band the detail is read from"
+    assert named.count("trace") == 2, "the map should hold one band, across two columns"
+
+    # The board's own rule, not the first `grid-template-columns` in the page: the shared
+    # sheet and the map have several, and the loose version of this measured one of those.
+    columns = re.search(r"\.board\{grid-template-columns:([^;]*);", ACTIVITY).group(1)
+    widths = [float(w) for w in re.findall(r"minmax\(0,([\d.]+)fr\)", columns)]
+    assert len(widths) == 3, columns
+    assert widths[1] == max(widths), (
+        f"the column the run's detail is in is {widths[1]}fr and the widest is "
+        f"{max(widths)}fr - the detail is what a person reads"
+    )
+
+    # And the thing that made the detail short in the first place cannot come back without
+    # the panel bound coming back with it.
+    assert '<section class="card stream" style="grid-area:detail">' in ACTIVITY
+    assert '<section class="card stream" style="grid-area:trace">' in ACTIVITY
 
 
 def test_the_steps_table_reads_down() -> None:

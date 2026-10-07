@@ -562,6 +562,7 @@ class AdminConsole:
         recorded = self.roster.register(
             replace(entry, state=RosterState.PAUSED), who=who, reason=reason
         )
+        self._make_folder(recorded, who=who, reason=reason)
         if profile is not None:
             self.set_profile(entry.engagement_id, profile, who=who, reason=reason)
         if wanted is RosterState.ACTIVE:
@@ -569,6 +570,48 @@ class AdminConsole:
         if wanted is RosterState.ARCHIVED:
             return self.roster.set_state(entry.engagement_id, wanted, who=who, reason=reason)
         return recorded
+
+    def _make_folder(self, entry: RosterEntry, *, who: str, reason: str) -> str | None:
+        """Make the engagement's watched folder, so there is somewhere to put files.
+
+        Until P172 the folder was made by the first file that went in through the page, and
+        every other way of getting files to an engagement needed it to exist already: the
+        **files** button shows the path on this machine so a person can drag a client's
+        documents into it in Explorer, `aa stage` copies into it, and a Box connector saves
+        into it. All three were pointed at a folder nobody had made, on the first day of
+        every engagement - the one day somebody is most likely to use them.
+
+        Only where storage is a folder on this machine. A bound watch is somebody else's
+        storage and this has no business creating anything in it; a folder that cannot be
+        made is left to preflight, which already says so and keeps saying it, because a
+        registration that fails on a directory would lose everything the person typed.
+        """
+        base = _local_root(self.preflight.storage)
+        if base is None or not entry.folder:
+            return None
+        watch = next((w for w in self.config.watches() if w.id == entry.watch_id), None)
+        if watch is None or watch.is_bound:
+            return None
+        root = Path(base) / watch.root if watch.root else Path(base)
+        target = (root / entry.folder).resolve()
+        # The same containment check a file gets. `folder` is typed on a form, and `..` in
+        # it would otherwise make a directory anywhere this process can write.
+        if Path(base).resolve() not in target.parents:
+            return None
+        if target.is_dir():
+            return str(target)
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            return None
+        self.config.log_change(
+            who=who,
+            field=f"files/{entry.engagement_id}",
+            old={},
+            new={"folder_created": str(target)},
+            reason=reason,
+        )
+        return str(target)
 
     def activate(self, engagement_id: str, *, who: str, reason: str) -> RosterEntry:
         """Active only when preflight passes for this engagement. The refusal carries

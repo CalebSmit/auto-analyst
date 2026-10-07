@@ -943,13 +943,29 @@ PAGE = (
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Activity - Automated Analyst</title>
 <style>{CSS}
-/* The run and the list of runs get two rows of the three: the detail is what a person
-   reads, and it was being cut at its fifth line while the map of the architecture - the
-   least actionable panel on the page - had the largest share of the screen. */
 {MAP_STYLE}
-.board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.95fr);
+/* Three bands, and no panel is in two of them.
+
+   A grid row is as tall as what is in it, and every panel in that row is stretched to it -
+   which is what makes a band read as one shelf rather than three boxes that happen to be
+   near each other. A panel spanning *two* rows takes that away from everything beside it,
+   because its height is then shared out across rows nothing else is in. That is how this
+   board came to be 3,369px tall at a laptop's width with the Runs panel stretched to
+   2,794px around 259px of content. Spanning *columns* costs nothing, and the trace and the
+   feed still do it.
+
+   **The widest column is the detail's**, which is P47's point and the reason that phase
+   moved anything: the detail is what a person reads, and it was being cut at its fifth
+   line while the 118-node trace - the least actionable panel here - had the largest share.
+   P47 got that by giving the detail two of the three rows; this gets it from the column
+   widths, and the trace's two columns now cost the detail nothing, because both are
+   streams and so are bounded to the same height by construction.
+
+   Every panel is a stream, so each band is one cap tall and the page has a maximum height
+   whatever the firm has run. */
+.board{{grid-template-columns:minmax(0,.95fr) minmax(0,1.3fr) minmax(0,.9fr);
  grid-template-rows:repeat(3,min-content);
- grid-template-areas:"runs detail inbox" "runs detail alerts" "trace trace feed"}}
+ grid-template-areas:"runs detail inbox" "alerts trace trace" "feed feed feed"}}
 </style>
 {OPS_SHELL}
 <main class="wrap">
@@ -978,7 +994,16 @@ PAGE = (
    <div class="body"><div id="runs"><div class="skel"></div><div class="skel"></div></div></div>
   </section>
 
-  <section class="card" style="grid-area:detail">
+  <!-- A stream: one row per step of the workflow the firm approved, and one per thing the
+       run delivered. It was not capped until P172, and the reason it had to be is worth
+       keeping: its own list of what a person decided is one row per decision, and the
+       Analytics board says the median run has 34 of them. Measured on the rehearsal, that
+       made this panel 3,018px - which, because it spanned two rows, stretched the Runs
+       panel to 3,108px around 259px of content and Waiting on a person to 1,557px around
+       92. The decisions are folded now and the panel is bounded as well, because the fold
+       is a judgement about what is worth reading and the cap is what makes the page have a
+       maximum height at all. -->
+  <section class="card stream" style="grid-area:detail">
    <!-- The title is the run, once there is one. "Run detail" named the box rather than
         the thing in it: the client was set in the smallest type on the page, below a
         heading three sizes larger that said nothing a reader did not know from having
@@ -1541,11 +1566,40 @@ async function paint(trace) {
   const touched = Object.keys(seen).length;
   $('map-count').textContent = touched + ' of ' + g.nodes.length + ' touched';
 
-  const failed = Object.entries(trace.diagnostics || {});
-  $('diag').innerHTML = failed.length ? failed.map(([node, d]) => `<div class="d-row">
+  $('diag').innerHTML = diagRows(trace.diagnostics);
+}
+
+/* A diagnostic, drawn the one way.
+
+   Two places on this page want these and they want different ones: the map panel wants
+   every diagnostic the run recorded, and the run detail wants only the one belonging to
+   the step the run stopped on. So the *filter* is the caller's and the *drawing* is here.
+
+   It matters which way round that is. Before P172 the only renderer was the map panel's,
+   which sits two bands down the page - the sentence that says why a run stopped was
+   three thousand pixels below the run it is about, and the quickest way to read it was
+   to open the whole-design view and press "Go to the stop". Writing a second copy beside
+   the state would have been B-046's defect again: one failure, described two ways a
+   click apart, drifting the first time either is edited. */
+function diagRows(diagnostics, step) {
+  return Object.entries(diagnostics || {})
+    .filter(([, d]) => step === undefined || d.step_id === step)
+    .map(([node, d]) => `<div class="d-row">
      <span class="code">${esc(node)} &mdash; ${esc(d.code || d.type || 'failed')}</span>
      <span class="msg">${esc(d.message || '')}${d.step_id ? ' <span class="quiet-note">at step ' + esc(d.step_id) + '</span>' : ''}</span>
-    </div>`).join('') : '';
+    </div>`).join('');
+}
+
+/* Why this run stopped, on the run. The step that stopped it names itself, and its own
+   diagnostic is the sentence a person at four in the afternoon is actually looking for -
+   "no procedure for 'qc-tieout'" rather than "quarantined: qc". A run that stopped for a
+   reason nothing recorded draws nothing, because an empty rule beside a state is worse
+   than no rule at all. */
+function whyItStopped(run) {
+  const stopped = (run.steps || []).find(s => s.status === 'quarantined' || s.status === 'failed');
+  if (!stopped) return '';
+  const rows = diagRows((run.trace || {}).diagnostics, stopped.step_id);
+  return rows ? `<div class="diag">${rows}</div>` : '';
 }
 
 /* The step statuses the record uses - completed, failed, skipped, quarantined,
@@ -1575,14 +1629,34 @@ async function decisions(id) {
   const box = $('decisions');
   if (!box) return;
   const rows = await get(`/api/runs/${encodeURIComponent(id)}/decisions`).catch(() => []);
-  box.innerHTML = rows.length ? `<div class="section-label">Decided on this run</div>` + rows.map(d => `<div class="r">
+  if (!rows.length) { box.innerHTML = ''; return; }
+  /* Folded, and the fold carries the count. Measured on the rehearsal's three runs: a run
+     decides 34 items, each drawn as three lines of which two are the same sentence on
+     every row - "decided without the proposal being revealed - written to precedent". That
+     was 2,400 of the detail panel's 3,018px, and the Analytics board says 34 is the
+     *median*, not a bad day. So the shape of the answer goes on one line and the rows are
+     a disclosure: nothing is removed, and the panel stops being a transcript.
+
+     The counts on the summary are the part a reviewer actually asks for afterwards -
+     how many were corrected, and how many were answered without the proposal being
+     looked at, which is a quality signal that was invisible when it was repeated 34
+     times and visible nowhere once. */
+  const of = k => rows.filter(d => d.decision === k).length;
+  const unseen = rows.filter(d => !d.revealed_at).length;
+  const parts = [plural(rows.length, 'answered', 'answered')];
+  for (const k of ['accepted', 'corrected', 'rejected', 'escalated']) {
+    if (of(k)) parts.push(of(k) + ' ' + k);
+  }
+  if (unseen) parts.push(unseen + ' without looking at the proposal');
+  box.innerHTML = `<details><summary><b>Decided on this run</b> &mdash; ${esc(parts.join(' · '))}</summary>`
+    + rows.map(d => `<div class="r">
      <span class="lbl"><b>${esc(d.item_id)}</b>
       <span class="d" style="display:block;white-space:normal">${esc(d.decision)} by ${esc(d.decided_by)} &middot; ${esc(ago(d.decided_at))}${d.rationale ? ' &middot; ' + esc(d.rationale) : ''}</span>
       <span class="sub" style="display:block;white-space:normal">${d.revealed_at
         ? 'proposal revealed' + (d.seconds_looking !== null && d.seconds_looking !== undefined ? ` ${esc(d.seconds_looking)}s before the decision` : '')
         : 'decided without the proposal being revealed'}${d.writes_precedent ? ' &middot; written to precedent' : ''}</span></span>
      <span class="pill ${d.decision === 'accepted' ? 'good' : d.decision === 'rejected' ? 'bad' : 'warn'}">${esc(d.decision)}</span>
-    </div>`).join('') : '';
+    </div>`).join('') + '</details>';
 }
 
 /* What the run delivered, where it went, and a download of exactly what was released. */
@@ -1666,6 +1740,7 @@ async function open_(id) {
       ${run.state_reason.length > 160
         ? `<details style="margin:0 0 .6rem"><summary><b style="color:var(--navy)">${esc(run.state_reason.slice(0, 150))}&hellip;</b></summary><p class="note" style="margin:.2rem 0 0">${esc(run.state_reason)}</p></details>`
         : `<p style="margin:0 0 .6rem;font-size:.9rem;color:var(--navy);font-weight:600">${esc(run.state_reason)}</p>`}` : ''}
+     ${whyItStopped(run)}
      <dl class="kv" style="margin-bottom:.4rem">
       <dt>Started</dt><dd>${esc((run.started_at || '').slice(0, 16).replace('T', ' '))} <span class="sub">(${esc(ago(run.started_at))})</span></dd>
       ${run.ended_at ? `<dt>Ended</dt><dd>${esc(run.ended_at.slice(0, 16).replace('T', ' '))}</dd>` : ''}

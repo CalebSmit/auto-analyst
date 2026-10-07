@@ -4950,6 +4950,36 @@
       ],
       "notes": "",
       "closed": "2026-10-06"
+    },
+    {
+      "id": "P172",
+      "title": "The white space, the reason, and the word you do not know",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A person can read the board without reading white space, find out why a run stopped without leaving the run, look up a word they do not know, and see whether a figure is moving. Every panel on every board is bounded by something this build decides, and panels that share a band share a height - which is what makes a set of boxes read as one designed thing. Nothing concludes; every colour is a token and every length is on the two scales; every motion still stops under the one reduced-motion rule.",
+      "builds": [],
+      "tasks": [
+        "The run-detail panel is bounded: its decisions are one summary line and a disclosure, and the panel is a stream, so the board has a maximum height whatever a run decided",
+        "The sentence that says why a run stopped is drawn on the run, out of the diagnostics the payload already carries, not only on the whole-design map",
+        "The Setup and Activity boards are laid out in bands, so panels sharing a band share a height, the way the Analytics board already does",
+        "The glossary has a find box, and a word that matches nothing says so",
+        "An engagement's watched folder is made when the engagement is made, so there is somewhere to drag files before anything is dropped through the page",
+        "The / key goes to a page's find box on every surface that has one, written once in the shared shell, because the whole-design view has answered it since P49 and the consoles answered nothing"
+      ],
+      "exit": [
+        "No panel on any board is more than 1.6x the height of the tallest panel sharing its band, measured from the stylesheet and the markup",
+        "Every board panel is still bounded by something this build decides, and the panel bound is still one number in one place",
+        "A quarantined run's own diagnostic is rendered on the run detail, and a run with none renders nothing extra",
+        "Every colour added is a token the theme defines and every length is rem or a token; every animation added stops under the one reduced-motion rule"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p172 -q",
+        "python -m uv run pytest tests/p142 tests/p149 tests/p145 tests/p170 tests/p171 -q",
+        "python -m uv run pytest tests/checkpoints/c49 tests/checkpoints/c79 tests/checkpoints/c82 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-06"
     }
   ],
   "checkpoints": [
@@ -6007,6 +6037,17 @@
       "proves": "Every page is served the one theme once with the one reduced-motion switch that stops every animation the phase added, the hero band is worn by the page that asked for it and no other, the Activity page serves the marching trail and the Analytics page serves one row per skill, and the runbook's landing place for the model-setup skill is a layer the skill tree reads with the front matter the section lists.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c96 -q"
+      ],
+      "closed": "2026-10-06"
+    },
+    {
+      "id": "C97",
+      "title": "The board as the server hands it over",
+      "after": "P172",
+      "status": "done",
+      "proves": "Every board the server serves lays out in bands with no panel in two of them, every panel it serves is capped or is fed by a list this build fixes and the panel bound is still one number, the run detail the page draws finds a stopped run's reason by the same step_id the trace reducer puts on a diagnostic, the slash key reaches a find box on every surface that has one and does nothing on the one that has not, and registering an engagement over HTTP makes the folder the files dialog then prints.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c97 -q"
       ],
       "closed": "2026-10-06"
     }

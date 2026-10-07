@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**171 of 171 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**172 of 172 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -275,6 +275,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C95 - The number in the corner, on every page** | integration | Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it. | 2026-10-06 |
 | [x] | **P171** A dashboard with some life in it | auto | Every animation the phase added is declared once, worn by something, and inside the reduced-motion rule's reach | 2026-10-06 |
 | [x] | **C96 - One product with some life in it** | integration | Every page is served the one theme once with the one reduced-motion switch that stops every animation the phase added, the hero band is worn by the page that asked for it and no other, the Activity page serves the marching trail and the Analytics page serves one row per skill, and the runbook's landing place for the model-setup skill is a layer the skill tree reads with the front matter the section lists. | 2026-10-06 |
+| [x] | **P172** The white space, the reason, and the word you do not know | auto | No panel on any board is more than 1.6x the height of the tallest panel sharing its band, measured from the stylesheet and the markup | 2026-10-06 |
+| [x] | **C97 - The board as the server hands it over** | integration | Every board the server serves lays out in bands with no panel in two of them, every panel it serves is capped or is fed by a list this build fixes and the panel bound is still one number, the run detail the page draws finds a stopped run's reason by the same step_id the trace reducer puts on a diagnostic, the slash key reaches a find box on every surface that has one and does nothing on the one that has not, and registering an engagement over HTTP makes the folder the files dialog then prints. | 2026-10-06 |
 
 ## A run that finishes
 

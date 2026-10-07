@@ -61,7 +61,15 @@ BOARDS = ((ACTIVITY, "Activity"), (SETUP, "Setup"), (ANALYTICS, "Analytics"))
 WHOSE = {
     # Activity
     "runs": ("firm", "one row per run, for as long as the firm keeps running them"),
-    "detail": ("ours", "one run at a time, and its shape is fixed"),
+    # P172 corrected this one. "One run at a time, and its shape is fixed" was true of the
+    # steps and false of everything under them: the panel also draws one row per decision a
+    # person made on the run, and the Analytics board reports 34 as the *median*. Measured
+    # against the rehearsal it was 3,018px, and because it spanned two rows it took the two
+    # panels beside it with it - Runs to 3,108px holding 259px, Waiting on a person to
+    # 1,557px holding 92. The same mistake P149 is about, one panel further along.
+    "detail": ("firm", "one row per step of the workflow the firm approved, one per thing "
+               "delivered, and one per decision a person made - and nothing here knows how "
+               "many of the last there will be"),
     "inbox": ("firm", "one per question a run has stopped on"),
     "trace": ("ours-long", "one per node of the design - 118 of them, so it is long "
               "by this build's own decision rather than by the firm's work"),

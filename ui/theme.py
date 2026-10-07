@@ -1056,6 +1056,28 @@ function poll(fn, ms) {
   return tick;
 }
 
+/* `/` goes to the page's find box, wherever the page keeps it.
+
+   The whole-design view has answered `/` since P49 and says so in its own legend, and the
+   two consoles with a find box answered nothing - so the same keystroke meant "find" in
+   one view and typed a slash into the next. A shortcut that is true in one place and not
+   in another is worse than no shortcut, so it is written once here and a page gets it by
+   having a `.filter` at all.
+
+   Three things it refuses. Typing into a field is typing, not a shortcut. A dialog is
+   modal, so the box behind it is not where a keystroke should go. And the map is open
+   over the whole page when `#dmap` is `on`, where its own handler owns the key. */
+document.addEventListener('keydown', e => {
+  if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.target.closest && e.target.closest('input,textarea,select,[contenteditable]')) return;
+  if (document.querySelector('.modal') || document.querySelector('#dmap.on')) return;
+  const box = document.querySelector('.filter input');
+  if (!box) return;
+  e.preventDefault();
+  box.focus();
+  box.select();
+});
+
 // What is waiting on a person, on every page: a count on the Activity tab, and in the
 // browser tab's title so it shows when the console is in the background.
 const BASE_TITLE = document.title;

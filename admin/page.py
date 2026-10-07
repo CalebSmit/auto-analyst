@@ -39,20 +39,31 @@ PAGE = f"""<!doctype html>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Setup - Automated Analyst</title>
 <style>{CSS}
-/* Six panels and a checklist. The checklist holds three rows of the left column because
-   while there is work in it, it is the screen. */
-.board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
- grid-template-rows:repeat(6,min-content);
- grid-template-areas:"steps pre scopes" "steps pre scopes" "steps pre recipes"
-  "steps meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
+/* Seven panels and a checklist, in three bands, and no panel spans a row.
 
-/* And gives them back when it is finished. A checklist with every box ticked is the least
-   useful thing on a screen and it was holding the best position on it permanently: on a
-   machine that has been set up, the engagements are what somebody came to look at. The
-   steps stay one keystroke away rather than being removed, because "how did this get set
-   up" is a real question and the answer should not require reading the code. */
-body.all-done .board{{grid-template-areas:"steps pre scopes" "eng pre scopes" "eng pre recipes"
-  "eng meth recipes" "eng meth seams" "eng meth seams" "report report report"}}
+   Every panel in a grid row is stretched to that row's height, so a band reads as one
+   shelf. A panel spanning several rows takes that away from everything beside it, because
+   its height is shared out between rows nothing else occupies - which is why this board's
+   top band used to end at three different heights, 892px, 756px and 620px, a 272px step
+   across three panels that are side by side. Spanning columns costs nothing, and the
+   bottom band still uses one.
+
+   The bands are grouped by how tall the panels in them naturally are, which is the only
+   thing that keeps a stretched panel from being mostly white: the checklist and the two
+   long reference panels together, the three streams together - a stream is one cap tall,
+   so that band is exact - and the two short ones last. */
+.board{{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,.9fr);
+ grid-template-rows:repeat(3,min-content);
+ grid-template-areas:"steps meth scopes" "eng pre seams" "recipes report report"}}
+
+/* And the checklist gives the best position back when it is finished. A checklist with
+   every box ticked is the least useful thing on a screen and it was holding the top-left
+   corner permanently: on a machine that has been set up, the engagements are what somebody
+   came to look at. The steps stay one keystroke away rather than being removed, because
+   "how did this get set up" is a real question and the answer should not require reading
+   the code - and a finished checklist is one line per step, so it sits in the band of
+   streams without stretching it. */
+body.all-done .board{{grid-template-areas:"eng meth scopes" "steps pre seams" "recipes report report"}}
 body.all-done #checklist .bar{{display:none}}
 #checklist .bar{{margin-bottom:var(--s4)}}
 #checklist details{{margin-top:var(--s2)}}

@@ -132,18 +132,35 @@ def test_the_step_list_is_capped_to_a_readable_measure() -> None:
 # ----------------------------------------------------------------- and the board's rows
 
 
-def test_the_checklist_holds_four_rows_while_it_has_work_in_it() -> None:
-    """It held three, and gave them up at `all-done` - so the only layout decision ever
-    made about this panel was how to shrink it."""
+def test_the_checklist_leads_the_board_while_it_has_work_in_it() -> None:
+    """It held three rows, and P136 gave it a fourth after measuring the panel at a laptop's
+    viewport - so the only layout decision ever made about it was how to shrink it.
+
+    P172 took the rows away from every panel on this board, because a panel spanning rows
+    stretches everything beside it to a height nothing in that band asked for. What that
+    phase had to keep is this one's point: while there is work in it, the checklist is the
+    screen. On a board of bands that is a position rather than a row count - first band,
+    first column, which is where a reader starts - and it is still given up when the last
+    box is ticked.
+    """
     page = (ROOT / "admin" / "page.py").read_text(encoding="utf-8")
     board = r"\.board\{\{grid-template-columns:.*?grid-template-areas:(.*?)\}\}"
     default = re.search(board, page, re.S)
     assert default, "the board's areas are gone"
-    assert default.group(1).count('"steps') == 4, "the checklist no longer holds four rows"
+    bands = [row.split() for row in re.findall(r'"([^"]*)"', default.group(1))]
+    assert bands and bands[0][0] == "steps", (
+        f"the checklist no longer starts the board: the first band is {bands[0]}"
+    )
 
     done = re.search(r"body\.all-done \.board\{\{grid-template-areas:(.*?)\}\}", page, re.S)
     assert done, "the finished layout is gone"
-    assert done.group(1).count('"steps') == 1, "a finished checklist holds the board again"
+    finished = [row.split() for row in re.findall(r'"([^"]*)"', done.group(1))]
+    assert finished[0][0] == "eng", (
+        "a finished checklist still starts the board, and nothing took the place it gave up"
+    )
+    assert "steps" in {area for band in finished for area in band}, (
+        "the checklist is removed rather than moved - how this got set up is a real question"
+    )
 
 
 def test_every_area_the_grid_names_is_a_panel_on_the_page() -> None:

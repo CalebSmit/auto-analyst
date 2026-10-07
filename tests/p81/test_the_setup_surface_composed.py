@@ -129,13 +129,20 @@ def test_a_finished_checklist_gives_its_rows_to_the_panels() -> None:
     areas = dict(re.findall(r"([\w.\- ]*\.board)\{[^}]*grid-template-areas:([^}]*)\}", style))
     assert set(areas) == {".board", "body.all-done .board"}, sorted(areas)
     normal, done = areas[".board"], areas["body.all-done .board"]
-    # How many rows it holds while there is work in it is a design decision that has moved
-    # once already - P136 gave it a fourth, having measured the panel at a laptop's
-    # viewport. What this test is about is that finishing gives them back, so it asserts
-    # the relation rather than either number.
-    assert normal.count("steps") > done.count("steps"), "the checklist no longer leads the board"
-    assert done.count("steps") == 1, "a finished checklist still holds more than one row"
-    assert done.count("eng") > normal.count("eng"), "nothing gained the space it gave up"
+    # What it holds while there is work in it is a design decision that has moved twice -
+    # P136 gave it a fourth row, having measured the panel at a laptop's viewport, and P172
+    # took the rows off every panel on this board because one that spans rows stretches
+    # everything beside it. So this asks about the *place* rather than about rows: the
+    # checklist starts the board while there is work in it, and the engagements start it
+    # once there is not. That is the relation, and it survives the next layout too.
+    def first(areas: str) -> str:
+        bands = [row.split() for row in re.findall(r'"([^"]*)"', areas)]
+        assert bands, f"no bands in {areas!r}"
+        return bands[0][0]
+
+    assert first(normal) == "steps", "the checklist no longer leads the board"
+    assert first(done) == "eng", "nothing gained the place the checklist gave up"
+    assert "steps" in re.findall(r"\w+", done), "a finished checklist is removed rather than moved"
     assert set(re.findall(r"\w+", normal)) == set(re.findall(r"\w+", done)), (
         "a panel appears in one layout and not the other"
     )

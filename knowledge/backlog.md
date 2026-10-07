@@ -3496,3 +3496,125 @@ workflow that compiles and stops partway carried RECIPE_INVALID's next action - 
 does not compile" - because `diagnose()` takes its what_now from the code and the warning
 borrowed a code. It has its own, SCOPE.RECIPE_UNBUILT, with a sentence about a workflow that
 compiles and will stop, blocks nothing, and names the choice. In the blueprint's SCOPE.* row.
+
+## B-163 The Activity board was mostly white space
+status: fixed (P172)
+2026-10-06. Found by opening the board with the rehearsal's three runs in it and measuring,
+which is how every console defect in this build has been found. At 1366px the Runs panel was
+2,794px tall around 259px of content and Waiting on a person 1,400px around 92; the page was
+3,369px, of which roughly two and a half thousand were white.
+
+Two causes, and they multiply. The run-detail panel is unbounded - it draws one row per
+decision a person made, three lines each, and the Analytics board on the same screen reports
+**34 as the median** - so with one quarantined run selected it was 3,018px of which about
+2,400 were 34 rows carrying the same two sentences. And it spanned two rows of the grid, so
+that height was shared out across rows nothing else was in and every panel beside it was
+stretched to match.
+
+Fixed both ways, because they are different problems. The decisions are one line and a
+disclosure, with the counts a reviewer actually asks for afterwards on the summary - including
+how many were answered without the proposal being looked at, which was invisible when it was
+repeated 34 times. And the panel is a stream, so the board has a maximum height whatever a run
+decided; `tests/p149` is corrected to say the panel's length is the firm's. Page 3,369px ->
+1,385px, and every band exact.
+
+## B-164 The sentence saying why a run stopped was drawn only on the map
+status: fixed (P172)
+2026-10-06. `qc: "no procedure for 'qc-tieout'; the skill has no mechanical half yet"` was in
+`/api/runs/{id}` at `trace.diagnostics` all along, and the Activity run detail said
+`quarantined: qc` and *"stopped on itself - a step failed in a way retrying will not fix"* -
+neither of which says what to do. The only thing drawing the real sentence was the Run trace
+panel two bands down the page, 3,235px below the run it was about, and the quickest way to
+reach it was to open the whole-design view and press **Go to the stop**. At four in the
+afternoon with a stopped run that is three clicks and a 118-node drawing to read one line.
+
+It is drawn under the state now, by `diagRows` - the renderer the trace panel already used,
+with the filter moved to the caller. Writing a second one beside the state would have been
+B-046's defect: one failure described two ways a click apart.
+
+## B-165 Two of the three boards were ragged because panels spanned rows
+status: fixed (P172)
+2026-10-06. On a grid every panel in a row is stretched to that row's height, which is the
+whole reason a band of panels reads as one shelf rather than three boxes near each other. A
+panel spanning two rows has its height shared out across rows nothing else is in, so the
+panels beside it end wherever that arithmetic leaves them. The Setup board's top band ended
+at 827px, 692px and 557px across three panels that sit side by side - a 270px step - and the
+Activity board's spans are what turned B-163's 3,018px panel into 2,500px of white in its
+neighbours.
+
+The Analytics board was already right and nobody had noticed why: its areas are plain rows
+with no spans. Both others are laid out that way now, in bands grouped by how tall the panels
+in them naturally are - which is the only thing that keeps a stretched panel from being mostly
+white. Spanning *columns* costs nothing and both still do it. `tests/p172` asks the question
+about the source, so it can be checked without a browser; `tests/checkpoints/c23` asserted the
+old two-row span as its claim and now asks for what P47 was after instead of how it got it.
+
+## B-166 Sparklines in the Analytics head metrics
+status: declined for now, with what it would take
+2026-10-06. B-161 listed it and the walk-through does not support it. Five of the six head
+figures are scalars `ops/analytics.py::_head` computes once over the whole window - first-pass
+yield, time to first reviewable, review items per run, spend per engagement, released then
+corrected - and no per-period series exists behind any of them. The only weekly rows the board
+has are the outcome mix, which the **Outcomes by week** panel already draws, so putting those
+under a figure would be a second renderer of one answer. A row of six figures where one carries
+a line and five carry nothing reads worse than six that carry none.
+
+What it would take: `_head` returning each figure per week as well as over the window, which
+is a real change to the computation and wants a record with more than one week in it to be
+worth looking at. The rehearsal has one. Worth doing on the work laptop after a few weeks of
+real runs, where the question *is it getting better* has an answer that is not a straight line.
+
+## B-167 The console ideas the walk-through did not reach
+status: proposed
+2026-10-06. Left from the P172 walk-through, in the order a user would feel them.
+
+**A timeline for a run.** The steps are seven to twenty-one rows down the detail panel, which
+is most of what a capped panel has to scroll. Drawn as a horizontal rail with a mark per step
+they would cost about 60px instead of 210 and say the same thing better - it is a sequence, and
+the sheet already draws sequences. This is the one that would most improve the panel P172
+capped.
+
+**A dark variant for the ops console.** B-161's. The sheet is already a token sheet with the
+inks measured against named papers, so it is a second `:root` and a media query rather than a
+rewrite - but every contrast number in `tests/checkpoints/c79` is measured against the light
+papers and would need its pair.
+
+**The Setup checklist as a progress ring.** B-161's. It would save a little height in the band
+the checklist shares and read better than a bar; it is the smallest of these.
+
+**A command palette.** P172 put `/` on the shared shell, which is the half that pays for itself
+- it goes to whatever find box a page has, and the map has answered the same key since P49.
+A palette is the other half and is a bigger thing: it needs a list of what the product can do,
+by name, which does not exist anywhere yet and would be a second answer to several pages if it
+were written carelessly.
+
+**Alerts and What to fix first are mostly empty at three runs.** Both are honest - nothing is
+raised and one class of failure has happened - and both fill up on a real machine. Worth
+looking at again on the work laptop before changing anything, because the fix for a panel that
+is empty because nothing is wrong is usually nothing.
+
+## B-168 The glossary could not be searched
+status: fixed (P172)
+2026-10-06. Twenty-two words in the order you meet them, which is the right order to read them
+in and the wrong one to look one up in - and Help is where somebody goes precisely when they
+have met a word they do not know. There was no box.
+
+There is one now, and it searches the meaning as well as the term, because the person using it
+mostly does not know the term: somebody who has just read *stopped on itself* on a run types
+that, and the word they need is **Quarantined**, which a search over the headings alone would
+never find. `tests/p172` holds the glossary to still containing the phrases the consoles print,
+because the thing that rots here is the wording rather than the code.
+
+## B-169 An engagement had no folder until a file went in through the page
+status: fixed (P172)
+2026-10-06. The folder was made by `add_file`, on the way to writing the first file. So on the
+first day of every engagement - the day they are most likely to be used - all three of the
+other ways of getting a client's documents in were pointed at a directory that did not exist:
+the **files** dialog shows the path on this machine so somebody can drag the statements into it
+in Explorer, `aa stage` copies into it, and a Box connector saves into it.
+
+`AdminConsole._make_folder` makes it when the engagement is registered, only where storage is a
+folder on this machine, with the same containment check a file gets, and recorded against the
+person and the reason like everything else this console does. A folder already there is left
+exactly as it is and nothing is recorded - which is the ordinary case on a repeat client, where
+last year's folder has last year's files in it.

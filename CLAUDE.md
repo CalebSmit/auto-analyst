@@ -422,6 +422,30 @@ run went. One rule turns all of it off: `prefers-reduced-motion`. And one skill 
 the Analytics board, with its practice groups under it - the table had been keyed by (skill,
 group) and listed every skill twice with nothing saying why.
 
+**A panel in two rows is white space in the three beside it (P172).** On a grid every panel
+in a row is stretched to that row's height, which is what makes a band read as one shelf.
+A panel spanning *two* rows has its height shared out across rows nothing else is in, so
+everything beside it is stretched to a height nothing in its own band asked for. The run
+detail is unbounded - one row per decision a person made, and the Analytics board on the
+same screen says **34 is the median** - so at 1366px the Runs panel was 2,794px around
+259px of content, Waiting on a person 1,400px around 92, and the page 3,369px. Now: the
+decisions are one line and a disclosure, the panel is a stream, both boards are laid out in
+bands with no row spans, and the page is 1,385px with every band exact. The Analytics board
+was already right and nobody had noticed why - its areas are plain rows. Spanning columns
+costs nothing and both boards still do it.
+
+**And the reason a run stopped is on the run.** `qc: "no procedure for 'qc-tieout'"` was in
+`/api/runs/{id}` all along and was drawn only by the Run trace panel, two bands and three
+thousand pixels below the run it was about; the quick way to it was the whole-design view
+and **Go to the stop**. One renderer draws it in both places and the caller says which
+diagnostics it wants. `/` goes to a page's find box on every surface that has one, written
+once in the shared shell, because the map has answered that key since P49 and the consoles
+answered nothing. The glossary has a box, and it searches what a word *means* as well as
+its name - somebody who has read *stopped on itself* on a run types that, and the word is
+**Quarantined**. An engagement's watched folder is made when the engagement is made, so the
+files dialog, `aa stage` and a Box connector are not all pointed at a directory that does
+not exist on the one day they are most likely to be used.
+
 **The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
 (`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
 of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it
