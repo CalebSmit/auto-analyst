@@ -338,6 +338,7 @@
    "SCOPE.PRECEDENT_OUT_OF_SCOPE": "config",
    "SCOPE.PROVIDER_REFUSED_A_FIELD": "system",
    "SCOPE.RECIPE_INVALID": "config",
+   "SCOPE.RECIPE_UNBUILT": "config",
    "SCOPE.RECIPE_UNREGISTERED": "config",
    "SCOPE.SKILL_INVALID": "config",
    "SCOPE.UNKNOWN_ADAPTER": "config",

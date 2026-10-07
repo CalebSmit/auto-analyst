@@ -117,6 +117,7 @@ UNKNOWN_REVIEW_LEVEL = "SCOPE.UNKNOWN_REVIEW_LEVEL"
 AMBIGUOUS_SKILL = "SCOPE.AMBIGUOUS_SKILL"
 SKILL_INVALID = "SCOPE.SKILL_INVALID"
 RECIPE_INVALID = "SCOPE.RECIPE_INVALID"
+RECIPE_UNBUILT = "SCOPE.RECIPE_UNBUILT"
 PLAN_REFUSED = "PROCESS.PLAN_REFUSED"
 LATE_RESULT = "PROCESS.LATE_RESULT"
 PRECEDENT_OUT_OF_SCOPE = "SCOPE.PRECEDENT_OUT_OF_SCOPE"
@@ -426,6 +427,14 @@ WHAT_NOW: dict[str, tuple[Owner, str]] = {
         "output schema the contract registry does not pin, or a loop region whose "
         "members do not hang together. Nothing executes that has not been through the "
         "compiler, so this is where a broken plan stops.",
+    ),
+    RECIPE_UNBUILT: (
+        "config",
+        "The workflow compiles and will stop partway: one of its steps names a skill that "
+        "has no procedure yet, so a run pays for every step before that one and stops "
+        "there. The firm approved the workflow, so this does not block activation - but "
+        "pick a workflow every step of which is built if you want a run that finishes, or "
+        "wait for the procedure.",
     ),
     UNDECLARED_CYCLE: (
         "config",

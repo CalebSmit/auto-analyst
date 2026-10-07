@@ -117,6 +117,9 @@ This is the part the work machine exists for. Three places, three kinds of knowl
   line in the draft is marked `REVIEW` and will not load until you have read it - the schema
   binds the firm's model by named range, and a name is a convention, not a statement.
 
+- **Your model-setup skill.** Section 8 says where it goes, what its front matter must
+  declare, and which of its two paths the build already has a slot for.
+
 **Before any session ends:** `python -m uv run python tools/interview.py scan` must print
 `clean`. `knowledge/identifiers.txt` holds the client names the scan looks for; add a new
 client's name there the day you first type it. Nothing identifying leaves `knowledge/`.
@@ -142,3 +145,47 @@ intake size (B-146). A rejection in the review queue is recorded and does not ye
 run it was made on (B-152). ShareFile is proved only against a fake (B-056). The delivery
 templates repository the branding will come from was not found under this GitHub account on
 2026-10-06 - say where it is and the report-writing file gets its first real section.
+
+## 8. Bringing the model-setup skill
+
+You have a skill - a file and a folder - that sets the firm's model up from scratch out of
+client documents, and sets it up for a repeat client by reading last year's model. This is
+where it goes and what has to be true of it, so the day it arrives is a copy and not a port.
+
+**Where.** `skills/valuation/_group/model-setup/SKILL.md`, with its supporting documents in
+`skills/valuation/_group/model-setup/references/`. The valuation group is the layer because
+the model is the valuation practice's model; a skill written at the firm layer would be
+offered to consulting and corporate finance, which do not build into it. The skill tree
+([`skills/README.md`](../skills/README.md)) reads the folder on the next start.
+
+**The front matter it needs.** `registries/skills.py` refuses a SKILL.md missing any of
+these, because each is something the Policy Gate or the dispatcher enforces: `name`,
+`version`, `status`, `scope`, `title`, `description`, `tier`, `inputs`, `outputs`, `tools`,
+`data_sensitivity`, `hitl`, `output_contract`. Copy the block from
+[`skills/valuation/_group/model-load/SKILL.md`](../skills/valuation/_group/model-load/SKILL.md)
+and change the values; `scope: valuation/_group`, `data_sensitivity: masked_only`, and
+`status: draft` until the board has registered it - a draft is read into the index and
+dispatched by nothing, which is the right state for a skill on its first day here.
+
+**The two paths it already knows about.** From-scratch is `model-load` territory: the
+input schema under `templates/inputs/` says which named range each line binds to, and
+`python -m uv run python tools/read_template.py <model.xlsx> --sheet Input --inventory`
+writes every defined name in the firm's model so the skill's instructions can name them.
+Repeat-client is `prior-year-rollforward` in `skills/valuation/_repeat/` - a skeleton today,
+and the slot your "look at the old model" procedure fills: the prior workbook is the chart
+of accounts for three quarters of the work, and that skill is where the build already
+expects that to be said.
+
+**What may not go in the skill.** Anything that names a client. The skill tree is read by
+the model on every run and `python -m uv run python tools/interview.py scan` refuses a
+client's name anywhere outside `knowledge/`. Worked examples with real names, last year's
+models, the engagements you learned the procedure on - those go under
+[`knowledge/model-setup/`](../knowledge/model-setup/), which is committed, private, and
+never reaches a prompt. The skill cites them by what they are, not who they were.
+
+**What the methodology files already hold.** The six files under `knowledge/methodology/`
+are where the model's *rules* live - EBITDA adjustments, working capital, screening, the
+cost-of-capital inputs, report writing. Your skill is the *procedure* that applies them in
+the workbook. Where the skill states a rule the files do not have, move the rule into the
+file (and its `foundations/` twin) and let the skill point at it; the rules reach every
+model call that way, and the skill stays about the model.

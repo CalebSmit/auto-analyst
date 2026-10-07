@@ -136,8 +136,14 @@ CSS = r"""
 html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
  /* Fluid: the whole board fits a 13-inch laptop and a 27-inch monitor alike. */
  font-size:clamp(12px,.55vw + 5.5px,14.5px);min-height:100%}
+/* Lit paper. Two soft lights in the brand's own colours - Mint Mist from the top left,
+   gold from the top right - over the paper gradient. Fixed to the window so they stay
+   where the light would be while the page scrolls under them (P171). */
 body{font:var(--t-body)/1.5 var(--sans);margin:0;min-height:100%;
- background:var(--bg);background-image:linear-gradient(180deg,#f6f5f0 0,var(--bg) 22rem);
+ background:var(--bg);background-image:
+  radial-gradient(60rem 28rem at 6% -12%,color-mix(in srgb,var(--brand-p4) 72%,transparent),transparent 70%),
+  radial-gradient(46rem 22rem at 98% -10%,color-mix(in srgb,var(--gold) 22%,transparent),transparent 70%),
+  linear-gradient(180deg,#f6f5f0 0,var(--bg) 22rem);
  background-attachment:fixed;color:var(--ink);display:flex;flex-direction:column;
  font-variant-numeric:lining-nums tabular-nums;text-rendering:optimizeLegibility}
 ::selection{background:color-mix(in srgb,var(--brand-p3) 45%,white);color:var(--navy)}
@@ -163,8 +169,21 @@ b,strong{font-weight:600}
    is a number nobody reads. */
 .top{flex:none;background:linear-gradient(180deg,#123b50 0%,var(--navy) 62%);
  --ring:var(--brand-p3);
- color:var(--brand-s5);position:sticky;top:0;z-index:30;
+ color:var(--brand-s5);position:sticky;top:0;z-index:30;overflow:hidden;
  box-shadow:0 1px 0 rgba(12,46,63,.16),0 6px 18px -12px rgba(12,46,63,.5)}
+/* Three lights moving slowly under the chrome - Steel Blue, the pale blue, a breath of
+   gold. It is the one place the tool is allowed to be beautiful for its own sake, because
+   it is the one place that carries nothing a person has to read closely. Alternating and
+   eighteen seconds long so it is noticed as life rather than watched as an animation; the
+   reduced-motion rule below stops it. */
+.top::before{content:"";position:absolute;inset:-60% -8%;pointer-events:none;z-index:0;
+ background:
+  radial-gradient(40rem 16rem at 16% 70%,color-mix(in srgb,var(--brand-p2) 82%,transparent),transparent 70%),
+  radial-gradient(32rem 13rem at 64% 10%,color-mix(in srgb,var(--brand-p3) 50%,transparent),transparent 70%),
+  radial-gradient(24rem 11rem at 94% 100%,color-mix(in srgb,var(--gold) 36%,transparent),transparent 70%);
+ animation:aurora 18s var(--ease) infinite alternate}
+@keyframes aurora{from{transform:translate3d(-3%,0,0) scale(1)}to{transform:translate3d(3%,-7%,0) scale(1.08)}}
+.top-in{position:relative;z-index:1}
 /* The gold is a hairline, not a band: the guidelines allow it sparingly, and at one
    pixel it reads as a rule ruled under a masthead rather than as decoration. */
 .top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
@@ -173,7 +192,8 @@ b,strong{font-weight:600}
  max-width:1900px;margin:0 auto;width:100%}
 .brand{display:flex;align-items:baseline;gap:.6rem;margin-right:var(--s4);
  padding-right:var(--s4);border-right:1px solid rgba(255,255,255,.12)}
-.brand b{font:400 1.22rem/1 var(--serif);letter-spacing:-.005em;color:#fff}
+.brand b{font:400 1.3rem/1 var(--serif);letter-spacing:-.012em;color:#fff;
+ text-shadow:0 1px 0 rgba(0,0,0,.18)}
 .brand span{font-size:.64rem;color:color-mix(in srgb,var(--brand-p3) 80%,white);
  letter-spacing:.22em;text-transform:uppercase;font-weight:600}
 .nav{display:flex;gap:.1rem;align-self:stretch}
@@ -183,7 +203,7 @@ b,strong{font-weight:600}
 .nav a::after{content:"";position:absolute;left:.85rem;right:.85rem;bottom:0;height:2px;
  background:var(--gold);border-radius:2px 2px 0 0;opacity:0;transform:scaleX(.6);
  transform-origin:center;transition:opacity .18s var(--ease),transform .18s var(--ease)}
-.nav a:hover{color:#fff;text-decoration:none}
+.nav a:hover{color:#fff;text-decoration:none;background:rgba(255,255,255,.05)}
 .nav a[aria-current]{color:#fff}
 .nav a[aria-current]::after{opacity:1;transform:scaleX(1)}
 .top .right{margin-left:auto;display:flex;align-items:center;gap:var(--s4);
@@ -200,7 +220,9 @@ b,strong{font-weight:600}
 .page-head{flex:none;display:flex;align-items:baseline;gap:var(--s4);flex-wrap:wrap;
  padding:0 .1rem .7rem;border-bottom:1px solid var(--line)}
 .page-head h1{font:400 var(--t-display)/1.1 var(--serif);letter-spacing:-.018em;margin:0;
- color:var(--navy)}
+ color:var(--navy);background:linear-gradient(90deg,var(--navy),var(--brand-p2));
+ -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+ padding-right:.1em}
 .page-head p{margin:0;color:var(--ink-3);font-size:var(--t-sm);flex:1;min-width:22ch;
  max-width:86ch;line-height:1.5}
 .page-head .tools{margin-left:auto;display:flex;align-items:center;gap:var(--s2)}
@@ -228,9 +250,22 @@ b,strong{font-weight:600}
 
 /* ---------------------------------------------------------------- card */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
- box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+ box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;overflow:hidden;
+ position:relative;transition:box-shadow .3s var(--ease),border-color .3s var(--ease)}
+/* The signature: a two-pixel rule along the top of every panel, Steel Blue fading out to
+   the right. One mark, the same on every panel, is what makes a set of boxes read as one
+   designed thing rather than as boxes. */
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;z-index:1;
+ background:linear-gradient(90deg,var(--brand-p2),color-mix(in srgb,var(--brand-p3) 55%,transparent) 60%,transparent)}
+.board>.card:hover{box-shadow:var(--shadow-lift);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+/* The board arrives: each panel rises in a beat after the one before it. Half a second in
+   all, once, on load - enough to feel the page assemble, not enough to wait for. */
+.board>.card{animation:rise .55s var(--ease) both;animation-delay:calc(var(--i,0)*70ms)}
+.board>.card:nth-child(2){--i:1}.board>.card:nth-child(3){--i:2}.board>.card:nth-child(4){--i:3}
+.board>.card:nth-child(5){--i:4}.board>.card:nth-child(6){--i:5}.board>.card:nth-child(7){--i:6}
+.board>.card:nth-child(8){--i:7}.board>.card:nth-child(n+9){--i:8}
 .card>header{flex:none;padding:var(--s4) var(--s5) .6rem}
-.card h2{font:400 1.16rem/1.25 var(--serif);margin:0;color:var(--navy);letter-spacing:-.012em}
+.card h2{font:400 1.24rem/1.25 var(--serif);margin:0;color:var(--navy);letter-spacing:-.016em}
 .card h2 small{font:400 var(--t-xs) var(--sans);color:var(--ink-3);margin-left:.5rem;letter-spacing:0}
 .card h2 .of{font:600 var(--t-label)/1 var(--sans);letter-spacing:.1em;color:var(--ink-3);
  margin-left:.55rem;vertical-align:.12em;font-variant-numeric:tabular-nums}
@@ -280,16 +315,40 @@ b,strong{font-weight:600}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1px;
  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
  overflow:hidden;box-shadow:var(--shadow)}
-.metric{background:var(--surface);padding:var(--s3) var(--s4) var(--s4);
+.metric{background:var(--surface);padding:var(--s3) var(--s4) var(--s4);position:relative;
  transition:background .2s var(--ease)}
 .metric:hover{background:var(--surface-2)}
+/* A short rule under each figure in the figure's own colour, so the row of six reads as
+   six instruments rather than six cells. */
+.metric::after{content:"";position:absolute;left:var(--s4);right:var(--s4);bottom:0;height:3px;
+ border-radius:3px 3px 0 0;opacity:.6;
+ background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 15%,transparent))}
+.metric.good::after{background:linear-gradient(90deg,var(--good),color-mix(in srgb,var(--good) 15%,transparent))}
+.metric.warn::after{background:linear-gradient(90deg,var(--gold),color-mix(in srgb,var(--gold) 15%,transparent))}
+.metric.bad::after{background:linear-gradient(90deg,var(--bad),color-mix(in srgb,var(--bad) 15%,transparent))}
 .metric .k{font-size:var(--t-label);letter-spacing:.14em;text-transform:uppercase;
  color:var(--ink-3);display:block;margin-bottom:.45rem;font-weight:600}
-.metric .v{font-size:2rem;font-weight:600;letter-spacing:-.03em;line-height:1;
- display:block;color:var(--navy);font-variant-numeric:lining-nums tabular-nums}
+.metric .v{font-size:2.25rem;font-weight:600;letter-spacing:-.035em;line-height:1;
+ display:block;color:var(--navy);font-variant-numeric:lining-nums tabular-nums;
+ animation:rise .6s var(--ease) both}
 .metric .v small{font-size:.9rem;font-weight:500;color:var(--ink-3);letter-spacing:0;margin-left:.15rem}
 .metric .c{display:block;margin-top:.45rem;font-size:var(--t-xs);color:var(--ink-3);line-height:1.45}
 .metric.good .v{color:var(--good)}.metric.warn .v{color:var(--warn)}.metric.bad .v{color:var(--bad)}
+/* The figures a page is about, set on the chrome's own navy so the first thing seen is the
+   first thing read. White figures, pale-blue labels, the brand's pale colours for the three
+   tones - every one measured against the navy rather than the paper (P171). */
+.metrics.hero{background:linear-gradient(135deg,#123b50,var(--navy) 55%,#0a2634);
+ border-color:var(--navy);box-shadow:var(--shadow-lift)}
+.metrics.hero .metric{background:transparent;box-shadow:inset 1px 0 0 rgba(255,255,255,.07)}
+.metrics.hero .metric:hover{background:rgba(255,255,255,.04)}
+.metrics.hero .k{color:color-mix(in srgb,var(--brand-p3) 85%,white)}
+.metrics.hero .v{color:#fff}
+.metrics.hero .v small,.metrics.hero .c{color:color-mix(in srgb,var(--brand-s5) 72%,var(--brand-p3))}
+.metrics.hero .metric.good .v{color:var(--brand-p4)}
+.metrics.hero .metric.warn .v{color:color-mix(in srgb,var(--gold) 78%,white)}
+.metrics.hero .metric.bad .v{color:color-mix(in srgb,var(--brand-s2) 45%,white)}
+.metrics.hero .metric::after{opacity:.95}
+.metrics.hero .metric.good::after{background:linear-gradient(90deg,var(--brand-p4),transparent)}
 
 /* ---------------------------------------------------------------- rows */
 .rows{display:flex;flex-direction:column}
@@ -320,8 +379,9 @@ b,strong{font-weight:600}
 .r.link,.r.pick{cursor:pointer;border-radius:var(--radius-sm);
  padding-left:.6rem;padding-right:.6rem;margin:0 -.6rem;
  transition:background .16s var(--ease),box-shadow .16s var(--ease)}
-.r.link:hover,.r.pick:hover{background:var(--surface-2)}
-.r.link.on,.r.pick.on{background:var(--accent-soft);box-shadow:inset 2px 0 0 var(--accent)}
+.r.link:hover,.r.pick:hover{background:var(--surface-2);box-shadow:inset 2px 0 0 var(--line)}
+.r.link.on,.r.pick.on{box-shadow:inset 3px 0 0 var(--accent);
+ background:linear-gradient(90deg,var(--accent-soft),color-mix(in srgb,var(--accent-soft) 35%,transparent))}
 
 /* An engagement is a name, a state, and five things you can do to it. The first two own
    the first line; the rest sit under them, so a client with a long name is not the thing
@@ -346,14 +406,27 @@ b,strong{font-weight:600}
 .pill.accent{background:var(--accent-soft);color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--accent-line)}
 .dot{width:.38rem;height:.38rem;border-radius:99px;background:currentColor;flex:none;
  box-shadow:0 0 0 2px color-mix(in srgb,currentColor 18%,transparent)}
+/* Something still happening is the one state a still page cannot show with colour alone:
+   the dot on a running or waiting pill breathes. The same reduced-motion rule stops it. */
+.pill.accent .dot,.pill.warn .dot{animation:breathe 2.2s var(--ease) infinite}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 2px color-mix(in srgb,currentColor 18%,transparent)}
+ 50%{box-shadow:0 0 0 5px color-mix(in srgb,currentColor 0%,transparent)}}
 
 /* ---------------------------------------------------------------- bar */
-.bar{height:.3rem;border-radius:99px;background:var(--surface-sunken);overflow:hidden;
+.bar{height:.4rem;border-radius:99px;background:var(--surface-sunken);overflow:hidden;
  box-shadow:inset 0 0 0 1px var(--line-soft)}
-.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;
- transition:width .5s var(--ease)}
-.bar.good>i{background:var(--good)}.bar.warn>i{background:var(--gold)}
-.bar.bad>i{background:var(--bad)}
+.bar>i{display:block;height:100%;border-radius:99px;position:relative;overflow:hidden;
+ background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%,var(--brand-p3)));
+ transition:width .7s var(--ease)}
+.bar.good>i{background:linear-gradient(90deg,var(--good),color-mix(in srgb,var(--good) 60%,var(--brand-p4)))}
+.bar.warn>i{background:linear-gradient(90deg,var(--gold),color-mix(in srgb,var(--gold) 65%,var(--brand-s5)))}
+.bar.bad>i{background:linear-gradient(90deg,var(--bad),color-mix(in srgb,var(--bad) 65%,var(--brand-p3)))}
+/* A light passing along the filled part, slowly: the bar is measuring something that is
+   still moving. */
+.bar>i::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);
+ animation:shimmer 2.8s var(--ease) infinite}
+@keyframes shimmer{to{transform:translateX(100%)}}
 
 /* ---------------------------------------------------------------- controls */
 /* `button` and `.btn` together, in every rule rather than only this one. `.btn` exists so
@@ -373,7 +446,7 @@ button:active,.btn:active{transform:translateY(1px);box-shadow:none}
 button.primary,.btn.primary{background:linear-gradient(180deg,#17465f,var(--navy));color:#fff;
  border-color:var(--navy);box-shadow:0 1px 2px rgba(12,46,63,.24)}
 button.primary:hover,.btn.primary:hover{background:linear-gradient(180deg,#1b5271,#103a4f);border-color:var(--navy);
- box-shadow:0 2px 6px -1px rgba(12,46,63,.3)}
+ box-shadow:0 6px 14px -6px rgba(12,46,63,.55);transform:translateY(-1px)}
 /* The one button that ends something. Plum rather than red: it is the palette's colour for
    a problem, and a dialog that turns red reads as an alarm somebody bolted on. */
 button.primary.danger,.btn.primary.danger{background:linear-gradient(180deg,#633553,var(--bad));border-color:var(--bad);
@@ -622,6 +695,11 @@ input.path{width:auto;flex:1 1 30ch;min-width:24ch;margin:0}
 
 /* An engagement, and the runs behind it. The group header is the line an analyst reads
    first; its runs are indented under it so the nesting is visible without a rule. */
+/* A line that has just arrived in the live feed slides in on the accent wash and
+   settles to the paper, so the eye is taken to what changed without a count to read. */
+#feed>.r{animation:arrive .6s var(--ease) both}
+@keyframes arrive{from{opacity:0;transform:translateY(-.3rem);background:var(--accent-soft)}
+ to{opacity:1;transform:none;background:transparent}}
 .grp{margin:0 0 var(--s2)}
 .grp-head{display:flex;align-items:baseline;gap:var(--s2);padding:.3rem .2rem .2rem;
  border-bottom:1px solid var(--line)}

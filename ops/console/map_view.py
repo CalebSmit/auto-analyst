@@ -84,7 +84,11 @@ MAP_STYLE = """
 /* The route the run took, over the design rather than in it. A dotted trail reads as
    "went here next" without competing with the solid lines of the structure. */
 #dmap #dmap-path path{fill:none;stroke:var(--navy);stroke-width:2;stroke-opacity:.5;
- stroke-linecap:round;stroke-dasharray:1 7}
+ stroke-linecap:round;stroke-dasharray:1 7;animation:march 1.4s linear infinite}
+/* The dots travel in the direction the run went - one period of the dash every 1.4
+   seconds, which reads as a direction and not as a blink. Stopped by the reduced-motion
+   rule like every other animation in the product. */
+@keyframes march{to{stroke-dashoffset:-16}}
 #dmap #dmap-path path.off{stroke-opacity:.62}
 #dmap.far #dmap-path path{stroke-width:3;stroke-opacity:.6}
 #dmap.focused #dmap-path{opacity:.15}
@@ -263,7 +267,8 @@ MAP_STYLE = """
 
 
 #dmap.focused #dmap-edges path:not(.on){opacity:.1}
-#dmap #dmap-edges path.on{stroke:var(--accent);stroke-width:2.4;stroke-opacity:.95}
+#dmap #dmap-edges path.on{stroke:var(--accent);stroke-width:2.4;stroke-opacity:.95;
+ filter:drop-shadow(0 0 3px color-mix(in srgb,var(--accent) 55%,transparent))}
 /* The blueprint's own line grammar, without its colours: weight and dash carry the kind,
    so a guard, a declared loop and a masked crossing are each recognisable in both
    drawings. Ten kinds is too many for one channel, so the ones a reader asks about get a

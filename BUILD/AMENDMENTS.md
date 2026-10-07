@@ -3151,3 +3151,26 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C95 after P170, covering P170
 - proves: Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it.
+
+## 2026-10-06 - P171 A dashboard with some life in it
+
+**Why:** The analyst's second look at the dashboard: plain, and it looked generated. The Analytics board listed every skill twice. And the model-setup skill the work laptop brings has nowhere to land
+
+- phase added: P171 A dashboard with some life in it (Reading what a client actually sends, gate: auto)
+- exit criterion: Every animation the phase added is declared once, worn by something, and inside the reduced-motion rule's reach
+- exit criterion: Every colour the phase mixed is a token, white, black or transparent
+- exit criterion: The Analytics skill table has one row template grouped by skill, weighted by decided, and the server carries decided
+- exit criterion: Section 8 names paths and front-matter keys that exist; knowledge/model-setup/README.md has its three sections
+
+## 2026-10-06 - C96 One product with some life in it
+
+**Why:** The analyst asked for a dashboard people enjoy being in, one skill one row, and a landing place for the model-setup skill; the phase that did it changed the shared sheet and one page's markup, and a shared sheet is proved on every page that wears it
+
+- checkpoint added: C96 after P171, covering P171
+- proves: Every page is served the one theme once with the one reduced-motion switch that stops every animation the phase added, the hero band is worn by the page that asked for it and no other, the Activity page serves the marching trail and the Analytics page serves one row per skill, and the runbook's landing place for the model-setup skill is a layer the skill tree reads with the front matter the section lists.
+
+## 2026-10-06 - P171 A dashboard with some life in it
+
+**Why:** A new public surface, deliberately: SCOPE.RECIPE_UNBUILT in registries/errors, so a workflow with an unbuilt step carries its own next action instead of RECIPE_INVALID's 'does not compile'; recorded in BUILD/surfaces.json
+
+- task added: SCOPE.RECIPE_UNBUILT: the P117 unbuilt-workflow warning carries its own sentence, in the blueprint's SCOPE.* row and the surface snapshot

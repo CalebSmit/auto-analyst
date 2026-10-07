@@ -340,6 +340,9 @@ class Analytics:
                 "scope": scope,
                 "runs": row["runs"],
                 "items": row["items"],
+                # The denominator of the override rate, carried so the page can weight the
+                # practice groups of one skill into one figure (P171).
+                "decided": row["decided"],
                 "auto_accept_rate": _ratio(row["auto"], row["items"]),
                 "override_rate": _ratio(row["overridden"], row["decided"]),
                 "drift_flags": [f.metric for f in self.drift.report().flagged(skill, scope)],

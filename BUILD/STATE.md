@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **170 of 170 phases closed**
-- Last green checkpoint: **C95**
+- **171 of 171 phases closed**
+- Last green checkpoint: **C96**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -189,4 +189,5 @@
 - **P168** A laptop closes (2026-10-06)
 - **P169** A clone's first day (2026-10-06)
 - **P170** The number in the corner (2026-10-06)
+- **P171** A dashboard with some life in it (2026-10-06)
 

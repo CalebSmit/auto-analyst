@@ -4923,6 +4923,33 @@
       ],
       "notes": "",
       "closed": "2026-10-06"
+    },
+    {
+      "id": "P171",
+      "title": "A dashboard with some life in it",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The dashboard is something people enjoy being in: lit paper, weather under the masthead, a signature on every panel, a board that arrives, figures that land, a breathing dot on anything still happening, a bar that shimmers while it measures, feed lines that arrive, and the run's trail on the map travelling the way the run went - all of it in the brand's colours and on the two scales, and all of it stopped by the one reduced-motion rule. The Analytics board shows one skill as one row with its practice groups under it. And the runbook says exactly where the model-setup skill goes, what it must declare, which slot each of its paths fills, and where its client-naming half lives instead.",
+      "builds": [],
+      "tasks": [
+        "Theme: lit paper, aurora under the masthead, panel signature and staggered entrance, larger figures with a coloured rule, breathing live dots, shimmering bars, arriving feed lines, hover lift on panels and rows",
+        "Map: the run's trail marches in the run's direction; a picked node's edges glow",
+        "Analytics: group the skill table by skill in the page, weighting the groups' rates by what each decided; the server row carries decided",
+        "docs/WORK-LAPTOP.md section 8 and knowledge/model-setup/README.md: where the model-setup skill goes, its required front matter, the two paths' slots, and the private half",
+        "SCOPE.RECIPE_UNBUILT: the P117 unbuilt-workflow warning carries its own sentence, in the blueprint's SCOPE.* row and the surface snapshot"
+      ],
+      "exit": [
+        "Every animation the phase added is declared once, worn by something, and inside the reduced-motion rule's reach",
+        "Every colour the phase mixed is a token, white, black or transparent",
+        "The Analytics skill table has one row template grouped by skill, weighted by decided, and the server carries decided",
+        "Section 8 names paths and front-matter keys that exist; knowledge/model-setup/README.md has its three sections"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p171 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-06"
     }
   ],
   "checkpoints": [
@@ -5969,6 +5996,17 @@
       "proves": "Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c95 -q"
+      ],
+      "closed": "2026-10-06"
+    },
+    {
+      "id": "C96",
+      "title": "One product with some life in it",
+      "after": "P171",
+      "status": "done",
+      "proves": "Every page is served the one theme once with the one reduced-motion switch that stops every animation the phase added, the hero band is worn by the page that asked for it and no other, the Activity page serves the marching trail and the Analytics page serves one row per skill, and the runbook's landing place for the model-setup skill is a layer the skill tree reads with the front matter the section lists.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c96 -q"
       ],
       "closed": "2026-10-06"
     }

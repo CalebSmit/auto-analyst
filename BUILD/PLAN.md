@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**170 of 170 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**171 of 171 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -273,6 +273,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C94 - Day one, after the set-up the page walks** | integration | A machine with no configuration, no approved recipe and nothing cleared is set up through the real routes the way the Setup page does it, the approval goes through the board under a name, the sixteen checks end with no failure and the two allowed warnings, the two valuation engagements are active and the consulting one is refused in compilation's words, and nothing of it is written into the machine's own records. | 2026-10-06 |
 | [x] | **P170** The number in the corner | auto | The ordinal's offsets are non-negative at both zooms and the badge's extent fits inside 178x52 at the root sizes the sheet declares | 2026-10-06 |
 | [x] | **C95 - The number in the corner, on every page** | integration | Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it. | 2026-10-06 |
+| [x] | **P171** A dashboard with some life in it | auto | Every animation the phase added is declared once, worn by something, and inside the reduced-motion rule's reach | 2026-10-06 |
+| [x] | **C96 - One product with some life in it** | integration | Every page is served the one theme once with the one reduced-motion switch that stops every animation the phase added, the hero band is worn by the page that asked for it and no other, the Activity page serves the marching trail and the Analytics page serves one row per skill, and the runbook's landing place for the model-setup skill is a layer the skill tree reads with the front matter the section lists. | 2026-10-06 |
 
 ## A run that finishes
 

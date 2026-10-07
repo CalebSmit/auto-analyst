@@ -3466,3 +3466,33 @@ design language already - the firm's palette, Georgia for titles, tabular figure
 pills. The premium finish the analyst asked for is the depth: panels, modals and nodes now
 sit on the paper rather than on top of it. Anything further should come from looking at the
 pages on the work laptop with real engagements in them.
+
+## B-160 The Analytics board listed every skill twice
+status: fixed (P171)
+2026-10-06. The analyst's finding. `Analytics._skills` keys rows by (skill, practice group)
+because drift is measured per group, and the page printed the keys - so `ebitda-normalization`
+appeared for `valuation/esop/repeat` and again for `valuation/non-esop/non-repeat` with nothing
+saying why. The page groups by skill now: one row, the groups under it with their shares and
+any drift flag, the rates weighted by what each group decided (`decided` added to the row).
+The server's rows are unchanged, so `tests/p23` still holds.
+
+## B-161 The dashboard read as plain and generated
+status: fixed (P171); more to come from looking at it with real engagements
+2026-10-06. The analyst, honestly: "very plain, and AI generated; I want some excitement,
+something flashy, modern, so people enjoy being in it." The sheet's own philosophy had been
+quiet to a fault. What P171 added, all in the brand's palette and on the scales: a lit paper
+background, an aurora of three slow lights under the masthead, a two-pixel Steel Blue
+signature along the top of every panel, a staggered entrance for the board, larger figures
+with a coloured rule under each, a breathing dot on live pills, a shimmer along a moving bar,
+feed lines that arrive, hover lift on panels and rows, and the run's trail on the map
+marching in the direction the run went. Everything stops under `prefers-reduced-motion`.
+Not done, and worth doing with real data in front of the analyst: a dark variant for the ops
+console, sparklines in the head metrics, and the Setup page's checklist as a progress ring.
+
+## B-162 A workflow with an unbuilt step was told it "does not compile"
+status: fixed (P171)
+2026-10-06. Seen on the Setup page while looking at the dashboard: the P117 warning about a
+workflow that compiles and stops partway carried RECIPE_INVALID's next action - "The recipe
+does not compile" - because `diagnose()` takes its what_now from the code and the warning
+borrowed a code. It has its own, SCOPE.RECIPE_UNBUILT, with a sentence about a workflow that
+compiles and will stop, blocks nothing, and names the choice. In the blueprint's SCOPE.* row.

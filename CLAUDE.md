@@ -412,6 +412,22 @@ both ends of the fluid root rather than trusting a sentence about it. To look yo
 `simulate_firm.py --scripted --keep` leaves a record under `runs/_rehearsal/`, and
 `serve.py --port 8033` with `AA_DB_URL` pointed at it paints the map with real runs.
 
+**The dashboard has some life in it now (P171).** The analyst's words: plain, and it looked
+generated. What changed is atmosphere and motion with a purpose, all of it in the brand's
+colours and off the two scales: lit paper, three slow lights under the masthead, a signature
+rule along the top of every panel, panels that arrive in a beat each, figures that land, a
+breathing dot on anything still happening, a light along a bar that is measuring something
+in motion, a feed line that slides in, and the run's trail on the map travelling the way the
+run went. One rule turns all of it off: `prefers-reduced-motion`. And one skill is one row on
+the Analytics board, with its practice groups under it - the table had been keyed by (skill,
+group) and listed every skill twice with nothing saying why.
+
+**The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
+(`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
+of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it
+naming a client goes under `knowledge/model-setup/` instead. `tests/p171` holds the section
+to paths and names that exist.
+
 `readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
 need updating when a seam is filled - and it is the honest answer to "does this work yet".
 A seam marked NOT INSTALLED waits on software a person installs; NOT WIRED is a join this

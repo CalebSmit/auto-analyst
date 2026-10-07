@@ -57,7 +57,7 @@ PAGE = f"""<!doctype html>
  </div>
 
  <div class="board">
-  <div class="metrics" id="head" style="grid-area:head">
+  <div class="metrics hero" id="head" style="grid-area:head">
    <div class="metric"><span class="k">Loading</span><span class="v">&mdash;</span></div>
   </div>
 
@@ -317,15 +317,31 @@ function skills(rows) {{
     $('skills').innerHTML = '<div class="empty"><b>No skill has been routed yet</b>Each will appear here with its scope once a run reaches it.</div>';
     return;
   }}
+  // One row per skill. The server keys by (skill, practice group), because drift is
+  // measured per group - and a table that printed those keys listed ebitda-normalization
+  // twice with nothing saying why (P171). The groups go under the skill, each with its
+  // own share, and the skill's rates are the groups' rates weighted by what each decided.
+  const by = new Map();
+  for (const k of rows) {{
+    const g = by.get(k.skill) || {{skill: k.skill, runs: 0, items: 0, auto: 0, autoOf: 0,
+      over: 0, overOf: 0, groups: []}};
+    g.runs += k.runs; g.items += k.items;
+    if (k.auto_accept_rate !== null) {{ g.auto += k.auto_accept_rate * k.items; g.autoOf += k.items; }}
+    if (k.override_rate !== null) {{ g.over += k.override_rate * (k.decided || 0); g.overOf += k.decided || 0; }}
+    g.groups.push(k);
+    by.set(k.skill, g);
+  }}
+  const rate = (n, of) => of ? n / of : null;
   $('skills').innerHTML =
     '<div class="r head"><span class="lbl">Skill</span><span class="num">Runs</span><span class="num">Auto</span><span class="num">Override</span></div>' +
-    rows.map(k => `<div class="r">
-      <span class="lbl"><b>${{esc(k.skill)}}</b>
-       <span class="d">${{esc(k.scope)}} &middot; ${{plural(k.items, 'item', 'items')}}</span></span>
-      <span class="num">${{k.runs}}</span>
-      <span class="num">${{pct(k.auto_accept_rate)}}</span>
-      <span class="num">${{pct(k.override_rate)}}</span>
-      ${{k.drift_flags.length ? `<span class="pill bad">drift: ${{k.drift_flags.map(esc).join(', ')}}</span>` : ''}}
+    [...by.values()].map(g => `<div class="r">
+      <span class="lbl"><b>${{esc(g.skill)}}</b>
+       <span class="d">${{plural(g.items, 'item', 'items')}} across ${{plural(g.groups.length, 'practice group', 'practice groups')}}${{
+         g.groups.map(k => ` &middot; ${{esc(k.scope)}} ${{k.items}}${{k.drift_flags.length ? ' (drift: ' + k.drift_flags.map(esc).join(', ') + ')' : ''}}`).join('')}}</span></span>
+      <span class="num">${{g.runs}}</span>
+      <span class="num">${{pct(rate(g.auto, g.autoOf))}}</span>
+      <span class="num">${{pct(rate(g.over, g.overOf))}}</span>
+      ${{g.groups.some(k => k.drift_flags.length) ? '<span class="pill bad">drift</span>' : ''}}
      </div>`).join('');
 }}
 

@@ -66,10 +66,7 @@ def _badge_box(
     pad = 2 * _px(rule.get("padding", "0 0").split()[-1], root)
     w = max(_px(rule["min-width"], root), digits + pad)
     right = NODE_W - _px(rule["right"], root)
-    if centred:
-        top = NODE_H / 2 - h / 2
-    else:
-        top = _px(rule["top"], root)
+    top = NODE_H / 2 - h / 2 if centred else _px(rule["top"], root)
     return right - w, top, right, top + h
 
 

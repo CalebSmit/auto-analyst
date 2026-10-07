@@ -58,6 +58,7 @@ from registries.errors import (
     PATH_UNREADABLE,
     PROFILE_INCOMPLETE,
     RECIPE_INVALID,
+    RECIPE_UNBUILT,
     RECIPE_UNREGISTERED,
     TEMPLATE_HASH_MISMATCH,
     TEMPLATE_INPUTS_MISSING,
@@ -786,7 +787,10 @@ class Preflight:
                     Failure(
                         "recipes_and_budgets",
                         diagnose(
-                            RECIPE_INVALID,
+                            # Its own code since P171: under RECIPE_INVALID the Setup page
+                            # said "does not compile" about a workflow that compiles and
+                            # stops, which is the sentence for a different finding.
+                            RECIPE_UNBUILT,
                             f"{entry.engagement_id} runs {name!r}, which names "
                             f"{', '.join(unbuilt)} - no procedure exists for "
                             f"{'them' if len(unbuilt) > 1 else 'it'}, so a run would pay "
