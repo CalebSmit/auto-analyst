@@ -402,6 +402,16 @@ page and a column is a band too; the engine's boxes come through the port now an
 of page go through the one reader in `intake/readers/layout.py`. The same page scanned and
 from its text layer now gives the same 61 rows, the same totals and the same balance sheet.
 
+**Open the page and look.** The suite was green through every console defect this build has
+had, and P170 was found the same way as the others: the analyst opened the whole-design view
+and every order number on the nodes was a quarter-circle, because the badge hung outside a
+box that clips its own overflow. It sits inside the node now, the nodes a run touched carry
+the console's panel elevation, and the elevation tokens are three layers so every panel
+lifts the same way. `tests/p170` measures the badge's extent from the sheet's own numbers at
+both ends of the fluid root rather than trusting a sentence about it. To look yourself:
+`simulate_firm.py --scripted --keep` leaves a record under `runs/_rehearsal/`, and
+`serve.py --port 8033` with `AA_DB_URL` pointed at it paints the map with real runs.
+
 `readiness()` in `tools/serve.py` derives what is joined by asking the code, so it does not
 need updating when a seam is filled - and it is the honest answer to "does this work yet".
 A seam marked NOT INSTALLED waits on software a person installs; NOT WIRED is a join this

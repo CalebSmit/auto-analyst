@@ -125,8 +125,11 @@ CSS = r"""
 
  /* Elevation, tinted navy rather than black - a grey shadow on warm paper is what makes
     a panel look printed on top of the page instead of resting on it. */
- --shadow:0 1px 1px rgba(12,46,63,.04),0 2px 6px -2px rgba(12,46,63,.07);
- --shadow-lift:0 1px 1px rgba(12,46,63,.05),0 6px 16px -6px rgba(12,46,63,.14);
+ /* Three layers each: a contact shadow, a near one, and a wide soft one that fades before
+    it reaches the next panel. Two layers read as a sticker; the third is what makes a
+    panel sit on the paper rather than on top of it (P170). */
+ --shadow:0 1px 1px rgba(12,46,63,.04),0 2px 6px -2px rgba(12,46,63,.07),0 14px 30px -22px rgba(12,46,63,.14);
+ --shadow-lift:0 1px 1px rgba(12,46,63,.05),0 6px 16px -6px rgba(12,46,63,.14),0 22px 44px -28px rgba(12,46,63,.18);
  --shadow-modal:0 24px 64px -12px rgba(12,46,63,.32),0 2px 8px rgba(12,46,63,.12);
  --ease:cubic-bezier(.32,.72,0,1);
 }

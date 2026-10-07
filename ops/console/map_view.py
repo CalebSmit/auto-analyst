@@ -142,17 +142,30 @@ MAP_STYLE = """
    this off, which is why it is a CSS animation and not a timer. */
 #dmap .mn.active::before{animation:mnpulse 1.8s var(--ease) infinite}
 @keyframes mnpulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* What a run touched sits on the sheet; what it never reached is drawn on it. The same
+   elevation the console gives a panel, and a faint light along the top edge, so the eight
+   or twenty nodes that matter read as objects and the hundred that do not read as plan. */
+#dmap .mn.used,#dmap .mn.passed,#dmap .mn.active,#dmap .mn.failed{box-shadow:var(--shadow);
+ background-image:linear-gradient(180deg,color-mix(in srgb,var(--surface) 55%,transparent),transparent 65%)}
 #dmap .mn.on{box-shadow:0 0 0 1px var(--surface),0 0 0 3px var(--accent),var(--shadow-lift)}
 /* The order the run touched it in. A run is a sequence, and this is the only place the
    picture can say so. */
 /* The console already has this object - `.step .mark` - so this is that one, wearing the
    node's own state. It used to be solid navy at weight 700 hanging over the border, which
-   put eight of the loudest marks on the canvas on top of the colours they annotate. */
-#dmap .mn .ord{position:absolute;top:-.6rem;right:-.5rem;min-width:1.4rem;height:1.4rem;
- padding:0 .3rem;border-radius:99px;background:var(--surface);color:var(--ink-3);
- font-size:var(--t-label);font-weight:600;display:none;place-items:center;
- box-shadow:inset 0 0 0 1px var(--line),0 1px 2px color-mix(in srgb,var(--navy) 12%,transparent)}
+   put eight of the loudest marks on the canvas on top of the colours they annotate.
+
+   Inside the box, not over its corner. It sat at -.6rem/-.5rem - outside a node that
+   clips its own overflow and paints under `contain` - so every number a run wrote on the
+   sheet was a quarter-circle with nothing legible in it (P170). The badge now takes the
+   top-right of the node and the name and id give it the column, so the one thing this
+   view can say that the trace panel cannot - which way the run went - is readable. */
+#dmap .mn .ord{position:absolute;top:.3rem;right:.3rem;min-width:1.3rem;height:1.3rem;
+ padding:0 .3rem;border-radius:99px;background:var(--surface);color:var(--ink-2);
+ font-size:var(--t-label);font-weight:600;line-height:1;display:none;place-items:center;
+ font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+ box-shadow:inset 0 0 0 1px var(--line),0 1px 2px color-mix(in srgb,var(--navy) 10%,transparent)}
 #dmap .mn[data-ord] .ord{display:grid}
+#dmap .mn[data-ord] .nm,#dmap .mn[data-ord] .id{padding-right:1.8rem}
 #dmap .mn.passed .ord{color:var(--good);box-shadow:inset 0 0 0 1px var(--good-line)}
 #dmap .mn.active .ord{background:var(--accent);color:var(--surface);box-shadow:none}
 #dmap .mn.failed .ord{background:var(--bad);color:var(--surface);box-shadow:none}
@@ -239,7 +252,14 @@ MAP_STYLE = """
 #dmap.far .mn.used .nm,#dmap.far .mn.passed .nm,#dmap.far .mn.active .nm,
 #dmap.far .mn.failed .nm,#dmap.far .mn.blocked .nm{color:var(--surface)}
 #dmap.far .mn::before{display:none}
-#dmap.far .mn .ord{min-width:2.4rem;height:2.4rem;font-size:var(--t-title);top:-1.1rem;right:-.9rem}
+/* Far out the box is a solid fill and the label is the id in display type; the number
+   sits at the right edge, centred, on paper - every state, because the state rules above
+   paint `active` and `failed` badges in the fill's own colour, which here is the box. */
+#dmap.far .mn{background-image:none}
+#dmap.far .mn .ord,#dmap.far .mn.active .ord,#dmap.far .mn.failed .ord{min-width:1.9rem;
+ height:1.9rem;font-size:var(--t-subtitle);top:50%;right:.35rem;transform:translateY(-50%);
+ background:var(--surface);color:var(--navy);box-shadow:none}
+#dmap.far .mn[data-ord] .nm{padding-right:2.5rem}
 
 
 #dmap.focused #dmap-edges path:not(.on){opacity:.1}

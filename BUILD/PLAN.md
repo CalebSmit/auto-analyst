@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**169 of 169 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**170 of 170 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -271,6 +271,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C93 - Day one, before anyone has done anything** | integration | On a machine with no .env, nothing cleared and the default adapters, the readiness report names the record before there is one, preflight is red on the default model adapter in a way a person can act on, a fresh register shows ten uncleared files six of which are the new knowledge, version one runs without the superseded skills, and the first wrong client file gets the true sentence. | 2026-10-06 |
 | [x] | **P169** A clone's first day | auto | On a register with no entries, both rehearsals' set-up approves the recipes they use and preflight passes - proved against a temporary register | 2026-10-06 |
 | [x] | **C94 - Day one, after the set-up the page walks** | integration | A machine with no configuration, no approved recipe and nothing cleared is set up through the real routes the way the Setup page does it, the approval goes through the board under a name, the sixteen checks end with no failure and the two allowed warnings, the two valuation engagements are active and the consulting one is refused in compilation's words, and nothing of it is written into the machine's own records. | 2026-10-06 |
+| [x] | **P170** The number in the corner | auto | The ordinal's offsets are non-negative at both zooms and the badge's extent fits inside 178x52 at the root sizes the sheet declares | 2026-10-06 |
+| [x] | **C95 - The number in the corner, on every page** | integration | Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it. | 2026-10-06 |
 
 ## A run that finishes
 

@@ -4898,6 +4898,31 @@
       ],
       "notes": "",
       "closed": "2026-10-06"
+    },
+    {
+      "id": "P170",
+      "title": "The number in the corner",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The order a run touched a node in is legible on every node at every zoom, inside the box the node already draws rather than hanging off it. The nodes a run touched sit on the sheet with the depth the rest of the console gives a panel, and the console's own elevation reads as layered rather than flat - one token, so every panel, modal and pill lifts the same way. Nothing new is chosen by eye: every value is on the two scales, every colour a token, and the tests that hold the sheet to that hold these too.",
+      "builds": [],
+      "tasks": [
+        "The ordinal badge is drawn inside the node, top-right, with the name and id giving it room; at the far zoom it sits at the right edge, vertically centred, on a surface that survives the solid fills",
+        "Nodes a run touched (passed, used, active, failed, blocked) carry the console's panel elevation and a faint top light; nodes it never reached stay a dashed outline",
+        "The elevation tokens are layered - a contact shadow and a soft ambient one - so cards, modals and the map lift consistently",
+        "A test measures, from the stylesheet's own numbers, that no part of the badge lies outside the node's box at either zoom"
+      ],
+      "exit": [
+        "The ordinal's offsets are non-negative at both zooms and the badge's extent fits inside 178x52 at the root sizes the sheet declares",
+        "The name and id reserve at least the badge's width when a node carries an ordinal",
+        "Every colour the new rules name is a token the theme defines, and every length is rem or a token"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p170 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-06"
     }
   ],
   "checkpoints": [
@@ -5933,6 +5958,17 @@
       "proves": "A machine with no configuration, no approved recipe and nothing cleared is set up through the real routes the way the Setup page does it, the approval goes through the board under a name, the sixteen checks end with no failure and the two allowed warnings, the two valuation engagements are active and the consulting one is refused in compilation's words, and nothing of it is written into the machine's own records.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c94 -q"
+      ],
+      "closed": "2026-10-06"
+    },
+    {
+      "id": "C95",
+      "title": "The number in the corner, on every page",
+      "after": "P170",
+      "status": "done",
+      "proves": "Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c95 -q"
       ],
       "closed": "2026-10-06"
     }

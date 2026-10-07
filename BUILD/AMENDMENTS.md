@@ -3135,3 +3135,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C94 after P169, covering P169
 - proves: A machine with no configuration, no approved recipe and nothing cleared is set up through the real routes the way the Setup page does it, the approval goes through the board under a name, the sixteen checks end with no failure and the two allowed warnings, the two valuation engagements are active and the consulting one is refused in compilation's words, and nothing of it is written into the machine's own records.
+
+## 2026-10-06 - P170 The number in the corner
+
+**Why:** The analyst opened the whole-design view and the order numbers on the nodes were cut off: the badge hangs outside a box that clips its own overflow, so every one of the twenty-one marks that say which way the run went is a quarter-circle. The same look found the sheet flat where it should read as considered, and the analyst asked for a premium finish across the dashboard
+
+- phase added: P170 The number in the corner (Reading what a client actually sends, gate: auto)
+- exit criterion: The ordinal's offsets are non-negative at both zooms and the badge's extent fits inside 178x52 at the root sizes the sheet declares
+- exit criterion: The name and id reserve at least the badge's width when a node carries an ordinal
+- exit criterion: Every colour the new rules name is a token the theme defines, and every length is rem or a token
+
+## 2026-10-06 - C95 The number in the corner, on every page
+
+**Why:** The analyst's first look at the whole-design view found every order number clipped; the phase that fixed it changed two shared sheets, and a checkpoint is where a shared sheet is proved on every page that wears it
+
+- checkpoint added: C95 after P170, covering P170
+- proves: Every token the map's sheet names is one the theme defines, the three-layer elevation reaches every served page exactly once, and the ordinal badge lies inside the node at both ends of the fluid root in the sheet as the Activity page actually serves it.

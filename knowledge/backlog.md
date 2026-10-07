@@ -3448,3 +3448,21 @@ rehearsal process itself lives to run it. Options: start the server in a Windows
 that dies with the parent; or have `serve.py` take a `--parent-pid` and exit when that process
 is gone; or have the rehearsal write the server's pid to a file beside its report and refuse to
 start while that pid is alive. None done yet; the two were stopped by hand.
+
+## B-159 Every order number on the whole-design view was clipped to a quarter-circle
+status: fixed (P170)
+2026-10-06. The analyst's own finding, from looking at the map. `#dmap .mn .ord` sat at
+`top:-.6rem; right:-.5rem` - outside a node that has `overflow:hidden` and
+`contain:layout paint style` - so the one thing the map can say that the trace panel cannot,
+which way the run went, was illegible on every node. No test saw it because no test measured
+geometry; `tests/p49` asserted only that the rule existed. Fixed by drawing the badge inside
+the node with the name and id reserving its column (and, far out, at the right edge, centred,
+on paper so it survives the solid fills); `tests/p170` computes the badge's extent from the
+stylesheet at the fluid root's floor and ceiling. The same phase gave touched nodes the
+console's panel elevation and made the elevation tokens three layers.
+
+What was looked at and left alone: the Setup, Activity and Analytics boards read as one
+design language already - the firm's palette, Georgia for titles, tabular figures, quiet
+pills. The premium finish the analyst asked for is the depth: panels, modals and nodes now
+sit on the paper rather than on top of it. Anything further should come from looking at the
+pages on the work laptop with real engagements in them.
