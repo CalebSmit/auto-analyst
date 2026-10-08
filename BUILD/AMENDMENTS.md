@@ -3277,3 +3277,17 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C102 after P177, covering P177
 - proves: Every check this build runs is one a machine with nothing but the tracked files can pass, and pass again tomorrow: nothing generated under BUILD carries the day it was generated, the surface collector answers the same thing with no approval register present as with one, every read of a path the image does not ship is guarded by a question about that same path rather than about some other absence, and a failure inside the image names the test that failed.
+
+## 2026-10-08 - P178 A measurement taken while the thing measured was broken
+
+**Why:** Both remote jobs are green and all three opt-in claims are evidence at last - 65 store conformance tests against a real Postgres, 8 queue adapter tests against a real Redis, and the image built with the whole suite passing inside it. The same green run shows that the measurement P176 wrote down is wrong, and wrong in the direction that matters. It recorded four minutes fifty-one of gates and fifteen minutes one per pass, inferred from the only evidence a cancelled job leaves: the interval between two marks in the Postgres container log. The gates figure was actually the gates plus four minutes of the first pass before it first touched a database, and the per-pass figure was measured while the sixty-five Postgres tests were failing in milliseconds against a table that could not exist. Now that they do real work a pass is twenty-one minutes, the whole job is forty-two, and the guard that holds a bound against its own run line requires only thirty-seven - so it would approve a forty-minute bound that gets cancelled. That is the defect the guard exists to prevent, committed by the guard.
+
+- phase added: P178 A measurement taken while the thing measured was broken (Reading what a client actually sends, gate: auto)
+- exit criterion: Every timing figure in the workflow and in the tests that read it is traceable to a run where nothing was skipped
+
+## 2026-10-08 - C103 What the remote finally proved
+
+**Why:** The block closes where the remote finally told the whole truth. Both jobs of run 37738346007 are green and the three claims this build had been making as plans since P04 are evidence: sixty-five store conformance tests against a real Postgres seventeen, eight queue adapter tests against a real Redis seven, and the image built with the whole suite passing inside it. The same green run also showed that the measurement P176 wrote down was taken from a job that never finished and was wrong by seven minutes in the lenient direction, which P178 corrected against figures the step prints itself. What is left to prove across the four phases is one sentence rather than four fixes.
+
+- checkpoint added: C103 after P178, covering P178
+- proves: The three things only a machine with services on it can check are checked, and the checks are ones a clean machine can pass: the schema this store creates is the same schema on both backends it claims, the bounds the jobs run under come from a run in which nothing was skipped and are stated with their headroom, nothing generated carries the day it was generated on, the surface collector answers the same thing with no approval register as with one, and every read of a path the image does not ship asks about that same path first.

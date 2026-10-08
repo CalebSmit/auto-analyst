@@ -4087,3 +4087,83 @@ falsely proved - but it is the same class, and both were found the same way: by 
 that did not make sense being chased rather than accepted. The harness tries both forms now
 and reports both counts when neither matches. Four files appended to in this session were
 mixed and have been made consistent.
+
+## B-196 All three opt-in halves, run on the remote at last
+status: fixed (P176, P177, P178)
+2026-10-08. Run 37738346007, both jobs green. The three claims this build could only make
+as plans are evidence:
+
+| | what ran | where |
+|---|---|---|
+| Postgres 17 | 65 store conformance tests | the `verify` job |
+| Redis 7 | 8 queue adapter tests | the same job |
+| the image | built with podman, whole suite inside it, `CONTAINER RAN` | the `container` job |
+
+The proof that they *ran* rather than skipped is the verifier's own summary: `did not run:
+container.` - postgres and redis absent from a list that reads `postgres, redis, container`
+on any developer machine. Container is covered by the other job, which says so itself.
+
+Twenty-three red runs since the repository got a remote on 18 September, and the three
+causes were, in order: a tool that reached uv the way uv is not installed (B-182), an image
+built from the machine beside it (B-183), a bound smaller than the work (B-186), and a table
+that could not exist on Postgres (B-185).
+
+## B-197 A measurement taken while the thing measured was broken
+status: fixed (P178)
+2026-10-08. B-186 raised the bound from 30 to 60 and was careful to write the measurement
+down beside it, on the grounds that a bound with no measurement behind it is how the 30 got
+there. **The measurement was wrong by seven minutes**, and the reason is worth keeping: it
+was taken from a job that never finished.
+
+A cancelled run leaves no step output - the stdout is buffered and dies with it - so the
+figures came from the only trace that survives, intervals between marks in the Postgres
+container's own log. Two errors fell out of that, in opposite directions:
+
+| | recorded | actual (run 37738346007) |
+|---|---|---|
+| gates | 4m51s | 32.3s |
+| one pass of the suite | 15m01s | 20m54s |
+| the whole job | 34m53s | 41m51s |
+
+*4m51s of gates* was the interval from step start to the first database contact, which is
+the five gates **plus four minutes of the first pass** before anything touched Postgres.
+*15m01s a pass* was timed while the 65 store conformance tests were failing in milliseconds
+against the table from B-185; doing their real work costs 21 minutes.
+
+So `GATES + 2 * ONE_PASS` came to 37 where the true figure is 43, and the guard written to
+stop a bound being smaller than the work **would have approved a 40-minute bound for a
+42-minute job** - the exact defect it exists to catch, in the guard. The bound itself was
+never at risk: the headroom B-186 argued for, explicitly because the Postgres tests inside
+that measurement were not really running, absorbed all seven minutes. The reasoning was
+right and the arithmetic was not, which is a distinction worth recording rather than
+smoothing over.
+
+The figures now come from the per-stage lines `verify.py` prints on success, quoted in the
+format it prints them so the next person can match them against a job log instead of
+trusting a paraphrase. `tests/p178` holds the general rule: **a timing may only be
+attributed to a run in which that job finished** - per *job*, not per run, which the first
+version got wrong and which its own test said immediately, because run 37717781284's
+container job completed in 35m22s while its verify job was cancelled. The same run is a
+legitimate source for one bound and not the other.
+
+And the constants live in one place. `tests/checkpoints/c101` had its own copy of the wrong
+figures; it imports `tests/p176`'s now, because two copies of a wrong number is how one gets
+fixed and the other does not.
+
+## B-198 Two more of my own assertions that were weaker than their names
+status: fixed (P178)
+2026-10-08. Both in the C103 checkpoint, both caught by the revert harness rather than by
+reading:
+
+- a test said it held the suite to *saying what passing on SQLite alone is not evidence of*
+  and asserted only the phrase `one backend of two`. Blunting the sentence to *SQLite
+  passing is fine* left it green, with the reasoning gone and the statistic intact.
+- a test said it held `verify.py` to *saying which of its stages it skipped* and asserted
+  `"did not run" in output`. That string also appears in `--fast: the suite did not run.`,
+  so deleting the names - `did not run: postgres, redis, container`, the sentence that went
+  unread for a month and started all of this - left it green.
+
+The pattern in both: the assertion tested a **token from** the claim rather than the claim.
+That is the cheapest kind of test to write and the easiest to believe, and the only thing
+that finds it is breaking the fix. Five of the guards written in this block needed a second
+form for the same reason; the count is in the commit, not hidden.

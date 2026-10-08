@@ -156,8 +156,14 @@ def test_the_job_that_proves_it_can_finish() -> None:
     said = lines[0]
     passes = int(said.split("--repeat", 1)[1].split()[0]) if "--repeat" in said else 1
 
-    # 4m51s of gates and 15m01s a pass, measured on run 37717781284 and rounded up.
-    needed = 5 + passes * 16
+    # 32.3s of gates and 20m54s a pass, rounded up, from run 37738346007 - the first run
+    # in which Postgres, Redis and every test executed. Taken from `tests/p176` rather
+    # than spelled again here: this checkpoint had its own copy of the previous figures,
+    # which were measured on a cancelled job and understated the job by seven minutes, and
+    # two copies of a wrong number is how one of them gets fixed and the other does not.
+    from tests.p176.test_a_bound_smaller_than_the_work import GATES, ONE_PASS
+
+    needed = GATES + passes * ONE_PASS
     assert verify["timeout-minutes"] >= needed, (
         f"{passes} passes of the suite is {needed} minutes of measured work inside a bound "
         f"of {verify['timeout-minutes']}; the job will be cancelled and the cancellation "

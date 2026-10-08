@@ -34,10 +34,18 @@ import pytest
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "verify.yml"
 
-# Minutes, rounded up, from the run named in the docstring.
-GATES = 5  # 4m51s: surfaces, lint, types, blueprint, state
-ONE_PASS = 16  # 15m01s: the whole suite once, against Postgres and Redis
-IMAGE = 36  # 35m22s: build the image and run the container half inside it
+# Minutes, rounded up, from run 37738346007 - the first run in which Postgres, Redis and
+# every test actually executed, and so the first one whose timings mean anything.
+#
+# These were 5 and 16, inferred from a *cancelled* job, and both were wrong: the gate
+# figure was the gates plus four minutes of the first pass, and the per-pass figure was
+# timed while the 65 store conformance tests failed in milliseconds against a table that
+# could not exist. 5 + 2 x 16 = 37 would have approved a 40-minute bound for a job that
+# needs 43 - the exact defect this file exists to catch, in this file.
+MEASURED_ON = "37738346007"
+GATES = 1  # 32.3s: surfaces, lint, types, blueprint, state
+ONE_PASS = 21  # 20m54s: the whole suite once, against a real Postgres and a real Redis
+IMAGE = 36  # 35m01s: build the image and run the suite inside it
 
 # A hung job should still be killed, so a bound is required and may not be enormous.
 CEILING = 120
@@ -122,6 +130,13 @@ def test_the_measurement_is_written_down_beside_the_bound() -> None:
     mentions the run stayed green when the measurement was taken off the job it belongs to,
     because the other job's bound cites the same run - so the question has to be asked of
     each job's own lines. The revert harness said so.
+
+    **And which run is load-bearing too**, which is why it is named rather than counted.
+    The first version of this held the file to run 37717781284, a run that was *cancelled*
+    - so the figures it certified had been inferred from the only trace a cancelled job
+    leaves, and were wrong by seven minutes. The run named here is the one in which nothing
+    was skipped, and the constants above have to agree with the figures in the file, so a
+    bound, its arithmetic and the tests that hold it cannot drift apart in three places.
     """
     text = workflow_text()
     jobs = {
@@ -129,9 +144,10 @@ def test_the_measurement_is_written_down_beside_the_bound() -> None:
         "container": text.split("  container:", 1)[1],
     }
     for name, block in jobs.items():
-        assert "37717781284" in block, (
+        assert MEASURED_ON in block, (
             f"{name}'s bound does not name the run it was measured from"
         )
-    for figure in ("4m51", "15m01", "34m53"):
+    # The figures the constants above are, so the file and the tests say one thing.
+    for figure in ("32.3s", "20m54s", "41m51s", f"{GATES + 2 * ONE_PASS} minutes"):
         assert figure in jobs["verify"], f"the arithmetic no longer states {figure}"
-    assert "35m22" in jobs["container"], "the image build's measurement is gone"
+    assert "35m01s" in jobs["container"], "the image build's measurement is gone"

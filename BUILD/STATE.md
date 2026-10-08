@@ -5,8 +5,8 @@
 
 ## Where the build is
 
-- **177 of 177 phases closed**
-- Last green checkpoint: **C102**
+- **178 of 178 phases closed**
+- Last green checkpoint: **C103**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -196,4 +196,5 @@
 - **P175** Checks that have never been green (2026-10-07)
 - **P176** A table that could not exist on Postgres (2026-10-07)
 - **P177** Green today, red tomorrow (2026-10-08)
+- **P178** A measurement taken while the thing measured was broken (2026-10-08)
 

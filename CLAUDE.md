@@ -596,6 +596,39 @@ tomorrow. `tests/checkpoints/c102` builds a tree out of `git ls-files` alone and
 verifier's collectors inside it, which is the only way to ask that question without
 accidentally including whatever this working tree has had lying around for a month.
 
+**And then both jobs were green (P178).** Run 37738346007: 65 store conformance tests
+against a real Postgres 17, 8 queue adapter tests against a real Redis 7, and the image
+built with the whole suite passing inside it. Three claims this build had only ever made as
+plans. The proof they *ran* rather than skipped is the verifier's own summary - `did not
+run: container.`, where every developer machine says `postgres, redis, container`.
+
+The same green run showed that **the measurement which fixed the bound was itself taken
+from a job that never finished.** A cancelled run leaves no step output, so B-186's figures
+were inferred from intervals in the Postgres container's log, and were wrong twice over:
+*4m51s of gates* was the gates (32.3s) plus four minutes of the first pass before anything
+touched a database, and *15m01s a pass* was timed while the 65 Postgres tests were failing
+in milliseconds against a table that could not exist. A real pass is 20m54s and the job is
+41m51s, so the guard required 37 minutes where the work is 43 - **it would have approved a
+40-minute bound for a 42-minute job**, which is the defect it was written to prevent. The
+bound survived only because the headroom was argued for on exactly that risk; the reasoning
+was right and the arithmetic was not.
+
+So a figure here has to come from a run in which that job *finished*, and `tests/p178`
+holds it - **per job, not per run**, which the first version got wrong and its own test
+said immediately: on 37717781284 the verify job was cancelled while the container job
+completed in 35m22s, so one bound may cite it and the other may not. The figures are quoted
+in the format `verify.py` prints them, so the next person matches them against a log rather
+than trusting a paraphrase, and `c101` imports `p176`'s constants instead of keeping a
+second copy - two copies of a wrong number is how one gets fixed and the other does not.
+
+The habit worth taking from the four phases: **break every new guard and watch it go red.**
+Five in this block needed a second form, and the two in the C103 checkpoint failed the same
+way as each other - each asserted a *token from* its claim rather than the claim. One said
+it held the suite to *saying what SQLite alone is not evidence of* and checked only the
+phrase `one backend of two`; the other said it held the verifier to *saying which stages it
+skipped* and checked for `did not run`, which also appears in the unrelated `--fast` line.
+Both stayed green with the thing they were about deleted.
+
 **The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
 (`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
 of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it

@@ -5108,6 +5108,28 @@
       ],
       "notes": "",
       "closed": "2026-10-08"
+    },
+    {
+      "id": "P178",
+      "title": "A measurement taken while the thing measured was broken",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "The bounds in the workflow and the figures the tests hold them to come from a run in which every test actually executed, rather than from an interval inferred from a cancelled one. Where a measurement is quoted, it says which run it came from and what was and was not running inside it.",
+      "builds": [],
+      "tasks": [
+        "The per-pass and gate figures come from the first run in which Postgres, Redis and the whole suite all executed, and name it",
+        "The bound each job is held to is at least what that run needed, with the headroom stated rather than implied"
+      ],
+      "exit": [
+        "Every timing figure in the workflow and in the tests that read it is traceable to a run where nothing was skipped"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p178 tests/p176 -q",
+        "python -m uv run pytest tests/checkpoints/c101 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-08"
     }
   ],
   "checkpoints": [
@@ -6231,6 +6253,17 @@
       "proves": "Every check this build runs is one a machine with nothing but the tracked files can pass, and pass again tomorrow: nothing generated under BUILD carries the day it was generated, the surface collector answers the same thing with no approval register present as with one, every read of a path the image does not ship is guarded by a question about that same path rather than about some other absence, and a failure inside the image names the test that failed.",
       "checks": [
         "python -m uv run pytest tests/checkpoints/c102 -q"
+      ],
+      "closed": "2026-10-08"
+    },
+    {
+      "id": "C103",
+      "title": "What the remote finally proved",
+      "after": "P178",
+      "status": "done",
+      "proves": "The three things only a machine with services on it can check are checked, and the checks are ones a clean machine can pass: the schema this store creates is the same schema on both backends it claims, the bounds the jobs run under come from a run in which nothing was skipped and are stated with their headroom, nothing generated carries the day it was generated on, the surface collector answers the same thing with no approval register as with one, and every read of a path the image does not ship asks about that same path first.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c103 -q"
       ],
       "closed": "2026-10-08"
     }
