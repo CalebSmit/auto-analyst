@@ -478,6 +478,33 @@ eight green lines; it reads as the setup step it is now. `tests/checkpoints/c99`
 command the runbook gives and every check it names to the code, from the prose as well as the
 fenced blocks, because most of them are in prose.
 
+**The checks on the remote had never once been green (P175).** Twenty-one runs since the
+repo got a remote on 18 September, no successes. Nobody looked, and *that* is the lesson:
+`verify.py` is what stands in for CI here and it skips exactly the three things CI runs -
+postgres, redis, container - saying so honestly every time. An honest sentence nobody reads
+is a silent one. Two causes, neither about CI:
+
+- **One tool reached uv the way uv is not installed.** `pip install uv` leaves a module and
+  a binary; the installer at astral.sh leaves only a binary, where `python -m uv` is nothing.
+  `verify.py` hard-coded the module and died in zero seconds, six times. `gate.py::resolve`
+  and `start.ps1` had always asked; `verify.py`, `postgres.py` and `_environment.py` now do.
+  **This is a work-laptop defect**: every documented command here carries `python -m uv run`,
+  so on a machine that installed uv the documented way, the documented spelling is the one
+  that fails. The runbook says to drop the `python -m`.
+- **The image was built from the machine beside it.** A `.dockerignore` pattern is anchored
+  to the context root unless it opens `**/`, so `__pycache__/` matched one directory that
+  does not exist and **7,509 Windows-compiled `.pyc` files went into a Linux image**, where
+  Python preferred them to the source. The failures read `C:\dev\automated-analyst\...`.
+
+With both fixed the image's real failures appeared - forty tests asking the *repository* a
+question (the backlog, `knowledge/`, the register, git) from inside an artifact that
+deliberately ships none of them. `needs_a_checkout` has existed for that since P28 and had
+four callers. It has forty now, two of them in fixtures because a fixture raises before any
+test body runs. Three guards keep a skip from becoming a way of not running things, and all
+three proved nothing in their first form - including one that let a break through entirely,
+because **a test that skips is not a test that fails**. Inside the image: 5,068 passed,
+nothing failed.
+
 **The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
 (`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
 of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it

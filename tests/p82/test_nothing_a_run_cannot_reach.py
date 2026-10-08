@@ -33,6 +33,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
+
 ROOT = Path(__file__).resolve().parents[2]
 BACKLOG = ROOT / "knowledge" / "backlog.md"
 
@@ -440,6 +442,7 @@ def test_an_excused_module_says_why_and_where(module: str) -> None:
 def test_an_excused_module_cites_a_backlog_item_that_exists(module: str) -> None:
     """CLAUDE.md: if a seam is deliberately unjoined, say so in the backlog and point the
     allowlist at it. Nothing checked the second half until now."""
+    needs_a_checkout("the backlog an allowlist cites")
     item, _ = ALLOWED[module]
     items = backlog_items()
     assert item in items, f"{module} cites {item}, which is not in knowledge/backlog.md"
@@ -448,6 +451,7 @@ def test_an_excused_module_cites_a_backlog_item_that_exists(module: str) -> None
 @pytest.mark.parametrize("module", sorted(ALLOWED))
 def test_an_excused_module_cites_an_item_still_open(module: str) -> None:
     """A closed item excusing a live gap is the record disagreeing with itself."""
+    needs_a_checkout("the backlog an allowlist cites")
     item, _ = ALLOWED[module]
     status = backlog_items()[item]
     assert not status.startswith("built ("), (
@@ -466,6 +470,7 @@ def test_the_backlog_does_not_call_built_what_no_run_can_reach() -> None:
     Four items said it. Two of them - B-036 and B-037 - were already honest, saying which
     half was built; the other two were not.
     """
+    needs_a_checkout("the backlog an allowlist cites")
     items = backlog_items()
     wrong = []
     for module in unreachable():  # read once; the loop body does not walk the tree
@@ -481,6 +486,7 @@ def test_the_backlog_does_not_call_built_what_no_run_can_reach() -> None:
 def test_every_backlog_item_the_allowlist_cites_says_what_is_missing() -> None:
     """A status of `proposed` on something half-built tells the next reader less than the
     code does. Each cited item has to carry the words that say which half is owed."""
+    needs_a_checkout("the backlog an allowlist cites")
     items = backlog_items()
     for module, (item, _) in sorted(ALLOWED.items()):
         status = items[item]

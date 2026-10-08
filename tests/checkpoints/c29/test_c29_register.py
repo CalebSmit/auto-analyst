@@ -18,6 +18,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -44,6 +45,7 @@ def test_the_only_ways_past_the_check_all_require_a_person() -> None:
 
 def test_suggest_proposes_and_writes_nothing() -> None:
     """It reads real answers, which may hold real names. It must not put them anywhere."""
+    needs_a_checkout("the identifier register")
     register = ROOT / "knowledge" / "identifiers.txt"
     before = register.read_text(encoding="utf-8")
     done = run("suggest")
@@ -56,6 +58,7 @@ def test_what_it_proposes_here_is_not_a_client() -> None:
     quietly assumed: nothing in three sessions of answers is a client's name. If this starts
     failing, somebody has been interviewed about a real engagement and the register needs
     filling - which is the check doing its job, not this test going wrong."""
+    needs_a_checkout("the identifier register")
     candidates = interview.suggest()
     assert all(c.kind == "name-shaped" for c in candidates), (
         "something with the shape of a company or a person is in knowledge/ now; "
@@ -65,6 +68,7 @@ def test_what_it_proposes_here_is_not_a_client() -> None:
 
 def test_an_acknowledgement_cannot_outlive_the_answers_it_covers() -> None:
     """The one way this could have become an off switch."""
+    needs_a_checkout("the identifier register")
     import inspect
 
     source = inspect.getsource(interview._review_is_current)

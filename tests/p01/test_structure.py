@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
+
 ROOT = Path(__file__).resolve().parents[2]
 
 # The directory tree the blueprint's repo listing specifies.
@@ -200,6 +202,7 @@ def test_plan_is_wellformed() -> None:
 
 
 def test_every_phase_has_a_file_and_a_test_directory() -> None:
+    needs_a_checkout("every phase's own directory")
     plan = json.loads((ROOT / "BUILD" / "plan.json").read_text(encoding="utf-8"))
     for p in plan["phases"]:
         assert (ROOT / "BUILD" / "phases" / f"{p['id']}.md").is_file(), f"{p['id']}.md missing"

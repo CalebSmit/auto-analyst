@@ -236,9 +236,19 @@ def test_the_explanation_names_the_command_rather_than_describing_it() -> None:
     with redirect_stderr(buffer), pytest.raises(SystemExit):
         needs("a_module_that_is_not_installed_anywhere", script="tools/serve.py")
     said = buffer.getvalue()
-    assert "python -m uv run python tools/serve.py" in said
+    # Either spelling, because P175 made the message name the one that works on the machine
+    # reading it: `pip install uv` leaves a module and a binary, the installer at astral.sh
+    # leaves only the binary, and `python -m uv` is nothing there. This is the message
+    # somebody reads after a command has already refused them once, so naming the other
+    # thing that would also refuse them is the one answer it must not give.
+    import shutil
+
+    expected = "uv run python tools/serve.py"
+    if not shutil.which("uv"):
+        expected = "python -m " + expected
+    assert expected in said, f"the command it names is not the one that works here: {said!r}"
     assert "start.cmd" in said, "the Windows path a person is most likely on"
-    assert "pip install uv" in said, "and what to do if uv itself is missing"
+    assert "install uv" in said, "and what to do if uv itself is missing"
 
 
 def test_it_costs_nothing_when_the_environment_is_there() -> None:

@@ -18,6 +18,7 @@ from typing import Any
 import pytest
 
 from harness.context import NoPrecedents
+from tests.conftest import needs_a_checkout
 from tools.serve import readiness
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -97,6 +98,7 @@ def test_a_quarantine_is_queryable_by_what_caused_it(system: Any) -> None:
 def test_what_is_still_not_joined_is_written_down_rather_than_implied() -> None:
     """The release path is built and still cannot be reached: both shipped recipes end at
     `qc-tieout`, which has no mechanical half. That is a real limit and it stays named."""
+    needs_a_checkout("what is written down as not joined")
     open_items = (ROOT / "BUILD" / "OPEN.md").read_text(encoding="utf-8")
     assert "qc-tieout" in open_items
     backlog = (ROOT / "knowledge" / "backlog.md").read_text(encoding="utf-8")

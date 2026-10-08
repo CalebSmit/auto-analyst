@@ -3231,3 +3231,19 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C99 after P174, covering P174
 - proves: Every preflight check the runbook names is one the registry has, at the position and under the label the runbook gives it; the report a machine with no vault key prints leads with the diagnostic's own sentence and keeps its code on a line of its own; and the runbook's first step warns about the line that first step always produces.
+
+## 2026-10-07 - P175 Checks that have never been green
+
+**Why:** The repository has had a remote since 18 September and its checks have never once been green - twenty-one runs, no successes, and nobody looked because the local command that stands in for them skips exactly the three things they run. Both jobs fail, and the first fails for a reason that is not about continuous integration at all: tools/verify.py reaches uv as 'python -m uv', which is how uv is installed on this machine and is not how the official installer installs it. On any machine with the binary every check fails instantly with 'No module named uv' - which is what a work laptop will have.
+
+- phase added: P175 Checks that have never been green (Reading what a client actually sends, gate: auto)
+- exit criterion: No tool in this repo assumes one of the two ways uv is installed
+- exit criterion: Every sentence in the runbook about what a command installs is what that command does
+- exit criterion: The container job and the Postgres and Redis job both pass on the remote
+
+## 2026-10-07 - C100 Run rather than read
+
+**Why:** P175 is the end of the block. The remote's checks had never been green and two causes were found by running them rather than reading them: one tool reached uv the one way that is not how uv is officially installed, and a .dockerignore pattern that was not anchored for depth let seven and a half thousand compiled files from a Windows machine into a Linux image, where Python used them instead of the source. With both fixed the image's real failures appeared for the first time, and all of them were the same thing - tests asking about the repository from inside the built artifact.
+
+- checkpoint added: C100 after P175, covering P175
+- proves: Every tool in this repository reaches uv by asking which one is installed rather than assuming, the image ships no compiled file from the machine that built it, and every test that asks a question about the repository says so before it reads anything - with the skip proved to fire only where there is no checkout, so the same tests still run on a developer machine and in the verify job.

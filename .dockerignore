@@ -14,8 +14,8 @@ outbox/
 runs/
 artifacts/
 vault/
-*.db
-*.sqlite3
+**/*.db
+**/*.sqlite3
 templates/*.xlsx
 foundations/cleared.yaml
 recipes/registered.yaml
@@ -25,18 +25,27 @@ skills-intake/
 .venv/
 .git/
 .github/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+# A pattern here is anchored to the context root unless it starts with `**/`, and the
+# six below are meant to match at any depth. They did not, and the one that cost
+# something was `__pycache__/`: it excluded a directory at the top of the repo that
+# does not exist, so 840 `__pycache__` directories and 7,509 `.pyc` files compiled on
+# a Windows developer's machine were copied into a Linux image - and Python used them.
+# The suite inside the image then ran bytecode rather than the source beside it, which
+# is why it reported failures with `C:\dev\automated-analyst\...` in their locations
+# and why the image's own job had never passed. An image built from whatever happened
+# to be lying around on one machine is the opposite of the claim this file supports.
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
 docs/.blueprint-mirror
 
 # editor and os
 .vscode/
 .idea/
-Thumbs.db
-.DS_Store
+**/Thumbs.db
+**/.DS_Store
 
 # Interview knowledge can hold client data; it never goes into an image.
 knowledge/

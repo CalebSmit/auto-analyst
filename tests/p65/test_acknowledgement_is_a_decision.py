@@ -25,6 +25,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 DAY = dt.date(2026, 9, 18)
@@ -164,6 +165,7 @@ def test_no_command_touches_the_real_knowledge_folder(
     folder it works on. This runs every command and fingerprints the real directory around
     them, so the next helper called bare fails here rather than in somebody's register.
     """
+    needs_a_checkout("the real knowledge folder")
     real = Path(interview.ROOT) / "knowledge"
     fingerprint = lambda: {  # noqa: E731 - a fingerprint, read twice, is clearer inline
         p.relative_to(real).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()

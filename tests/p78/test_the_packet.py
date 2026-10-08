@@ -18,6 +18,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tests.conftest import needs_a_checkout
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -119,6 +121,7 @@ def test_it_says_which_owed_thing_is_largest() -> None:
 def test_the_session_it_cites_is_there_to_read() -> None:
     """It points at the session log for the template's structure. A packet citing a file
     nobody can open is worse than one citing nothing."""
+    needs_a_checkout("the interview session a packet cites")
     text = handoff()
     assert "knowledge/sessions/2026-09-18-1.md" in text
     assert (ROOT / "knowledge" / "sessions" / "2026-09-18-1.md").is_file()

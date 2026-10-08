@@ -34,6 +34,7 @@ from intake.request_list import (
     for_scope,
     load_list,
 )
+from tests.conftest import needs_a_checkout
 
 ROOT = Path(__file__).resolve().parents[2]
 THE_LIST = DEFAULT_LISTS / "valuation-non-esop.yaml"
@@ -119,6 +120,7 @@ def test_the_default_list_names_nobody_the_register_knows() -> None:
     """The real reason this list had to be written rather than copied. `interview.py scan`
     polices what leaves `knowledge/`; this asks the same question of a file that ships.
     """
+    needs_a_checkout("the identifier register")
     register = ROOT / "knowledge" / "identifiers.txt"
     names = [
         line.strip()

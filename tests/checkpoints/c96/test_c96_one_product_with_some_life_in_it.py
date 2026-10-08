@@ -19,6 +19,7 @@ from admin.page import PAGE as SETUP
 from ops.console.analytics_page import PAGE as ANALYTICS
 from ops.console.app import PAGE as ACTIVITY
 from ops.console.help_page import PAGE as HELP
+from tests.conftest import needs_a_checkout
 from tests.p171.test_a_dashboard_with_some_life_in_it import ADDED
 
 PAGES = ((SETUP, "Setup"), (ACTIVITY, "Activity"), (ANALYTICS, "Analytics"), (HELP, "Help"))
@@ -71,6 +72,7 @@ def test_the_activity_page_serves_the_trail_and_the_analytics_page_serves_one_ro
 def test_the_runbooks_landing_place_is_a_folder_the_tree_would_read() -> None:
     """Section 8 says the skill goes in the valuation group's layer. That layer exists, the
     tree reads it, and its sibling skills carry the front matter the section lists."""
+    needs_a_checkout("the knowledge folder the runbook points at")
     from registries.skills import REQUIRED_FRONTMATTER, SkillTree
 
     layer = ROOT / "skills" / "valuation" / "_group"

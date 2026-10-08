@@ -22,6 +22,7 @@ surprising, and the useful part is knowing what to type.
 from __future__ import annotations
 
 import importlib.util
+import shutil
 import sys
 from pathlib import Path
 
@@ -58,6 +59,13 @@ def needs(*modules: str, script: str | None = None) -> None:
     if not where.startswith("tools"):
         where = f"tools/{where}"
     argv = " ".join(sys.argv[1:])
+    # The spelling that works on *this* machine. The documented one is `python -m uv run`,
+    # which is right where uv was pip-installed and is nothing at all where the official
+    # installer put a binary and no module - and this is the message somebody reads at the
+    # exact moment a command has already refused them once. Telling them to type the other
+    # thing that will also refuse is the worst available answer.
+    prefix = "uv run" if shutil.which("uv") else "python -m uv run"
+    sync = "uv sync" if shutil.which("uv") else "python -m uv sync"
     print(
         f"{where} needs {', '.join(absent)}, and this interpreter does not have "
         f"{'them' if len(absent) > 1 else 'it'}.\n"
@@ -66,10 +74,11 @@ def needs(*modules: str, script: str | None = None) -> None:
         f"\n"
         f"This project's dependencies live in its own environment. Run it through uv:\n"
         f"\n"
-        f"  python -m uv run python {where}{' ' + argv if argv else ''}\n"
+        f"  {prefix} python {where}{' ' + argv if argv else ''}\n"
         f"\n"
         f"On Windows, start.cmd does the whole of setting up and starting for you.\n"
-        f"If uv is not installed: pip install uv, then python -m uv sync.",
+        f"If uv is not installed, install it once (https://docs.astral.sh/uv/ or\n"
+        f"pip install uv), then {sync}.",
         file=sys.stderr,
     )
     raise SystemExit(2)

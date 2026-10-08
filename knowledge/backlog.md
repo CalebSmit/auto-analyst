@@ -3756,3 +3756,93 @@ Not a defect: a rehearsal has to set a machine up to rehearse on it. But it mean
 that has been rehearsed in is not the first morning any more, and the runbook now says so
 and says which two files to delete to get it back. This is the same shape as B-157, which is
 how P169 was found.
+
+## B-180 The remote's checks had never once been green
+status: fixed (P175)
+2026-10-07. Twenty-one runs since the repository got a remote on 18 September, no successes,
+on every commit by everyone. Nobody looked, and the reason nobody looked is worth more than
+either defect: `tools/verify.py` is the command that stands in for CI locally, and it skips
+exactly the three things CI runs. It says so every time - *did not run: postgres, redis,
+container* - in the honest voice this build is careful about. An honest sentence nobody reads
+is the same as a silent one, and the green verdict above it was doing the reading.
+
+Two causes, in B-181 and B-182. Neither was about continuous integration; both were about a
+machine that is not this one, which is what a work laptop is.
+
+## B-181 One tool reached uv the way uv is not installed
+status: fixed (P175)
+2026-10-07. `verify.py` ran every check through `python -m uv run`. There are two installs
+and they are not interchangeable: `pip install uv` leaves a module in an interpreter *and* a
+shim on PATH, so both spellings work, while the installer at https://docs.astral.sh/uv/
+leaves only a binary, where `python -m uv` is nothing at all. On a runner, all six checks
+failed instantly with *No module named uv* - in zero seconds, which is the tell.
+
+The build already knew: `tools/gate.py::resolve` has resolved the prefix since it was
+written, and `tools/start.ps1` has asked binary-first since P43. Four tools ask now, and the
+fourth is the one that matters most for a first morning - `tools/_environment.py` prints
+*run it through uv* when a tool is started with the wrong interpreter, and it was naming the
+spelling that had just refused the reader.
+
+**Why this is a work-laptop defect rather than a CI one.** Every command in every document
+here carries `python -m uv run`, and `tests/p58` holds them to it. On a machine that
+installed uv the documented way, that is the spelling that does not work. The runbook now
+says so in one line: drop the `python -m`.
+
+## B-182 The image was built from the machine beside it, not from the repository
+status: fixed (P175)
+2026-10-07. A `.dockerignore` pattern is anchored to the build-context root unless it begins
+with `**/`. `__pycache__/` therefore excluded one directory at the top of the repo, which
+does not exist - so **840 `__pycache__` directories and 7,509 `.pyc` files compiled on a
+Windows developer's machine were copied into a Linux image**, and Python used them in
+preference to the source beside them.
+
+The symptom was unmistakable once anybody looked: the suite inside the image reported
+failures whose locations read `C:\dev\automated-analyst\tests\...`. Nobody had looked,
+because the only report was a count in a CI log. Nine patterns are anchored for depth now
+(`*.db` and `*.sqlite3` had the same hole, which would have let a stray fixture database
+into a pushable image), and the image carries zero compiled files outside its own venv.
+
+An image assembled from whatever happened to be lying around on one machine is the exact
+opposite of the claim its own Dockerfile opens with, and it is the claim P28 exists to make.
+
+## B-183 Forty tests asked the repository a question from inside the artifact
+status: fixed (P175)
+2026-10-07. Invisible until B-182 was fixed - the stale bytecode was failing first. With the
+image finally running its own source, 69 failures and 23 errors resolved to one thing: tests
+that read `knowledge/`, the backlog, the interview register or git, from inside an image that
+deliberately ships none of them. `knowledge/` is excluded because it may carry a client's
+name and an image is a thing people push; `.git` and `.github` because an image is the built
+thing rather than the repository that built it.
+
+`tests/conftest.py::needs_a_checkout` has existed since P28 for exactly this and says so in
+its own docstring - *"or read files the image deliberately does not ship"*. It had four
+callers and needed forty. Two of the forty are fixtures rather than tests, which is why a
+per-test skip was not enough: a fixture raises before any test body runs.
+
+**Three guards, because a skip is a way of not running something.** The skip is proved to
+fire only where there is no checkout, so all forty still run on a developer machine and in
+the `verify` job; it must be the first statement in each test, because a guard after the read
+is a test that still errors on the file it was excused from; and the function has to exist
+under that name, because counting call sites is counting text. Each of those three was caught
+by the revert harness as a guard that proved nothing in its first form - the first version of
+the first one let a break through entirely, since a test that *skips* is not a test that
+fails.
+
+Result inside the image: **5,068 passed, 284 skipped, nothing failed.**
+
+## B-184 Three more sentences in the runbook that were not true
+status: fixed (P174, P175)
+2026-10-07. Found by cloning the repository the way a work laptop would and following
+`docs/WORK-LAPTOP.md` line by line, then by running what it told me to run.
+
+- It sent a reader to *the sixteenth check* for `model_answers`, which is the third of
+  sixteen (P174).
+- It did not mention that step one always prints a vault failure, because the step that sets
+  `AA_VAULT_KEY` is step two (P174).
+- It said `start.cmd` installs uv if it is missing. It does not: it looks two ways and stops
+  with a sentence. On a machine where IT controls what gets installed, that is the difference
+  between a first morning and a dead end (P175).
+
+`tests/checkpoints/c99` holds every command the runbook gives and every check it names to the
+code - from the prose as well as the fenced blocks, because four of the eleven commands are
+in blocks and the rest are in sentences.

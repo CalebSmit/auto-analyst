@@ -23,6 +23,7 @@ from admin.app import create_admin_app
 from graph.resolve import ScopeResolver
 from harness.procedures import PROCEDURES
 from registries.scopes import ScopePath, ScopeRegistry
+from tests.conftest import needs_a_checkout
 from tests.p24.conftest import WHO, entry, profile_for
 from tools import interview
 
@@ -70,6 +71,7 @@ def test_the_interview_describes_the_focus_in_the_resolvers_terms() -> None:
 
 
 def test_what_the_interview_learns_stays_inside_knowledge() -> None:
+    needs_a_checkout("what the interview keeps")
     token = f"C14Probe{uuid.uuid4().hex[:8]}"
     inside = ROOT / "knowledge" / f"_{token}.md"
     outside = ROOT / f"_{token}.md"

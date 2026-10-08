@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**174 of 174 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**175 of 175 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -281,6 +281,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C98 - As the browser gets it** | integration | Every token any served page names is declared in what that page is served, no served stylesheet carries a type size that is not a named step and no served element carries a bare pixel length or a size of its own, the target minimum reaches every control on all four pages with the rule that restores [hidden] served after the display that outranks it, the ink reserved for placeholders is served only on a placeholder a disabled control and a marker, the four pages are served the same heading size target size and inks, and a row that holds a sentence is served one that wraps with no page overriding it by hand. | 2026-10-07 |
 | [x] | **P174** The first thing a new machine says | auto | No sentence in the runbook names a preflight check by a position that the registry does not agree with | 2026-10-07 |
 | [x] | **C99 - Walked against its own runbook** | integration | Every preflight check the runbook names is one the registry has, at the position and under the label the runbook gives it; the report a machine with no vault key prints leads with the diagnostic's own sentence and keeps its code on a line of its own; and the runbook's first step warns about the line that first step always produces. | 2026-10-07 |
+| [x] | **P175** Checks that have never been green | auto | No tool in this repo assumes one of the two ways uv is installed | 2026-10-07 |
+| [x] | **C100 - Run rather than read** | integration | Every tool in this repository reaches uv by asking which one is installed rather than assuming, the image ships no compiled file from the machine that built it, and every test that asks a question about the repository says so before it reads anything - with the skip proved to fire only where there is no checkout, so the same tests still run on a developer machine and in the verify job. | 2026-10-07 |
 
 ## A run that finishes
 

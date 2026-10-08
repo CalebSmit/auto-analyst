@@ -32,6 +32,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tests.p82.test_nothing_a_run_cannot_reach import (
     ALLOWED,
     backlog_items,
@@ -205,6 +206,7 @@ def test_the_backlog_is_readable_by_the_thing_that_depends_on_it() -> None:
     """The allowlist cites backlog ids and the scan parses them out of a markdown file. A
     heading somebody reformats would silently stop being found, and every entry citing it
     would fail at once - so the parse is checked against the file's own shape."""
+    needs_a_checkout("the backlog the allowlist depends on")
     items = backlog_items()
     assert len(items) >= 40, f"only {len(items)} backlog items parsed - the headings moved"
     assert all(i.startswith("B-") for i in items)
@@ -214,6 +216,7 @@ def test_the_backlog_is_readable_by_the_thing_that_depends_on_it() -> None:
 def test_nothing_the_allowlist_cites_has_been_closed_elsewhere() -> None:
     """An item closed in the backlog while the gap is still live is the record disagreeing
     with the code, and the allowlist is where the two are compared."""
+    needs_a_checkout("the backlog the allowlist depends on")
     items = backlog_items()
     for module, (cited, _) in sorted(ALLOWED.items()):
         assert not items[cited].startswith("built ("), f"{cited} closed while {module} is unreached"

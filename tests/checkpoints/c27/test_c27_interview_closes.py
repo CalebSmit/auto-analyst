@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -44,6 +45,7 @@ def test_the_scan_never_reports_a_pass_it_did_not_earn() -> None:
     things: a register was checked, nothing has been learned yet so there was nothing to
     check, or a person looked and recorded that there was nothing to add. Never "a check
     ran". The third was added by P56 and every one of them rests on somebody having looked."""
+    needs_a_checkout("the identifier register")
     done = run("scan")
     assert done.returncode in (0, 1), done.stderr
     if done.returncode == 0:
@@ -74,6 +76,7 @@ def test_an_empty_register_over_real_answers_is_refused_rather_than_waved_throug
     leaked one from the file it reached, or record that you looked and there was nothing.
     Skipped rather than passed when this machine is already in one of them, because the
     refusal is not what is being asked about then."""
+    needs_a_checkout("the identifier register")
     if interview.identifiers():
         pytest.skip("the register has been filled; the refusal no longer applies here")
     if interview.reviewed_empty() is not None:
@@ -89,6 +92,7 @@ def test_an_empty_register_over_real_answers_is_refused_rather_than_waved_throug
 def test_the_refusal_is_visible_before_the_first_question_and_not_only_after_the_last() -> None:
     """`status` is protocol step 2; `scan` is step 6. A session that only learns at step 6
     that it cannot be closed has already asked everything it was going to ask."""
+    needs_a_checkout("the identifier register")
     if interview.identifiers() or interview.reviewed_empty() is not None:
         pytest.skip("the register has been filled, or its emptiness has been acknowledged")
     done = run("status")
@@ -119,6 +123,7 @@ def test_the_map_does_not_claim_the_coverage_file_is_ignored() -> None:
     """`knowledge/` is committed to the private repo so the interview travels between
     machines (2026-09-16). A comment saying otherwise is how a session decides it may write
     a client's name somewhere git will not carry - or will."""
+    needs_a_checkout("the identifier register")
     head = (ROOT / "interview" / "topics.yaml").read_text(encoding="utf-8")
     assert "which git ignores" not in head
     probe = subprocess.run(

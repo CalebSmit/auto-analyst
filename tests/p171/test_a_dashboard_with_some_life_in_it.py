@@ -16,6 +16,7 @@ from pathlib import Path
 from ops.console.analytics_page import PAGE as ANALYTICS
 from ops.console.map_view import MAP_STYLE
 from registries.skills import REQUIRED_FRONTMATTER
+from tests.conftest import needs_a_checkout
 from ui.theme import CSS
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -102,6 +103,7 @@ def test_the_server_carries_the_denominator_the_page_weights_by() -> None:
 
 
 def test_the_runbook_names_a_landing_place_that_exists() -> None:
+    needs_a_checkout("the knowledge folder the runbook points at")
     runbook = (ROOT / "docs" / "WORK-LAPTOP.md").read_text(encoding="utf-8")
     section = runbook[runbook.index("## 8. Bringing the model-setup skill") :]
     assert "skills/valuation/_group/model-setup/SKILL.md" in section
@@ -125,6 +127,7 @@ def test_the_runbook_names_a_landing_place_that_exists() -> None:
 
 
 def test_the_private_half_has_its_three_sections_and_names_nobody() -> None:
+    needs_a_checkout("the knowledge folder the runbook points at")
     private = (ROOT / "knowledge" / "model-setup" / "README.md").read_text(encoding="utf-8")
     for heading in (
         "## What goes here",

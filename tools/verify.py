@@ -32,6 +32,7 @@ reported as red rather than as a green run with a failing exit code.
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
 import time
@@ -138,11 +139,33 @@ def suites_for(packages: list[str]) -> list[str]:
     return sorted(suites)
 
 
+def uv_run() -> list[str]:
+    """How to reach `uv` on *this* machine, rather than on the one this was written on.
+
+    There are two ways uv is installed and they are not interchangeable. The official
+    installer puts a standalone binary on PATH, where `python -m uv` does not exist; `pip
+    install uv` puts a module in an interpreter, where it does. This file hard-coded the
+    second, which is how it was installed here - so every check it runs, on any machine
+    with the standalone binary, failed instantly with *No module named uv*. All six of
+    them, in zero seconds, which is the tell.
+
+    That is not a continuous-integration problem. It is what a work laptop gets when
+    somebody follows https://docs.astral.sh/uv/ or asks IT for uv, and it was the reason
+    this build's own CI had never once been green.
+
+    `tools/start.ps1` already asks the question the right way round and has since P43;
+    this is the same two lines in Python. The binary is preferred because it is the
+    documented install, and the module is the fallback because it is what is here.
+    """
+    if shutil.which("uv"):
+        return ["uv", "run"]
+    return ["python", "-m", "uv", "run"]
+
+
 def build_steps(args: argparse.Namespace) -> list[Step]:
-    # `python -m uv run`, with the python on PATH rather than sys.executable: under uv,
-    # sys.executable is the virtualenv, which carries the project's dependencies but not
-    # uv. This is the same invocation every phase check and the README use.
-    uv = ["python", "-m", "uv", "run"]
+    # The python on PATH rather than sys.executable: under uv, sys.executable is the
+    # virtualenv, which carries the project's dependencies but not uv.
+    uv = uv_run()
     pytest_flags = ["-q", "-p", "no:cacheprovider"]
     for flag in ("postgres", "redis", "container"):
         if getattr(args, flag):

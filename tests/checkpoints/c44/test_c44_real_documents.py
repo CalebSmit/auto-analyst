@@ -22,6 +22,7 @@ import ports
 from intake.readers.documents import read_document
 from intake.readers.periods import detect_periods
 from ports.ocr import OCRPort
+from tests.conftest import needs_a_checkout
 
 ROOT = Path(__file__).resolve().parents[3]
 FILING = ROOT / "fixtures" / "public" / "sec-ars-3d-systems-2025.pdf"
@@ -102,6 +103,7 @@ def test_the_public_fixture_holds_nothing_the_register_would_catch() -> None:
     """The register is the boundary for client identifiers, and it covers every committed
     file. A public filing must pass it like anything else - the point is that it is public,
     not that it is exempt."""
+    needs_a_checkout("the register the fixture is checked against")
     from tools import interview
 
     names = interview.identifiers()

@@ -30,6 +30,7 @@ import yaml
 from evals.harness import GATES_FILE, EvalHarness
 from evals.metrics import METRICS, kinds_of_wrong
 from evals.world import EvalWorld
+from tests.conftest import needs_a_checkout
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -201,6 +202,7 @@ def test_the_scan_still_reports_something_so_the_empty_list_means_something(worl
 def test_every_module_still_excused_cites_a_live_backlog_item() -> None:
     """P82's rule, re-run here because P86 closed one of the items it cites and a closed
     item excusing a live gap is the record disagreeing with the code."""
+    needs_a_checkout("the backlog a scorecard's excuses cite")
     from tests.p82.test_nothing_a_run_cannot_reach import ALLOWED, backlog_items
 
     items = backlog_items()
@@ -210,6 +212,7 @@ def test_every_module_still_excused_cites_a_live_backlog_item() -> None:
 
 
 def test_the_backlog_says_b041_is_built() -> None:
+    needs_a_checkout("the backlog a scorecard's excuses cite")
     from tests.p82.test_nothing_a_run_cannot_reach import backlog_items
 
     assert backlog_items()["B-041"].startswith("built (2026-09-20, P86)")

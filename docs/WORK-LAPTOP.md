@@ -28,9 +28,24 @@ it says so: *no run can be picked up yet - the mask vault will not open*, with t
 that generates a key. Everything under it still reports honestly; `start.cmd` generates the
 key for you and this line goes.
 
-`uv` has to be on PATH; `start.cmd` installs it if it is not. The `python -m uv run` prefix
+**`uv` is the one thing you need before any of this, and nothing here installs it.**
+`start.cmd` looks for it two ways - the binary on PATH, then `python -m uv` - and stops with
+a sentence if it finds neither. It does not download it: on a machine where IT controls what
+gets installed, a script that fetches a toolchain is the wrong thing for this to do without
+asking. Get it from https://docs.astral.sh/uv/ or from IT, once. Either install works
+everywhere in this repo - `tools/verify.py` asks the same question the same way since P175,
+having hard-coded `python -m uv` until then and failed instantly on every machine that had
+the binary instead. The `python -m uv run` prefix
 is what puts the project's dependencies on the path - every command in every document
-carries it, and `tests/p58` holds them to it. `--check` is the honest answer to "does this
+carries it, and `tests/p58` holds them to it.
+
+**If a command answers `No module named uv`, drop the `python -m`.** The two installs are
+not interchangeable: `pip install uv` puts a module in an interpreter *and* a binary on
+PATH, so both spellings work; the installer at astral.sh puts only the binary, where
+`python -m uv` is nothing. `uv run python tools/...` works on both, so it is the one to
+reach for if the documented spelling refuses. Nothing in the repo depends on which you
+have - `gate.py`, `verify.py`, `postgres.py` and `start.ps1` each look for the binary first
+and fall back to the module. `--check` is the honest answer to "does this
 work yet": every seam it prints as `[ok]` is joined; NOT INSTALLED waits on software;
 NOT WIRED is a join this build has not made. On a fresh clone expect two things it says
 plainly: the model port is `fake`, and scans read as nothing until an OCR engine is named.

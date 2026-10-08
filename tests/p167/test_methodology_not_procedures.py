@@ -28,6 +28,7 @@ from pathlib import Path
 import pytest
 
 from registries.methodology import MethodologyRegister
+from tests.conftest import needs_a_checkout
 
 ROOT = Path(__file__).resolve().parents[2]
 FOUNDATIONS = ROOT / "foundations"
@@ -72,6 +73,7 @@ def test_the_rules_in_foundations_are_the_rules_in_knowledge_verbatim(topic: str
     bullet under *Rules* in the foundations file, and nothing else is. Change the rules in
     knowledge and this says the foundations copy is stale - which is the point, because the
     foundations copy is the one a run reads."""
+    needs_a_checkout("the knowledge files the rules come from")
     knowledge = (KNOWLEDGE / f"{topic}.md").read_text(encoding="utf-8")
     foundations = (FOUNDATIONS / LAYER / f"{topic}.md").read_text(encoding="utf-8")
     assert bullets(section(foundations, "## Rules")) == bullets(
@@ -81,6 +83,7 @@ def test_the_rules_in_foundations_are_the_rules_in_knowledge_verbatim(topic: str
 
 @pytest.mark.parametrize("topic", TOPICS)
 def test_each_knowledge_file_has_the_three_parts(topic: str) -> None:
+    needs_a_checkout("the knowledge files the rules come from")
     text = (KNOWLEDGE / f"{topic}.md").read_text(encoding="utf-8")
     assert "## What we know" in text
     assert RULES_HEADING in text
@@ -157,6 +160,7 @@ def test_the_clearance_register_stays_out_of_the_repository() -> None:
     fresh clone - the work laptop - starts with nothing cleared and says so. (On a developer
     machine the suite's own session fixture clears the repo's foundations into the local
     register, which is why this does not assert the file is absent.)"""
+    needs_a_checkout("the knowledge files the rules come from")
     done = subprocess.run(
         ["git", "check-ignore", "foundations/cleared.yaml"],
         cwd=ROOT,
@@ -179,6 +183,7 @@ def test_the_identifier_scan_is_clean_over_both_trees() -> None:
     """`interview.py scan` checks every file outside knowledge/ against the register; the
     knowledge files are checked here directly, because they feed foundations and a name in
     one would be a name in every prompt."""
+    needs_a_checkout("the knowledge files the rules come from")
     done = subprocess.run(
         [sys.executable, "tools/interview.py", "scan"],
         cwd=ROOT, capture_output=True, text=True,
@@ -251,6 +256,7 @@ def test_the_interview_feeds_the_knowledge_files() -> None:
     """The next session on the work laptop writes where the model reads: the three topics
     that used to feed the compute skills feed the knowledge files now, and every file a
     topic feeds exists."""
+    needs_a_checkout("the knowledge files the rules come from")
     import yaml
 
     topics = yaml.safe_load((ROOT / "interview" / "topics.yaml").read_text(encoding="utf-8"))

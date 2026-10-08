@@ -17,6 +17,7 @@ import pytest
 from graph.resolve import ScopeResolver
 from registries.errors import RegistryError
 from registries.scopes import ScopePath, ScopeRegistry
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -202,6 +203,7 @@ def test_followups_and_backlog_are_read_from_their_files(tmp_path: Path) -> None
 
 
 def test_knowledge_travels_with_the_repo() -> None:
+    needs_a_checkout("what travels with the repo")
     probe = subprocess.run(
         ["git", "check-ignore", "-q", "knowledge/sessions/probe.md"],
         cwd=ROOT,

@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 
@@ -28,6 +29,7 @@ def knowledge(root: Path) -> Path:
     """`<root>/knowledge`, beside a `<root>/outside` standing in for the committable tree.
     Separate directories on purpose: `suggest` asks both, and a fixture where they were the
     same path made "does this also appear outside knowledge/" unanswerable."""
+    needs_a_checkout("the committed knowledge README this is copied from")
     here = root / "knowledge"
     here.mkdir()
     interview.init(here)

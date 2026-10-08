@@ -20,6 +20,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 ANSWER = "## Q1\n\nThe client is Northgate Dental Partners; Priya Raman is the owner.\n"
@@ -34,7 +35,12 @@ def knowledge(tmp_path: Path) -> Path:
     under knowledge/ was over 400 - so the README alone answered yes on a machine where
     nobody had been interviewed. A fixture that wrote a shorter one would pass against the
     bug it exists to catch.
+
+    Which means it needs the repository's own `knowledge/`, and the image does not ship one.
+    The guard is here rather than in the twenty-three tests that use this, because a fixture
+    raises before any of their bodies run - a per-test skip never gets the chance.
     """
+    needs_a_checkout("the committed knowledge README this is measured against")
     interview.init(tmp_path)
     real = Path(interview.ROOT) / "knowledge" / "README.md"
     (tmp_path / "README.md").write_text(real.read_text(encoding="utf-8"), encoding="utf-8")

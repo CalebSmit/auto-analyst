@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -84,6 +85,7 @@ def test_the_template_topic_asks_for_a_command_rather_than_a_transcription() -> 
 def test_the_two_new_topics_read_as_open_so_a_session_is_offered_them() -> None:
     """A topic the coverage file has never heard of has to arrive as `open`. One that
     arrived as anything else would be a question nobody is asked."""
+    needs_a_checkout("the interview's topic map")
     coverage = interview.load_coverage(interview.KNOWLEDGE)
     for topic in ("work-machine-context", "report-and-deck"):
         # A topic the coverage file has no entry for is open by absence, which is the

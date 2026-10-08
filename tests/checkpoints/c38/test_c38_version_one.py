@@ -25,6 +25,7 @@ from registries.constraints import ConstraintRegistry
 from registries.scopes import ScopeRegistry
 from review import CheckpointPolicy, ConfidenceRouter, Item
 from review.router import Route
+from tests.conftest import needs_a_checkout
 from tests.p15.conftest import TAGGING, profile
 from tools.rollforward import WINDOW, YearWindow, carry_line_items, roll_dates, roll_window
 
@@ -155,6 +156,7 @@ def test_the_acceptance_rule_has_no_producer_yet_and_that_is_recorded() -> None:
     be rediscovered - and when something does start setting them, this test fails and tells
     whoever did to say so in the backlog.
     """
+    needs_a_checkout("what is recorded as having no producer")
     sets_it = []
     for path in sorted(ROOT.rglob("*.py")):
         parts = path.parts

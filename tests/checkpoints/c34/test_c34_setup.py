@@ -9,12 +9,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tests.conftest import needs_a_checkout
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
 def test_neither_register_is_committed() -> None:
     """Both record that somebody read something and took responsibility for it. Shipping
     either would ship a decision nobody made, so a clone starts with nothing."""
+    needs_a_checkout("what a clone starts with")
     ignored = (ROOT / ".gitignore").read_text(encoding="utf-8")
     assert "foundations/cleared.yaml" in ignored
     assert "recipes/registered.yaml" in ignored

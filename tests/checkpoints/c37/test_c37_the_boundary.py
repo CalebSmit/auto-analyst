@@ -19,6 +19,7 @@ from pathlib import Path
 
 import pytest
 
+from tests.conftest import needs_a_checkout
 from tools import interview
 
 ROOT = Path(interview.ROOT)
@@ -130,6 +131,7 @@ def test_no_command_writes_to_the_repositorys_own_knowledge_folder(
 ) -> None:
     """P65's root cause, asked once more at the level of the whole tool. Two accidents in
     this build wrote to the real folder from a test that had pointed the module elsewhere."""
+    needs_a_checkout("the repository's own knowledge folder")
     knowledge, _ = machine
     real = ROOT / "knowledge"
     before = {

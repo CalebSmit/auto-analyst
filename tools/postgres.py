@@ -94,8 +94,14 @@ def cmd_check() -> int:
         print("  starting it first...")
         if cmd_start() != 0:
             return 1
+    # Asked rather than assumed, the same way `tools/gate.py::resolve` and
+    # `tools/start.ps1` ask it: the official uv installer puts a binary on PATH and no
+    # module in any interpreter, so `-m uv` is not a thing on a machine that followed the
+    # documented install. And `pytest` through the interpreter rather than through the
+    # generated launcher, which a Windows Application Control policy refuses to start.
+    uv = [exe, "run"] if (exe := shutil.which("uv")) else [sys.executable, "-m", "uv", "run"]
     return subprocess.call(
-        [sys.executable, "-m", "uv", "run", "pytest", "tests/p04", "-q", "--postgres"],
+        [*uv, "python", "-m", "pytest", "tests/p04", "-q", "--postgres"],
         cwd=Path(__file__).resolve().parents[1],
     )
 

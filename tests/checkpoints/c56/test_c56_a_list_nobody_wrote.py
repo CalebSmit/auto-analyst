@@ -25,6 +25,7 @@ from openpyxl import Workbook, load_workbook
 from intake.request_list import Status, for_scope
 from intake.tracker import THEIRS, Tracker, look_at, read_tracker, write_tracker
 from ports.storage.local_folder import LocalFolderStorage
+from tests.conftest import needs_a_checkout
 from tests.p17.conftest import build_pdf
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -169,6 +170,7 @@ def test_the_label_survives_from_the_yaml_to_the_page(tmp_path: Path) -> None:
 def test_the_default_list_owes_nothing_to_anybody_the_register_knows() -> None:
     """Held here as well as in P94 because this is the file that ships. `interview.py
     scan` polices what leaves `knowledge/`; nothing polices what arrives in `intake/`."""
+    needs_a_checkout("the identifier register")
     register = ROOT / "knowledge" / "identifiers.txt"
     names = [
         line.strip()

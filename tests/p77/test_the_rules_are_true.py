@@ -22,6 +22,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from tests.conftest import needs_a_checkout
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -142,6 +144,7 @@ def test_the_two_scans_are_named_where_a_session_will_meet_them() -> None:
 
 def test_every_path_it_points_at_exists() -> None:
     """The cheapest way a rules file rots: a path that moved."""
+    needs_a_checkout("the paths the rules point at")
     text = rules()
     missing = [
         candidate

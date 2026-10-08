@@ -27,6 +27,7 @@ from ops.console.app import NEEDS_ATTENTION, Console
 from ops.console.app import PAGE as ACTIVITY
 from ops.events import EventBus
 from ops.run_store import SqlRunStore
+from tests.conftest import needs_a_checkout
 from tests.p23.conftest import ENGAGEMENT, OTHER_ENGAGEMENT, Clock, clean_run, reviewed_run
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -175,6 +176,7 @@ def test_no_live_row_asks_for_a_phase_that_is_closed() -> None:
 
 
 def test_the_backlog_item_this_closed_is_marked_built() -> None:
+    needs_a_checkout("the backlog item this closed")
     backlog = (ROOT / "knowledge" / "backlog.md").read_text(encoding="utf-8")
     item = backlog.split("## B-026", 1)[1].split("\n## ", 1)[0]
     assert "status: built" in item, "B-026 is built and the backlog still says proposed"
