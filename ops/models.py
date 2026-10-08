@@ -848,7 +848,27 @@ class PrecedentRow(Base):
             name="fk_precedent_decision",
         ),
         UniqueConstraint("decision_run_id", "decision_item_id", name="uq_precedent_decision"),
-        CheckConstraint("masked = 1 OR masked = true", name="precedent_is_masked"),
+        # `masked = true`, not `masked = 1 OR masked = true`.
+        #
+        # The second was somebody covering both backends and covering neither. SQLite
+        # stores a boolean as 0 or 1 and compares it to an integer happily, so the first
+        # half worked there and nobody looked further. Postgres has no `boolean = integer`
+        # operator at all: it rejects the expression while *planning the CREATE TABLE*, so
+        # the whole statement fails and this table has never existed on Postgres - 130
+        # refusals in the first run of that job the repository has ever completed.
+        #
+        # `true` is a keyword both accept, so one expression is the portable one. Held by
+        # `tests/p176`, which compiles the schema for each dialect rather than trusting
+        # that the one backend a developer has is the one that matters.
+        #
+        # And the limit of that, written down rather than left to be found, because an
+        # unstated portability assumption is the whole of what went wrong above: SQLite
+        # only understands `true` as a keyword from **3.23** (2018), and below that it
+        # reads as a column name and the CREATE TABLE fails the way Postgres used to.
+        # Python has bundled a newer one than that for years and the container's is newer
+        # still, so this is a floor nothing is near rather than a risk - but it is a floor,
+        # and `tests/p176` asserts the interpreter running the suite clears it.
+        CheckConstraint("masked = true", name="precedent_is_masked"),
         CheckConstraint("length(decided_by) > 0", name="precedent_has_a_person"),
         Index("ix_precedent_scope", "practice", "segment", "client_id"),
     )

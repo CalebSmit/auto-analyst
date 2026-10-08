@@ -505,6 +505,47 @@ three proved nothing in their first form - including one that let a break throug
 because **a test that skips is not a test that fails**. Inside the image: 5,068 passed,
 nothing failed.
 
+**One backend of two.** The first job that ever reached a database found that `precedent` -
+the one table only a human decision may write to - could never have been created on Postgres.
+Its masked check was written `masked = 1 OR masked = true`, which is somebody covering both
+backends and covering neither: SQLite compares a boolean to an integer happily, so the first
+half worked on the only backend anybody ran, and Postgres has no `boolean = integer` operator
+at all, so it refused the expression while *planning* the CREATE TABLE and took the whole
+statement with it. 130 refusals, and every one of the 65 store conformance tests failing for
+want of a table.
+
+`tests/p04` is thorough and had been saying so in its own summary every time it ran -
+*SQLite passing is not evidence the Postgres path works. This suite is green on one backend
+of two.* An honest sentence nobody reads is the same as a silent one, which is the second
+time that has been the finding (P175 was the first).
+
+The instructive part is in the same class. The triggers beside that constraint ask the same
+portability question and answer it correctly, per dialect - `format(true='1')` for SQLite,
+`format(true='true')` for Postgres. The constraint could not be parameterised that way,
+being one entry in `__table_args__`, so it got the same understanding expressed as a hope.
+So **neither test asks about source text**: `tests/p176` compiles the schema for each
+dialect, and `tests/checkpoints/c101` takes every statement `create_all` would send to each
+backend through a mock engine - triggers and functions included, which no table's compiled
+form reaches - and asks the boolean question of all of it. Both need no server, which is the
+whole point: *does this schema exist on Postgres* is now something a laptop answers in
+milliseconds.
+
+**And a check that cannot finish is a check that does not run.** The same job was cancelled
+at thirty minutes on every attempt, which reads like a hang and was arithmetic: five gates
+and then the whole suite twice, inside a bound written when the suite was a fraction of its
+size. The measurement was never taken because a timeout is reported as a failed check with
+no failing test in it. It is taken now, from the Postgres container's own log - which GitHub
+dumps at `Stop containers` and which therefore survives a cancellation when the step's
+buffered stdout does not: 4m51s of gates, 15m01s a pass, 34m53s of work in a thirty-minute
+bound. Both bounds in `verify.yml` name the run they were measured from, and `tests/p176`
+holds each one against what that job's own run line asks for.
+
+One level up from all of it: the revert harness read pytest's **exit code 5** - *no tests
+collected* - as a failure and therefore as a proof, so a break aimed at a renamed test came
+back `proved` on a run in which nothing executed. The thing checking the checks was not
+checking. It found one real false pass once corrected, in a rewritten prior-phase test whose
+name claimed more than it asked.
+
 **The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
 (`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
 of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it

@@ -3247,3 +3247,18 @@ and its `NODECLASS` table — was corrected in the HTML and is now checked by a 
 
 - checkpoint added: C100 after P175, covering P175
 - proves: Every tool in this repository reaches uv by asking which one is installed rather than assuming, the image ships no compiled file from the machine that built it, and every test that asks a question about the repository says so before it reads anything - with the skip proved to fire only where there is no checkout, so the same tests still run on a developer machine and in the verify job.
+
+## 2026-10-07 - P176 A table that could not exist on Postgres
+
+**Why:** With the two things that stopped the checks from starting fixed, the Postgres job ran for the first time since the repository got a remote - and found that the precedent table cannot be created on Postgres at all. Its masked check is written 'masked = 1 OR masked = true', which was somebody trying to cover both backends and covering neither: Postgres has no boolean = integer operator and rejects the whole CREATE TABLE, 130 times across the run. The store is documented as being one URL away from Postgres and one of its eight tables has never existed there. The same run also timed out at exactly thirty minutes, because the workflow asks for the whole suite twice against a real server inside a bound written when the suite was a fraction of its size.
+
+- phase added: P176 A table that could not exist on Postgres (Reading what a client actually sends, gate: auto)
+- exit criterion: Every CheckConstraint in ops/models.py parses on both backends, asserted by compiling the schema for each dialect
+- exit criterion: No table in the model fails to create against Postgres
+
+## 2026-10-07 - C101 Both backends, and the time to prove it
+
+**Why:** The block ends where the remote started telling the truth. P175 got the checks to run at all, and the first job that reached a database found that one of the eight tables could never have been created there - so the store conformance suite had been green on one backend of two for months, saying so in its own summary every time it ran, to a room with nobody in it. P176 fixed the expression and measured the bound that was cutting the job off at thirty minutes. What is left to prove is the join: that every statement this build sends to a backend is one that backend can parse, including the trigger DDL no phase test reaches, and that the job which proves it has the time the work takes.
+
+- checkpoint added: C101 after P176, covering P176
+- proves: Every DDL statement create_all would send to either backend is one that backend can parse - no boolean column compared to a number in anything Postgres is sent, and the SQLite trigger still comparing that flag the way SQLite compares booleans, so the two cannot be flattened to one literal; the guarantee that only a human decision writes precedent is installed as DDL on both backends with the codes the rest of the build reports; and the job that runs the suite twice against a real server is bounded by what its own run line asks for, with every flag on that line one the verifier actually takes.

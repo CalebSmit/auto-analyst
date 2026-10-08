@@ -143,14 +143,31 @@ def test_the_steps_table_reads_down() -> None:
     Asked as *are they one label* rather than as the one spelling of it. P173 moved the
     size and the gap off the element and onto `.step-id`, which is the same row rendered
     the same way, and the literal version of this went red on it.
+
+    **One label means nesting, and the first rewrite of this did not ask for it.** It
+    checked that a `</b>` came before the skill and that a `.sub` appeared after, and both
+    of those survive the label being closed early and the skill left outside it - which is
+    exactly the regression it exists to catch, and it stayed green on it. So the label's
+    own tags are matched: the skill has to fall inside the element that opens
+    `<span class="lbl step-id">` and ends at the `</span>` that closes *it*.
     """
     body = scripts(ACTIVITY)
-    at = body.index("${esc(x.step_id)}")
-    row = body[at:]
-    row = row[: row.index("</span>", row.index("x.skill"))]
-    assert "step-id" in body[at - 120 : at], "the step row no longer names the component"
-    assert '<span class="sub">' in row, "the skill is no longer beside the step"
-    assert "</b>" in row[: row.index("x.skill")], "the id and the skill are no longer one label"
+    opens = body.index('<span class="lbl step-id">')
+
+    depth, inside = 0, None
+    for tag in re.finditer(r"<span\b|</span>", body[opens:]):
+        depth += 1 if tag.group(0) == "<span" else -1
+        if depth == 0:
+            inside = body[opens + len('<span class="lbl step-id">') : opens + tag.start()]
+            break
+    assert inside is not None, "the step-id label is never closed"
+
+    assert "${esc(x.step_id)}" in inside, "the step id is not in its own label"
+    assert "x.skill" in inside, (
+        "the skill is outside the step-id label, so the step and the skill are two things "
+        "on the row rather than one label with two lines"
+    )
+    assert '<span class="sub">' in inside, "the skill is no longer the quiet line beneath"
     assert "step-id" in CSS, "the sheet does not put them on one line"
 
 

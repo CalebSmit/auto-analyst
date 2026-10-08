@@ -3846,3 +3846,114 @@ status: fixed (P174, P175)
 `tests/checkpoints/c99` holds every command the runbook gives and every check it names to the
 code - from the prose as well as the fenced blocks, because four of the eleven commands are
 in blocks and the rest are in sentences.
+
+## B-185 A table that could not exist on Postgres
+status: fixed (P176)
+2026-10-08. The first time a CI job got far enough to touch a database, the Postgres
+container's log carried 130 copies of
+
+    ERROR: operator does not exist: boolean = integer
+
+and the cause was one line that had been in `ops/models.py` since the store was written:
+
+    CheckConstraint("masked = 1 OR masked = true", name="precedent_is_masked")
+
+That is somebody covering both backends and covering neither. SQLite stores a boolean as 0
+or 1 and compares it to an integer without complaint, so the first half worked on the only
+backend anybody ever ran it against; Postgres has no `boolean = integer` operator and refuses
+the expression while planning the `CREATE TABLE`, which takes the whole statement with it.
+The `precedent` table - the one table in this build whose contents may only be written by a
+human decision - had never existed on Postgres, and the store is documented throughout as
+being one URL away from it.
+
+**Why nothing caught it.** `tests/p04` is the store conformance suite, it is thorough, and
+its Postgres half is opt-in and skips by default. Its own summary says so in words every time
+it runs: *SQLite passing is not evidence the Postgres path works. This suite is green on one
+backend of two.* It was telling the truth to a room with nobody in it, because the only
+machine that ever ran it was a developer's with SQLite and the remote had no checks until
+P175.
+
+The fix is `CheckConstraint("masked = true", ...)`, which both backends parse. What matters
+more is that `tests/p176` asks the question **without a server**: SQLAlchemy compiles DDL for
+a dialect without connecting to anything, so *does this schema exist on Postgres* becomes
+something any laptop answers in milliseconds. It holds three properties - no CHECK compares a
+BOOLEAN column to a number on either backend, both backends are sent the same set of named
+constraints, and the whole schema compiles for each.
+
+The second of those replaced a near-no-op. *Does the DDL compile* is almost nothing: a CHECK
+is emitted as the text it was handed, so one naming a column that does not exist compiles
+happily. The revert harness found it by leaving the test green on exactly that.
+
+## B-186 A job given less time than the work it was asked to do
+status: fixed (P176)
+2026-10-08. The Postgres job was cancelled at thirty minutes on every run it ever started.
+That reads like a hang and was arithmetic: the step is `verify.py --postgres --redis
+--repeat 2`, which is five gates and then the whole suite **twice**, inside a
+`timeout-minutes: 30` written when the suite was a fraction of its present size.
+
+A timeout is the part worth recording. GitHub reports it as a failed check containing no
+failing test, which is the same red as a real defect in the one place nobody goes looking for
+a measurement - and the measurement was not hard to get, it had just never been taken.
+
+Getting it needed one trick. The step's stdout is buffered and dies with the cancellation, so
+the job's own log says nothing at all between *Run python tools/verify.py* and *The operation
+was canceled*. The **Postgres container's** log survives, because GitHub dumps it at `Stop
+containers`, and it carries server-side timestamps for every statement. Corresponding marks
+in the two passes sit 15m01s and 15m02s apart; the first database contact is 4m51s after the
+step starts. So the work is 4m51 + 2 x 15m01 = **34m53**, and it was being asked to fit in
+thirty minutes.
+
+The bound is 60 now, with the measurement and the run id written beside it. The room is not
+padding: the 65 store conformance tests inside that 34m53 were failing in milliseconds
+against the table from B-185, so the first pass that actually exercises them will be slower
+than any pass yet timed. `tests/p176` holds each job's bound against what that job's own run
+lines ask for, so a third pass of the suite goes red there rather than at minute thirty of a
+run somebody is waiting on - and holds each bound to naming the run it was measured from,
+because a number with no measurement behind it is what was already there.
+
+Both of the two bounds in the file are measured now. The image job's 45 was never wrong;
+it is under the same rule so that lowering it is caught the same way.
+
+## B-187 A revert harness that proved a guard by never running it
+status: fixed (P176)
+2026-10-08. `revert_lib.py` read pytest's exit code 5 - *no tests collected* - as a failure,
+and therefore as a proof. So a break naming a test that does not exist, by a typo or because
+the test was renamed, came back **proved** on the strength of a run in which nothing executed.
+It did exactly that once in this session.
+
+It is the same defect class as [tests that check nothing], one level up: the thing checking
+the checks was not checking. Exit 5 is now reported as NO SUCH TEST and fails the harness,
+and every harness in the session was re-run under the corrected prover.
+
+The sibling found at the same time: a *skipped* test is not a failed test, so a break that
+made a conditional skip unconditional left its guard green. `_pytest.outcomes.Skipped` is
+caught and turned into a failure now.
+
+## B-188 Ninety-three skipped tests that say the checkpoint is not written yet
+status: open, found 2026-10-08 (P176), deliberately not fixed in that phase
+`gate seal` writes a placeholder integration test when it registers a checkpoint - a
+docstring ending *This checkpoint is not written yet. It is written at the end of PNN,
+before that phase closes* and a body of `@pytest.mark.skip` over `raise NotImplementedError`.
+The real integration test is then written beside it under its own name, and **the placeholder
+is never removed**. There are 93 of them, one per checkpoint, every one of them skipped on
+every run and every one of them stating something that stopped being true the day its
+checkpoint went green.
+
+Two reasons it is worth fixing, and neither is tidiness:
+
+- It is a **false statement in the repository**, which is the thing this build treats as a
+  finding wherever it appears in prose. Someone reading `tests/checkpoints/c82` to find out
+  what C82 proves meets a file saying it was never written.
+- It is **93 skips that mean nothing**, inside a suite whose skip count is how a reader
+  tells a question that does not apply here from a test that is not running. P175 added
+  forty legitimate skips and the honesty of that number is the point; ninety-three
+  meaningless ones sitting beside them is the same erosion that made
+  *POSTGRES NOT RUN* unreadable.
+
+**Not fixed in P176** because the phase was opened for a check constraint and a CI bound,
+and this is a change to `gate.py`'s seal behaviour plus 93 file deletions across every
+checkpoint in the build - which is a phase, with a checkpoint of its own, not a drive-by in
+somebody else's commit. The fix is small and has two halves: `gate seal` should write the
+placeholder only if no integration test for that checkpoint exists, and closing a checkpoint
+should delete the placeholder it replaced. A test should then hold *no checkpoint directory
+contains a file claiming its checkpoint is unwritten*.

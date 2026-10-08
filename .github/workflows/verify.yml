@@ -25,7 +25,22 @@ jobs:
   verify:
     name: the whole build, against Postgres and Redis
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Measured, not guessed. This bound was 30 and the job was cut at 29m49s inside its
+    # second pass, which reads like a hang and is arithmetic: the step runs five gates and
+    # then the whole suite twice.
+    #
+    # Run 37717781284 of 2026-10-08 left the numbers behind in the Postgres container's
+    # own log, which survives a cancellation when the step's buffered stdout does not.
+    # Corresponding marks in the two passes sit 15m01s and 15m02s apart, and the first
+    # database contact is 4m51s after the step starts. So the work is 4m51 + 2 x 15m01 =
+    # 34m53, and it was being asked to fit in thirty minutes.
+    #
+    # 60 is that measurement with room, and the room is not padding: the 65 store
+    # conformance tests inside that measurement were failing in milliseconds against a
+    # table Postgres refused to create (P176), so the first pass that actually exercises
+    # them will be slower than any pass yet timed. It stays a bound, because a job that
+    # hangs should be killed within the hour rather than billed for six.
+    timeout-minutes: 60
 
     services:
       postgres:
@@ -81,6 +96,7 @@ jobs:
   container:
     name: the image builds and the suite passes inside it
     runs-on: ubuntu-latest
+    # Measured the same way: 35m22s on run 37717781284, almost all of it the image build.
     timeout-minutes: 45
 
     steps:
