@@ -83,8 +83,6 @@ Small, and none of it blocked on anybody but you.
 | **Keep client names out of the firm's own text** | Before clearing a methodology file or adding a skill reference, read it for a client's name. The EBITDA skill's worked examples named the synthetic fixture client, and every run for that client stopped on the outbound scan - correctly. | The scan reads the firm's text beside the payload. A reference naming a real past client would stop every run for that client, and the fix is the file. Precedent is the place approved examples live, masked; a reference is not. |
 | **Clear the methodology** | Read the ten files under `foundations/` - the firm's three, the valuation group's six (P167), the non-ESOP segment's one - and clear each one at `/admin`. Half an hour. | Until somebody does, preflight fails and no run can start. Doing it here is also the rehearsal for doing it at work. |
 | **Set up one engagement end to end** | Initialise the environment at `/admin`, add a watch, a destination and one engagement with a synthetic client folder. | It is the only way to find out whether the dashboard makes sense to somebody who did not build it - which is the question, and you are the closest available reader. |
-| **A real Redis, once** | Start a server and run `pytest --redis`. | The queue adapter has only ever run against an in-memory fake. |
-| **Postgres, once** | `pytest --postgres` against a local server. | Sixty-five store conformance tests are green on one backend of two. |
 
 ---
 
@@ -422,6 +420,8 @@ deleted - a decision nobody can find later is one that gets made again.*
 
 | Date | What | Where it is recorded |
 |---|---|---|
+| 2026-10-08 | **Postgres, run at last.** The 65 store conformance tests executed against a real Postgres 17 and passed - and getting there found that `precedent` could never have been created on Postgres at all (`masked = 1 OR masked = true`, which that backend refuses while planning the CREATE TABLE). | The `verify` job of run 37729399616; B-185 and B-189 in [`backlog.md`](../knowledge/backlog.md); `tests/p176` and `tests/checkpoints/c101` |
+| 2026-10-08 | **A real Redis, run at last.** The 8 queue adapter tests ran against a real Redis 7 rather than the in-memory fake, and passed. | The same job; B-189 |
 | 2026-09-04 | P26 signed off | `BUILD/plan.json`, and the closed-phase list in STATE.md |
 | 2026-09-04 | Prove the container on this machine before tailoring at work | This file, §1 |
 | 2026-09-05 | Power Automate sits outside the boundary: notify and move files, never drive | This file, §5 |

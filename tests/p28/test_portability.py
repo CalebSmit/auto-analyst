@@ -14,7 +14,7 @@ from pathlib import Path
 import yaml
 
 import ports
-from tests.conftest import needs_a_checkout
+from tests.conftest import needs_a_checkout, what_failed_inside
 
 ROOT = Path(__file__).resolve().parents[2]
 HANDOFF = ROOT / "HANDOFF.md"
@@ -304,7 +304,7 @@ def test_the_image_is_built_and_the_suite_runs_inside_it(container_runtime: str)
         timeout=3600,
         check=False,
     )
-    assert run.returncode == 0, run.stdout[-8000:] + run.stderr[-4000:]
+    assert run.returncode == 0, what_failed_inside(run.stdout, run.stderr)
     assert "passed" in run.stdout + run.stderr, "the suite ran on the image's interpreter"
 
 

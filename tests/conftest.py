@@ -480,3 +480,31 @@ def _container_summary(terminalreporter: Any) -> None:
         "Engine - Docker Desktop is not required - then re-run with --container.",
         yellow=True,
     )
+
+
+def what_failed_inside(stdout: str, stderr: str, tail: int = 2500) -> str:
+    """A message that names the test that failed inside a container run.
+
+    The assertion used to be `run.stdout[-8000:]`, and the last 8,000 characters of a
+    pytest run are its *skip* report - so an image whose suite had one failure reported
+    `1 failed, 5097 passed` and then eight thousand characters of skip reasons, and the
+    name of the failing test had scrolled off the front. Diagnosing it meant deducing
+    which test it must have been from what had changed, which is guessing.
+
+    Pytest already prints the answer on lines beginning `FAILED` or `ERROR`. Those go
+    first, then the counts, then a tail for whatever context is left.
+    """
+    whole = stdout + stderr
+    named = [
+        line
+        for line in whole.splitlines()
+        if line.startswith(("FAILED", "ERROR ")) or line.lstrip().startswith("E   ")
+    ]
+    counts = [line for line in whole.splitlines() if " passed" in line or " failed" in line]
+    parts = []
+    if named:
+        parts.append("what failed inside:\n" + "\n".join(named[:40]))
+    if counts:
+        parts.append("the run said:\n" + "\n".join(counts[-3:]))
+    parts.append("the tail:\n" + whole[-tail:])
+    return "\n\n".join(parts)

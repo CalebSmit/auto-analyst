@@ -5084,6 +5084,30 @@
       ],
       "notes": "",
       "closed": "2026-10-07"
+    },
+    {
+      "id": "P177",
+      "title": "Green today, red tomorrow",
+      "block": "Reading what a client actually sends",
+      "gate": "auto",
+      "status": "done",
+      "intent": "A clone of this repository with no test run behind it can run the verifier and get a green answer, today and tomorrow, on Windows and on Linux. Nothing generated carries the day it was generated on, no step of the verifier depends on a file that only the suite writes, and no test asserts a fact about the platform that this build did not decide.",
+      "builds": [],
+      "tasks": [
+        "No generated file in BUILD carries the date it was generated, so a green check stays green the next day",
+        "Every step of the verifier runs on a clone that has never run the suite, and the recipe surface is collected without requiring a deployment register",
+        "No test asserts what the platforms mime table knows rather than what this build declares"
+      ],
+      "exit": [
+        "verify.py --fast is green on a clone of this repository that has never run the test suite, and still green when the date changes",
+        "The Postgres and Redis job and the container job both pass on the remote"
+      ],
+      "checks": [
+        "python -m uv run pytest tests/p177 -q",
+        "python -m uv run pytest tests/p155 tests/p169 -q"
+      ],
+      "notes": "",
+      "closed": "2026-10-08"
     }
   ],
   "checkpoints": [
@@ -6198,6 +6222,17 @@
         "python -m uv run pytest tests/checkpoints/c101 -q"
       ],
       "closed": "2026-10-07"
+    },
+    {
+      "id": "C102",
+      "title": "Checks a clean machine can pass",
+      "after": "P177",
+      "status": "done",
+      "proves": "Every check this build runs is one a machine with nothing but the tracked files can pass, and pass again tomorrow: nothing generated under BUILD carries the day it was generated, the surface collector answers the same thing with no approval register present as with one, every read of a path the image does not ship is guarded by a question about that same path rather than about some other absence, and a failure inside the image names the test that failed.",
+      "checks": [
+        "python -m uv run pytest tests/checkpoints/c102 -q"
+      ],
+      "closed": "2026-10-08"
     }
   ]
 }

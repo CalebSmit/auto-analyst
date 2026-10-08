@@ -546,6 +546,56 @@ back `proved` on a run in which nothing executed. The thing checking the checks 
 checking. It found one real false pass once corrected, in a rewritten prior-phase test whose
 name claimed more than it asked.
 
+**It ran, and then it told us four things (P177).** With the bound raised, the Postgres job
+finished for the first time in this repository's life - 31m44s - and said
+`POSTGRES RAN - 65 store conformance test(s)` and `REDIS RAN - 8 queue adapter test(s)`,
+both green. Two sentences this build had been writing as plans since P04 are evidence now.
+
+Then it failed on four things, and every one had been true for weeks while passing on the
+machine it was written on. That is the whole lesson of the phase, so they are listed as one:
+
+- **A green commit went red the next morning.** `BUILD/STATE.md` carried `*Last written
+  <today>*`, and the `state` step runs `gate render` and fails if `BUILD/` came back
+  changed. Both halves are right and together they are a 24-hour fuse: render a day later
+  and the file differs, so the verifier reports `state was stale` about a file nobody
+  touched - on every machine, since the gate was written. Nothing had ever run that check a
+  day after a commit. CI did, by being a day late. The line is `last_moved(plan)` now, so
+  the render is a function of the plan and nothing else.
+- **The first step asked a gate a question about bytes.** `tools/surfaces.py` snapshots what
+  each recipe *declares* and did it through `load_recipe`, which refuses a recipe the board
+  has not approved. Approval lives in `recipes/registered.yaml` - gitignored on purpose, and
+  written by a session fixture - so **no clone could reach step two**, and this machine never
+  noticed because that file had been lying in the working tree since September. Split now:
+  `declared_in(path)` is what the file says, `load_recipe(name)` is that plus the gate. Not
+  an exemption flag, which `load_recipe` deliberately refuses to have; a second function with
+  a narrower job, held to one allowlisted caller by `tests/p33`.
+- **A test asserted what the host's mime table happens to know** - that the platform does
+  *not* know `webp`, true on Windows and in a slim image and false on an Ubuntu runner. Its
+  own message said *if the platform learns webp, this line is stale rather than wrong*. The
+  claim is made directly now: `mimetypes` is patched to answer wrongly for everything and the
+  declared table is unmoved.
+- **A guard about something other than what it guards.** Two tests here read
+  `.github/workflows/verify.yml`, which the image does not ship. One had no guard and was the
+  single failure inside an image of 5,097 passing tests. The other called `needs_a_checkout`,
+  which asks about `.git` - a different absence that happens to coincide. P175's scan could
+  not catch either, because it opens `if "needs_a_checkout(" not in text: continue` and so
+  asks whether the guard comes *first*, never whether a file needs one. `tests/p177` asks the
+  rule that covers both: **a read of a path the image does not ship is guarded by a condition
+  that names that path.**
+
+Two about method, both found by chasing a result that did not make sense instead of
+accepting it. The portability assertion printed `run.stdout[-8000:]`, and the last eight
+thousand characters of a pytest run are its *skip report* - so the image's one failure could
+not name itself and had to be deduced. And `revert_lib` decided a file's line endings by
+asking whether CRLF appeared anywhere in it, which a **mixed** file defeats; it called a
+sound break `NO MATCH`. Anything appended to a file here must match that file's endings.
+
+The thing worth keeping: **a check is only a check where it can run.** All four of these
+passed locally and could only fail somewhere else - on a clone, in an image, on Linux, or
+tomorrow. `tests/checkpoints/c102` builds a tree out of `git ls-files` alone and runs the
+verifier's collectors inside it, which is the only way to ask that question without
+accidentally including whatever this working tree has had lying around for a month.
+
 **The model-setup skill has a place to land.** Section 8 of `docs/WORK-LAPTOP.md` says where
 (`skills/valuation/_group/model-setup/`), what its front matter must declare, which slot each
 of its two paths fills (`model-load`; `prior-year-rollforward`), and that everything in it

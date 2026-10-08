@@ -43,11 +43,24 @@ IMAGE = 36  # 35m22s: build the image and run the container half inside it
 CEILING = 120
 
 
-def spec() -> dict:
-    yaml = pytest.importorskip("yaml")
+def workflow_text() -> str:
+    """The workflow's text, or a skip.
+
+    Every question in this file is a question about the repository, and `.github/` is in
+    `.dockerignore` because an image is the built thing rather than the repository that
+    built it. One test here read the file directly instead of coming through this, and so
+    was the single failure inside the image on the run that introduced it - which is P175's
+    finding exactly, committed by the phase that had just finished reading about it. Every
+    read goes through one door now, so there is no second place to forget.
+    """
     if not WORKFLOW.is_file():
         pytest.skip(".github is not shipped in the image; this is a question about the repo")
-    return yaml.safe_load(WORKFLOW.read_text())
+    return WORKFLOW.read_text()
+
+
+def spec() -> dict:
+    yaml = pytest.importorskip("yaml")
+    return yaml.safe_load(workflow_text())
 
 
 def runs(job: dict) -> str:
@@ -110,10 +123,10 @@ def test_the_measurement_is_written_down_beside_the_bound() -> None:
     because the other job's bound cites the same run - so the question has to be asked of
     each job's own lines. The revert harness said so.
     """
-    said = WORKFLOW.read_text()
+    text = workflow_text()
     jobs = {
-        "verify": said.split("  verify:", 1)[1].split("  container:", 1)[0],
-        "container": said.split("  container:", 1)[1],
+        "verify": text.split("  verify:", 1)[1].split("  container:", 1)[0],
+        "container": text.split("  container:", 1)[1],
     }
     for name, block in jobs.items():
         assert "37717781284" in block, (

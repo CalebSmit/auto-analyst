@@ -153,11 +153,14 @@ def skills_surface() -> dict[str, Any]:
 
 
 def recipes_surface() -> dict[str, Any]:
-    from graph.recipes import load_recipe, recipe_names
+    # `declared_in`, not `load_recipe`: a snapshot of what the recipe files declare is not
+    # a request to run one, and asking the registration gate for it made the first step of
+    # `verify.py` refuse on any clone that had never run the suite. See `graph.recipes`.
+    from graph.recipes import RECIPES_DIR, declared_in, recipe_names
 
     found: dict[str, Any] = {}
     for name in recipe_names():
-        recipe = load_recipe(name)
+        recipe = declared_in(RECIPES_DIR / f"{name}.yaml")
         found[recipe.key] = {
             "steps": [s.id for s in recipe.steps],
             "skills": [s.skill for s in recipe.steps if s.skill],
@@ -175,7 +178,7 @@ def plans_surface() -> dict[str, Any]:
     one line moves whenever any of them does, and names which recipe changed.
     """
     from graph.compile import PlanContext, compile_recipe
-    from graph.recipes import load_recipe, recipe_names
+    from graph.recipes import RECIPES_DIR, declared_in, recipe_names
     from graph.resolve import ScopeResolver
 
     scope = ScopeResolver().resolve(SAMPLE_SCOPE)
@@ -194,7 +197,7 @@ def plans_surface() -> dict[str, Any]:
         "skills_resolved": list(scope.names),
     }
     for name in recipe_names():
-        plan = compile_recipe(load_recipe(name), context)
+        plan = compile_recipe(declared_in(RECIPES_DIR / f"{name}.yaml"), context)
         found[name] = {
             "plan_hash": plan.plan_hash,
             "order": list(plan.order),

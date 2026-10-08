@@ -3957,3 +3957,133 @@ somebody else's commit. The fix is small and has two halves: `gate seal` should 
 placeholder only if no integration test for that checkpoint exists, and closing a checkpoint
 should delete the placeholder it replaced. A test should then hold *no checkpoint directory
 contains a file claiming its checkpoint is unwritten*.
+
+## B-189 The Postgres and Redis paths, run at last
+status: fixed (P176, P177)
+2026-10-08. Recorded as a result rather than a defect, because it is the thing twenty-three
+red CI runs were in the way of. The job that had never once finished reported, in its own
+words:
+
+    POSTGRES RAN - 65 store conformance test(s) against .../analyst_test
+    REDIS RAN - 8 queue adapter test(s) against redis://localhost:6379/15
+
+Both green. The store had been documented as one URL away from Postgres since P04 and the
+summary had been saying *this suite is green on one backend of two* on every run since; the
+queue adapter had only ever run against an in-memory fake. Those two sentences are now
+evidence instead of a plan. The job took 31m44s inside the 60 minutes B-186 measured for it.
+
+## B-190 A green commit that goes red the next morning
+status: fixed (P177)
+2026-10-08. `BUILD/STATE.md` carried `*Last written <today>*`, written by `gate render`
+from `date.today()`. `verify.py`'s `state` step runs `gate render` and fails if `BUILD/`
+came back changed - which is the right check, because a stale generated file is a plan
+disagreeing with itself.
+
+With the clock in the output those two are incompatible. Render on the day of the commit
+and nothing moves; render the next day and `STATE.md` is different, so the verifier reports
+`STATE WAS STALE - render rewrote BUILD/STATE.md` about a file nobody has touched. **Every
+commit that was green went red the following morning, on every machine, and had done since
+the gate was written.** Nothing caught it because nothing had ever run the check a day after
+a commit. The first CI job that ran to completion did, by being a day late.
+
+The line is the last date the *plan* records now - `last_moved(plan)`, the newest `closed`
+date among phases and checkpoints - so the render is a function of the plan and nothing
+else. The useful fact was never the render time: the render is in sync with the plan by
+construction and `verify` is what proves it, while what a reader wants is how current the
+build is.
+
+Held two ways, because inspecting the output is not the same as proving the property:
+`tests/p177` asserts no generated file contains today's date unless the plan records it,
+*and* runs `gate render` in a copy under a faked clock a year ahead and compares the bytes.
+
+## B-191 A gate asked a question about bytes on disk
+status: fixed (P177)
+2026-10-08. `tools/surfaces.py` snapshots what every recipe declares - steps, skills,
+loops, required types - and it did so through `load_recipe`, which refuses any recipe the
+board has not approved. Approval lives in `recipes/registered.yaml`, which git ignores
+deliberately (an approval is a per-machine record of a person having approved something, and
+shipping one would ship a decision nobody made) and which the test suite writes through a
+session fixture.
+
+`surfaces` is the **first** step `verify.py` runs, in its own process, before any fixture
+exists. So a clone could not reach step two, and the refusal it printed was a correct and
+completely misleading sentence about an unapproved workflow. This machine never noticed
+because that file had been in the working tree since 22 September.
+
+The fix separates two questions that were one function: `declared_in(path)` is *what does
+this file declare*, a fact about bytes; `load_recipe(name)` is that plus *may this run on
+client work*, which is the gate. It is explicitly **not** an exemption flag -
+`load_recipe`'s own docstring refuses one, on the grounds that a flag makes a guarantee a
+property of which code path you came down - it is a second function with a narrower job and
+no way to ask it the gated question. What keeps it honest is `tests/p33`, which already held
+the client-work path to `load_recipe` and now holds the ungated half to an allowlist of one
+file, with the reason beside it.
+
+## B-192 A test that asserted what the host's mime table happens to know
+status: fixed (P177)
+2026-10-08. `tests/p155` asserted `mimetypes.guess_type("page.webp")[0] is None`, as the
+evidence that this build's declared extension table is load-bearing rather than
+belt-and-braces. That is true on Windows and in a slim image, which installs no
+`/etc/mime.types`, and false on an Ubuntu runner, which does. So it failed on the first
+remote job that ran the suite to completion and passed everywhere it had ever been run.
+
+Its own message admitted the problem - *if the platform learns webp, this line is stale
+rather than wrong*. A test one host away from stale is asserting something this build did
+not decide, which is the opposite of the point it was making.
+
+The claim is made directly now, and it is stronger: `mimetypes.guess_type` is patched to
+answer `application/x-wrong` for everything, and every extension in the declared table
+still comes back as the type this build declares, while an extension outside the table
+comes back as the host's answer. That holds on a host that knows webp, one that does not,
+and one that is wrong about it.
+
+## B-193 A guard about something other than the thing it guards
+status: fixed (P177)
+2026-10-08. Two tests written in this block read `.github/workflows/verify.yml`, which the
+image does not ship, and both got the guard wrong in a different way.
+
+One had **no guard at all** and raised `FileNotFoundError` inside the image - the single
+failure in a run of 5,097 passing tests. The other called `needs_a_checkout`, which asks
+whether there is a `.git` directory: in the image there is neither a checkout nor a
+`.github`, so it skipped for the right reason by accident. Those are two different
+absences, and a tarball with `git init` run in it has one and not the other.
+
+**P175's scan could not have caught either.** It opens with
+
+    if "needs_a_checkout(" not in text: continue
+
+so it asks, of the files that already use the guard, whether the call comes first - and
+never asks which files need one. A file with no guard anywhere is not examined, which is
+the only case that matters. `tests/p177` asks the rule that covers both: *a read of a path
+the image does not ship is guarded by a condition that names that path.* The revert harness
+proves it against both original bugs.
+
+The second one was found by hiding `.github` and running the tests, which took a minute and
+is the thing neither scan was doing. It is worth doing to the other excluded paths.
+
+## B-194 A container failure that could not name itself
+status: fixed (P177)
+2026-10-08. The image's suite reported `1 failed, 5097 passed, 307 skipped` and the host
+assertion that surfaced it printed `run.stdout[-8000:]` - and the last eight thousand
+characters of a pytest run are its **skip report**. So the name of the failing test had
+scrolled off the front, and working out which test it was meant reasoning from what had
+changed in the commit. That is guessing, about the one test whose whole job is to say what
+happened inside the image.
+
+`what_failed_inside` in `tests/conftest.py` leads with the lines pytest already prints for
+the purpose - the ones beginning `FAILED` or `ERROR` - then the counts, then a tail. Used by
+both `tests/p28` and `tests/checkpoints/c10`.
+
+## B-195 A revert harness defeated by a mixed-ending file
+status: fixed (P177)
+2026-10-08. `revert_lib.py` decided a file's line endings by asking whether `\r\n` appeared
+anywhere in it, and converted its search text to match. This working tree is CRLF (git
+stores LF and converts on checkout), so anything appended with a heredoc arrives LF and
+leaves the file **mixed** - at which point the conversion is wrong for half the file and a
+sound break is reported as `NO MATCH`.
+
+It fails in the quieter direction than [B-187] did - a guard never exercised rather than one
+falsely proved - but it is the same class, and both were found the same way: by a result
+that did not make sense being chased rather than accepted. The harness tries both forms now
+and reports both counts when neither matches. Four files appended to in this session were
+mixed and have been made consistent.

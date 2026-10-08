@@ -3,7 +3,7 @@
 *Generated from `BUILD/plan.json` by `tools/gate.py`. Do not edit by hand -
 use `gate amend`, so the reason for every change is captured with the change.*
 
-**176 of 176 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
+**177 of 177 phases closed.** A phase closes only when `gate close` runs its checks and they pass.
 
 Checkpoints re-run every prior phase together plus an integration test of their own.
 A red checkpoint blocks the next phase - it means the phases disagree with each other.
@@ -285,6 +285,8 @@ A red checkpoint blocks the next phase - it means the phases disagree with each 
 | [x] | **C100 - Run rather than read** | integration | Every tool in this repository reaches uv by asking which one is installed rather than assuming, the image ships no compiled file from the machine that built it, and every test that asks a question about the repository says so before it reads anything - with the skip proved to fire only where there is no checkout, so the same tests still run on a developer machine and in the verify job. | 2026-10-07 |
 | [x] | **P176** A table that could not exist on Postgres | auto | Every CheckConstraint in ops/models.py parses on both backends, asserted by compiling the schema for each dialect | 2026-10-07 |
 | [x] | **C101 - Both backends, and the time to prove it** | integration | Every DDL statement create_all would send to either backend is one that backend can parse - no boolean column compared to a number in anything Postgres is sent, and the SQLite trigger still comparing that flag the way SQLite compares booleans, so the two cannot be flattened to one literal; the guarantee that only a human decision writes precedent is installed as DDL on both backends with the codes the rest of the build reports; and the job that runs the suite twice against a real server is bounded by what its own run line asks for, with every flag on that line one the verifier actually takes. | 2026-10-07 |
+| [x] | **P177** Green today, red tomorrow | auto | verify.py --fast is green on a clone of this repository that has never run the test suite, and still green when the date changes | 2026-10-08 |
+| [x] | **C102 - Checks a clean machine can pass** | integration | Every check this build runs is one a machine with nothing but the tracked files can pass, and pass again tomorrow: nothing generated under BUILD carries the day it was generated, the surface collector answers the same thing with no approval register present as with one, every read of a path the image does not ship is guarded by a question about that same path rather than about some other absence, and a failure inside the image names the test that failed. | 2026-10-08 |
 
 ## A run that finishes
 

@@ -1,12 +1,12 @@
 # Build state
 
 *Generated. This file is the cursor - read it before doing anything else in this repo.*
-*Last written 2026-10-07.*
+*The build last moved 2026-10-08.*
 
 ## Where the build is
 
-- **176 of 176 phases closed**
-- Last green checkpoint: **C101**
+- **177 of 177 phases closed**
+- Last green checkpoint: **C102**
 - **Every phase is closed and every checkpoint is green.** What is left is on [`OPEN.md`](OPEN.md), and it belongs to a person.
 
 ## Before you start
@@ -195,4 +195,5 @@
 - **P174** The first thing a new machine says (2026-10-07)
 - **P175** Checks that have never been green (2026-10-07)
 - **P176** A table that could not exist on Postgres (2026-10-07)
+- **P177** Green today, red tomorrow (2026-10-08)
 

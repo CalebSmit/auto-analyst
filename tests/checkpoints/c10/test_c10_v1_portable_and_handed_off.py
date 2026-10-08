@@ -29,7 +29,7 @@ from pathlib import Path
 import pytest
 
 import ports
-from tests.conftest import needs_a_checkout
+from tests.conftest import needs_a_checkout, what_failed_inside
 from tests.p28.test_portability import (
     ENV_PATTERN,
     MANAGED_SERVICE_IMPORTS,
@@ -173,5 +173,5 @@ def test_the_image_builds_and_the_whole_suite_passes_inside_it(
         [container_runtime, "run", "--rm", "automated-analyst:c10"],
         cwd=clone, capture_output=True, text=True, timeout=5400, check=False,
     )
-    assert run.returncode == 0, run.stdout[-8000:] + run.stderr[-4000:]
+    assert run.returncode == 0, what_failed_inside(run.stdout, run.stderr)
     assert "passed" in run.stdout or "passed" in run.stderr

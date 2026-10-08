@@ -41,7 +41,6 @@ import pytest
 from sqlalchemy import create_mock_engine
 
 from ops.models import Base
-from tests.conftest import needs_a_checkout
 
 ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW = ROOT / ".github" / "workflows" / "verify.yml"
@@ -137,7 +136,13 @@ def test_the_job_that_proves_it_can_finish() -> None:
     one `verify.py` actually parses, because a bound sized for a command that does not run
     is no better than the bound that was there.
     """
-    needs_a_checkout("the bounds in the CI workflow")
+    # Guarded on the file this reads, not on `.git`. It used to call `needs_a_checkout`,
+    # which asks whether there is a checkout - and in the image there is neither a checkout
+    # nor a `.github`, so it skipped for the right reason by luck. They are two different
+    # absences: a tarball with `git init` run in it has a checkout and no workflows, and
+    # this failed there. Ask about the thing you are about to read.
+    if not WORKFLOW.is_file():
+        pytest.skip(".github is not shipped in the image; this is a question about the repo")
     yaml = pytest.importorskip("yaml")
     spec = yaml.safe_load(WORKFLOW.read_text())
 

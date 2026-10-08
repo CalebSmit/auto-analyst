@@ -72,6 +72,22 @@ def today() -> str:
     return dt.date.today().isoformat()
 
 
+def last_moved(plan: dict[str, Any]) -> str:
+    """The most recent date the plan itself records, for a generated file to carry.
+
+    Deliberately a function of the plan and nothing else, so that rendering twice a day
+    apart produces the same bytes. If nothing has closed yet there is no such date, and
+    saying so beats inventing one.
+    """
+    dates = [
+        item["closed"]
+        for group in ("phases", "checkpoints")
+        for item in plan.get(group, [])
+        if item.get("closed")
+    ]
+    return max(dates) if dates else "not yet - nothing has closed"
+
+
 def find_phase(plan: dict[str, Any], pid: str) -> dict[str, Any]:
     pid = pid.upper()
     for p in plan["phases"]:
@@ -751,7 +767,22 @@ def render(plan: dict[str, Any]) -> None:
     B("# Build state")
     B("")
     B("*Generated. This file is the cursor - read it before doing anything else in this repo.*")
-    B(f"*Last written {today()}.*")
+    # The date the build last *moved*, out of the plan - not the date this file was
+    # rendered, which used to be `today()`.
+    #
+    # A generated file carrying the day it was generated on cannot be checked against the
+    # thing that generates it. `verify.py`'s state step runs `gate render` and fails if
+    # BUILD/ came back changed, which is the right check: a stale generated file is a plan
+    # disagreeing with itself. But with the clock in the output, render always came back
+    # changed the day after a commit - so every commit that was green went red the
+    # following morning, on every machine, forever, and the red said `state was stale`
+    # about a file nothing had touched. Found on the first Postgres job that ever ran to
+    # completion, one day after the commit that fixed its bound.
+    #
+    # The useful fact was never the render time anyway. The render is in sync with the plan
+    # by construction and `verify` is what proves it; what a reader wants to know is how
+    # current the *build* is, and that is the last date the plan records.
+    B(f"*The build last moved {last_moved(plan)}.*")
     B("")
     B("## Where the build is")
     B("")

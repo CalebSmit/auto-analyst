@@ -301,3 +301,42 @@ def test_a_clone_has_nothing_registered() -> None:
     assert "recipes/registered.yaml" not in tracked
     assert "recipes/registered.yaml" in (ROOT / ".gitignore").read_text(encoding="utf-8")
     assert "recipes/registered.yaml" in (ROOT / ".dockerignore").read_text(encoding="utf-8")
+
+
+def test_only_a_snapshot_reads_a_recipe_without_asking_the_register() -> None:
+    """The companion to the rule above, and the reason it is still a gate.
+
+    P177 split `declared_in` out of `load_recipe`, because *what does this file declare* and
+    *may this run on client work* are different questions and only the second is a gate.
+    That split is worth exactly as much as the rule that nothing on the client-work path
+    uses the ungated half - without this, `declared_in` is the exemption flag `load_recipe`
+    deliberately does not have, wearing a function name.
+
+    The allowlist is one file and it is here with its reason rather than in a config
+    somewhere: `tools/surfaces.py` records the declared shape of every recipe, which is a
+    fact about bytes on disk, and routing that through the gate made the first step of
+    `verify.py` refuse on every clone that had not run the test suite.
+    """
+    allowed = {
+        # why it may: it snapshots what the files declare and runs nothing
+        "tools/surfaces.py",
+        # where it is defined
+        "graph/recipes.py",
+    }
+    offenders = []
+    for path in ROOT.rglob("*.py"):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel.startswith((".venv/", "tests/")) or rel in allowed:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            named = getattr(node.func, "id", None) or getattr(node.func, "attr", None)
+            if named == "declared_in":
+                offenders.append(f"{rel}:{node.lineno}")
+    assert not offenders, (
+        f"these read a recipe without asking whether it is approved: {offenders}. "
+        f"Client work goes through load_recipe; if one of these is a snapshot, say so in "
+        f"the allowlist in this test with the reason."
+    )

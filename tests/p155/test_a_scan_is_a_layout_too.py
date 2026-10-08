@@ -363,8 +363,19 @@ def test_an_image_is_routed_to_a_reader_rather_than_nowhere() -> None:
     the whole point of `BY_EXTENSION`: the same bytes must get the same type on every host,
     and `mimetypes` reads a registry that differs between machines. Removing `.png` from the
     table left this test green when it only checked the answer, because this host's
-    `mimetypes` happens to know PNG - and does *not* know `.webp`, which is the measurement
-    that shows the table is load-bearing rather than belt-and-braces.
+    `mimetypes` happens to know PNG.
+
+    **Showing the table is load-bearing used to be a claim about this host.** The line was
+    `mimetypes.guess_type("page.webp")[0] is None` - true on Windows and in a slim image,
+    false on an Ubuntu runner with `/etc/mime.types` installed, so it failed on the first
+    remote job that ever ran the suite to completion and passed everywhere it had been run
+    before. Its own message admitted the problem: *if the platform learns webp, this line is
+    stale rather than wrong*. A test that is one host away from stale is a test asserting
+    something this build did not decide, which is the opposite of the point being made.
+
+    So the claim is made directly instead, and it is a stronger one: the platform is made to
+    lie about every declared extension, and the table is unmoved. That holds on a host that
+    knows webp, a host that does not, and a host that is wrong about it.
     """
     import mimetypes
 
@@ -377,10 +388,22 @@ def test_an_image_is_routed_to_a_reader_rather_than_nowhere() -> None:
         assert mime_of(name) in READ, name
     assert mime_of("Trial balance.png") == "image/png"
     assert mime_of("statement.jpeg") == mime_of("statement.jpg") == "image/jpeg"
-    assert mimetypes.guess_type("page.webp")[0] is None, (
-        "if the platform learns webp, this line is stale rather than wrong - but the "
-        "declared table is what the other assertions rest on either way"
-    )
+
+    # The table decides, whatever the host says. Patched to a wrong answer rather than to
+    # None, because falling through to the platform would then be invisible: a declared
+    # extension that consulted `mimetypes` would come back with this and not with its own
+    # type, and every extension in the table is checked rather than one of them.
+    with pytest.MonkeyPatch.context() as patched:
+        patched.setattr(mimetypes, "guess_type", lambda *a, **kw: ("application/x-wrong", None))
+        for extension, declared in BY_EXTENSION.items():
+            assert mime_of(f"anything{extension}") == declared, (
+                f"{extension} came back as something other than the type this build "
+                f"declares, so the host's table is deciding and not ours"
+            )
+        assert mime_of("mystery.zzz") == "application/x-wrong", (
+            "an extension outside the table should still get whatever the host knows; "
+            "this fall-through is what the declared table exists to sit in front of"
+        )
 
 
 def test_the_two_lists_of_image_formats_name_the_same_thing() -> None:

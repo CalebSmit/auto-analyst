@@ -44,6 +44,7 @@ __all__ = [
     "Recipe",
     "RecipeInput",
     "RecipeStep",
+    "declared_in",
     "load_recipe",
     "recipe_names",
 ]
@@ -167,11 +168,35 @@ def load_recipe(
 
         (register or RecipeRegister()).require(name, digest_of_recipe(path))
 
+    return declared_in(path)
+
+
+def declared_in(path: Path) -> Recipe:
+    """What a recipe file declares, with no question asked about deployment.
+
+    Split out of `load_recipe` because the two are different questions and only one of them
+    is a gate. *What does this file declare* is a fact about bytes on disk; *may this run on
+    client work* is a decision somebody recorded in `recipes/registered.yaml` - which is
+    gitignored, because an approval is a per-machine record of a person having approved
+    something, and shipping one would be shipping a decision nobody made.
+
+    Conflating them cost a month of red checks. `tools/surfaces.py` snapshots the declared
+    shape of every recipe - steps, skills, loops, required types, none of it about approval
+    - and it did so through `load_recipe`, so the *first* step of the verifier refused on
+    any clone that had not run the test suite. It passed on developer machines only because
+    the suite's own fixture had written a register there months earlier. The first CI job
+    that ever got far enough to run it failed on step one.
+
+    This is not an exemption flag, which `load_recipe` deliberately does not have: it is a
+    second function with a narrower job and no way to ask it the gated question. What keeps
+    it honest is that `tests/p33` holds the client-work path to `load_recipe`, by name, and
+    allows this one only where a snapshot is being taken.
+    """
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise RegistryError(diagnose(RECIPE_INVALID, "not a mapping", locator=str(path)))
 
-    locator = f"{recipes_dir.name}/{path.name}"
+    locator = f"{path.parent.name}/{path.name}"
     steps = tuple(_step(entry, locator) for entry in raw.get("steps") or ())
     if not steps:
         raise RegistryError(diagnose(RECIPE_INVALID, "declares no steps", locator=locator))
